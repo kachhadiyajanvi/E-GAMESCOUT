@@ -1,0 +1,202 @@
+/* Glassmorphism Utilities */
+.glass-card {
+    background: rgba(31, 40, 51, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(102, 252, 241, 0.1);
+}
+
+.glass-card:hover {
+    border: 1px solid rgba(102, 252, 241, 0.3);
+    box-shadow: 0 0 20px rgba(102, 252, 241, 0.1);
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, #66FCF1 0%, #45A29E 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.bg-grid-pattern {
+    background-image:
+        linear-gradient(to right, rgba(102, 252, 241, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(102, 252, 241, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* Hero Animations */
+.perspective-2000 {
+    perspective: 2000px;
+}
+
+.transform-style-3d {
+    transform-style: preserve-3d;
+}
+
+.card-3d {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+}
+
+.card-3d:hover {
+    transform: translateY(-10px) rotateX(5deg) scale(1.05);
+    box-shadow: 0 20px 50px rgba(102, 252, 241, 0.2);
+    z-index: 50;
+}
+
+.text-glow {
+    text-shadow: 0 0 20px rgba(102, 252, 241, 0.5);
+}
+
+.cyber-grid-floor {
+    background-image:
+        linear-gradient(to right, rgba(102, 252, 241, 0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(102, 252, 241, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    transform: perspective(500px) rotateX(60deg);
+    transform-origin: center top;
+    opacity: 0.2;
+    mask-image: linear-gradient(to bottom, black, transparent);
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in-left {
+    animation: fadeInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-slow {
+    animation: float 8s ease-in-out infinite reverse;
+}
+
+.animate-pulse-slow {
+    animation: pulseSlow 4s ease-in-out infinite;
+}
+
+.animate-scanline {
+    animation: scanline 2s linear infinite;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes glitch {
+    0% {
+        transform: translate(0);
+    }
+
+    20% {
+        transform: translate(-2px, 2px);
+    }
+
+    40% {
+        transform: translate(-2px, -2px);
+    }
+
+    60% {
+        transform: translate(2px, 2px);
+    }
+
+    80% {
+        transform: translate(2px, -2px);
+    }
+
+    100% {
+        transform: translate(0);
+    }
+}
+
+.animate-glitch {
+    animation: glitch 1s cubic-bezier(.25, .46, .45, .94) both infinite;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes pulseSlow {
+
+    0%,
+    100% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+@keyframes scanline {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+/* Scroll Reveal CSS */
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Staggered Delays for Children */
+.delay-100 {
+    transition-delay: 0.1s;
+}
+
+.delay-200 {
+    transition-delay: 0.2s;
+}
+
+.delay-300 {
+    transition-delay: 0.3s;
+}
+
+.delay-400 {
+    transition-delay: 0.4s;
+}
