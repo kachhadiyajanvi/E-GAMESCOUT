@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Profile | E-Game Scout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Rajdhani', 'sans-serif'], display: ['Orbitron', 'sans-serif'] },
+                    colors: { 'brand-dark': '#0B0C10', 'brand-gray': '#1F2833', 'brand-light': '#C5C6C7', 'accent-cyan': '#66FCF1' }
+                }
+            }
+        }
+    </script>
+    <style>
+        .form-input {
+            width: 100%;
+            background-color: rgba(31, 40, 51, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            color: white;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #66FCF1;
+            box-shadow: 0 0 10px rgba(102, 252, 241, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-brand-dark text-white font-sans overflow-hidden h-screen flex items-center justify-center">
+
+    <div class="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,_#1a2b4b_0%,_#0B0C10_100%)] -z-10"></div>
+
+    <div
+        class="w-full max-w-lg p-8 bg-brand-gray/20 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(102,252,241,0.1)] relative">
+
+        <div class="text-center mb-6">
+            <h2 class="text-3xl font-display font-bold text-white mb-2 tracking-wide">PLAYER PROFILE</h2>
+            <p class="text-brand-light text-sm">Complete your registration to join the network.</p>
+        </div>
+
+        <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% csrf_token %}
+
+            <div class="md:col-span-2">
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Full Name</label>
+                {{ form.full_name }}
+            </div>
+
+            <div>
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Game UID</label>
+                {{ form.uid }}
+            </div>
+
+            <div>
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Mobile No</label>
+                {{ form.mobile_no }}
+            </div>
+
+            <div>
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Age</label>
+                {{ form.age }}
+                {% if form.age.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.age.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="flex items-end">
+                <span class="text-xs text-gray-500 mb-3">*Must be 16+</span>
+            </div>
+
+            <div class="md:col-span-2 mt-4">
+                <button type="submit"
+                    class="w-full py-3 bg-accent-cyan text-brand-dark font-display font-bold uppercase tracking-wider rounded-lg hover:bg-white hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(102,252,241,0.4)]">
+                    Activate Profile <i class="fa-solid fa-rocket ml-2"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+</html>

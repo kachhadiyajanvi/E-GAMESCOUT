@@ -1,5 +1,6 @@
 from django import forms
 from .models import Organization
+from .models import Player
 
 class OrganizationEmailForm(forms.Form):
     organization_email = forms.EmailField(
@@ -67,3 +68,39 @@ class OrganizationPhotoForm(forms.ModelForm):
                 'onchange': 'this.form.submit()'
             }),
         }
+
+class EmailLoginForm(forms.Form):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'w-full bg-brand-dark/50 border border-white/10 rounded-lg p-3 text-white focus:border-accent-cyan outline-none transition-colors placeholder-white/30', 
+            'placeholder': 'Enter your email'
+        }),
+        label="Email Address"
+    )
+
+class OTPVerifyForm(forms.Form):
+    otp_code = forms.CharField(
+        max_length=6,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full bg-brand-dark/50 border border-white/10 rounded-lg p-3 text-white focus:border-accent-cyan outline-none transition-colors placeholder-white/30 text-center tracking-[0.5em] text-xl font-mono', 
+            'placeholder': '000000'
+        }),
+        label="Enter Authentication Code"
+    )
+
+class PlayerRegistrationForm(forms.ModelForm):
+    class Meta:
+        model = Player
+        fields = ['full_name', 'uid', 'mobile_no', 'age']
+        widgets = {
+            'full_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Full Name'}),
+            'uid': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Game ID / UID'}),
+            'mobile_no': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Mobile Number'}),
+            'age': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': 'Age'}),
+        }
+
+    def clean_age(self):
+        age = self.cleaned_data.get('age')
+        if age < 16:
+            raise forms.ValidationError("You must be at least 16 years old to register.")
+        return age
