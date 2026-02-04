@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Game Scout | Organization Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-dark': '#0B0C10',
+                        'brand-gray': '#1F2833',
+                        'brand-light': '#C5C6C7',
+                        'accent-cyan': '#66FCF1',
+                        'accent-dark-cyan': '#45A29E',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+    <style>
+        /* Custom scrollbar for sidebar */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-brand-dark text-white font-sans selection:bg-accent-cyan selection:text-brand-dark h-screen overflow-hidden flex">
+
+    <!-- Global Grain Overlay -->
+    <div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[100]"
+        style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');">
+    </div>
+
+    <!-- Grid Background -->
+    <div class="fixed inset-0 bg-grid-pattern pointer-events-none -z-20"></div>
+
+    <!-- Sidebar -->
+    <aside
+        class="w-64 h-full bg-brand-dark/90 border-r border-white/5 flex flex-col z-50 transition-all duration-300 mobile-sidebar hidden md:flex">
+        <!-- Logo -->
+        <div class="p-6 border-b border-white/5 flex items-center gap-3">
+            <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-8 h-8 object-contain">
+            <span class="text-lg font-display font-bold text-white tracking-wider">E-GAME SCOUT</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-2 no-scrollbar">
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Main Menu</p>
+
+            <a href="{% url 'organizer_dashboard' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'organizer_dashboard' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i
+                    class="fa-solid fa-grid-2 text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Dashboard</span>
+            </a>
+
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors text-gray-400">
+                <i
+                    class="fa-solid fa-trophy text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Tournaments</span>
+            </a>
+
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors text-gray-400">
+                <i class="fa-solid fa-users text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Teams</span>
+            </a>
+
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors text-gray-400">
+                <i class="fa-solid fa-store text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Marketplace</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-widest mt-6 mb-2">Settings</p>
+
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors text-gray-400">
+                <i
+                    class="fa-solid fa-wallet text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Wallet</span>
+            </a>
+
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors text-gray-400">
+                <i class="fa-solid fa-gear text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Settings</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col h-full relative overflow-hidden">
+
+        <!-- Top Navbar -->
+        <header
+            class="h-20 border-b border-white/5 bg-brand-dark/50 backdrop-blur-md flex items-center justify-between px-6 z-40">
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-white text-xl mr-4" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <!-- Page Title -->
+            <div>
+                <h2 class="text-xl font-display font-bold text-white tracking-wider">DASHBOARD</h2>
+                <p class="text-xs text-gray-500 font-mono">Organization Portal</p>
+            </div>
+
+            <!-- Right Actions -->
+            <div class="flex items-center gap-6">
+                <!-- Search (Visual) -->
+                <div
+                    class="hidden md:flex items-center bg-black/20 border border-white/10 rounded-full px-4 py-2 w-64 focus-within:border-accent-cyan/50 transition-colors">
+                    <i class="fa-solid fa-search text-gray-500 text-sm"></i>
+                    <input type="text" placeholder="Search..."
+                        class="bg-transparent border-none outline-none text-sm text-white ml-2 w-full placeholder-gray-600">
+                </div>
+
+                <!-- Notifications -->
+                <button class="relative text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-bell text-xl"></i>
+                    <span class="absolute -top-1 -right-1 w-2 h-2 bg-accent-cyan rounded-full animate-pulse"></span>
+                </button>
+
+                <!-- Profile Management -->
+                <a href="{% url 'manage_profile' %}"
+                    class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
+                    title="Manage Profile">
+                    <div
+                        class="w-9 h-9 rounded-full bg-brand-gray flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-accent-cyan/50 transition-colors">
+                        {% if org.profile_photo %}
+                        <img src="{{ org.profile_photo.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <i class="fa-solid fa-user text-sm"></i>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+        </header>
+
+        <!-- Content Scroll Area -->
+        <main class="flex-1 overflow-y-auto p-6 md:p-8 relative">
+            <!-- Decoration Orbs -->
+            <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+                <div class="absolute top-10 right-10 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px]"></div>
+                <div class="absolute bottom-10 left-10 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px]"></div>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+            <div class="mb-6 w-full">
+                {% for message in messages %}
+                <div
+                    class="p-4 mb-2 text-sm rounded-lg backdrop-blur-md border {% if message.tags == 'error' %}bg-red-900/20 border-red-500 text-red-200{% else %}bg-green-900/20 border-green-500 text-green-200{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/80 z-40 hidden md:hidden backdrop-blur-sm"
+        onclick="toggleSidebar()"></div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.mobile-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('absolute', 'top-0', 'left-0', 'h-full', 'shadow-2xl');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('absolute', 'top-0', 'left-0', 'h-full', 'shadow-2xl');
+                overlay.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+
+</html>
