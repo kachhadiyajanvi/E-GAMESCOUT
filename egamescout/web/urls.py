@@ -27,4 +27,9 @@ urlpatterns = [
     
     # Utilities
     path('organization/resend-otp/', views.resend_otp, name='resend_otp'),
+    path('auth/login/', views.auth_login, name='auth_login'),
+    path('auth/verify/', views.auth_verify_otp, name='auth_verify_otp'),
+    path('auth/register/', views.auth_register_details, name='auth_register_details'),
+    path('dashboard/', views.player_dashboard, name='player_dashboard'),
+    path('auth/logout/', views.auth_logout, name='auth_logout'),
 ]

@@ -120,10 +120,10 @@
 
                     <div class="flex flex-col sm:flex-row gap-4 opacity-0 animate-fade-in-up"
                         style="animation-delay: 0.4s;">
-                        <button
+                        <a href="{% url 'auth_login' %}"
                             class="group relative px-6 py-3 rounded-full bg-accent-cyan text-brand-dark font-display font-bold flex items-center justify-center gap-3 transition-all hover:bg-white hover:scale-105 hover:shadow-[0_0_30px_rgba(102,252,241,0.6)]">
                             <span class="text-sm"><i class="fa-solid fa-gamepad mr-2"></i> JOIN AS PLAYER</span>
-                        </button>
+                        </a>
 
                         <a href="{% url 'org_register_start' %}"
                             class="group relative px-6 py-3 rounded-full bg-transparent border border-white text-white font-display font-bold flex items-center justify-center gap-3 transition-all hover:bg-white/10 hover:border-accent-cyan hover:text-accent-cyan">

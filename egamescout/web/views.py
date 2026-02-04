@@ -2,11 +2,145 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .forms import OrganizationEmailForm, OTPForm, OrganizationDetailsForm, OrganizationLoginForm
 from .models import Organization
-import random
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
+import random
+from django.core.mail import send_mail
+from .forms import EmailLoginForm, OTPVerifyForm, PlayerRegistrationForm
+from .models import Player, OTP
+
+def auth_login(request):
+    # Check if a verification flow is already in progress and verified
+    if request.session.get('auth_email') and request.session.get('otp_verified'):
+        # If verified, redirect based on player existence
+        if Player.objects.filter(email=request.session['auth_email']).exists():
+            player = Player.objects.get(email=request.session['auth_email'])
+            request.session['player_id'] = player.id
+            return redirect('player_dashboard')
+        else:
+            return redirect('auth_register_details')
+
+    is_register = request.GET.get('action') == 'register'
+
+    if request.method == 'POST':
+        form = EmailLoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            player_exists = Player.objects.filter(email=email).exists()
+            
+            # Logic Branching
+            if not is_register: # LOGIN FLOW
+                if not player_exists:
+                    messages.error(request, "This email is not registered. Please Register first.")
+                    # return redirect(f"{request.path}?action=register") # Removed redirect as requested
+                    return redirect('auth_login') # Refresh to show message
+            
+            else: # REGISTER FLOW
+                if player_exists:
+                    messages.info(request, "You are already registered. Please Login.")
+                    return redirect('auth_login')
+
+            # Generate OTP
+            otp_code = str(random.randint(100000, 999999))
+            
+            # Save OTP
+            OTP.objects.create(email=email, otp_code=otp_code)
+            
+            # Send Email
+            from django.template.loader import render_to_string
+            from django.utils.html import strip_tags
+            
+            html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code})
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                'Your E-Game Scout Code',
+                plain_message,
+                settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com',
+                [email],
+                fail_silently=False,
+                html_message=html_message
+            )
+            
+            # Store session
+            request.session['auth_email'] = email
+            request.session['otp_verified'] = False # Reset verification status
+            
+            messages.success(request, f'OTP sent to {email}')
+            return redirect('auth_verify_otp')
+    else:
+        form = EmailLoginForm()
+    
+    return render(request, 'web/login.html', {'form': form, 'is_register': is_register})
+
+def auth_verify_otp(request):
+    email = request.session.get('auth_email')
+    if not email:
+        return redirect('auth_login')
+        
+    if request.method == 'POST':
+        form = OTPVerifyForm(request.POST)
+        if form.is_valid():
+            otp_input = form.cleaned_data['otp_code']
+            
+            # Check OTP
+            otp_record = OTP.objects.filter(email=email, otp_code=otp_input).order_by('-created_at').first()
+            
+            if otp_record and otp_record.is_valid():
+                # OTP is valid
+                request.session['otp_verified'] = True # Mark as verified
+                
+                # Check if player exists
+                try:
+                    player = Player.objects.get(email=email)
+                    # Login User
+                    request.session['player_id'] = player.id
+                    return redirect('player_dashboard')
+                except Player.DoesNotExist:
+                    # New User -> Register Details
+                    return redirect('auth_register_details')
+            else:
+                messages.error(request, 'Invalid or Expired OTP')
+    else:
+        form = OTPVerifyForm()
+        
+    return render(request, 'web/verify_otp.html', {'form': form, 'email': email})
+
+def auth_register_details(request):
+    email = request.session.get('auth_email')
+    if not email:
+        return redirect('auth_login')
+        
+    if request.method == 'POST':
+        form = PlayerRegistrationForm(request.POST)
+        if form.is_valid():
+            player = form.save(commit=False)
+            player.email = email
+            player.status = 'ACTIVE' # Set active by default as requested
+            player.save()
+            
+            # Login User
+            request.session['player_id'] = player.id
+            messages.success(request, 'Registration Complete!')
+            return redirect('player_dashboard')
+    else:
+        form = PlayerRegistrationForm()
+        
+    return render(request, 'web/register_details.html', {'form': form, 'email': email})
+
+def player_dashboard(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    player = Player.objects.get(id=player_id)
+    return render(request, 'web/dashboard.html', {'player': player})
+
+def auth_logout(request):
+    request.session.flush()
+    return redirect('index')
 
 def index(request):
     return render(request, 'web/index.html')
