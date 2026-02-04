@@ -1,0 +1,54 @@
+{% extends 'web/org_base.html' %}
+
+{% block content %}
+<div class="w-full max-w-lg">
+    <div
+        class="glass-card p-8 rounded-xl border border-white/10 relative overflow-hidden group hover:border-accent-cyan/30 transition-all duration-300">
+        <!-- Header -->
+        <div class="mb-8 text-center">
+            <h2 class="text-3xl font-display font-bold text-white mb-2">COMPLETE PROFILE</h2>
+            <p class="text-gray-400 text-sm">Finalize your Organization setup</p>
+        </div>
+
+        <!-- Form -->
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-2">Organization
+                        Name</label>
+                    {{ form.Organization_Name }}
+                    {% if form.Organization_Name.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.Organization_Name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label
+                        class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-2">Username</label>
+                    {{ form.Organization_UserName }}
+                    {% if form.Organization_UserName.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.Organization_UserName.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-2">Contact
+                    Number</label>
+                {{ form.Organization_Contact }}
+                {% if form.Organization_Contact.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.Organization_Contact.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+
+
+            <button type="submit"
+                class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded transition-colors group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)] mt-6">
+                Register Organization
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

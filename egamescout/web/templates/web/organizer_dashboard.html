@@ -1,0 +1,100 @@
+{% extends 'web/dashboard_base.html' %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Welcome Section (Full Width) -->
+    <div class="md:col-span-3 mb-2">
+        <h1 class="text-3xl font-display font-bold text-white">
+            Welcome back, <span class="text-accent-cyan">{{ org.Organization_Name }}</span>
+        </h1>
+        <p class="text-gray-400 text-sm">Here's what's happening today.</p>
+    </div>
+
+    <!-- Stats Overview (2 Columns) -->
+    <div class="md:col-span-2 space-y-6">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div
+                class="glass-card p-4 rounded-xl border border-white/10 hover:border-accent-cyan/30 transition-all group">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-500 uppercase tracking-widest font-bold">Players</span>
+                    <i
+                        class="fa-solid fa-users text-accent-cyan opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                </div>
+                <p class="text-2xl font-display font-bold text-white">124</p>
+                <p class="text-[10px] text-green-400 mt-1"><i class="fa-solid fa-arrow-up"></i> +12% this week</p>
+            </div>
+
+            <div
+                class="glass-card p-4 rounded-xl border border-white/10 hover:border-accent-cyan/30 transition-all group">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-500 uppercase tracking-widest font-bold">Offers</span>
+                    <i
+                        class="fa-solid fa-envelope text-accent-cyan opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                </div>
+                <p class="text-2xl font-display font-bold text-white">5</p>
+                <p class="text-[10px] text-gray-500 mt-1">Pending review</p>
+            </div>
+
+            <div
+                class="glass-card p-4 rounded-xl border border-white/10 hover:border-accent-cyan/30 transition-all group">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-500 uppercase tracking-widest font-bold">Active</span>
+                    <i
+                        class="fa-solid fa-gamepad text-accent-cyan opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                </div>
+                <p class="text-2xl font-display font-bold text-white">3</p>
+                <p class="text-[10px] text-green-400 mt-1">Tournaments Live</p>
+            </div>
+
+            <!-- Scorecard AI Card -->
+            <a href="{% url 'scorecard_tool' %}" class="block">
+                <div
+                    class="glass-card p-4 rounded-xl border border-white/10 hover:border-accent-cyan/30 transition-all group cursor-pointer relative overflow-hidden">
+                    <div class="absolute inset-0 bg-accent-cyan/5 group-hover:bg-accent-cyan/10 transition-colors">
+                    </div>
+                    <div class="flex items-center justify-between mb-2 relative z-10">
+                        <span class="text-xs text-gray-500 uppercase tracking-widest font-bold">Scorecard AI</span>
+                        <i
+                            class="fa-solid fa-wand-magic-sparkles text-accent-cyan opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                    </div>
+                    <p class="text-sm font-display font-bold text-white relative z-10">Summarize Image</p>
+                    <div class="mt-2 relative z-10">
+                        <span
+                            class="text-[10px] bg-accent-cyan/20 text-accent-cyan px-2 py-1 rounded border border-accent-cyan/30">Upload</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Recent Activity / Chart Placeholder -->
+        <div class="glass-card p-6 rounded-xl border border-white/10">
+            <h3 class="text-lg font-display font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-accent-cyan"></i> Activity Analytics
+            </h3>
+            <div
+                class="h-64 bg-black/20 rounded border border-white/5 flex items-center justify-center text-gray-500 text-sm">
+                [Activity Chart Placeholder]
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Quick Actions -->
+    <div class="glass-card p-6 rounded-xl border border-white/10">
+        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Quick Actions</h3>
+        <div class="grid grid-cols-2 gap-3">
+            <button
+                class="p-3 bg-white/5 hover:bg-white/10 rounded flex flex-col items-center gap-2 group transition-colors">
+                <i class="fa-solid fa-plus text-accent-cyan group-hover:scale-110 transition-transform"></i>
+                <span class="text-[10px] text-gray-300 font-bold uppercase">New Event</span>
+            </button>
+            <button
+                class="p-3 bg-white/5 hover:bg-white/10 rounded flex flex-col items-center gap-2 group transition-colors">
+                <i class="fa-solid fa-user-plus text-accent-cyan group-hover:scale-110 transition-transform"></i>
+                <span class="text-[10px] text-gray-300 font-bold uppercase">Scout Player</span>
+            </button>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

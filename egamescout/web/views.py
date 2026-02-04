@@ -1,4 +1,387 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .forms import OrganizationEmailForm, OTPForm, OrganizationDetailsForm, OrganizationLoginForm
+from .models import Organization
+import random
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.conf import settings
 
 def index(request):
     return render(request, 'web/index.html')
+
+# --- Registration Flow ---
+
+def org_register_start(request):
+    if request.method == 'POST':
+        form = OrganizationEmailForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['organization_email']
+            # Generate OTP
+            otp = str(random.randint(100000, 999999))
+            request.session['reg_email'] = email
+            request.session['reg_otp'] = otp
+            
+            # Send OTP via Email
+            # Send OTP via Email (HTML + Text)
+            subject = 'E-Game Scout Registration OTP'
+            html_content = render_to_string('web/email_otp.html', {'otp': otp})
+            text_content = strip_tags(html_content)
+            
+            msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
+            
+            print(f"DEBUG: Registration OTP for {email}: {otp}") # Keep for dev backup
+            
+            return redirect('org_register_otp')
+    else:
+        form = OrganizationEmailForm()
+    
+    return render(request, 'web/org_register_start.html', {'form': form})
+
+def org_register_otp(request):
+    email = request.session.get('reg_email')
+    if not email:
+        return redirect('org_register_start')
+        
+    if request.method == 'POST':
+        form = OTPForm(request.POST)
+        if form.is_valid():
+            otp = form.cleaned_data['otp']
+            if otp == request.session.get('reg_otp'):
+                return redirect('org_register_details')
+            else:
+                messages.error(request, 'Invalid OTP')
+    else:
+        form = OTPForm()
+    
+    return render(request, 'web/org_register_otp.html', {'form': form, 'email': email})
+
+def org_register_details(request):
+    email = request.session.get('reg_email')
+    if not email:
+        return redirect('org_register_start')
+        
+    if request.method == 'POST':
+        form = OrganizationDetailsForm(request.POST, request.FILES)
+        if form.is_valid():
+            org = form.save(commit=False)
+            org.Organization_Email = email
+            org.save()
+            
+            # Cleanup session
+            del request.session['reg_email']
+            del request.session['reg_otp']
+            
+            #        messages.success(request, 'Registration successful! Please login.')
+            return redirect('org_login_start')
+    else:
+        form = OrganizationDetailsForm()
+    
+    return render(request, 'web/org_register_details.html', {'form': form})
+
+# --- Login Flow ---
+
+def org_login_start(request):
+    if request.method == 'POST':
+        form = OrganizationLoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['organization_email']
+            try:
+                org = Organization.objects.get(Organization_Email=email)
+                
+                # Generate OTP
+                otp = str(random.randint(100000, 999999))
+                request.session['login_email'] = email
+                request.session['login_otp'] = otp
+                
+                # Send OTP via Email
+                # Send OTP via Email (HTML + Text)
+                subject = 'E-Game Scout Login OTP'
+                html_content = render_to_string('web/email_otp.html', {'otp': otp})
+                text_content = strip_tags(html_content)
+                
+                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()
+                
+                print(f"DEBUG: Login OTP for {email}: {otp}") # Keep for dev backup
+                
+                return redirect('org_login_otp')
+            except Organization.DoesNotExist:
+                messages.error(request, 'Email not found. Please register.')
+    else:
+        form = OrganizationEmailForm()
+    
+    return render(request, 'web/org_login_start.html', {'form': form})
+
+def org_login_otp(request):
+    email = request.session.get('login_email')
+    if not email:
+        return redirect('org_login_start')
+        
+    if request.method == 'POST':
+        form = OTPForm(request.POST)
+        if form.is_valid():
+            otp = form.cleaned_data['otp']
+            session_otp = request.session.get('login_otp')
+            print(f"DEBUG: Login OTP Attempt. Input: '{otp}' (type: {type(otp)}), Session: '{session_otp}' (type: {type(session_otp)})")
+            
+            if str(otp).strip() == str(session_otp).strip():
+                # Login Success
+                org = Organization.objects.get(Organization_Email=email)
+                request.session['organizer_id'] = org.id
+                
+                # Cleanup OTP session
+                del request.session['login_email']
+                del request.session['login_otp']
+                
+                return redirect('organizer_dashboard')
+            else:
+                messages.error(request, 'Invalid OTP')
+    else:
+        form = OTPForm()
+    
+    return render(request, 'web/org_login_otp.html', {'form': form, 'email': email})
+
+def organizer_dashboard(request):
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+        
+    org = get_object_or_404(Organization, id=org_id)
+    print(f"DEBUG: Dashboard loading for Org: {org.Organization_Name}, Email: {org.Organization_Email}")
+    return render(request, 'web/organizer_dashboard.html', {'org': org})
+
+from django.http import JsonResponse
+
+def resend_otp(request):
+    if request.method == 'POST':
+        email = request.session.get('reg_email') or request.session.get('login_email')
+        
+        if not email:
+            return JsonResponse({'success': False, 'message': 'Session expired. Please restart.'})
+            
+        # Generate new OTP
+        otp = str(random.randint(100000, 999999))
+        
+        # Update session (determine which one to update)
+        if request.session.get('reg_email'):
+            request.session['reg_otp'] = otp
+        else:
+            request.session['login_otp'] = otp
+            
+        # Send OTP via Email
+        subject = 'E-Game Scout OTP Resend'
+        html_content = render_to_string('web/email_otp.html', {'otp': otp})
+        text_content = strip_tags(html_content)
+        
+        msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+        
+        print(f"DEBUG: Resend OTP for {email}: {otp}")
+        
+        return JsonResponse({'success': True, 'message': 'OTP sent successfully'})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+from .forms import OrganizationPhotoForm
+
+def update_profile_photo(request):
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+        
+    if request.method == 'POST':
+        org = get_object_or_404(Organization, id=org_id)
+        form = OrganizationPhotoForm(request.POST, request.FILES, instance=org)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile photo updated successfully!')
+        else:
+            messages.error(request, 'Error updating photo.')
+            
+    return redirect('organizer_dashboard')
+
+# --- Scorecard AI Tool ---
+from google import genai
+from groq import Groq
+import base64
+from .models import ScorecardAnalysis
+
+def scorecard_tool(request):
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+        
+    org = get_object_or_404(Organization, id=org_id)
+    
+    if request.method == 'POST':
+        if 'scorecard_image' not in request.FILES:
+            messages.error(request, 'No image uploaded.')
+            return redirect('scorecard_tool')
+            
+        image_file = request.FILES['scorecard_image']
+        
+        # 1. Create initial record
+        analysis = ScorecardAnalysis.objects.create(
+            organization=org,
+            image=image_file,
+            ai_provider='pending',
+            summary_text='Analyzing...'
+        )
+        
+        try:
+            # Prepare Prompt
+            user_prompt = """
+            Act as a professional esports journalist similar to Cricbuzz and analyze the provided standings image from the SkyeSports Skirmish Series Finals (BGMI). Write a detailed, narrative-style tournament report explaining how the leaderboard unfolded, highlighting the championship-winning team’s consistency, the close title race among the top teams, mid-table performances, and struggles of the lower-ranked teams, using only the visible data such as matches played, wins, placement points, eliminations, and total points. Maintain an analytical yet engaging tone, convert statistics into match-like insights, avoid inventing players or events, and conclude with an overall verdict on the competitiveness and quality of the tournament and its significance for upcoming BGMI events.
+            """
+            
+            # Providers Config
+            providers = []
+            if settings.GEMINI_API_KEY:
+                providers.append({"type": "gemini", "key": settings.GEMINI_API_KEY})
+            if settings.GROQ_API_KEY:
+                providers.append({"type": "groq", "key": settings.GROQ_API_KEY})
+                
+            if not providers:
+                analysis.summary_text = "Error: No API keys configured. Please contact admin."
+                analysis.ai_provider = 'failed'
+                analysis.save()
+                messages.error(request, 'AI Configuration Missing.')
+                return redirect('scorecard_tool')
+
+            response_text = None
+            used_provider = None
+            
+            # File path for AI reading
+            file_path = analysis.image.path
+
+            # AI Logic Loop
+            for provider in providers:
+                try:
+                    if provider['type'] == 'gemini':
+                        client = genai.Client(api_key=provider['key'])
+                        
+                        # Upload file and generate content
+                        uploaded_file = client.files.upload(file=file_path)
+                        
+                        response = client.models.generate_content(
+                            model='gemini-2.0-flash-001',
+                            contents=[user_prompt, uploaded_file]
+                        )
+                        response_text = response.text
+                        used_provider = 'gemini'
+                        
+                    elif provider['type'] == 'groq':
+                        client = Groq(api_key=provider['key'])
+                        
+                        # Detect image format from file extension
+                        import os
+                        file_extension = os.path.splitext(file_path)[1].lower()
+                        mime_type = 'image/jpeg'  # default
+                        if file_extension == '.png':
+                            mime_type = 'image/png'
+                        elif file_extension == '.jpg' or file_extension == '.jpeg':
+                            mime_type = 'image/jpeg'
+                        elif file_extension == '.webp':
+                            mime_type = 'image/webp'
+                        
+                        with open(file_path, "rb") as f:
+                            encoded_string = base64.b64encode(f.read()).decode('utf-8')
+                            
+                        chat_completion = client.chat.completions.create(
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": [
+                                        {"type": "text", "text": user_prompt},
+                                        {
+                                            "type": "image_url",
+                                            "image_url": {
+                                                "url": f"data:{mime_type};base64,{encoded_string}",
+                                            },
+                                        },
+                                    ],
+                                }
+                            ],
+                            model="meta-llama/llama-4-scout-17b-16e-instruct",
+                        )
+                        response_text = chat_completion.choices[0].message.content
+                        used_provider = 'groq'
+
+                    if response_text:
+                        break
+                        
+                except Exception as e:
+                    print(f"AI Provider {provider['type']} Error: {e}")
+                    continue
+            
+            if response_text:
+                analysis.summary_text = response_text
+                analysis.ai_provider = used_provider
+                analysis.save()
+                messages.success(request, 'Analysis Complete!')
+            else:
+                analysis.summary_text = "Analysis failed. Please try again later."
+                analysis.ai_provider = 'failed'
+                analysis.save()
+                messages.error(request, 'AI Analysis Failed.')
+
+        except Exception as e:
+            print(f"Critical Error: {e}")
+            messages.error(request, f"System Error: {e}")
+            
+        return redirect('scorecard_tool')
+
+    # GET Request: Show history
+    history = ScorecardAnalysis.objects.filter(organization=org).order_by('-created_at')
+    return render(request, 'web/scorecard_tool.html', {'org': org, 'history': history})
+
+# --- Profile Management ---
+
+def manage_profile(request):
+    """Display the manage profile page"""
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    
+    org = get_object_or_404(Organization, id=org_id)
+    return render(request, 'web/manage_profile.html', {'org': org})
+
+def update_profile(request):
+    """Update organization profile information"""
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    
+    org = get_object_or_404(Organization, id=org_id)
+    
+    if request.method == 'POST':
+        org.Organization_Name = request.POST.get('organization_name', org.Organization_Name)
+        org.Organization_UserName = request.POST.get('organization_username', org.Organization_UserName)
+        org.Organization_Contact = request.POST.get('organization_contact', org.Organization_Contact)
+        org.save()
+        
+        messages.success(request, 'Profile updated successfully!')
+        return redirect('manage_profile')
+    
+    return redirect('manage_profile')
+
+def update_profile_photo(request):
+    """Update organization profile photo"""
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    
+    org = get_object_or_404(Organization, id=org_id)
+    
+    if request.method == 'POST' and request.FILES.get('profile_photo'):
+        org.profile_photo = request.FILES['profile_photo']
+        org.save()
+        messages.success(request, 'Profile photo updated successfully!')
+    
+    return redirect('manage_profile')
