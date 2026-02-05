@@ -13,9 +13,8 @@ urlpatterns = [
     path('organization/login/', views.org_login_start, name='org_login_start'),
     path('organization/login/otp/', views.org_login_otp, name='org_login_otp'),
     
-    # Dashboard
-    # Dashboard
-    path('dashboard/', views.organizer_dashboard, name='organizer_dashboard'),
+    # Organization Dashboard
+    path('organization/dashboard/', views.organizer_dashboard, name='organizer_dashboard'),
     
     # Profile Management
     path('organization/profile/', views.manage_profile, name='manage_profile'),
@@ -30,6 +29,6 @@ urlpatterns = [
     path('auth/login/', views.auth_login, name='auth_login'),
     path('auth/verify/', views.auth_verify_otp, name='auth_verify_otp'),
     path('auth/register/', views.auth_register_details, name='auth_register_details'),
-    path('dashboard/', views.player_dashboard, name='player_dashboard'),
+    path('player/dashboard/', views.player_dashboard, name='player_dashboard'),
     path('auth/logout/', views.auth_logout, name='auth_logout'),
 ]

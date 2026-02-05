@@ -1,96 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'web/player_base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | E-Game Scout</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Rajdhani', 'sans-serif'], display: ['Orbitron', 'sans-serif'] },
-                    colors: { 'brand-dark': '#0B0C10', 'brand-gray': '#1F2833', 'brand-light': '#C5C6C7', 'accent-cyan': '#66FCF1' }
-                }
-            }
-        }
-    </script>
-</head>
-
-<body class="bg-brand-dark text-white font-sans overflow-hidden h-screen flex items-center justify-center">
-
-    <!-- Background -->
-    <div class="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,_#1a2b4b_0%,_#0B0C10_100%)] -z-10"></div>
+{% block content %}
+<div class="w-full max-w-md">
     <div
-        class="fixed inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover opacity-5 -z-10">
-    </div>
-
-    <!-- Login Card -->
-    <div
-        class="w-full max-w-md p-8 bg-brand-gray/20 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(102,252,241,0.1)] relative overflow-hidden">
-
-        <!-- Decoration -->
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent-cyan to-transparent">
-        </div>
-
-        <div class="text-center mb-8">
-            <h2 class="text-3xl font-display font-bold text-white mb-2 tracking-wide">
-                {% if is_register %}PLAYER REGISTRATION{% else %}PLAYER ACCESS{% endif %}
+        class="glass-card p-8 rounded-xl border border-white/10 relative overflow-hidden group hover:border-accent-cyan/30 transition-all duration-300">
+        <!-- Header -->
+        <div class="mb-8 text-center">
+            <h2 class="text-3xl font-display font-bold text-white mb-2">
+                {% if is_register %}PLAYER REGISTRY{% else %}PLAYER ACCESS{% endif %}
             </h2>
-            <p class="text-brand-light text-sm">
-                {% if is_register %}Start your journey. Enter email to verify.{% else %}Enter your email to receive a
-                secure access code.{% endif %}
+            <p class="text-gray-400 text-sm">
+                {% if is_register %}Start your journey.{% else %}Login to your dashboard{% endif %}
             </p>
         </div>
 
-        {% if messages %}
-        <div class="mb-4">
-            {% for message in messages %}
-            <div class="p-3 bg-red-500/10 border border-red-500/50 rounded text-red-500 text-sm text-center">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
+        <!-- Form -->
         <form method="post" class="space-y-6">
             {% csrf_token %}
+
             <div>
-                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-2">Email
-                    Address</label>
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-2">
+                    Registered Email
+                </label>
                 {{ form.email }}
+                {% if form.email.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>
+                {% endif %}
             </div>
 
             <button type="submit"
-                class="w-full py-3 bg-accent-cyan text-brand-dark font-display font-bold uppercase tracking-wider rounded-lg hover:bg-white hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(102,252,241,0.4)]">
-                {% if is_register %}Start Registration{% else %}Send Code{% endif %} <i
-                    class="fa-solid fa-paper-plane ml-2"></i>
+                class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded transition-colors group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)]">
+                {% if is_register %}Continue{% else %}Send Security Code{% endif %}
             </button>
         </form>
 
-        <!-- Footer -->
-        <div class="mt-8 text-center text-sm font-display tracking-wider">
+        <div class="mt-6 text-center text-xs text-gray-500">
             {% if is_register %}
-            <span class="text-gray-400">Already a scout?</span>
-            <a href="{% url 'auth_login' %}"
-                class="text-accent-cyan hover:text-white transition-colors ml-2 font-bold uppercase">
-                Login
-            </a>
+            Already a player? <a href="{% url 'auth_login' %}" class="text-accent-cyan hover:underline">Log in here</a>
             {% else %}
-            <span class="text-gray-400">New player?</span>
-            <a href="?action=register"
-                class="text-accent-cyan hover:text-white transition-colors ml-2 font-bold uppercase">
-                Register Now
-            </a>
+            New Player? <a href="?action=register" class="text-accent-cyan hover:underline">Register Now</a>
             {% endif %}
         </div>
     </div>
+    </div>
+</div>
 
-</body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const emailInput = document.querySelector('input[type="email"]');
+        
+        if(emailInput) {
+            // Create error element
+            const errorP = document.createElement('p');
+            errorP.className = "text-red-500 text-xs mt-1 font-bold hidden";
+            emailInput.parentNode.appendChild(errorP);
 
-</html>
+            emailInput.addEventListener('input', function() {
+                const email = this.value;
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                
+                if(email.length > 0 && !emailPattern.test(email)) {
+                    errorP.textContent = "Please enter a valid email address.";
+                    errorP.classList.remove('hidden');
+                    this.classList.add('border-red-500');
+                    this.classList.add('text-red-500');
+                } else {
+                    errorP.classList.add('hidden');
+                    this.classList.remove('border-red-500');
+                    this.classList.remove('text-red-500');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
