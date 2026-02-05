@@ -10,6 +10,8 @@ class Organization(models.Model):
     Organization_Name = models.CharField(max_length=20, null=False)
     Organization_Contact = models.BigIntegerField(null=False)
     profile_photo = models.ImageField(upload_to='organization_profiles/', null=True, blank=True)
+    instagram_username = models.CharField(max_length=50, null=True, blank=True)
+    instagram_link = models.URLField(max_length=200, null=True, blank=True)
     CreatedAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -24,6 +26,26 @@ class ScorecardAnalysis(models.Model):
 
     def __str__(self):
         return f"Scorecard {self.id} - {self.organization.Organization_Name}"
+
+class Tournament(models.Model):
+    STATUS_CHOICES = [
+        ('Scheduled', 'Scheduled'),
+        ('Ongoing', 'Ongoing'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+    ]
+    
+    Tournament_ID = models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=20, null=False)
+    Organization_Name = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='tournaments')
+    Status = models.CharField(max_length=10, choices=STATUS_CHOICES, null=False, default='Scheduled')
+    PrizePool = models.DecimalField(max_digits=15, decimal_places=2, null=False)
+    CreatedAt = models.DateTimeField(auto_now_add=True, null=False)
+    UpdatedAt = models.DateTimeField(auto_now=True, null=False)
+    
+    def __str__(self):
+        return f"{self.Name} - {self.Organization_Name.Organization_Name}"
+
 class Player(models.Model):
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
@@ -37,6 +59,7 @@ class Player(models.Model):
     email = models.EmailField(unique=True)
     age = models.IntegerField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='players')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

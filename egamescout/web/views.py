@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .forms import OrganizationEmailForm, OTPForm, OrganizationDetailsForm, OrganizationLoginForm
-from .models import Organization
+from .forms import OrganizationEmailForm, OTPForm, OrganizationDetailsForm, OrganizationLoginForm, OrganizationPhotoForm, TournamentForm
+from .models import Organization, Tournament
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -192,6 +192,12 @@ def auth_logout(request):
     request.session.flush()
     return redirect('index')
 
+def org_logout(request):
+    """Logout organization and clear session"""
+    request.session.flush()
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('index')
+
 def index(request):
     return render(request, 'web/index.html')
 
@@ -255,11 +261,32 @@ def org_register_details(request):
             org.Organization_Email = email
             org.save()
             
-            # Cleanup session
-            del request.session['reg_email']
-            del request.session['reg_otp']
+            # Send congratulatory email
+            try:
+                subject = 'Welcome to E-Game Scout - Registration Successful!'
+                html_content = render_to_string('web/email/registration_success.html', {
+                    'org_name': org.Organization_Name,
+                    'org_email': email,
+                    'login_url': request.build_absolute_uri('/organization/login/')
+                })
+                text_content = strip_tags(html_content)
+                
+                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()
+                
+                print(f"DEBUG: Registration success email sent to {email}")
+            except Exception as e:
+                print(f"ERROR: Failed to send registration email: {e}")
             
-            #        messages.success(request, 'Registration successful! Please login.')
+            # Cleanup registration session
+            if 'reg_email' in request.session:
+                del request.session['reg_email']
+            if 'reg_otp' in request.session:
+                del request.session['reg_otp']
+            
+            # Show success message and redirect to login
+            messages.success(request, f'🎉 Registration successful! Welcome to E-Game Scout, {org.Organization_Name}! A confirmation email has been sent to {email}. Please login to continue.')
             return redirect('org_login_start')
     else:
         form = OrganizationDetailsForm()
@@ -371,24 +398,6 @@ def resend_otp(request):
         return JsonResponse({'success': True, 'message': 'OTP sent successfully'})
     
     return JsonResponse({'success': False, 'message': 'Invalid request'})
-
-from .forms import OrganizationPhotoForm
-
-def update_profile_photo(request):
-    org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
-        
-    if request.method == 'POST':
-        org = get_object_or_404(Organization, id=org_id)
-        form = OrganizationPhotoForm(request.POST, request.FILES, instance=org)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile photo updated successfully!')
-        else:
-            messages.error(request, 'Error updating photo.')
-            
-    return redirect('organizer_dashboard')
 
 # --- Scorecard AI Tool ---
 from google import genai
@@ -523,7 +532,7 @@ def scorecard_tool(request):
 
     # GET Request: Show history
     history = ScorecardAnalysis.objects.filter(organization=org).order_by('-created_at')
-    return render(request, 'web/scorecard_tool.html', {'org': org, 'history': history})
+    return render(request, 'web/org_scorecard_tool.html', {'org': org, 'history': history})
 
 # --- Profile Management ---
 
@@ -534,7 +543,7 @@ def manage_profile(request):
         return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
-    return render(request, 'web/manage_profile.html', {'org': org})
+    return render(request, 'web/org_manage_profile.html', {'org': org})
 
 def update_profile(request):
     """Update organization profile information"""
@@ -548,6 +557,8 @@ def update_profile(request):
         org.Organization_Name = request.POST.get('organization_name', org.Organization_Name)
         org.Organization_UserName = request.POST.get('organization_username', org.Organization_UserName)
         org.Organization_Contact = request.POST.get('organization_contact', org.Organization_Contact)
+        org.instagram_username = request.POST.get('instagram_username', '')
+        org.instagram_link = request.POST.get('instagram_link', '')
         org.save()
         
         messages.success(request, 'Profile updated successfully!')
@@ -569,3 +580,84 @@ def update_profile_photo(request):
         messages.success(request, 'Profile photo updated successfully!')
     
     return redirect('manage_profile')
+
+# --- Tournament Management ---
+
+def tournament_list(request):
+    """Display list of tournaments for the organization"""
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    
+    org = get_object_or_404(Organization, id=org_id)
+    tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-CreatedAt')
+    
+    return render(request, 'web/org_tournament_list.html', {'org': org, 'tournaments': tournaments})
+
+def tournament_create(request):
+    """Create a new tournament"""
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    
+    org = get_object_or_404(Organization, id=org_id)
+    
+    if request.method == 'POST':
+        form = TournamentForm(request.POST)
+        if form.is_valid():
+            tournament = form.save(commit=False)
+            tournament.Organization_Name = org
+            tournament.save()
+            messages.success(request, f'Tournament "{tournament.Name}" created successfully!')
+            return redirect('tournament_list')
+    else:
+        form = TournamentForm()
+    
+    return render(request, 'web/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Create'})
+
+def tournament_update(request, tournament_id):
+    """Update an existing tournament"""
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    
+    org = get_object_or_404(Organization, id=org_id)
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name=org)
+    
+    if request.method == 'POST':
+        form = TournamentForm(request.POST, instance=tournament)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Tournament "{tournament.Name}" updated successfully!')
+            return redirect('tournament_list')
+    else:
+        form = TournamentForm(instance=tournament)
+    
+    return render(request, 'web/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Update', 'tournament': tournament})
+
+def tournament_delete(request, tournament_id):
+    """Delete a tournament"""
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    
+    org = get_object_or_404(Organization, id=org_id)
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name=org)
+    
+    if request.method == 'POST':
+        tournament_name = tournament.Name
+        tournament.delete()
+        messages.success(request, f'Tournament "{tournament_name}" deleted successfully!')
+        return redirect('tournament_list')
+    
+    return render(request, 'web/org_tournament_confirm_delete.html', {'org': org, 'tournament': tournament})
+def my_players(request):
+    """Display list of players recruited by the organization"""
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    
+    org = get_object_or_404(Organization, id=org_id)
+    players = Player.objects.filter(organization=org).order_by('-created_at')
+    
+    return render(request, 'web/org_my_players.html', {'org': org, 'players': players})

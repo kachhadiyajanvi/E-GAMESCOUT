@@ -1,5 +1,5 @@
 from django import forms
-from .models import Organization
+from .models import Organization, Tournament
 from .models import Player
 
 class OrganizationEmailForm(forms.Form):
@@ -45,27 +45,69 @@ class OrganizationDetailsForm(forms.ModelForm):
         widgets = {
             'Organization_Name': forms.TextInput(attrs={
                 'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
-                'placeholder': 'Organization Name'
+                'placeholder': 'Organization Name',
+                'required': 'required'
             }),
             'Organization_UserName': forms.TextInput(attrs={
                 'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
-                'placeholder': 'Username'
+                'placeholder': 'Username',
+                'required': 'required'
             }),
-            'Organization_Contact': forms.NumberInput(attrs={
+            'Organization_Contact': forms.TextInput(attrs={
                 'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
-                'placeholder': 'Contact Number'
+                'placeholder': 'Contact Number (10 digits)',
+                'required': 'required',
+                'maxlength': '10'
             }),
         }
+    
+    def clean_Organization_Name(self):
+        name = self.cleaned_data.get('Organization_Name')
+        if not name or not name.strip():
+            raise forms.ValidationError("Organization Name is required.")
+        return name.strip()
+    
+    def clean_Organization_UserName(self):
+        username = self.cleaned_data.get('Organization_UserName')
+        if not username or not username.strip():
+            raise forms.ValidationError("Username is required.")
+        return username.strip()
+    
+    def clean_Organization_Contact(self):
+        contact = self.cleaned_data.get('Organization_Contact')
+        if not contact:
+            raise forms.ValidationError("Contact Number is required.")
+        
+        # Convert to string and remove any whitespace
+        contact_str = str(contact).strip()
+        
+        # Check if it contains only digits
+        if not contact_str.isdigit():
+            raise forms.ValidationError("Contact Number must contain only digits.")
+        
+        # Check if it's exactly 10 digits
+        if len(contact_str) != 10:
+            raise forms.ValidationError("Contact Number must be exactly 10 digits.")
+        
+        return contact_str
 
 class OrganizationPhotoForm(forms.ModelForm):
     class Meta:
         model = Organization
-        fields = ['profile_photo']
+        fields = ['profile_photo', 'instagram_username', 'instagram_link']
         widgets = {
             'profile_photo': forms.FileInput(attrs={
                 'class': 'hidden',
                 'id': 'photo-upload',
                 'onchange': 'this.form.submit()'
+            }),
+            'instagram_username': forms.TextInput(attrs={
+                'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
+                'placeholder': 'Instagram Username (without @)'
+            }),
+            'instagram_link': forms.URLInput(attrs={
+                'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
+                'placeholder': 'https://instagram.com/yourprofile'
             }),
         }
 
@@ -115,6 +157,41 @@ class PlayerRegistrationForm(forms.ModelForm):
         return uid
 
     def clean_age(self):
-        # This is a fallback in case it's somehow submitted, 
-        # but primarily we rely on the view logic.
-        return self.cleaned_data.get('age')
+        age = self.cleaned_data.get('age')
+        if age < 16:
+            raise forms.ValidationError("You must be at least 16 years old to register.")
+        return age
+
+class TournamentForm(forms.ModelForm):
+    class Meta:
+        model = Tournament
+        fields = ['Name', 'Status', 'PrizePool']
+        widgets = {
+            'Name': forms.TextInput(attrs={
+                'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
+                'placeholder': 'Tournament Name',
+                'required': 'required'
+            }),
+            'Status': forms.Select(attrs={
+                'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors'
+            }),
+            'PrizePool': forms.NumberInput(attrs={
+                'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
+                'placeholder': 'Prize Pool Amount',
+                'step': '0.01',
+                'min': '0',
+                'required': 'required'
+            }),
+        }
+    
+    def clean_Name(self):
+        name = self.cleaned_data.get('Name')
+        if not name or not name.strip():
+            raise forms.ValidationError("Tournament Name is required.")
+        return name.strip()
+    
+    def clean_PrizePool(self):
+        prize_pool = self.cleaned_data.get('PrizePool')
+        if prize_pool is None or prize_pool < 0:
+            raise forms.ValidationError("Prize Pool must be a positive number.")
+        return prize_pool

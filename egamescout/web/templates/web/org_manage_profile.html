@@ -104,6 +104,33 @@
                             required>
                     </div>
 
+                    <!-- Instagram Username -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            <i class="fa-brands fa-instagram text-pink-500 mr-1"></i>
+                            Instagram Username
+                        </label>
+                        <div class="flex items-center bg-black/20 border border-white/10 rounded-lg px-4 py-3">
+                            <span class="text-gray-500 mr-1">@</span>
+                            <input type="text" name="instagram_username" value="{{ org.instagram_username|default:'' }}"
+                                class="flex-1 bg-transparent border-none outline-none text-white"
+                                placeholder="yourprofile">
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">Your Instagram handle (without @)</p>
+                    </div>
+
+                    <!-- Instagram Link -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            <i class="fa-brands fa-instagram text-pink-500 mr-1"></i>
+                            Instagram Profile Link
+                        </label>
+                        <input type="url" name="instagram_link" value="{{ org.instagram_link|default:'' }}"
+                            class="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-accent-cyan/50 focus:outline-none transition-colors"
+                            placeholder="https://instagram.com/yourprofile">
+                        <p class="text-xs text-gray-600 mt-1">Full URL to your Instagram profile</p>
+                    </div>
+
                     <!-- Submit Button -->
                     <div class="flex gap-3 pt-4">
                         <button type="submit"

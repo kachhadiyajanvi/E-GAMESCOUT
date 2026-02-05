@@ -1,0 +1,94 @@
+{% extends 'web/dashboard_base.html' %}
+
+{% block title %}{{ action }} Tournament - E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="p-8 max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="{% url 'tournament_list' %}"
+            class="text-accent-cyan hover:text-white transition-colors mb-4 inline-flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i>
+            Back to Tournaments
+        </a>
+        <h1 class="text-3xl font-display font-bold text-white mt-4 mb-2">{{ action }} Tournament</h1>
+        <p class="text-gray-400">Fill in the tournament details below</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="bg-brand-dark/60 border border-white/10 rounded-lg p-8">
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Tournament Name -->
+            <div>
+                <label for="{{ form.Name.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                    Tournament Name <span class="text-red-500">*</span>
+                </label>
+                {{ form.Name }}
+                {% if form.Name.errors %}
+                <p class="mt-1 text-sm text-red-400">{{ form.Name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label for="{{ form.Status.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                    Status <span class="text-red-500">*</span>
+                </label>
+                {{ form.Status }}
+                {% if form.Status.errors %}
+                <p class="mt-1 text-sm text-red-400">{{ form.Status.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Prize Pool -->
+            <div>
+                <label for="{{ form.PrizePool.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                    Prize Pool (₹) <span class="text-red-500">*</span>
+                </label>
+                {{ form.PrizePool }}
+                {% if form.PrizePool.errors %}
+                <p class="mt-1 text-sm text-red-400">{{ form.PrizePool.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">Enter the total prize pool amount in rupees</p>
+            </div>
+
+            <!-- Form Errors -->
+            {% if form.non_field_errors %}
+            <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <p class="text-red-400 text-sm">{{ form.non_field_errors.0 }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 pt-4">
+                <button type="submit"
+                    class="flex-1 px-6 py-3 bg-accent-cyan text-brand-dark font-display font-bold rounded-lg hover:bg-white transition-all hover:scale-105">
+                    <i class="fa-solid fa-save mr-2"></i>
+                    {{ action }} Tournament
+                </button>
+                <a href="{% url 'tournament_list' %}"
+                    class="flex-1 px-6 py-3 bg-white/5 border border-white/10 text-white font-display font-bold rounded-lg hover:bg-white/10 hover:border-accent-cyan/50 transition-all text-center">
+                    <i class="fa-solid fa-times mr-2"></i>
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Info Box -->
+    <div class="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+        <div class="flex items-start gap-3">
+            <i class="fa-solid fa-info-circle text-blue-400 mt-1"></i>
+            <div>
+                <p class="text-blue-400 font-medium mb-1">Tournament Information</p>
+                <p class="text-sm text-gray-400">
+                    You can update the tournament status and prize pool at any time. Make sure all details are accurate
+                    before creating the tournament.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

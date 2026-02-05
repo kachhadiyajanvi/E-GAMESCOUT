@@ -64,13 +64,39 @@
         </div>
 
         <div class="hidden md:flex gap-8 font-medium text-brand-light/70 uppercase tracking-widest text-xs">
-            <a href="#" class="hover:text-white transition-colors">Home</a>
-            <a href="#products" class="hover:text-white transition-colors">Products</a>
-            <a href="#innovations" class="hover:text-white transition-colors">Innovations</a>
-            <a href="#shop" class="hover:text-white transition-colors">Shop</a>
+            <!-- Navigation Links Removed -->
         </div>
 
     </nav>
+
+    <!-- Messages Display -->
+    {% if messages %}
+    <div class="fixed top-24 left-1/2 -translate-x-1/2 z-[60] w-full max-w-md px-6" id="message-container">
+        {% for message in messages %}
+        <div
+            class="mb-3 p-4 rounded-lg backdrop-blur-md border animate-fade-in-down shadow-lg {% if message.tags == 'error' %}bg-red-900/90 border-red-500 text-red-100{% else %}bg-green-900/90 border-green-500 text-green-100{% endif %}">
+            <div class="flex items-center gap-3">
+                <i
+                    class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %} text-xl"></i>
+                <span class="font-medium">{{ message }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        // Auto-hide messages after 3 seconds
+        setTimeout(function () {
+            const messageContainer = document.getElementById('message-container');
+            if (messageContainer) {
+                messageContainer.style.transition = 'opacity 0.5s ease-out';
+                messageContainer.style.opacity = '0';
+                setTimeout(function () {
+                    messageContainer.remove();
+                }, 500);
+            }
+        }, 3000);
+    </script>
+    {% endif %}
 
     <!-- Hero Section -->
     <section
@@ -99,9 +125,9 @@
 
 
                     <!-- Massive Headline with Glitch Effect -->
-                    <h1 class="text-4xl md:text-7xl lg:text-8xl font-display font-black leading-[0.9] md:leading-[0.8] text-white mb-2 tracking-tighter opacity-0 animate-fade-in-up relative group transform-style-3d"
+                    <h1 class="text-3xl md:text-6xl lg:text-8xl font-display font-black leading-tight md:leading-[0.8] text-white mb-2 tracking-tighter opacity-0 animate-fade-in-up relative group transform-style-3d"
                         style="animation-delay: 0.2s;">
-                        E-GAME <br>
+                        E-GAME
                         <span
                             class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan via-white to-accent-cyan relative inline-block text-glow group-hover:animate-glitch">SCOUT</span>
                     </h1>
@@ -314,7 +340,7 @@
     </section>
 
     <!-- Solution Section ("What We Offer") -->
-    <section id="features" class="py-24 px-6 md:px-12 relative overflow-hidden">
+    <section id="features" class="py-16 md:py-24 px-6 md:px-12 relative overflow-hidden">
         <!-- Background Tech Lines -->
         <div class="absolute inset-0 z-0 opacity-10 pointer-events-none">
             <div class="absolute top-[20%] left-0 w-full h-[1px] bg-accent-cyan"></div>
@@ -472,7 +498,7 @@
     </section>
 
     <!-- Problems Section ("Why E-Game Scout?") -->
-    <section class="py-24 px-6 md:px-12 bg-black relative overflow-hidden">
+    <section class="py-16 md:py-24 px-6 md:px-12 bg-black relative overflow-hidden">
         <!-- Background Glow -->
         <div
             class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-900/10 rounded-full blur-[100px] -z-10">
@@ -572,7 +598,7 @@
 
     <!-- Global Reach Section -->
     <section
-        class="py-24 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between overflow-hidden relative border-y border-white/5 bg-[#0B0C10]">
+        class="py-16 md:py-24 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between overflow-hidden relative border-y border-white/5 bg-[#0B0C10]">
 
         <!-- Animated Background Map Effect -->
         <div class="absolute inset-0 z-0 opacity-20 pointer-events-none">
@@ -743,7 +769,7 @@
         </h2>
 
         <div class="max-w-4xl mx-auto relative">
-            <div class="glass-card p-12 rounded-2xl relative mx-4">
+            <div class="glass-card p-6 md:p-12 rounded-2xl relative mx-4">
                 <div class="text-accent-cyan text-5xl absolute -top-8 left-8">
                     <i class="fa-solid fa-quote-left"></i>
                 </div>
@@ -779,13 +805,7 @@
                 <p class="text-gray-600 text-xs mt-4">© 2026 E-Game Scout. All Rights Reserved.</p>
             </div>
 
-            <!-- Links -->
-            <div class="flex gap-8 text-sm font-display font-bold tracking-wide">
-                <a href="#" class="text-gray-400 hover:text-accent-cyan transition-colors">ABOUT</a>
-                <a href="#" class="text-gray-400 hover:text-accent-cyan transition-colors">CONTACT</a>
-                <a href="#" class="text-gray-400 hover:text-accent-cyan transition-colors">PRIVACY</a>
-                <a href="#" class="text-gray-400 hover:text-accent-cyan transition-colors">TERMS</a>
-            </div>
+            <!-- Links Removed -->
 
             <!-- Email Contact -->
             <div class="text-center md:text-right">

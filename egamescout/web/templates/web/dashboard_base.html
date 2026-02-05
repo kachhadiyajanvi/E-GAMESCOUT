@@ -77,42 +77,32 @@
             <a href="{% url 'organizer_dashboard' %}"
                 class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'organizer_dashboard' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
                 <i
-                    class="fa-solid fa-grid-2 text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                    class="fa-solid fa-gauge-high text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
                 <span class="font-medium group-hover:text-white transition-colors">Dashboard</span>
             </a>
 
-            <a href="#"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors text-gray-400">
+            <a href="{% url 'tournament_list' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if 'tournament' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
                 <i
                     class="fa-solid fa-trophy text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
                 <span class="font-medium group-hover:text-white transition-colors">Tournaments</span>
             </a>
 
-            <a href="#"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors text-gray-400">
+            <a href="{% url 'my_players' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'my_players' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
                 <i class="fa-solid fa-users text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Teams</span>
+                <span class="font-medium group-hover:text-white transition-colors">My Players</span>
             </a>
 
-            <a href="#"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors text-gray-400">
-                <i class="fa-solid fa-store text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Marketplace</span>
-            </a>
 
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-widest mt-6 mb-2">Settings</p>
 
-            <a href="#"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors text-gray-400">
+
+
+            <a href="{% url 'org_logout' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-500/10 group transition-colors text-gray-400 hover:text-red-400 border border-transparent hover:border-red-500/30 mt-4">
                 <i
-                    class="fa-solid fa-wallet text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Wallet</span>
-            </a>
-
-            <a href="#"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors text-gray-400">
-                <i class="fa-solid fa-gear text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Settings</span>
+                    class="fa-solid fa-right-from-bracket text-lg w-6 text-center group-hover:text-red-400 transition-colors"></i>
+                <span class="font-medium group-hover:text-red-400 transition-colors">Logout</span>
             </a>
         </nav>
     </aside>
@@ -176,7 +166,7 @@
 
             <!-- Messages -->
             {% if messages %}
-            <div class="mb-6 w-full">
+            <div class="mb-6 w-full" id="dashboard-messages">
                 {% for message in messages %}
                 <div
                     class="p-4 mb-2 text-sm rounded-lg backdrop-blur-md border {% if message.tags == 'error' %}bg-red-900/20 border-red-500 text-red-200{% else %}bg-green-900/20 border-green-500 text-green-200{% endif %}">
@@ -184,6 +174,19 @@
                 </div>
                 {% endfor %}
             </div>
+            <script>
+                // Auto-hide messages after 3 seconds
+                setTimeout(function () {
+                    const messagesDiv = document.getElementById('dashboard-messages');
+                    if (messagesDiv) {
+                        messagesDiv.style.transition = 'opacity 0.5s ease-out';
+                        messagesDiv.style.opacity = '0';
+                        setTimeout(function () {
+                            messagesDiv.remove();
+                        }, 500);
+                    }
+                }, 3000);
+            </script>
             {% endif %}
 
             {% block content %}{% endblock %}
