@@ -9,7 +9,9 @@ from django.conf import settings
 import random
 from django.core.mail import send_mail
 from .forms import EmailLoginForm, OTPVerifyForm, PlayerRegistrationForm
-from .models import Player, OTP
+from .models import Player
+
+from django.views.decorators.cache import cache_control
 
 def auth_login(request):
     # Check if a verification flow is already in progress and verified
@@ -21,6 +23,10 @@ def auth_login(request):
             return redirect('player_dashboard')
         else:
             return redirect('auth_register_details')
+            
+    # Strict Redirect: If already logged in, go to dashboard
+    if request.session.get('player_id'):
+        return redirect('player_dashboard')
 
     is_register = request.GET.get('action') == 'register'
 
@@ -45,8 +51,10 @@ def auth_login(request):
             # Generate OTP
             otp_code = str(random.randint(100000, 999999))
             
-            # Save OTP
-            OTP.objects.create(email=email, otp_code=otp_code)
+            # Save OTP in Session (Stateless)
+            request.session['auth_email'] = email
+            request.session['auth_otp'] = otp_code # Store OTP in session
+            request.session['otp_verified'] = False # Reset verification status
             
             # Send Email
             from django.template.loader import render_to_string
@@ -64,10 +72,7 @@ def auth_login(request):
                 html_message=html_message
             )
             
-            # Store session
-            request.session['auth_email'] = email
-            request.session['otp_verified'] = False # Reset verification status
-            
+            print(f"DEBUG: Player OTP for {email}: {otp_code}")
             messages.success(request, f'OTP sent to {email}')
             return redirect('auth_verify_otp')
     else:
@@ -76,6 +81,10 @@ def auth_login(request):
     return render(request, 'web/login.html', {'form': form, 'is_register': is_register})
 
 def auth_verify_otp(request):
+    # Strict Redirect
+    if request.session.get('player_id'):
+        return redirect('player_dashboard')
+
     email = request.session.get('auth_email')
     if not email:
         return redirect('auth_login')
@@ -84,13 +93,14 @@ def auth_verify_otp(request):
         form = OTPVerifyForm(request.POST)
         if form.is_valid():
             otp_input = form.cleaned_data['otp_code']
+            session_otp = request.session.get('auth_otp')
             
-            # Check OTP
-            otp_record = OTP.objects.filter(email=email, otp_code=otp_input).order_by('-created_at').first()
-            
-            if otp_record and otp_record.is_valid():
+            # Check OTP from Session
+            if str(otp_input).strip() == str(session_otp).strip():
                 # OTP is valid
                 request.session['otp_verified'] = True # Mark as verified
+                # Clear OTP from session for security
+                del request.session['auth_otp']
                 
                 # Check if player exists
                 try:
@@ -108,28 +118,68 @@ def auth_verify_otp(request):
         
     return render(request, 'web/verify_otp.html', {'form': form, 'email': email})
 
+from .helpers import verify_age_with_groq
+
 def auth_register_details(request):
+    # Strict Redirect
+    if request.session.get('player_id'):
+        return redirect('player_dashboard')
+
     email = request.session.get('auth_email')
     if not email:
         return redirect('auth_login')
         
     if request.method == 'POST':
-        form = PlayerRegistrationForm(request.POST)
+        form = PlayerRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
-            player = form.save(commit=False)
-            player.email = email
-            player.status = 'ACTIVE' # Set active by default as requested
-            player.save()
-            
-            # Login User
-            request.session['player_id'] = player.id
-            messages.success(request, 'Registration Complete!')
-            return redirect('player_dashboard')
+            # Age Verification Logic
+            aadhar_image = request.FILES.get('aadhar_card')
+            if aadhar_image:
+                verification = verify_age_with_groq(aadhar_image)
+                
+                if verification['success']:
+                    if verification['age'] < 16:
+                        messages.error(request, f"Age Restriction: You are {verification['age']} years old. Minimum age is 16.")
+                        return render(request, 'web/register_details.html', {'form': form, 'email': email})
+                    else:
+                        # Proceed with registration
+                        player = form.save(commit=False)
+                        player.email = email
+                        player.age = verification['age'] # Force verified age
+                        player.status = 'ACTIVE'
+                        player.save()
+                        
+                        # Send Welcome Email
+                        try:
+                            subject = 'Welcome to E-Game Scout - Journey Started'
+                            html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name})
+                            text_content = strip_tags(html_content)
+                            
+                            msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+                            msg.attach_alternative(html_content, "text/html")
+                            msg.send()
+                            print(f"DEBUG: Welcome email sent to {email}")
+                        except Exception as e:
+                            print(f"ERROR: Failed to send welcome email: {e}")
+
+                        # Clear session to prevent auto-login in auth_login
+                        if 'auth_email' in request.session:
+                            del request.session['auth_email']
+                        if 'otp_verified' in request.session:
+                            del request.session['otp_verified']
+                        
+                        messages.success(request, f"Verification Successful! Age: {verification['age']}. Registration Complete. Welcome Email Sent! Please Login.")
+                        return redirect('auth_login')
+                else:
+                    messages.error(request, verification['message'])
+            else:
+                messages.error(request, "Please upload Aadhar Card.")
     else:
         form = PlayerRegistrationForm()
         
     return render(request, 'web/register_details.html', {'form': form, 'email': email})
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def player_dashboard(request):
     player_id = request.session.get('player_id')
     if not player_id:

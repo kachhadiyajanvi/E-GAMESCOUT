@@ -53,6 +53,10 @@ INSTALLED_APPS = [
     'web',
 ]
 
+# Session Management
+SESSION_COOKIE_AGE = 86400 # 24 Hours in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True # Session expires when browser is closed
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

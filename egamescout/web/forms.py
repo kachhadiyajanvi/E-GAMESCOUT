@@ -89,18 +89,32 @@ class OTPVerifyForm(forms.Form):
     )
 
 class PlayerRegistrationForm(forms.ModelForm):
+    aadhar_card = forms.ImageField(required=True, label="Upload Aadhar Card (For Age Verification)")
+    
     class Meta:
         model = Player
-        fields = ['full_name', 'uid', 'mobile_no', 'age']
+        fields = ['full_name', 'uid', 'mobile_no', 'aadhar_card'] # Age is calculated via AI
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Full Name'}),
-            'uid': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Game ID / UID'}),
-            'mobile_no': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Mobile Number'}),
-            'age': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': 'Age'}),
+            'full_name': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors', 'placeholder': 'Enter Full Name'}),
+            'uid': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors', 'placeholder': 'Enter Game ID'}),
+            'mobile_no': forms.NumberInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors', 'placeholder': 'Enter Mobile Number'}),
         }
 
+    def clean_mobile_no(self):
+        mobile_no = self.cleaned_data.get('mobile_no')
+        if not mobile_no.isdigit():
+            raise forms.ValidationError("Mobile number must contain only digits.")
+        if len(mobile_no) != 10:
+            raise forms.ValidationError("Mobile number must be exactly 10 digits.")
+        return mobile_no
+
+    def clean_uid(self):
+        uid = self.cleaned_data.get('uid')
+        if len(uid) < 10 or len(uid) > 12:
+            raise forms.ValidationError("Game UID must be between 10 and 12 characters.")
+        return uid
+
     def clean_age(self):
-        age = self.cleaned_data.get('age')
-        if age < 16:
-            raise forms.ValidationError("You must be at least 16 years old to register.")
-        return age
+        # This is a fallback in case it's somehow submitted, 
+        # but primarily we rely on the view logic.
+        return self.cleaned_data.get('age')
