@@ -22,7 +22,7 @@ def auth_login(request):
             request.session['player_id'] = player.id
             return redirect('player_dashboard')
         else:
-            return redirect('auth_register_details')
+            return redirect('auth_register_upload')
             
     # Strict Redirect: If already logged in, go to dashboard
     if request.session.get('player_id'):
@@ -109,8 +109,8 @@ def auth_verify_otp(request):
                     request.session['player_id'] = player.id
                     return redirect('player_dashboard')
                 except Player.DoesNotExist:
-                    # New User -> Register Details
-                    return redirect('auth_register_details')
+                    # New User -> Register Step 1 (Aadhar Upload)
+                    return redirect('auth_register_upload')
             else:
                 messages.error(request, 'Invalid or Expired OTP')
     else:
@@ -118,9 +118,11 @@ def auth_verify_otp(request):
         
     return render(request, 'web/Player/verify_otp.html', {'form': form, 'email': email})
 
-from .helpers import verify_age_with_groq
+from .helpers import extract_aadhar_details
+from .forms import AadharUploadForm
 
-def auth_register_details(request):
+def auth_register_upload(request):
+    """Step 1: Upload Aadhar Card"""
     # Strict Redirect
     if request.session.get('player_id'):
         return redirect('player_dashboard')
@@ -128,54 +130,94 @@ def auth_register_details(request):
     email = request.session.get('auth_email')
     if not email:
         return redirect('auth_login')
+    
+    if request.method == 'POST':
+        form = AadharUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            aadhar_image = request.FILES.get('aadhar_card')
+            verification = extract_aadhar_details(aadhar_image)
+            
+            if verification['success']:
+                data = verification['data']
+                age = data.get('age')
+                
+                # Check Age
+                if age is not None and age < 16:
+                     messages.error(request, f"Age Restriction: You are {age} years old. Minimum age is 16.")
+                     return render(request, 'web/Player/register_step1.html', {'form': form, 'email': email})
+                
+                # Check Unique Aadhar
+                aadhar_num = data.get('aadhar_number')
+                if aadhar_num and Player.objects.filter(aadhar_number=aadhar_num).exists():
+                     messages.error(request, f"Identity Conflict: Aadhar number {aadhar_num} is already registered.")
+                     return render(request, 'web/Player/register_step1.html', {'form': form, 'email': email})
+
+                # Store in session
+                request.session['auth_register_data'] = data
+                messages.success(request, f"Identity Verified! Name: {data.get('full_name')}, Age: {age}")
+                return redirect('auth_register_details')
+            else:
+                messages.error(request, verification['message'])
+    else:
+        form = AadharUploadForm()
+        
+    return render(request, 'web/Player/register_step1.html', {'form': form, 'email': email})
+
+def auth_register_details(request):
+    """Step 2: Complete Profile"""
+    # Strict Redirect
+    if request.session.get('player_id'):
+        return redirect('player_dashboard')
+
+    email = request.session.get('auth_email')
+    # Check if step 1 completed
+    reg_data = request.session.get('auth_register_data')
+    
+    if not email:
+        return redirect('auth_login')
+    
+    if not reg_data:
+        messages.warning(request, "Please upload your Aadhar Card first.")
+        return redirect('auth_register_upload')
         
     if request.method == 'POST':
         form = PlayerRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
-            # Age Verification Logic
-            aadhar_image = request.FILES.get('aadhar_card')
-            if aadhar_image:
-                verification = verify_age_with_groq(aadhar_image)
+            player = form.save(commit=False)
+            player.email = email
+            player.age = reg_data.get('age', 18) # Default 18 if somehow missing, but step 1 checks it
+            player.status = 'ACTIVE'
+            player.save()
+            
+            # Send Welcome Email
+            try:
+                subject = 'Welcome to E-Game Scout - Journey Started'
+                html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name})
+                text_content = strip_tags(html_content)
                 
-                if verification['success']:
-                    if verification['age'] < 16:
-                        messages.error(request, f"Age Restriction: You are {verification['age']} years old. Minimum age is 16.")
-                        return render(request, 'web/Player/register_details.html', {'form': form, 'email': email})
-                    else:
-                        # Proceed with registration
-                        player = form.save(commit=False)
-                        player.email = email
-                        player.age = verification['age'] # Force verified age
-                        player.status = 'ACTIVE'
-                        player.save()
-                        
-                        # Send Welcome Email
-                        try:
-                            subject = 'Welcome to E-Game Scout - Journey Started'
-                            html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name})
-                            text_content = strip_tags(html_content)
-                            
-                            msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-                            msg.attach_alternative(html_content, "text/html")
-                            msg.send()
-                            print(f"DEBUG: Welcome email sent to {email}")
-                        except Exception as e:
-                            print(f"ERROR: Failed to send welcome email: {e}")
+                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()
+                print(f"DEBUG: Welcome email sent to {email}")
+            except Exception as e:
+                print(f"ERROR: Failed to send welcome email: {e}")
 
-                        # Clear session to prevent auto-login in auth_login
-                        if 'auth_email' in request.session:
-                            del request.session['auth_email']
-                        if 'otp_verified' in request.session:
-                            del request.session['otp_verified']
-                        
-                        messages.success(request, f"Verification Successful! Age: {verification['age']}. Registration Complete. Welcome Email Sent! Please Login.")
-                        return redirect('auth_login')
-                else:
-                    messages.error(request, verification['message'])
-            else:
-                messages.error(request, "Please upload Aadhar Card.")
+            # Clear session
+            if 'auth_email' in request.session: del request.session['auth_email']
+            if 'otp_verified' in request.session: del request.session['otp_verified']
+            if 'auth_register_data' in request.session: del request.session['auth_register_data']
+            if 'auth_otp' in request.session: del request.session['auth_otp']
+            
+            messages.success(request, f"Registration Complete! Welcome {player.full_name}. Please Login.")
+            return redirect('auth_login')
     else:
-        form = PlayerRegistrationForm()
+        # Pre-fill form
+        initial_data = {
+            'full_name': reg_data.get('full_name', ''),
+            'aadhar_number': reg_data.get('aadhar_number', ''),
+            'age': reg_data.get('age', '')
+        }
+        form = PlayerRegistrationForm(initial=initial_data)
         
     return render(request, 'web/Player/register_details.html', {'form': form, 'email': email})
 
@@ -186,7 +228,30 @@ def player_dashboard(request):
         return redirect('auth_login')
         
     player = Player.objects.get(id=player_id)
+    
     return render(request, 'web/Player/dashboard.html', {'player': player})
+
+from .forms import PlayerProfileForm
+
+def player_profile(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    player = get_object_or_404(Player, id=player_id)
+    
+    if request.method == 'POST':
+        form = PlayerProfileForm(request.POST, request.FILES, instance=player)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('player_profile')
+        else:
+             messages.error(request, 'Error updating profile. Please check the fields.')
+    else:
+        form = PlayerProfileForm(instance=player)
+        
+    return render(request, 'web/Player/profile.html', {'player': player, 'form': form})
 
 def auth_logout(request):
     request.session.flush()

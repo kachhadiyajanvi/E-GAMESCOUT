@@ -40,7 +40,8 @@
         {% if messages %}
         <div class="mb-4">
             {% for message in messages %}
-            <div class="p-3 bg-red-500/10 border border-red-500/50 rounded text-red-500 text-sm text-center">
+            <div
+                class="p-3 rounded text-sm text-center border {% if message.tags == 'success' %}bg-green-500/10 border-green-500/50 text-green-400{% else %}bg-red-500/10 border-red-500/50 text-red-500{% endif %}">
                 {{ message }}
             </div>
             {% endfor %}
@@ -53,11 +54,28 @@
             <div class="md:col-span-2">
                 <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Full Name</label>
                 {{ form.full_name }}
-                <p id="fullname-error" class="text-red-500 text-xs mt-1 font-bold hidden"><i
-                        class="fa-solid fa-circle-exclamation mr-1"></i> Name is required</p>
                 {% if form.full_name.errors %}
                 <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{
                     form.full_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="md:col-span-1">
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Age</label>
+                {{ form.age }}
+                {% if form.age.errors %}
+                <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{
+                    form.age.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="md:col-span-1">
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Aadhar
+                    Number</label>
+                {{ form.aadhar_number }}
+                {% if form.aadhar_number.errors %}
+                <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{
+                    form.aadhar_number.errors.0 }}</p>
                 {% endif %}
             </div>
 
@@ -82,67 +100,6 @@
                     form.mobile_no.errors.0 }}</p>
                 {% endif %}
             </div>
-
-            <div class="md:col-span-2">
-                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Upload ID
-                    Proof</label>
-
-                <div class="relative w-full">
-                    <input type="file" name="aadhar_card" accept="image/png, image/jpeg, image/webp" class="hidden"
-                        id="id_aadhar_card" required>
-                    <label for="id_aadhar_card"
-                        class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-accent-cyan/50 hover:bg-white/5 transition-all group"
-                        id="upload-label">
-
-                        <!-- Default State -->
-                        <div id="upload-placeholder" class="flex flex-col items-center pt-5 pb-6">
-                            <i
-                                class="fa-solid fa-cloud-arrow-up text-3xl text-accent-cyan mb-3 group-hover:scale-110 transition-transform"></i>
-                            <div
-                                class="px-6 py-2 bg-accent-cyan text-brand-dark font-bold rounded-full mb-2 hover:bg-white transition-colors">
-                                Browse
-                            </div>
-                            <p class="mb-2 text-sm text-gray-400">drop a file here</p>
-                            <p class="text-xs text-gray-500">*File supported .png, .jpg & .webp</p>
-                        </div>
-
-                        <!-- Selected State -->
-                        <div id="file-info" class="hidden flex-col items-center pt-5 pb-6">
-                            <i class="fa-solid fa-circle-check text-4xl text-green-400 mb-3 animate-bounce"></i>
-                            <p class="text-sm text-white font-bold mb-1" id="filename-display">filename.jpg</p>
-                            <p class="text-xs text-green-400 font-bold uppercase tracking-widest">Ready to Verify</p>
-                            <p class="text-xs text-gray-500 mt-2 hover:text-red-400 pointer-events-auto"
-                                onclick="resetUpload(event)">(Click here to change)</p>
-                        </div>
-                    </label>
-                </div>
-                {% if form.aadhar_card.errors %}
-                <p class="text-red-500 text-xs mt-1">{{ form.aadhar_card.errors.0 }}</p>
-                {% endif %}
-            </div>
-
-            <script>
-                const fileInput = document.getElementById('id_aadhar_card');
-                const placeholder = document.getElementById('upload-placeholder');
-                const fileInfo = document.getElementById('file-info');
-                const filenameDisplay = document.getElementById('filename-display');
-
-                fileInput.addEventListener('change', function (e) {
-                    if (this.files && this.files[0]) {
-                        const file = this.files[0];
-                        filenameDisplay.textContent = file.name;
-                        placeholder.classList.add('hidden');
-                        fileInfo.classList.remove('hidden');
-                        fileInfo.classList.add('flex');
-                    }
-                });
-
-                function resetUpload(e) {
-                    // Prevent label click from triggering file dialog again immediately if we want to just clear
-                    // specific logic can go here, but clicking label naturally opens dialog which replaces file.
-                    // This is just a visual helper text.
-                }
-            </script>
 
             <div class="md:col-span-2 mt-4">
                 <button type="submit"

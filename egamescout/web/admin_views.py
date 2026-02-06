@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from .models import Organization, Player, Tournament
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import timedelta
 
@@ -60,11 +60,24 @@ def admin_dashboard(request):
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_players_detail(request):
-    players_list = Player.objects.all().order_by('-created_at')
+    search_query = request.GET.get('q', '')
+    if search_query:
+        players_list = Player.objects.filter(
+            Q(full_name__icontains=search_query) | 
+            Q(username__icontains=search_query)
+        ).order_by('-created_at')
+    else:
+        players_list = Player.objects.all().order_by('-created_at')
+        
     paginator = Paginator(players_list, 10) # Show 10 players per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'web/Admin/admin_players_detail.html', {'players': page_obj, 'page_obj': page_obj})
+    
+    return render(request, 'web/Admin/admin_players_detail.html', {
+        'players': page_obj, 
+        'page_obj': page_obj,
+        'search_query': search_query
+    })
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_organization_detail(request):
@@ -109,3 +122,25 @@ def admin_edit_organization(request, org_id):
         return redirect('admin_organization_detail')
     
     return render(request, 'web/Admin/admin_org_edit.html', {'org': org})
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_update_player_status(request, player_id):
+    if request.method == 'POST':
+        player = get_object_or_404(Player, id=player_id)
+        new_status = request.POST.get('status')
+        if new_status in dict(Player.STATUS_CHOICES):
+            player.status = new_status
+            player.save()
+            messages.success(request, f'Status for {player.full_name} updated to {new_status}.')
+        else:
+            messages.error(request, 'Invalid status selected.')
+    return redirect('admin_players_detail')
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_delete_player(request, player_id):
+    if request.method == 'POST':
+        player = get_object_or_404(Player, id=player_id)
+        player_name = player.full_name
+        player.delete()
+        messages.success(request, f'Player {player_name} has been deleted.')
+    return redirect('admin_players_detail')

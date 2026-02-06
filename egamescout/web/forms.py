@@ -130,16 +130,19 @@ class OTPVerifyForm(forms.Form):
         label="Enter Authentication Code"
     )
 
+class AadharUploadForm(forms.Form):
+    aadhar_card = forms.ImageField(required=True, label="Upload Aadhar Card (For Identity Verification)")
+
 class PlayerRegistrationForm(forms.ModelForm):
-    aadhar_card = forms.ImageField(required=True, label="Upload Aadhar Card (For Age Verification)")
-    
     class Meta:
         model = Player
-        fields = ['full_name', 'uid', 'mobile_no', 'aadhar_card'] # Age is calculated via AI
+        fields = ['full_name', 'age', 'uid', 'mobile_no', 'aadhar_number'] # Age & Aadhar extracted via AI
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors', 'placeholder': 'Enter Full Name'}),
+            'full_name': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors opacity-70 cursor-not-allowed', 'placeholder': 'Enter Full Name', 'readonly': 'readonly'}),
+            'age': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors opacity-70 cursor-not-allowed', 'placeholder': 'Age', 'readonly': 'readonly'}),
             'uid': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors', 'placeholder': 'Enter Game ID'}),
             'mobile_no': forms.NumberInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors', 'placeholder': 'Enter Mobile Number'}),
+            'aadhar_number': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors opacity-70 cursor-not-allowed', 'placeholder': 'Aadhar Number', 'readonly': 'readonly'}),
         }
 
     def clean_mobile_no(self):
@@ -156,11 +159,47 @@ class PlayerRegistrationForm(forms.ModelForm):
             raise forms.ValidationError("Game UID must be between 10 and 12 characters.")
         return uid
 
+    def clean_aadhar_number(self):
+        aadhar = self.cleaned_data.get('aadhar_number')
+        if not aadhar:
+             raise forms.ValidationError("Aadhar Number is required.")
+        # Check uniqueness (though model handles it, nice to have custom error)
+        if Player.objects.filter(aadhar_number=aadhar).exists():
+             raise forms.ValidationError("This Aadhar Number is already registered.")
+        return aadhar
+
     def clean_age(self):
+        # Age is not in form fields, it's handled in view/model, but if it were:
         age = self.cleaned_data.get('age')
-        if age < 16:
+        if age and age < 16:
             raise forms.ValidationError("You must be at least 16 years old to register.")
         return age
+
+class PlayerProfileForm(forms.ModelForm):
+    class Meta:
+        model = Player
+        fields = ['username', 'profile_photo']
+        widgets = {
+             'username': forms.TextInput(attrs={
+                'class': 'flex-1 bg-transparent border-none outline-none text-white', 
+                'placeholder': 'gamer_tag',
+                'required': 'required'
+            }),
+             'profile_photo': forms.FileInput(attrs={
+                'class': 'hidden',
+                'id': 'photo-upload',
+                'onchange': 'this.form.submit()'
+            }),
+        }
+    
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if not username:
+            raise forms.ValidationError("Username is required.")
+        # Check uniqueness, excluding current user is tricky here without passing user instance, 
+        # but ModelForm handles basic uniqueness. 
+        # For custom unique check excluding self, we'd need to init with instance (which we do in view).
+        return username
 
 class TournamentForm(forms.ModelForm):
     class Meta:

@@ -17,30 +17,28 @@
             <p class="text-white/40 text-sm">Manage user accounts and player profiles.</p>
         </div>
         <div class="flex gap-4">
-            <div class="relative w-64 group">
-                <input type="text" placeholder="Search Players..."
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder-white/30">
-                <i
-                    class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-blue transition-colors text-xs"></i>
+            <div class="flex gap-4">
+                <form method="GET" action="{% url 'admin_players_detail' %}" class="relative w-64 group">
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Search Players..."
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder-white/30">
+                    <button type="submit"
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-blue transition-colors text-xs bg-transparent border-none cursor-pointer">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </form>
+                <button onclick="openModal('players')"
+                    class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-bullhorn"></i> Notify
+                </button>
             </div>
-            <button onclick="openModal('players')"
-                class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
-                <i class="fa-solid fa-bullhorn"></i> Notify
-            </button>
-            <button
-                class="bg-brand-blue text-black hover:bg-white px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2 shadow-[0_0_15px_rgba(0,243,255,0.3)]">
-                <i class="fa-solid fa-user-plus"></i> Add Player
-            </button>
         </div>
     </div>
-
     <!-- Players Table -->
     <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
-                    <th class="p-4 font-bold">Player</th>
-                    <th class="p-4 font-bold">Role</th>
+                    <th class="p-4 font-bold">Player Details</th>
                     <th class="p-4 font-bold">Status</th>
                     <th class="p-4 font-bold">Joined</th>
                     <th class="p-4 font-bold text-right">Actions</th>
@@ -50,25 +48,36 @@
                 {% for player in players %}
                 <tr class="hover:bg-white/5 transition-colors group">
                     <td class="p-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-blue to-purple-600 p-[2px]">
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-12 h-12 rounded-full bg-brand-gray border border-white/10 flex-shrink-0 overflow-hidden">
+                                {% if player.profile_photo %}
+                                <img src="{{ player.profile_photo.url }}" class="w-full h-full object-cover">
+                                {% else %}
                                 <div
-                                    class="w-full h-full rounded-full bg-black flex items-center justify-center font-bold text-white/50 text-xs">
+                                    class="w-full h-full flex items-center justify-center font-bold text-white/50 text-xs bg-gradient-to-br from-brand-blue to-purple-600">
                                     {{ player.full_name|slice:":2"|upper }}
                                 </div>
+                                {% endif %}
                             </div>
-                            <div>
-                                <h4 class="font-bold text-white group-hover:text-brand-blue transition-colors">{{
-                                    player.full_name }}</h4>
-                                <p class="text-xs text-white/40">{{ player.email }}</p>
+                            <div class="flex-1">
+                                <!-- Username & Full Name -->
+                                <div class="mb-2">
+                                    {% if player.username %}
+                                    <h4 class="font-bold text-white text-base flex items-center gap-2">
+                                        {{ player.username }}
+                                        <span
+                                            class="px-1.5 py-0.5 rounded bg-brand-blue/10 text-brand-blue text-[10px] uppercase tracking-wider font-bold">Gamer</span>
+                                    </h4>
+                                    <p class="text-xs text-white/60 font-medium">{{ player.full_name }}</p>
+                                    {% else %}
+                                    <h4 class="font-bold text-white text-base">{{ player.full_name }}</h4>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </td>
-                    <td class="p-4 text-white/80">
-                        <span class="bg-white/5 border border-white/10 px-2 py-1 rounded text-xs">
-                            <span class="text-accent-cyan font-mono">{{ player.uid }}</span>
-                        </span>
-                    </td>
+
                     <td class="p-4">
                         {% if player.status == 'ACTIVE' %}
                         <span
@@ -89,10 +98,24 @@
                     </td>
                     <td class="p-4 text-white/40">{{ player.created_at|date:"M d, Y" }}</td>
                     <td class="p-4 text-right">
-                        <button class="text-white/40 hover:text-white transition-colors px-2"><i
-                                class="fa-solid fa-pen-to-square"></i></button>
-                        <button class="text-white/40 hover:text-red-500 transition-colors px-2"><i
-                                class="fa-solid fa-trash"></i></button>
+                        <button onclick="openViewModal(this)" data-username="{{ player.username|default:'' }}"
+                            data-fullname="{{ player.full_name }}" data-email="{{ player.email }}"
+                            data-mobile="{{ player.mobile_no }}" data-uid="{{ player.uid }}" data-age="{{ player.age }}"
+                            data-aadhar="XXXX-XXXX-{{ player.aadhar_number|slice:'-4:' }}"
+                            data-status="{{ player.status }}" data-joined="{{ player.created_at|date:'M d, Y' }}"
+                            data-photo="{% if player.profile_photo %}{{ player.profile_photo.url }}{% endif %}"
+                            class="text-white/40 hover:text-accent-cyan transition-colors px-2"
+                            title="View Full Details">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        <button onclick="openStatusModal('{{ player.id }}', '{{ player.status }}')"
+                            class="text-white/40 hover:text-brand-blue transition-colors px-2" title="Edit Status">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="openDeleteModal('{{ player.id }}', '{{ player.full_name|escapejs }}')"
+                            class="text-white/40 hover:text-red-500 transition-colors px-2" title="Delete Player">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </td>
                 </tr>
                 {% empty %}
@@ -117,7 +140,8 @@
                 {% if page_obj.number == num %}
                 <span class="px-3 py-1 bg-brand-blue text-black rounded font-bold">{{ num }}</span>
                 {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a href="?page={{ num }}"
-                    class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">{{ num }}</a>
+                    class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">
+                    {{ num }}</a>
                     {% endif %}
                     {% endfor %}
 
@@ -130,5 +154,251 @@
             </div>
         </div>
     </div>
+
+    <!-- View Details Modal -->
+    <div id="viewModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div
+            class="bg-brand-gray border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-white/10 bg-black/20 flex items-center justify-between">
+                <h3 class="font-display font-bold text-xl text-white flex items-center gap-2">
+                    <i class="fa-solid fa-address-card text-accent-cyan"></i> Player Search Dossier
+                </h3>
+                <button type="button" onclick="closePlayerModal('viewModal')"
+                    class="text-white/40 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-8 overflow-y-auto">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Left: Avatar & Identity -->
+                    <div
+                        class="flex flex-col items-center w-full md:w-1/3 border-b md:border-b-0 md:border-r border-white/10 pb-6 md:pb-0 md:pr-6">
+                        <div class="w-32 h-32 rounded-full border-4 border-accent-cyan/20 p-1 mb-4 relative">
+                            <img id="viewAvatar" src="" class="w-full h-full rounded-full object-cover bg-black"
+                                onerror="this.src='https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff'">
+                            <div id="viewStatusIndicator"
+                                class="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-brand-gray bg-gray-500">
+                            </div>
+                        </div>
+
+                        <h2 id="viewUsername" class="text-2xl font-display font-bold text-white text-center break-all">
+                        </h2>
+                        <p id="viewFullName" class="text-brand-light text-sm mb-4 text-center"></p>
+
+                        <div class="w-full bg-white/5 rounded-lg p-3 text-center border border-white/5">
+                            <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1">Game UID</p>
+                            <p id="viewUid" class="font-mono text-accent-cyan font-bold tracking-wider text-lg">---</p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Attributes -->
+                    <div class="flex-1 w-full">
+                        <h4
+                            class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b border-white/5 pb-2">
+                            Personal Information</h4>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Email Address</p>
+                                <p id="viewEmail" class="text-white text-sm truncate">---</p>
+                            </div>
+                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Mobile Number</p>
+                                <p id="viewMobile" class="text-white text-sm font-mono">---</p>
+                            </div>
+                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Age</p>
+                                <p id="viewAge" class="text-white text-sm">---</p>
+                            </div>
+                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Aadhar Number</p>
+                                <p id="viewAadhar" class="text-white text-sm font-mono tracking-widest">---</p>
+                            </div>
+                        </div>
+
+                        <h4
+                            class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b border-white/5 pb-2">
+                            System Meta</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Joined Date</p>
+                                <p id="viewJoined" class="text-white text-sm">---</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Status</p>
+                                <span id="viewStatusText"
+                                    class="px-2 py-1 rounded text-xs font-bold bg-white/10 text-white">---</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 bg-black/20 border-t border-white/10 flex justify-end">
+                <button type="button" onclick="closePlayerModal('viewModal')"
+                    class="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold uppercase text-sm transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Status Modal -->
+    <div id="statusModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-brand-gray border border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl relative">
+            <button type="button" onclick="closePlayerModal('statusModal')"
+                class="absolute top-4 right-4 text-white/40 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="font-display font-bold text-xl text-white mb-4">Update Player Status</h3>
+            <form id="statusForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Select
+                        Status</label>
+                    <div class="space-y-2">
+                        <label
+                            class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                            <input type="radio" name="status" value="ACTIVE"
+                                class="text-accent-cyan focus:ring-accent-cyan bg-transparent">
+                            <span class="text-green-400 font-bold">Active</span>
+                        </label>
+                        <label
+                            class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                            <input type="radio" name="status" value="PENDING"
+                                class="text-yellow-400 focus:ring-yellow-400 bg-transparent">
+                            <span class="text-yellow-400 font-bold">Pending</span>
+                        </label>
+                        <label
+                            class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                            <input type="radio" name="status" value="SUSPENDED"
+                                class="text-red-400 focus:ring-red-400 bg-transparent">
+                            <span class="text-red-400 font-bold">Suspended</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closePlayerModal('statusModal')"
+                        class="px-4 py-2 text-gray-400 hover:text-white text-sm font-bold uppercase">Cancel</button>
+                    <button type="submit"
+                        class="px-6 py-2 bg-brand-blue text-black rounded-lg font-bold uppercase shadow-[0_0_15px_rgba(0,243,255,0.3)] hover:shadow-[0_0_25px_rgba(0,243,255,0.5)] transition-all">Update
+                        Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-brand-gray border border-red-500/30 rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-triangle-exclamation text-3xl text-red-500"></i>
+                </div>
+                <h3 class="font-display font-bold text-xl text-white mb-2">Delete Player?</h3>
+                <p class="text-gray-400 text-sm">Are you sure you want to delete <span id="deletePlayerName"
+                        class="text-white font-bold"></span>? This action cannot be undone.</p>
+            </div>
+            <form id="deleteForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="flex gap-3">
+                    <button type="button" onclick="closePlayerModal('deleteModal')"
+                        class="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white font-bold uppercase transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white font-bold uppercase shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
+<script>
+    function openViewModal(button) {
+        const modal = document.getElementById('viewModal');
+        const data = button.dataset;
+
+        // Populate fields
+        document.getElementById('viewUsername').textContent = data.username || 'No Username';
+        document.getElementById('viewFullName').textContent = data.fullname;
+        document.getElementById('viewUid').textContent = data.uid;
+        document.getElementById('viewEmail').textContent = data.email;
+        document.getElementById('viewMobile').textContent = data.mobile;
+        document.getElementById('viewAge').textContent = data.age + ' Years';
+        document.getElementById('viewAadhar').textContent = data.aadhar;
+        document.getElementById('viewJoined').textContent = data.joined;
+
+        // Status styling
+        const statusEl = document.getElementById('viewStatusText');
+        const indicatorEl = document.getElementById('viewStatusIndicator');
+        statusEl.textContent = data.status;
+
+        if (data.status === 'ACTIVE') {
+            statusEl.className = 'px-2 py-1 rounded text-xs font-bold bg-green-500/20 text-green-400';
+            indicatorEl.className = 'absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-brand-gray bg-green-500';
+        } else if (data.status === 'PENDING') {
+            statusEl.className = 'px-2 py-1 rounded text-xs font-bold bg-yellow-500/20 text-yellow-400';
+            indicatorEl.className = 'absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-brand-gray bg-yellow-500';
+        } else {
+            statusEl.className = 'px-2 py-1 rounded text-xs font-bold bg-red-500/20 text-red-500';
+            indicatorEl.className = 'absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-brand-gray bg-red-500';
+        }
+
+        // Avatar
+        const avatarImg = document.getElementById('viewAvatar');
+        if (data.photo) {
+            avatarImg.src = data.photo;
+        } else {
+            // Generate initials avatar fallback
+            const initials = data.fullname.substring(0, 2).toUpperCase();
+            avatarImg.src = `https://ui-avatars.com/api/?name=${initials}&background=random&color=fff&size=200`;
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function openStatusModal(playerId, currentStatus) {
+        const modal = document.getElementById('statusModal');
+        const form = document.getElementById('statusForm');
+
+        form.action = `/admin/players/update-status/${playerId}/`;
+
+        // Select current status
+        const radio = form.querySelector(`input[value="${currentStatus}"]`);
+        if (radio) radio.checked = true;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function openDeleteModal(playerId, playerName) {
+        const modal = document.getElementById('deleteModal');
+        const form = document.getElementById('deleteForm');
+        const nameSpan = document.getElementById('deletePlayerName');
+
+        form.action = `/admin/players/delete/${playerId}/`;
+        nameSpan.textContent = playerName;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closePlayerModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function (event) {
+        if (event.target.classList.contains('fixed')) {
+            event.target.classList.add('hidden');
+            event.target.classList.remove('flex');
+        }
+    }
+</script>
 {% endblock %}
