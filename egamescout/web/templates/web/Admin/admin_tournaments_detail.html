@@ -1,0 +1,137 @@
+{% extends 'web/Admin/admin_dashboard.html' %}
+
+{% block content %}
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-xs text-white/40 mb-2 font-mono">
+        <a href="{% url 'admin_dashboard' %}" class="hover:text-brand-blue transition-colors">Dashboard</a>
+        <span>/</span>
+        <span class="text-white">Tournaments</span>
+    </div>
+
+    <!-- Page Title -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="font-display font-bold text-3xl text-white mb-1">TOURNAMENTS</h1>
+            <p class="text-white/40 text-sm">Manage competitive events and matches.</p>
+        </div>
+        <div class="flex gap-4">
+            <div class="relative w-64 group">
+                <input type="text" placeholder="Search Tournaments..."
+                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder-white/30">
+                <i
+                    class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-purple-500 transition-colors text-xs"></i>
+            </div>
+            <button
+                class="bg-purple-500 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                <i class="fa-solid fa-trophy"></i> Create New
+            </button>
+        </div>
+    </div>
+
+    <!-- Tournaments Table -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
+                    <th class="p-4 font-bold">Tournament</th>
+                    <th class="p-4 font-bold">Organizer</th>
+                    <th class="p-4 font-bold">Status</th>
+                    <th class="p-4 font-bold">Prize Pool</th>
+                    <th class="p-4 font-bold">Created</th>
+                    <th class="p-4 font-bold text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm">
+                {% for tournament in tournaments %}
+                <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 p-[2px]">
+                                <div class="w-full h-full rounded-[6px] bg-black flex items-center justify-center">
+                                    <i class="fa-solid fa-trophy text-purple-400"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white group-hover:text-purple-400 transition-colors">{{
+                                    tournament.Name }}</h4>
+                                <p class="text-xs text-white/40">ID: #{{ tournament.Tournament_ID }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 text-white/80">
+                        <span class="flex items-center gap-2">
+                            {{ tournament.Organization_Name.Organization_Name }}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        {% if tournament.Status == 'Ongoing' %}
+                        <span
+                            class="text-green-400 bg-green-400/10 px-2 py-1 rounded-full text-xs font-bold dot-indicator flex items-center gap-1 w-fit">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Ongoing
+                        </span>
+                        {% elif tournament.Status == 'Scheduled' %}
+                        <span
+                            class="text-brand-blue bg-brand-blue/10 px-2 py-1 rounded-full text-xs font-bold dot-indicator flex items-center gap-1 w-fit">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand-blue"></span> Scheduled
+                        </span>
+                        {% elif tournament.Status == 'Completed' %}
+                        <span
+                            class="text-white/60 bg-white/10 px-2 py-1 rounded-full text-xs font-bold dot-indicator flex items-center gap-1 w-fit">
+                            <span class="w-1.5 h-1.5 rounded-full bg-white/60"></span> Completed
+                        </span>
+                        {% else %}
+                        <span
+                            class="text-red-400 bg-red-400/10 px-2 py-1 rounded-full text-xs font-bold dot-indicator flex items-center gap-1 w-fit">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> {{ tournament.Status }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 text-brand-blue font-bold font-mono">{{ tournament.PrizePool }}</td>
+                    <td class="p-4 text-white/40">{{ tournament.CreatedAt|date:"M d, Y" }}</td>
+                    <td class="p-4 text-right">
+                        <button class="text-white/40 hover:text-white transition-colors px-2"><i
+                                class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="text-white/40 hover:text-red-500 transition-colors px-2"><i
+                                class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="p-8 text-center text-white/40">No tournaments found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="p-4 border-t border-white/5 flex items-center justify-between text-xs text-white/40">
+            <span>Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+                tournaments</span>
+            <div class="flex gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}"
+                    class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">Previous</a>
+                {% else %}
+                <button class="px-3 py-1 bg-white/5 rounded opacity-50 cursor-not-allowed" disabled>Previous</button>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="px-3 py-1 bg-purple-500 text-white rounded font-bold">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a href="?page={{ num }}"
+                    class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">{{ num }}</a>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}"
+                        class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">Next</a>
+                    {% else %}
+                    <button class="px-3 py-1 bg-white/5 rounded opacity-50 cursor-not-allowed" disabled>Next</button>
+                    {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

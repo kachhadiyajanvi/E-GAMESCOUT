@@ -1,0 +1,141 @@
+{% extends 'web/Admin/admin_dashboard.html' %}
+
+{% block content %}
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-xs text-white/40 mb-2 font-mono">
+        <a href="{% url 'admin_dashboard' %}" class="hover:text-brand-blue transition-colors">Dashboard</a>
+        <span>/</span>
+        <span class="text-white">Organizations</span>
+    </div>
+
+    <!-- Page Title -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="font-display font-bold text-3xl text-white mb-1">ORGANIZATIONS</h1>
+            <p class="text-white/40 text-sm">Manage gaming organizations and teams.</p>
+        </div>
+        <div class="flex gap-4">
+            <div class="relative w-64 group">
+                <input type="text" placeholder="Search Orgs..."
+                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-pink focus:border-transparent outline-none transition-all placeholder-white/30">
+                <i
+                    class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-pink transition-colors text-xs"></i>
+            </div>
+            <button onclick="openModal('orgs')"
+                class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
+                <i class="fa-solid fa-bullhorn"></i> Notify
+            </button>
+        </div>
+    </div>
+
+    <!-- Organizations Table -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
+                    <th class="p-4 font-bold">Organization</th>
+                    <th class="p-4 font-bold">Username</th>
+                    <th class="p-4 font-bold">Status</th>
+                    <th class="p-4 font-bold">Contact</th>
+                    <th class="p-4 font-bold">Joined</th>
+                    <th class="p-4 font-bold text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm">
+                {% for org in page_obj %}
+                <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-pink to-orange-500 p-[2px]">
+                                {% if org.profile_photo %}
+                                <img src="{{ org.profile_photo.url }}"
+                                    class="w-full h-full rounded-full object-cover border-2 border-black" alt="Avatar">
+                                {% else %}
+                                <div
+                                    class="w-full h-full rounded-full bg-black flex items-center justify-center font-bold text-white/50 text-xs">
+                                    {{ org.Organization_Name|slice:":2"|upper }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white group-hover:text-brand-pink transition-colors">{{
+                                    org.Organization_Name }}</h4>
+                                <p class="text-xs text-white/40">{{ org.Organization_Email }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 text-white/80">
+                        <span class="bg-white/5 border border-white/10 px-2 py-1 rounded text-xs">@{{
+                            org.Organization_UserName }}</span>
+                    </td>
+                    <td class="p-4">
+                        {% if org.status == 'Active' %}
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5"></span>
+                            Active
+                        </span>
+                        {% elif org.status == 'Suspended' %}
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5"></span>
+                            Suspended
+                        </span>
+                        {% else %}
+                        <span
+                            class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-1.5"></span>
+                            {{ org.status|default:"Pending" }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 text-white/80">{{ org.Organization_Contact }}</td>
+                    <td class="p-4 text-white/40">{{ org.CreatedAt|date:"M d, Y" }}</td>
+                    <td class="p-4 text-right">
+                        <a href="{% url 'admin_edit_organization' org.id %}"
+                            class="inline-block text-white/40 hover:text-white transition-colors px-2">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </a>
+
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="p-8 text-center text-white/40">No organizations found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="p-4 border-t border-white/5 flex items-center justify-between text-xs text-white/40">
+            <span>Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+                organizations</span>
+            <div class="flex gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}"
+                    class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">Previous</a>
+                {% else %}
+                <button class="px-3 py-1 bg-white/5 rounded opacity-50 cursor-not-allowed" disabled>Previous</button>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="px-3 py-1 bg-brand-pink text-white rounded font-bold">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a href="?page={{ num }}"
+                    class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">{{ num }}</a>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}"
+                        class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">Next</a>
+                    {% else %}
+                    <button class="px-3 py-1 bg-white/5 rounded opacity-50 cursor-not-allowed" disabled>Next</button>
+                    {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

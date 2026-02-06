@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, admin_views
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -39,4 +39,15 @@ urlpatterns = [
     path('auth/register/', views.auth_register_details, name='auth_register_details'),
     path('player/dashboard/', views.player_dashboard, name='player_dashboard'),
     path('auth/logout/', views.auth_logout, name='auth_logout'),
+
+    # Admin Portal
+    path('admin/login/', admin_views.admin_login, name='admin_login'),
+    path('admin/logout/', admin_views.admin_logout, name='admin_logout'),
+    path('admin/dashboard/', admin_views.admin_dashboard, name='admin_dashboard'),
+    path('admin/players/', admin_views.admin_players_detail, name='admin_players_detail'),
+    path('admin/organizations/', admin_views.admin_organization_detail, name='admin_organization_detail'),
+    path('admin/organizations/delete/<int:org_id>/', admin_views.admin_delete_organization, name='admin_delete_organization'),
+    path('admin/organizations/edit/<int:org_id>/', admin_views.admin_edit_organization, name='admin_edit_organization'),
+    path('admin/tournaments/', admin_views.admin_tournaments_detail, name='admin_tournaments_detail'),
+    path('admin/profile/', admin_views.admin_profile, name='admin_profile'),
 ]

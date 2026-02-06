@@ -12,6 +12,12 @@ class Organization(models.Model):
     profile_photo = models.ImageField(upload_to='organization_profiles/', null=True, blank=True)
     instagram_username = models.CharField(max_length=50, null=True, blank=True)
     instagram_link = models.URLField(max_length=200, null=True, blank=True)
+    STATUS_CHOICES = [
+        ('Active', 'Active'),
+        ('Suspended', 'Suspended'),
+        ('Pending', 'Pending'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Active')
     CreatedAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

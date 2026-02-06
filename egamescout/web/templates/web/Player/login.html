@@ -1,4 +1,4 @@
-{% extends 'web/player_base.html' %}
+{% extends 'web/Player/player_base.html' %}
 
 {% block content %}
 <div class="w-full max-w-md">
@@ -42,25 +42,25 @@
             {% endif %}
         </div>
     </div>
-    </div>
+</div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const form = document.querySelector('form');
         const emailInput = document.querySelector('input[type="email"]');
-        
-        if(emailInput) {
+
+        if (emailInput) {
             // Create error element
             const errorP = document.createElement('p');
             errorP.className = "text-red-500 text-xs mt-1 font-bold hidden";
             emailInput.parentNode.appendChild(errorP);
 
-            emailInput.addEventListener('input', function() {
+            emailInput.addEventListener('input', function () {
                 const email = this.value;
                 const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                
-                if(email.length > 0 && !emailPattern.test(email)) {
+
+                if (email.length > 0 && !emailPattern.test(email)) {
                     errorP.textContent = "Please enter a valid email address.";
                     errorP.classList.remove('hidden');
                     this.classList.add('border-red-500');

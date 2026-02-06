@@ -78,7 +78,7 @@ def auth_login(request):
     else:
         form = EmailLoginForm()
     
-    return render(request, 'web/login.html', {'form': form, 'is_register': is_register})
+    return render(request, 'web/Player/login.html', {'form': form, 'is_register': is_register})
 
 def auth_verify_otp(request):
     # Strict Redirect
@@ -116,7 +116,7 @@ def auth_verify_otp(request):
     else:
         form = OTPVerifyForm()
         
-    return render(request, 'web/verify_otp.html', {'form': form, 'email': email})
+    return render(request, 'web/Player/verify_otp.html', {'form': form, 'email': email})
 
 from .helpers import verify_age_with_groq
 
@@ -140,7 +140,7 @@ def auth_register_details(request):
                 if verification['success']:
                     if verification['age'] < 16:
                         messages.error(request, f"Age Restriction: You are {verification['age']} years old. Minimum age is 16.")
-                        return render(request, 'web/register_details.html', {'form': form, 'email': email})
+                        return render(request, 'web/Player/register_details.html', {'form': form, 'email': email})
                     else:
                         # Proceed with registration
                         player = form.save(commit=False)
@@ -177,7 +177,7 @@ def auth_register_details(request):
     else:
         form = PlayerRegistrationForm()
         
-    return render(request, 'web/register_details.html', {'form': form, 'email': email})
+    return render(request, 'web/Player/register_details.html', {'form': form, 'email': email})
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def player_dashboard(request):
@@ -186,7 +186,7 @@ def player_dashboard(request):
         return redirect('auth_login')
         
     player = Player.objects.get(id=player_id)
-    return render(request, 'web/dashboard.html', {'player': player})
+    return render(request, 'web/Player/dashboard.html', {'player': player})
 
 def auth_logout(request):
     request.session.flush()
@@ -216,7 +216,7 @@ def org_register_start(request):
             # Send OTP via Email
             # Send OTP via Email (HTML + Text)
             subject = 'E-Game Scout Registration OTP'
-            html_content = render_to_string('web/email_otp.html', {'otp': otp})
+            html_content = render_to_string('web/email/email_otp.html', {'otp': otp})
             text_content = strip_tags(html_content)
             
             msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -229,7 +229,7 @@ def org_register_start(request):
     else:
         form = OrganizationEmailForm()
     
-    return render(request, 'web/org_register_start.html', {'form': form})
+    return render(request, 'web/Organization/org_register_start.html', {'form': form})
 
 def org_register_otp(request):
     email = request.session.get('reg_email')
@@ -247,7 +247,7 @@ def org_register_otp(request):
     else:
         form = OTPForm()
     
-    return render(request, 'web/org_register_otp.html', {'form': form, 'email': email})
+    return render(request, 'web/Organization/org_register_otp.html', {'form': form, 'email': email})
 
 def org_register_details(request):
     email = request.session.get('reg_email')
@@ -291,7 +291,7 @@ def org_register_details(request):
     else:
         form = OrganizationDetailsForm()
     
-    return render(request, 'web/org_register_details.html', {'form': form})
+    return render(request, 'web/Organization/org_register_details.html', {'form': form})
 
 # --- Login Flow ---
 
@@ -311,7 +311,7 @@ def org_login_start(request):
                 # Send OTP via Email
                 # Send OTP via Email (HTML + Text)
                 subject = 'E-Game Scout Login OTP'
-                html_content = render_to_string('web/email_otp.html', {'otp': otp})
+                html_content = render_to_string('web/email/email_otp.html', {'otp': otp})
                 text_content = strip_tags(html_content)
                 
                 msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -326,7 +326,7 @@ def org_login_start(request):
     else:
         form = OrganizationEmailForm()
     
-    return render(request, 'web/org_login_start.html', {'form': form})
+    return render(request, 'web/Organization/org_login_start.html', {'form': form})
 
 def org_login_otp(request):
     email = request.session.get('login_email')
@@ -355,7 +355,7 @@ def org_login_otp(request):
     else:
         form = OTPForm()
     
-    return render(request, 'web/org_login_otp.html', {'form': form, 'email': email})
+    return render(request, 'web/Organization/org_login_otp.html', {'form': form, 'email': email})
 
 def organizer_dashboard(request):
     org_id = request.session.get('organizer_id')
@@ -364,7 +364,7 @@ def organizer_dashboard(request):
         
     org = get_object_or_404(Organization, id=org_id)
     print(f"DEBUG: Dashboard loading for Org: {org.Organization_Name}, Email: {org.Organization_Email}")
-    return render(request, 'web/organizer_dashboard.html', {'org': org})
+    return render(request, 'web/Organization/organizer_dashboard.html', {'org': org})
 
 from django.http import JsonResponse
 
@@ -386,7 +386,7 @@ def resend_otp(request):
             
         # Send OTP via Email
         subject = 'E-Game Scout OTP Resend'
-        html_content = render_to_string('web/email_otp.html', {'otp': otp})
+        html_content = render_to_string('web/email/email_otp.html', {'otp': otp})
         text_content = strip_tags(html_content)
         
         msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -532,7 +532,7 @@ def scorecard_tool(request):
 
     # GET Request: Show history
     history = ScorecardAnalysis.objects.filter(organization=org).order_by('-created_at')
-    return render(request, 'web/org_scorecard_tool.html', {'org': org, 'history': history})
+    return render(request, 'web/Organization/org_scorecard_tool.html', {'org': org, 'history': history})
 
 # --- Profile Management ---
 
@@ -543,7 +543,7 @@ def manage_profile(request):
         return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
-    return render(request, 'web/org_manage_profile.html', {'org': org})
+    return render(request, 'web/Organization/org_manage_profile.html', {'org': org})
 
 def update_profile(request):
     """Update organization profile information"""
@@ -592,7 +592,7 @@ def tournament_list(request):
     org = get_object_or_404(Organization, id=org_id)
     tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-CreatedAt')
     
-    return render(request, 'web/org_tournament_list.html', {'org': org, 'tournaments': tournaments})
+    return render(request, 'web/Organization/org_tournament_list.html', {'org': org, 'tournaments': tournaments})
 
 def tournament_create(request):
     """Create a new tournament"""
@@ -613,7 +613,7 @@ def tournament_create(request):
     else:
         form = TournamentForm()
     
-    return render(request, 'web/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Create'})
+    return render(request, 'web/Organization/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Create'})
 
 def tournament_update(request, tournament_id):
     """Update an existing tournament"""
@@ -633,7 +633,7 @@ def tournament_update(request, tournament_id):
     else:
         form = TournamentForm(instance=tournament)
     
-    return render(request, 'web/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Update', 'tournament': tournament})
+    return render(request, 'web/Organization/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Update', 'tournament': tournament})
 
 def tournament_delete(request, tournament_id):
     """Delete a tournament"""
@@ -650,7 +650,7 @@ def tournament_delete(request, tournament_id):
         messages.success(request, f'Tournament "{tournament_name}" deleted successfully!')
         return redirect('tournament_list')
     
-    return render(request, 'web/org_tournament_confirm_delete.html', {'org': org, 'tournament': tournament})
+    return render(request, 'web/Organization/org_tournament_confirm_delete.html', {'org': org, 'tournament': tournament})
 def my_players(request):
     """Display list of players recruited by the organization"""
     org_id = request.session.get('organizer_id')
@@ -660,4 +660,36 @@ def my_players(request):
     org = get_object_or_404(Organization, id=org_id)
     players = Player.objects.filter(organization=org).order_by('-created_at')
     
-    return render(request, 'web/org_my_players.html', {'org': org, 'players': players})
+    return render(request, 'web/Organization/org_my_players.html', {'org': org, 'players': players})
+
+def custom_error_view(request, exception=None, status_code=500):
+    """Generic error view for all HTTP status codes"""
+    error_messages = {
+        404: "Page Not Found",
+        500: "Internal Server Error",
+        403: "Access Forbidden",
+        400: "Bad Request"
+    }
+    
+    # If using Django's default handlers, standard function signature is used.
+    # We allow flexible usage.
+    
+    message = error_messages.get(status_code, "System Error")
+    
+    return render(request, 'web/error.html', {
+        'status_code': status_code,
+        'message': message
+    }, status=status_code)
+
+# Specific Handlers to match Django's expected signature
+def handler404(request, exception):
+    return custom_error_view(request, exception=exception, status_code=404)
+
+def handler500(request):
+    return custom_error_view(request, status_code=500)
+
+def handler403(request, exception):
+    return custom_error_view(request, exception=exception, status_code=403)
+
+def handler400(request, exception):
+    return custom_error_view(request, exception=exception, status_code=400)

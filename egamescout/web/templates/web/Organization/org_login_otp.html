@@ -1,4 +1,4 @@
-{% extends 'web/org_base.html' %}
+{% extends 'web/Organization/org_base.html' %}
 
 {% block content %}
 <div class="w-full max-w-md">
@@ -6,7 +6,7 @@
         class="glass-card p-8 rounded-xl border border-white/10 relative overflow-hidden group hover:border-accent-cyan/30 transition-all duration-300">
         <!-- Header -->
         <div class="mb-8 text-center">
-            <h2 class="text-3xl font-display font-bold text-white mb-2">VERIFY IDENTITY</h2>
+            <h2 class="text-3xl font-display font-bold text-white mb-2">AUTH CHECK</h2>
             <p class="text-gray-400 text-sm">Enter the OTP sent to <span class="text-accent-cyan">{{ email }}</span></p>
             <p class="text-xs text-gray-500 mt-2">Check the server console for the OTP (Dev Mode)</p>
         </div>
@@ -27,7 +27,7 @@
 
             <button type="submit"
                 class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded transition-colors group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)]">
-                Verify OTP
+                Access Dashboard
             </button>
             </button>
         </form>
@@ -109,7 +109,7 @@
         </script>
 
         <div class="mt-6 text-center text-xs text-gray-500">
-            <a href="{% url 'org_register_start' %}" class="text-gray-400 hover:text-white">Change Email</a>
+            <a href="{% url 'org_login_start' %}" class="text-gray-400 hover:text-white">Change Email</a>
         </div>
     </div>
 </div>

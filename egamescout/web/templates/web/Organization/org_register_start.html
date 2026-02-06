@@ -1,4 +1,4 @@
-{% extends 'web/player_base.html' %}
+{% extends 'web/Organization/org_base.html' %}
 
 {% block content %}
 <div class="w-full max-w-md">
@@ -6,9 +6,8 @@
         class="glass-card p-8 rounded-xl border border-white/10 relative overflow-hidden group hover:border-accent-cyan/30 transition-all duration-300">
         <!-- Header -->
         <div class="mb-8 text-center">
-            <h2 class="text-3xl font-display font-bold text-white mb-2">SECURITY CHECK</h2>
-            <p class="text-brand-light text-sm">Code sent to <span class="text-accent-cyan font-bold">{{ email }}</span>
-            </p>
+            <h2 class="text-3xl font-display font-bold text-white mb-2">JOIN THE NETWORK</h2>
+            <p class="text-gray-400 text-sm">Create an Organization Account</p>
         </div>
 
         <!-- Form -->
@@ -17,24 +16,23 @@
 
             <div>
                 <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-2">
-                    Enter OTP Code
+                    Organization Email
                 </label>
-                {{ form.otp_code }}
-                {% if form.otp_code.errors %}
-                <p class="text-red-500 text-xs mt-1">{{ form.otp_code.errors.0 }}</p>
+                {{ form.organization_email }}
+                {% if form.organization_email.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.organization_email.errors.0 }}</p>
                 {% endif %}
             </div>
 
             <button type="submit"
                 class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded transition-colors group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)]">
-                Verify Identity
+                Send OTP
             </button>
         </form>
 
         <div class="mt-6 text-center text-xs text-gray-500">
-            <a href="{% url 'auth_login' %}" class="text-gray-400 hover:text-white transition-colors">
-                Change Email Address
-            </a>
+            Already registered? <a href="{% url 'org_login_start' %}" class="text-accent-cyan hover:underline">Log in
+                here</a>
         </div>
     </div>
 </div>
