@@ -17,12 +17,14 @@
             <p class="text-white/40 text-sm">Manage gaming organizations and teams.</p>
         </div>
         <div class="flex gap-4">
-            <div class="relative w-64 group">
-                <input type="text" placeholder="Search Orgs..."
+            <form method="GET" action="{% url 'admin_organization_detail' %}" class="relative w-64 group">
+                <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search Orgs..."
                     class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-pink focus:border-transparent outline-none transition-all placeholder-white/30">
-                <i
-                    class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-pink transition-colors text-xs"></i>
-            </div>
+                <button type="submit"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-pink transition-colors text-xs bg-transparent border-none cursor-pointer">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </form>
             <button onclick="openModal('orgs')"
                 class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
                 <i class="fa-solid fa-bullhorn"></i> Notify
@@ -36,7 +38,6 @@
             <thead>
                 <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
                     <th class="p-4 font-bold">Organization</th>
-                    <th class="p-4 font-bold">Username</th>
                     <th class="p-4 font-bold">Status</th>
                     <th class="p-4 font-bold">Contact</th>
                     <th class="p-4 font-bold">Joined</th>
@@ -48,7 +49,8 @@
                 <tr class="hover:bg-white/5 transition-colors group">
                     <td class="p-4">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-pink to-orange-500 p-[2px]">
+                            <div
+                                class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-pink to-orange-500 p-[2px] overflow-hidden">
                                 {% if org.profile_photo %}
                                 <img src="{{ org.profile_photo.url }}"
                                     class="w-full h-full rounded-full object-cover border-2 border-black" alt="Avatar">
@@ -60,16 +62,14 @@
                                 {% endif %}
                             </div>
                             <div>
-                                <h4 class="font-bold text-white group-hover:text-brand-pink transition-colors">{{
-                                    org.Organization_Name }}</h4>
+                                <h4 class="font-bold text-white group-hover:text-brand-pink transition-colors">
+                                    {{ org.Organization_Name }}
+                                </h4>
                                 <p class="text-xs text-white/40">{{ org.Organization_Email }}</p>
                             </div>
                         </div>
                     </td>
-                    <td class="p-4 text-white/80">
-                        <span class="bg-white/5 border border-white/10 px-2 py-1 rounded text-xs">@{{
-                            org.Organization_UserName }}</span>
-                    </td>
+
                     <td class="p-4">
                         {% if org.status == 'Active' %}
                         <span
@@ -91,14 +91,28 @@
                         </span>
                         {% endif %}
                     </td>
-                    <td class="p-4 text-white/80">{{ org.Organization_Contact }}</td>
+                    <td class="p-4 text-white/80 font-mono text-xs">{{ org.Organization_Contact }}</td>
                     <td class="p-4 text-white/40">{{ org.CreatedAt|date:"M d, Y" }}</td>
                     <td class="p-4 text-right">
-                        <a href="{% url 'admin_edit_organization' org.id %}"
-                            class="inline-block text-white/40 hover:text-white transition-colors px-2">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </a>
+                        <button onclick="openOrgViewModal(this)" data-name="{{ org.Organization_Name }}"
+                            data-username="{{ org.Organization_UserName|default:'' }}"
+                            data-email="{{ org.Organization_Email }}" data-contact="{{ org.Organization_Contact }}"
+                            data-status="{{ org.status }}" data-joined="{{ org.CreatedAt|date:'M d, Y' }}"
+                            data-photo="{% if org.profile_photo %}{{ org.profile_photo.url }}{% endif %}"
+                            class="text-white/40 hover:text-accent-cyan transition-colors px-2"
+                            title="View Full Details">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
 
+                        <button onclick="openOrgStatusModal('{{ org.id }}', '{{ org.status }}')"
+                            class="text-white/40 hover:text-brand-blue transition-colors px-2" title="Edit Status">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+
+                        <button onclick="openOrgDeleteModal('{{ org.id }}', '{{ org.Organization_Name|escapejs }}')"
+                            class="text-white/40 hover:text-red-500 transition-colors px-2" title="Delete Organization">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </td>
                 </tr>
                 {% empty %}
@@ -109,12 +123,13 @@
             </tbody>
         </table>
 
+        <!-- Pagination -->
         <div class="p-4 border-t border-white/5 flex items-center justify-between text-xs text-white/40">
             <span>Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
                 organizations</span>
             <div class="flex gap-2">
                 {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}"
+                <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}"
                     class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">Previous</a>
                 {% else %}
                 <button class="px-3 py-1 bg-white/5 rounded opacity-50 cursor-not-allowed" disabled>Previous</button>
@@ -123,13 +138,14 @@
                 {% for num in page_obj.paginator.page_range %}
                 {% if page_obj.number == num %}
                 <span class="px-3 py-1 bg-brand-pink text-white rounded font-bold">{{ num }}</span>
-                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a href="?page={{ num }}"
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a
+                    href="?page={{ num }}&q={{ search_query }}"
                     class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">{{ num }}</a>
                     {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}"
+                    <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}"
                         class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">Next</a>
                     {% else %}
                     <button class="px-3 py-1 bg-white/5 rounded opacity-50 cursor-not-allowed" disabled>Next</button>
@@ -137,5 +153,234 @@
             </div>
         </div>
     </div>
+
+
+    <!-- View Org Details Modal -->
+    <div id="viewOrgModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div
+            class="bg-brand-gray border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-white/10 bg-black/20 flex items-center justify-between">
+                <h3 class="font-display font-bold text-xl text-white flex items-center gap-2">
+                    <i class="fa-solid fa-building text-brand-pink"></i> Organization Dossier
+                </h3>
+                <button type="button" onclick="closeOrgModal('viewOrgModal')"
+                    class="text-white/40 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-8 overflow-y-auto">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Left: Avatar & Identity -->
+                    <div
+                        class="flex flex-col items-center w-full md:w-1/3 border-b md:border-b-0 md:border-r border-white/10 pb-6 md:pb-0 md:pr-6">
+                        <div class="w-32 h-32 rounded-full border-4 border-brand-pink/20 p-1 mb-4 relative">
+                            <img id="viewOrgLogo" src="" class="w-full h-full rounded-full object-cover bg-black"
+                                onerror="this.src='https://ui-avatars.com/api/?name=Org&background=random&color=fff'">
+                            <div id="viewOrgStatusIndicator"
+                                class="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-brand-gray bg-gray-500">
+                            </div>
+                        </div>
+
+                        <h2 id="viewOrgName" class="text-2xl font-display font-bold text-white text-center break-all">
+                        </h2>
+                        <p id="viewOrgUsername" class="text-brand-pink text-sm mb-4 text-center font-bold">@---</p>
+                    </div>
+
+                    <!-- Right: Attributes -->
+                    <div class="flex-1 w-full">
+                        <h4
+                            class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b border-white/5 pb-2">
+                            Contact Information</h4>
+
+                        <div class="grid grid-cols-1 gap-4 mb-6">
+                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Email Address</p>
+                                <p id="viewOrgEmail" class="text-white text-sm truncate">---</p>
+                            </div>
+                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Contact Number</p>
+                                <p id="viewOrgContact" class="text-white text-sm font-mono">---</p>
+                            </div>
+                        </div>
+
+                        <h4
+                            class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b border-white/5 pb-2">
+                            System Meta</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Joined Date</p>
+                                <p id="viewOrgJoined" class="text-white text-sm">---</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Status</p>
+                                <span id="viewOrgStatusText"
+                                    class="px-2 py-1 rounded text-xs font-bold bg-white/10 text-white">---</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 bg-black/20 border-t border-white/10 flex justify-end">
+                <button type="button" onclick="closeOrgModal('viewOrgModal')"
+                    class="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold uppercase text-sm transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Org Status Modal -->
+    <div id="statusOrgModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-brand-gray border border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl relative">
+            <button type="button" onclick="closeOrgModal('statusOrgModal')"
+                class="absolute top-4 right-4 text-white/40 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="font-display font-bold text-xl text-white mb-4">Update Organization Status</h3>
+            <form id="statusOrgForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Select
+                        Status</label>
+                    <div class="space-y-2">
+                        <label
+                            class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                            <input type="radio" name="status" value="Active"
+                                class="text-green-500 focus:ring-green-500 bg-transparent">
+                            <span class="text-green-400 font-bold">Active</span>
+                        </label>
+                        <label
+                            class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                            <input type="radio" name="status" value="Pending"
+                                class="text-yellow-500 focus:ring-yellow-500 bg-transparent">
+                            <span class="text-yellow-400 font-bold">Pending</span>
+                        </label>
+                        <label
+                            class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                            <input type="radio" name="status" value="Suspended"
+                                class="text-red-500 focus:ring-red-500 bg-transparent">
+                            <span class="text-red-400 font-bold">Suspended</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeOrgModal('statusOrgModal')"
+                        class="px-4 py-2 text-gray-400 hover:text-white text-sm font-bold uppercase">Cancel</button>
+                    <button type="submit"
+                        class="px-6 py-2 bg-brand-blue text-black rounded-lg font-bold uppercase shadow-[0_0_15px_rgba(0,243,255,0.3)] hover:shadow-[0_0_25px_rgba(0,243,255,0.5)] transition-all">Update
+                        Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Org Confirmation Modal -->
+    <div id="deleteOrgModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-brand-gray border border-red-500/30 rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-triangle-exclamation text-3xl text-red-500"></i>
+                </div>
+                <h3 class="font-display font-bold text-xl text-white mb-2">Delete Organization?</h3>
+                <p class="text-gray-400 text-sm">Are you sure you want to delete <span id="deleteOrgName"
+                        class="text-white font-bold"></span>? This action cannot be undone.</p>
+            </div>
+            <form id="deleteOrgForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeOrgModal('deleteOrgModal')"
+                        class="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white font-bold uppercase transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white font-bold uppercase shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
+
+<script>
+    function openOrgViewModal(button) {
+        const modal = document.getElementById('viewOrgModal');
+        const data = button.dataset;
+
+        document.getElementById('viewOrgName').textContent = data.name;
+        document.getElementById('viewOrgUsername').textContent = '@' + data.username;
+        document.getElementById('viewOrgEmail').textContent = data.email;
+        document.getElementById('viewOrgContact').textContent = data.contact;
+        document.getElementById('viewOrgJoined').textContent = data.joined;
+
+        // Status Styling
+        const statusEl = document.getElementById('viewOrgStatusText');
+        const indicatorEl = document.getElementById('viewOrgStatusIndicator');
+        statusEl.textContent = data.status;
+
+        if (data.status === 'Active') {
+            statusEl.className = 'px-2 py-1 rounded text-xs font-bold bg-green-500/20 text-green-400';
+            indicatorEl.className = 'absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-brand-gray bg-green-500';
+        } else if (data.status === 'Suspended') {
+            statusEl.className = 'px-2 py-1 rounded text-xs font-bold bg-red-500/20 text-red-400';
+            indicatorEl.className = 'absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-brand-gray bg-red-500';
+        } else {
+            statusEl.className = 'px-2 py-1 rounded text-xs font-bold bg-yellow-500/20 text-yellow-400';
+            indicatorEl.className = 'absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-brand-gray bg-yellow-400';
+        }
+
+        // Avatar
+        const avatarImg = document.getElementById('viewOrgLogo');
+        if (data.photo) {
+            avatarImg.src = data.photo;
+        } else {
+            const initials = data.name.substring(0, 2).toUpperCase();
+            avatarImg.src = `https://ui-avatars.com/api/?name=${initials}&background=random&color=fff&size=200`;
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function openOrgStatusModal(orgId, currentStatus) {
+        const modal = document.getElementById('statusOrgModal');
+        const form = document.getElementById('statusOrgForm');
+
+        // Ensure this maps to your actual update URL
+        form.action = `/admin/organizations/edit/${orgId}/`;
+
+        const radio = form.querySelector(`input[value="${currentStatus}"]`);
+        if (radio) radio.checked = true;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function openOrgDeleteModal(orgId, orgName) {
+        const modal = document.getElementById('deleteOrgModal');
+        const form = document.getElementById('deleteOrgForm');
+        const nameSpan = document.getElementById('deleteOrgName');
+
+        form.action = `/admin/organizations/delete/${orgId}/`;
+        nameSpan.textContent = orgName;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeOrgModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    window.onclick = function (event) {
+        if (event.target.classList.contains('fixed')) {
+            event.target.classList.add('hidden');
+            event.target.classList.remove('flex');
+        }
+    }
+</script>
 {% endblock %}

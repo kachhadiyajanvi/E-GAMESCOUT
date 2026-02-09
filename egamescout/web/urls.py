@@ -53,6 +53,12 @@ urlpatterns = [
     path('admin/organizations/edit/<int:org_id>/', admin_views.admin_edit_organization, name='admin_edit_organization'),
     path('admin/players/update-status/<int:player_id>/', admin_views.admin_update_player_status, name='admin_update_player_status'),
     path('admin/players/delete/<int:player_id>/', admin_views.admin_delete_player, name='admin_delete_player'),
+    path('admin/players/edit/<int:player_id>/', admin_views.admin_edit_player, name='admin_edit_player'),
     path('admin/tournaments/', admin_views.admin_tournaments_detail, name='admin_tournaments_detail'),
     path('admin/profile/', admin_views.admin_profile, name='admin_profile'),
+    
+    # Admin Notifications API
+    path('admin/api/notifications/', admin_views.get_notifications, name='get_notifications'),
+    path('admin/api/notifications/read/<int:notif_id>/', admin_views.mark_notification_read, name='mark_notification_read'),
+    path('admin/api/notifications/read-all/', admin_views.mark_all_notifications_read, name='mark_all_notifications_read'),
 ]
