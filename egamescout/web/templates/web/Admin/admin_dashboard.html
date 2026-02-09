@@ -206,147 +206,219 @@
 
             <!-- Stats Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Stat Card 1 -->
+                <!-- Stat Card 1: Players -->
                 <div
-                    class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-brand-blue/30 transition-all group">
-                    <div class="flex justify-between items-start mb-4">
+                    class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-brand-blue/30 transition-all group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fa-solid fa-users text-6xl text-brand-blue"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
                         <div
                             class="p-3 rounded-lg bg-brand-blue/10 text-brand-blue group-hover:bg-brand-blue group-hover:text-black transition-all">
                             <i class="fa-solid fa-users text-xl"></i>
                         </div>
+                        {% if new_players_today > 0 %}
                         <span
-                            class="text-green-400 text-xs font-bold flex items-center gap-1 bg-green-400/10 px-2 py-1 rounded-full"><i
-                                class="fa-solid fa-arrow-up"></i> +12%</span>
+                            class="text-green-400 text-xs font-bold flex items-center gap-1 bg-green-400/10 px-2 py-1 rounded-full">
+                            <i class="fa-solid fa-arrow-up"></i> +{{ new_players_today }} Today
+                        </span>
+                        {% endif %}
                     </div>
-                    <h3 class="text-3xl font-display font-bold text-white mb-1">{{ player_count }}</h3>
-                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase">Total Players</p>
+                    <h3 class="text-3xl font-display font-bold text-white mb-1 relative z-10">{{ player_count }}</h3>
+                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase relative z-10">Total Players ({{
+                        active_players }} Active)</p>
                 </div>
 
-                <!-- Stat Card 2 -->
+                <!-- Stat Card 2: Tournaments -->
                 <div
-                    class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-brand-pink/30 transition-all group">
-                    <div class="flex justify-between items-start mb-4">
+                    class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-brand-pink/30 transition-all group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fa-solid fa-trophy text-6xl text-brand-pink"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
                         <div
                             class="p-3 rounded-lg bg-brand-pink/10 text-brand-pink group-hover:bg-brand-pink group-hover:text-black transition-all">
                             <i class="fa-solid fa-gamepad text-xl"></i>
                         </div>
                         <span
-                            class="text-green-400 text-xs font-bold flex items-center gap-1 bg-green-400/10 px-2 py-1 rounded-full"><i
-                                class="fa-solid fa-arrow-up"></i> +5%</span>
+                            class="text-brand-pink text-xs font-bold flex items-center gap-1 bg-brand-pink/10 px-2 py-1 rounded-full">
+                            {{ active_tournaments }} Active
+                        </span>
                     </div>
-                    <h3 class="text-3xl font-display font-bold text-white mb-1">{{ tournament_count }}</h3>
-                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase">Tournaments</p>
+                    <h3 class="text-3xl font-display font-bold text-white mb-1 relative z-10">{{ tournament_count }}
+                    </h3>
+                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase relative z-10">Total Tournaments
+                    </p>
                 </div>
 
-                <!-- Stat Card 3 -->
+                <!-- Stat Card 3: Organizations -->
                 <div
-                    class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-purple-500/30 transition-all group">
-                    <div class="flex justify-between items-start mb-4">
+                    class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-purple-500/30 transition-all group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fa-solid fa-building text-6xl text-purple-500"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
                         <div
                             class="p-3 rounded-lg bg-purple-500/10 text-purple-400 group-hover:bg-purple-500 group-hover:text-black transition-all">
-                            <i class="fa-solid fa-clock text-xl"></i>
+                            <i class="fa-solid fa-sitemap text-xl"></i>
                         </div>
+                        {% if new_orgs_today > 0 %}
                         <span
-                            class="text-red-400 text-xs font-bold flex items-center gap-1 bg-red-400/10 px-2 py-1 rounded-full"><i
-                                class="fa-solid fa-arrow-down"></i> -2%</span>
+                            class="text-green-400 text-xs font-bold flex items-center gap-1 bg-green-400/10 px-2 py-1 rounded-full">
+                            <i class="fa-solid fa-arrow-up"></i> +{{ new_orgs_today }} Today
+                        </span>
+                        {% endif %}
                     </div>
-                    <h3 class="text-3xl font-display font-bold text-white mb-1">{{ org_count }}</h3>
-                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase">Organizations</p>
+                    <h3 class="text-3xl font-display font-bold text-white mb-1 relative z-10">{{ org_count }}</h3>
+                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase relative z-10">Organizations ({{
+                        active_orgs }} Active)</p>
                 </div>
             </div>
 
             <!-- Content Grid (Charts & Table) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Activity Chart Placeholder -->
+                <!-- Registration Trend Chart -->
                 <div class="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
                     <div class="flex items-center justify-between mb-6">
-                        <h3 class="font-display font-bold text-lg text-white">REVENUE OVERVIEW</h3>
-                        <select
-                            class="bg-black/40 border border-white/10 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none">
-                            <option>Last 7 Days</option>
-                            <option>Last 30 Days</option>
-                        </select>
+                        <h3 class="font-display font-bold text-lg text-white">REGISTRATION GROWTH</h3>
+                        <div class="text-xs text-white/40 font-mono">Last 7 Days</div>
                     </div>
-                    <!-- Mock Chart Viz -->
-                    <div class="h-64 flex items-end justify-between gap-2 px-4 pb-4 border-b border-l border-white/10">
-                        <div
-                            class="w-full bg-brand-blue/20 hover:bg-brand-blue/50 transition-all rounded-t-sm h-[40%] relative group">
-                            <span
-                                class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">40%</span>
-                        </div>
-                        <div
-                            class="w-full bg-brand-pink/20 hover:bg-brand-pink/50 transition-all rounded-t-sm h-[65%] relative group">
-                            <span
-                                class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">65%</span>
-                        </div>
-                        <div
-                            class="w-full bg-brand-blue/20 hover:bg-brand-blue/50 transition-all rounded-t-sm h-[50%] relative group">
-                            <span
-                                class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">50%</span>
-                        </div>
-                        <div
-                            class="w-full bg-brand-pink/20 hover:bg-brand-pink/50 transition-all rounded-t-sm h-[80%] relative group">
-                            <span
-                                class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">80%</span>
-                        </div>
-                        <div
-                            class="w-full bg-brand-blue/20 hover:bg-brand-blue/50 transition-all rounded-t-sm h-[60%] relative group">
-                            <span
-                                class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">60%</span>
-                        </div>
-                        <div
-                            class="w-full bg-brand-pink/20 hover:bg-brand-pink/50 transition-all rounded-t-sm h-[75%] relative group">
-                            <span
-                                class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">75%</span>
-                        </div>
-                        <div
-                            class="w-full bg-brand-blue/20 hover:bg-brand-blue/50 transition-all rounded-t-sm h-[90%] relative group">
-                            <span
-                                class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">90%</span>
-                        </div>
-                    </div>
-                    <div class="flex justify-between text-[10px] text-white/40 mt-2 px-2">
-                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                    <div class="h-64 relative w-full">
+                        <canvas id="growthChart"></canvas>
                     </div>
                 </div>
 
                 <!-- Recent Activity List -->
-                <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                    <h3 class="font-display font-bold text-lg text-white mb-6">RECENT SIGNUPS</h3>
-                    <div class="space-y-4">
-                        {% for player in recent_players %}
-                        <!-- User Item -->
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col h-full">
+                    <h3 class="font-display font-bold text-lg text-white mb-6">RECENT ACTIVITY</h3>
+                    <div class="space-y-4 overflow-y-auto flex-1 max-h-[300px] pr-2 custom-scrollbar">
+                        {% for item in recent_activity %}
+                        <!-- Item -->
                         <div
-                            class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer">
+                            class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group border border-transparent hover:border-white/5">
                             <div
-                                class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-blue to-cyan-600 flex items-center justify-center text-black font-bold text-xs uppercase">
-                                {{ player.full_name|slice:":2" }}
+                                class="w-10 h-10 rounded-full flex items-center justify-center text-black font-bold text-xs uppercase
+                                {% if item.type == 'PLAYER' %}bg-gradient-to-br from-brand-blue to-cyan-600{% else %}bg-gradient-to-br from-brand-pink to-purple-600{% endif %}">
+                                {{ item.initial }}
                             </div>
                             <div class="flex-1">
-                                <h4 class="text-sm font-bold text-white">{{ player.full_name }}</h4>
-                                <p class="text-[10px] text-white/40">Registered {{ player.created_at|timesince }} ago
+                                <h4 class="text-sm font-bold text-white group-hover:text-brand-blue transition-colors">
+                                    {{ item.name }}</h4>
+                                <p class="text-[10px] text-white/40 flex items-center gap-2">
+                                    <span
+                                        class="{% if item.type == 'PLAYER' %}text-brand-blue{% else %}text-brand-pink{% endif %} font-bold">{{
+                                        item.type }}</span>
+                                    <span>• {{ item.time|timesince }} ago</span>
                                 </p>
-                            </div>
-                            <div class="text-right">
-                                <span
-                                    class="text-[10px] text-brand-blue border border-brand-blue/30 px-2 py-0.5 rounded">{{
-                                    player.uid }}</span>
                             </div>
                         </div>
                         {% empty %}
-                        <div class="text-center py-4 text-gray-500 text-sm">No recent signups found.</div>
+                        <div class="text-center py-4 text-gray-500 text-sm">No recent activity.</div>
                         {% endfor %}
-
-                        <!-- View All -->
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-white/5">
                         <a href="{% url 'admin_players_detail' %}"
-                            class="block w-full mt-2 py-2 text-xs font-bold text-brand-blue hover:text-white transition-colors uppercase tracking-wider text-center">
-                            View All Users
+                            class="block w-full py-2 text-xs font-bold text-white/40 hover:text-white transition-colors uppercase tracking-wider text-center border border-white/10 rounded-lg hover:bg-white/5">
+                            View All Records
                         </a>
                     </div>
                 </div>
             </div>
 
         </div>
+
+        <!-- Chart Data -->
+        {{ chart_labels|json_script:"chart-labels-data" }}
+        {{ player_trend|json_script:"player-trend-data" }}
+        {{ org_trend|json_script:"org-trend-data" }}
+
+        <!-- Chart.js Integration -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Parse Data from JSON Scripts
+                const chartLabels = JSON.parse(document.getElementById('chart-labels-data').textContent);
+                const playerTrend = JSON.parse(document.getElementById('player-trend-data').textContent);
+                const orgTrend = JSON.parse(document.getElementById('org-trend-data').textContent);
+
+                const ctx = document.getElementById('growthChart').getContext('2d');
+
+                // Gradient for Players
+                const gradientPlayer = ctx.createLinearGradient(0, 0, 0, 400);
+                gradientPlayer.addColorStop(0, 'rgba(0, 243, 255, 0.5)');
+                gradientPlayer.addColorStop(1, 'rgba(0, 243, 255, 0)');
+
+                // Gradient for Orgs
+                const gradientOrg = ctx.createLinearGradient(0, 0, 0, 400);
+                gradientOrg.addColorStop(0, 'rgba(236, 72, 153, 0.5)');
+                gradientOrg.addColorStop(1, 'rgba(236, 72, 153, 0)');
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [
+                            {
+                                label: 'New Players',
+                                data: playerTrend,
+                                borderColor: '#00f3ff',
+                                backgroundColor: gradientPlayer,
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#00f3ff',
+                                pointBorderColor: '#000',
+                                pointRadius: 4,
+                                pointHoverRadius: 6
+                            },
+                            {
+                                label: 'New Orgs',
+                                data: orgTrend,
+                                borderColor: '#ec4899',
+                                backgroundColor: gradientOrg,
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#ec4899',
+                                pointBorderColor: '#000',
+                                pointRadius: 4,
+                                pointHoverRadius: 6
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'rgba(255, 255, 255, 0.7)', font: { family: 'Rajdhani', size: 12 } }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                titleColor: '#fff',
+                                bodyColor: 'rgba(255, 255, 255, 0.7)',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1,
+                                padding: 10,
+                                titleFont: { family: 'Orbitron' },
+                                bodyFont: { family: 'Rajdhani' }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { family: 'Rajdhani' } }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { family: 'Rajdhani' } }
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
         {% endblock %}
     </main>
 
@@ -427,16 +499,9 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast"
-        class="fixed bottom-8 right-8 bg-[#0a0a0a] border border-brand-blue/30 text-white px-6 py-4 rounded-xl shadow-[0_0_30px_rgba(0,243,255,0.2)] translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-4">
-        <div class="w-8 h-8 rounded-full bg-brand-blue/20 flex items-center justify-center text-brand-blue">
-            <i class="fa-solid fa-check"></i>
-        </div>
-        <div>
-            <h4 class="font-bold text-sm">Notification Sent!</h4>
-            <p class="text-xs text-white/40">Message delivered successfully.</p>
-        </div>
+    <!-- Enhanced Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-8 right-8 z-50 flex flex-col gap-4 pointer-events-none">
+        <!-- Toasts will be injected here -->
     </div>
 
     <script>
@@ -444,21 +509,135 @@
         const modalContent = document.getElementById('modalContent');
         const modalBackdrop = document.getElementById('modalBackdrop');
         const recipientSelect = document.getElementById('recipientSelect');
-        const toast = document.getElementById('toast');
+        const toastContainer = document.getElementById('toast-container');
 
-        // Mock Data
-        const players = ['John Doe', 'Alice Smith', 'Mike K.'];
-        const orgs = ['Red Dragon Esports', 'Phantom Gaming', 'Voltage Squad'];
+        // --- Notification Polling System ---
+        let lastNotificationCount = 0;
 
+        function pollNotifications() {
+            fetch('{% url "get_notifications" %}')
+                .then(response => {
+                    if (response.status === 403 || response.status === 401) {
+                        // User logged out or not authorized
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data) return;
+
+                    const count = data.count;
+                    const notifications = data.notifications;
+
+                    // Update Bell Badge
+                    const bellBadge = document.querySelector('.fa-bell').previousElementSibling;
+                    if (count > 0) {
+                        bellBadge.classList.remove('hidden');
+                        bellBadge.innerText = count > 9 ? '9+' : count;
+                    } else {
+                        bellBadge.classList.add('hidden');
+                    }
+
+                    // Show Toast for NEW notifications
+                    // Simple logic: if count increased or we have ids we haven't seen. 
+                    // For simplicity in this demo, we'll show the latest one if count > lastNotificationCount
+                    if (count > lastNotificationCount && notifications.length > 0) {
+                        const latest = notifications[0];
+                        showToast(latest);
+                    }
+                    lastNotificationCount = count;
+                })
+                .catch(err => console.error('Notification Poll Error:', err));
+        }
+
+        // Start Polling (every 10 seconds)
+        setInterval(pollNotifications, 10000);
+        // Initial call
+        pollNotifications();
+
+        function showToast(notification) {
+            // Create Toast Element
+            const toast = document.createElement('div');
+            toast.className = `
+                pointer-events-auto
+                bg-white/80 backdrop-blur-md border border-white/20 
+                rounded-full p-2 pr-6
+                shadow-[0_8px_30px_rgb(0,0,0,0.12)]
+                flex items-center gap-4
+                transform transition-all duration-500 ease-out translate-y-20 opacity-0
+            `;
+
+            // Icon Color based on type
+            let iconColor = 'text-green-500 bg-green-100';
+            let iconClass = 'fa-check';
+
+            if (notification.type === 'PLAYER') {
+                iconColor = 'text-brand-blue bg-blue-100';
+                iconClass = 'fa-user-plus';
+            } else if (notification.type === 'ORG') {
+                iconColor = 'text-purple-500 bg-purple-100';
+                iconClass = 'fa-building';
+            }
+
+            toast.innerHTML = `
+                <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center shrink-0">
+                    <i class="fa-solid ${iconClass} text-lg"></i>
+                </div>
+                <div class="flex-1 min-w-[200px]">
+                    <h4 class="font-bold text-gray-900 text-sm leading-tight">${notification.type} Alert</h4>
+                    <p class="text-xs text-gray-500 truncate max-w-[250px]">${notification.message}</p>
+                </div>
+                <button onclick="markAsRead(this, ${notification.id})" 
+                    class="bg-gray-900 hover:bg-black text-white text-xs font-bold px-4 py-2 rounded-full transition-colors whitespace-nowrap">
+                    Got It!
+                </button>
+            `;
+
+            // Append to container
+            toastContainer.appendChild(toast);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-20', 'opacity-0');
+            });
+
+            // Auto-dismiss logic (optional, but requested "Got It" suggests manual)
+            // setTimeout(() => { dismissToast(toast); }, 5000);
+        }
+
+        function markAsRead(btn, id) {
+            fetch(`/admin/api/notifications/read/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    dismissToast(btn.closest('div'));
+                    lastNotificationCount = Math.max(0, lastNotificationCount - 1); // Decrement local count
+                    pollNotifications(); // Refresh state
+                }
+            });
+        }
+
+        function dismissToast(toastElement) {
+            toastElement.classList.add('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toastElement.remove();
+            }, 500);
+        }
+
+
+        // --- Existing Modal Logic ---
         function openModal(type) {
-            recipientSelect.innerHTML = ''; // Clear options
+            recipientSelect.innerHTML = '';
+            const players = ['John Doe', 'Alice Smith', 'Mike K.'];
+            const orgs = ['Red Dragon Esports', 'Phantom Gaming', 'Voltage Squad'];
 
             let options = [];
-            if (type === 'players') {
-                options = ['All Players', ...players];
-            } else if (type === 'orgs') {
-                options = ['All Organizations', ...orgs];
-            }
+            if (type === 'players') { options = ['All Players', ...players]; }
+            else if (type === 'orgs') { options = ['All Organizations', ...orgs]; }
 
             options.forEach(opt => {
                 const el = document.createElement('option');
@@ -468,7 +647,6 @@
             });
 
             modal.classList.remove('hidden');
-            // Animate in
             setTimeout(() => {
                 modalBackdrop.classList.remove('opacity-0');
                 modalContent.classList.remove('scale-95', 'opacity-0');
@@ -480,37 +658,26 @@
             modalBackdrop.classList.add('opacity-0');
             modalContent.classList.remove('scale-100', 'opacity-100');
             modalContent.classList.add('scale-95', 'opacity-0');
-
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
         function sendNotification(e) {
             e.preventDefault();
             closeModal();
-
-            // Show Toast
-            setTimeout(() => {
-                toast.classList.remove('translate-y-20', 'opacity-0');
-            }, 300);
-
-            // Hide Toast
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-
-            // Reset form
+            // Simulate sending text (Toast for admin's action)
+            showToast({
+                id: 0,
+                type: 'SYSTEM',
+                message: 'Notification sent successfully to recipients.'
+            });
             e.target.reset();
         }
 
-        // Close on clicking outside
         modal.addEventListener('click', (e) => {
-            if (e.target === modal || e.target === modalBackdrop) {
-                closeModal();
-            }
+            if (e.target === modal || e.target === modalBackdrop) { closeModal(); }
         });
     </script>
+
 </body>
 
 </html>

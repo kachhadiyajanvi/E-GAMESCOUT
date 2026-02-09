@@ -62,11 +62,26 @@
                     SCOUT</span>
             </a>
         </div>
-        <div>
+        <div class="flex items-center gap-4">
+            {% if request.session.player_id %}
+            <a href="{% url 'player_dashboard' %}"
+                class="text-sm font-bold text-gray-400 hover:text-white transition-colors uppercase">
+                Dashboard
+            </a>
+            <a href="{% url 'player_profile' %}"
+                class="text-sm font-bold text-gray-400 hover:text-white transition-colors uppercase">
+                Profile
+            </a>
+            <a href="{% url 'auth_logout' %}"
+                class="px-4 py-2 border border-red-500/50 text-red-500 font-bold text-xs rounded hover:bg-red-500 hover:text-white transition-all uppercase">
+                Logout
+            </a>
+            {% else %}
             <a href="{% url 'auth_login' %}"
-                class="text-sm font-bold text-gray-400 hover:text-white mr-4 transition-colors">LOGIN</a>
+                class="text-sm font-bold text-gray-400 hover:text-white mr-2 transition-colors">LOGIN</a>
             <a href="{% url 'auth_login' %}?action=register"
                 class="px-4 py-2 border border-accent-cyan text-accent-cyan font-bold text-xs rounded hover:bg-accent-cyan hover:text-black transition-all">REGISTER</a>
+            {% endif %}
         </div>
     </nav>
 
@@ -80,27 +95,103 @@
             class="absolute bottom-1/4 right-1/4 w-64 h-64 bg-accent-cyan/5 rounded-full blur-[80px] -z-10 animate-float">
         </div>
 
-        {% if messages %}
-        <div class="absolute top-24 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
-            {% for message in messages %}
-            <div class="p-4 mb-4 text-sm rounded-lg backdrop-blur-md border 
-                {% if message.tags == 'error' %}bg-red-900/50 border-red-500 text-red-200{% else %}bg-green-900/50 border-green-500 text-green-200{% endif %}"
-                role="alert">
-                <span class="font-bold font-display uppercase tracking-wider block mb-1">
-                    {% if message.tags == 'error' %}System Alert{% else %}Success{% endif %}
-                </span>
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
         {% block content %}{% endblock %}
     </main>
 
     <footer class="py-6 text-center text-gray-600 text-xs border-t border-white/5">
         &copy; 2026 E-Game Scout Player Portal.
     </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-8 right-8 z-50 flex flex-col gap-4 pointer-events-none"></div>
+
+    <!-- Django Messages Data -->
+    {% if messages %}
+    <script id="django-messages" type="application/json">
+        [
+            {% for message in messages %}
+            {
+                "message": "{{ message|escapejs }}",
+                "tags": "{{ message.tags }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+    {% endif %}
+
+    <script>
+        function showToast(message, tags) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            // Style based on tags
+            let iconClass = 'fa-info-circle';
+            let iconColorClass = 'text-blue-500 bg-blue-500/10';
+            let title = 'Notification';
+
+            if (tags.includes('success')) {
+                iconClass = 'fa-check';
+                iconColorClass = 'text-green-500 bg-green-500/10';
+                title = 'Success';
+            } else if (tags.includes('error') || tags.includes('warning')) {
+                iconClass = 'fa-triangle-exclamation';
+                iconColorClass = 'text-red-500 bg-red-500/10';
+                title = 'System Alert';
+            }
+
+            toast.className = `
+                pointer-events-auto
+                bg-[#0a0a0a] border border-white/10 
+                rounded-xl p-4 pr-12
+                shadow-[0_8px_30px_rgb(0,0,0,0.5)]
+                flex items-center gap-4
+                transform transition-all duration-500 ease-out translate-y-20 opacity-0
+                min-w-[300px]
+            `;
+
+            toast.innerHTML = `
+                <div class="w-10 h-10 rounded-full ${iconColorClass} flex items-center justify-center shrink-0">
+                    <i class="fa-solid ${iconClass} text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-white text-sm font-display tracking-wide">${title}</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" 
+                    class="absolute top-4 right-4 text-white/20 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-20', 'opacity-0');
+            });
+
+            // Auto Dismiss
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        }
+
+        // Initialize Django Messages
+        document.addEventListener('DOMContentLoaded', () => {
+            const messagesJson = document.getElementById('django-messages');
+            if (messagesJson) {
+                try {
+                    const messages = JSON.parse(messagesJson.textContent);
+                    messages.forEach(item => {
+                        showToast(item.message, item.tags);
+                    });
+                } catch (e) {
+                    console.error('Error parsing messages:', e);
+                }
+            }
+        });
+    </script>
 
 </body>
 

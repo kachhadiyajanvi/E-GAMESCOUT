@@ -7,10 +7,10 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 import random
+import time
 from django.core.mail import send_mail
 from .forms import EmailLoginForm, OTPVerifyForm, PlayerRegistrationForm
 from .models import Player
-
 from django.views.decorators.cache import cache_control
 
 def auth_login(request):
@@ -42,6 +42,12 @@ def auth_login(request):
                     messages.error(request, "This email is not registered. Please Register first.")
                     # return redirect(f"{request.path}?action=register") # Removed redirect as requested
                     return redirect('auth_login') # Refresh to show message
+                
+                # Check Suspended Status
+                player = Player.objects.get(email=email)
+                if player.status == 'SUSPENDED':
+                    messages.error(request, 'Your account has been suspended. Please contact support.')
+                    return redirect('auth_login')
             
             else: # REGISTER FLOW
                 if player_exists:
@@ -54,6 +60,7 @@ def auth_login(request):
             # Save OTP in Session (Stateless)
             request.session['auth_email'] = email
             request.session['auth_otp'] = otp_code # Store OTP in session
+            request.session['auth_otp_created_at'] = time.time() # Store timestamp
             request.session['otp_verified'] = False # Reset verification status
             
             # Send Email
@@ -94,7 +101,14 @@ def auth_verify_otp(request):
         if form.is_valid():
             otp_input = form.cleaned_data['otp_code']
             session_otp = request.session.get('auth_otp')
+            created_at = request.session.get('auth_otp_created_at')
             
+            # Check Expiry (5 minutes = 300 seconds)
+            if created_at and (time.time() - float(created_at) > 300):
+                messages.error(request, 'OTP Expired. Please login again.')
+                if 'auth_otp' in request.session: del request.session['auth_otp']
+                return redirect('auth_login')
+
             # Check OTP from Session
             if str(otp_input).strip() == str(session_otp).strip():
                 # OTP is valid
@@ -277,6 +291,7 @@ def org_register_start(request):
             otp = str(random.randint(100000, 999999))
             request.session['reg_email'] = email
             request.session['reg_otp'] = otp
+            request.session['reg_otp_created_at'] = time.time()
             
             # Send OTP via Email
             # Send OTP via Email (HTML + Text)
@@ -305,6 +320,13 @@ def org_register_otp(request):
         form = OTPForm(request.POST)
         if form.is_valid():
             otp = form.cleaned_data['otp']
+            
+            # Check Expiry
+            created_at = request.session.get('reg_otp_created_at')
+            if created_at and (time.time() - float(created_at) > 300):
+                 messages.error(request, 'OTP Expired. Please register again.')
+                 return redirect('org_register_start')
+
             if otp == request.session.get('reg_otp'):
                 return redirect('org_register_details')
             else:
@@ -368,10 +390,15 @@ def org_login_start(request):
             try:
                 org = Organization.objects.get(Organization_Email=email)
                 
+                if org.status == 'Suspended':
+                    messages.error(request, 'Your account has been suspended. Please contact support.')
+                    return redirect('org_login_start')
+
                 # Generate OTP
                 otp = str(random.randint(100000, 999999))
                 request.session['login_email'] = email
                 request.session['login_otp'] = otp
+                request.session['login_otp_created_at'] = time.time()
                 
                 # Send OTP via Email
                 # Send OTP via Email (HTML + Text)
@@ -405,6 +432,12 @@ def org_login_otp(request):
             session_otp = request.session.get('login_otp')
             print(f"DEBUG: Login OTP Attempt. Input: '{otp}' (type: {type(otp)}), Session: '{session_otp}' (type: {type(session_otp)})")
             
+            # Check Expiry
+            created_at = request.session.get('login_otp_created_at')
+            if created_at and (time.time() - float(created_at) > 300):
+                 messages.error(request, 'OTP Expired. Please login again.')
+                 return redirect('org_login_start')
+
             if str(otp).strip() == str(session_otp).strip():
                 # Login Success
                 org = Organization.objects.get(Organization_Email=email)
@@ -446,8 +479,10 @@ def resend_otp(request):
         # Update session (determine which one to update)
         if request.session.get('reg_email'):
             request.session['reg_otp'] = otp
+            request.session['reg_otp_created_at'] = time.time()
         else:
             request.session['login_otp'] = otp
+            request.session['login_otp_created_at'] = time.time()
             
         # Send OTP via Email
         subject = 'E-Game Scout OTP Resend'
