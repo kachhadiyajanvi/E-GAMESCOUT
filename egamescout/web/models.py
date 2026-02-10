@@ -49,6 +49,17 @@ class Tournament(models.Model):
     CreatedAt = models.DateTimeField(auto_now_add=True, null=False)
     UpdatedAt = models.DateTimeField(auto_now=True, null=False)
     
+    # New Fields
+    description = models.TextField(default='')
+    max_teams = models.IntegerField(default=16)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    is_offline = models.BooleanField(default=False)
+    venue = models.CharField(max_length=255, null=True, blank=True)
+    show_roadmap = models.BooleanField(default=False)
+    roadmap_content = models.TextField(null=True, blank=True)
+    prize_distribution = models.JSONField(default=list, blank=True)
+    
     def __str__(self):
         return f"{self.Name} - {self.Organization_Name.Organization_Name}"
 

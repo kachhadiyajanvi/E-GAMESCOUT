@@ -461,8 +461,93 @@ def organizer_dashboard(request):
         return redirect('org_login_start')
         
     org = get_object_or_404(Organization, id=org_id)
-    print(f"DEBUG: Dashboard loading for Org: {org.Organization_Name}, Email: {org.Organization_Email}")
-    return render(request, 'web/Organization/organizer_dashboard.html', {'org': org})
+    
+    # --- Stats ---
+    total_players = Player.objects.filter(organization=org).count()
+    active_tournaments = Tournament.objects.filter(Organization_Name=org, Status='Ongoing').count()
+    
+    # --- Notifications Logic (Simulated for Demo) ---
+    # Combine recent player joins and tournament updates
+    recent_players = Player.objects.filter(organization=org).order_by('-created_at')[:3]
+    recent_tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-UpdatedAt')[:3]
+    
+    notifications = []
+    
+    for p in recent_players:
+        notifications.append({
+            'type': 'player',
+            'message': f"New player joined: {p.full_name}",
+            'time': p.created_at,
+            'link': '#'
+        })
+        
+    for t in recent_tournaments:
+        notifications.append({
+            'type': 'tournament',
+            'message': f"Tournament '{t.Name}' updated.",
+            'time': t.UpdatedAt,
+            'link': '#'
+        })
+    
+    # Sort by time descending
+    notifications.sort(key=lambda x: x['time'], reverse=True)
+    notifications = notifications[:5] # Limit to 5
+    
+    # --- Analytics: Player Growth (Last 6 Months) ---
+    from django.db.models.functions import TruncMonth
+    from django.db.models import Count
+    from django.utils import timezone
+    import datetime
+    
+    six_months_ago = timezone.now() - datetime.timedelta(days=180)
+    
+    # Get counts per month
+    growth_data = Player.objects.filter(
+        organization=org, 
+        created_at__gte=six_months_ago
+    ).annotate(
+        month=TruncMonth('created_at')
+    ).values('month').annotate(
+        count=Count('id')
+    ).order_by('month')
+    
+    # Format for Chart.js
+    analytics_labels = []
+    analytics_data = []
+    
+    # Pre-fill last 6 months to ensure continuous line even if 0
+    current = six_months_ago
+    end = timezone.now()
+    
+    # Create a dict for easy lookup
+    data_map = {item['month'].strftime('%Y-%m'): item['count'] for item in growth_data}
+    
+    while current <= end:
+        month_str = current.strftime('%Y-%m')
+        month_label = current.strftime('%b')
+        analytics_labels.append(month_label)
+        analytics_data.append(data_map.get(month_str, 0))
+        
+        # Increment month
+        if current.month == 12:
+            current = current.replace(year=current.year + 1, month=1)
+        else:
+            current = current.replace(month=current.month + 1)
+            
+    # --- Recent Recruits ---
+    recent_recruits = Player.objects.filter(organization=org).order_by('-created_at')[:5]
+    
+    print(f"DEBUG: Analytics Data: {analytics_data}")
+
+    return render(request, 'web/Organization/organizer_dashboard.html', {
+        'org': org,
+        'total_players': total_players,
+        'active_tournaments': active_tournaments,
+        'notifications': notifications,
+        'analytics_labels': analytics_labels,
+        'analytics_data': analytics_data,
+        'recent_recruits': recent_recruits
+    })
 
 from django.http import JsonResponse
 
@@ -691,8 +776,14 @@ def tournament_list(request):
     
     org = get_object_or_404(Organization, id=org_id)
     tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-CreatedAt')
+    form = TournamentForm()
     
-    return render(request, 'web/Organization/org_tournament_list.html', {'org': org, 'tournaments': tournaments})
+    return render(request, 'web/Organization/org_tournament_list.html', {
+        'org': org, 
+        'tournaments': tournaments,
+        'form': form,
+        'show_form': False
+    })
 
 def tournament_create(request):
     """Create a new tournament"""
@@ -710,10 +801,27 @@ def tournament_create(request):
             tournament.save()
             messages.success(request, f'Tournament "{tournament.Name}" created successfully!')
             return redirect('tournament_list')
-    else:
-        form = TournamentForm()
+    if request.method == 'POST':
+        form = TournamentForm(request.POST)
+        if form.is_valid():
+            tournament = form.save(commit=False)
+            tournament.Organization_Name = org
+            tournament.save()
+            messages.success(request, f'Tournament "{tournament.Name}" created successfully!')
+            return redirect('tournament_list')
+        else:
+            # If form is invalid, render the list template with the bound form and error flag
+            tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-CreatedAt')
+            return render(request, 'web/Organization/org_tournament_list.html', {
+                'org': org, 
+                'tournaments': tournaments, 
+                'form': form, 
+                'show_form': True,
+                'action': 'Create'
+            })
     
-    return render(request, 'web/Organization/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Create'})
+    # If not POST, redirect to list
+    return redirect('tournament_list')
 
 def tournament_update(request, tournament_id):
     """Update an existing tournament"""

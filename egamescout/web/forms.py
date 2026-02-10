@@ -204,23 +204,54 @@ class PlayerProfileForm(forms.ModelForm):
 class TournamentForm(forms.ModelForm):
     class Meta:
         model = Tournament
-        fields = ['Name', 'Status', 'PrizePool']
+        fields = ['Name', 'Status', 'PrizePool', 'description', 'max_teams', 'start_date', 'end_date', 'is_offline', 'venue', 'show_roadmap', 'roadmap_content', 'prize_distribution']
         widgets = {
             'Name': forms.TextInput(attrs={
-                'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
-                'placeholder': 'Tournament Name',
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'placeholder': 'e.g. Winter Championship 2024',
                 'required': 'required'
             }),
             'Status': forms.Select(attrs={
-                'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors'
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all cyber-input'
             }),
             'PrizePool': forms.NumberInput(attrs={
-                'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
-                'placeholder': 'Prize Pool Amount',
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded pl-8 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'placeholder': '50000',
                 'step': '0.01',
                 'min': '0',
                 'required': 'required'
             }),
+             'description': forms.Textarea(attrs={
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'placeholder': 'Enter tournament details, rules, and format...',
+                'rows': 4,
+                'required': 'required'
+            }),
+            'max_teams': forms.NumberInput(attrs={
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'placeholder': 'e.g. 16',
+                'min': '2',
+                'required': 'required'
+            }),
+            'start_date': forms.DateInput(attrs={
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'type': 'date',
+                'required': 'required'
+            }),
+            'end_date': forms.DateInput(attrs={
+                 'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'type': 'date',
+                'required': 'required'
+            }),
+             'venue': forms.TextInput(attrs={
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'placeholder': 'e.g. Los Angeles Convention Center'
+            }),
+             'roadmap_content': forms.Textarea(attrs={
+                'class': 'hidden',
+                'id': 'roadmap_content'
+            }),
+             # Hidden inputs for booleans/JSON are handled manually or via simple widgets
         }
     
     def clean_Name(self):
@@ -234,3 +265,14 @@ class TournamentForm(forms.ModelForm):
         if prize_pool is None or prize_pool < 0:
             raise forms.ValidationError("Prize Pool must be a positive number.")
         return prize_pool
+
+    def clean_prize_distribution(self):
+        data = self.cleaned_data.get('prize_distribution')
+        # If it comes as a string (from hidden input), try to parse it
+        if isinstance(data, str):
+            import json
+            try:
+                data = json.loads(data)
+            except json.JSONDecodeError:
+                raise forms.ValidationError("Invalid Prize Distribution Format")
+        return data
