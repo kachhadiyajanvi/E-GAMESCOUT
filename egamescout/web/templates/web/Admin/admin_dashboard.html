@@ -500,7 +500,7 @@
     </div>
 
     <!-- Enhanced Toast Notification Container -->
-    <div id="toast-container" class="fixed bottom-8 right-8 z-50 flex flex-col gap-4 pointer-events-none">
+    <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none">
         <!-- Toasts will be injected here -->
     </div>
 
@@ -564,7 +564,7 @@
                 rounded-full p-2 pr-6
                 shadow-[0_8px_30px_rgb(0,0,0,0.12)]
                 flex items-center gap-4
-                transform transition-all duration-500 ease-out translate-y-20 opacity-0
+                transform transition-all duration-500 ease-out translate-x-20 opacity-0
             `;
 
             // Icon Color based on type
@@ -598,7 +598,7 @@
 
             // Animate In
             requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-x-20', 'opacity-0');
             });
 
             // Auto-dismiss logic (optional, but requested "Got It" suggests manual)
@@ -622,7 +622,7 @@
         }
 
         function dismissToast(toastElement) {
-            toastElement.classList.add('translate-y-20', 'opacity-0');
+            toastElement.classList.add('translate-x-20', 'opacity-0');
             setTimeout(() => {
                 toastElement.remove();
             }, 500);

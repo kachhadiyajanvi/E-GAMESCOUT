@@ -3,6 +3,7 @@ from . import views, admin_views
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('tournaments/', views.public_tournaments, name='public_tournaments'),
     
     # Organization Registration
     path('organization/register/', views.org_register_start, name='org_register_start'),
@@ -21,6 +22,7 @@ urlpatterns = [
     path('organization/profile/', views.manage_profile, name='manage_profile'),
     path('organization/profile/update/', views.update_profile, name='update_profile'),
     path('organization/profile/photo/update/', views.update_profile_photo, name='update_profile_photo'),
+    path('organization/delete/', views.org_delete_account, name='org_delete_account'),
     
     # Tools
     path('organization/tools/scorecard/', views.scorecard_tool, name='scorecard_tool'),
@@ -41,6 +43,7 @@ urlpatterns = [
     path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
     path('player/dashboard/', views.player_dashboard, name='player_dashboard'),
     path('player/profile/', views.player_profile, name='player_profile'),
+    path('player/delete/', views.player_delete_account, name='player_delete_account'),
     path('auth/logout/', views.auth_logout, name='auth_logout'),
 
     # Admin Portal

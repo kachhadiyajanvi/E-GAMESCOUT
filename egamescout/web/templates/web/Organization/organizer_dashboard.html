@@ -227,79 +227,82 @@
 
 </div>
 
+<!-- Data passed from Django View safely -->
+{{ analytics_labels|json_script:"analytics-labels-data" }}
+{{ analytics_data|json_script:"analytics-data-data" }}
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const ctx = document.getElementById('growthChart').getContext('2d');
 
-        // Data passed from Django View
-        const labels = {{ analytics_labels| safe
-    }};
-    const data = {{ analytics_data| safe }};
+        // Parse data from JSON script tags
+        const labels = JSON.parse(document.getElementById('analytics-labels-data').textContent);
+        const data = JSON.parse(document.getElementById('analytics-data-data').textContent);
 
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'New Players',
-                data: data,
-                borderColor: '#66FCF1',
-                backgroundColor: 'rgba(102, 252, 241, 0.1)',
-                borderWidth: 2,
-                pointBackgroundColor: '#0B0C10',
-                pointBorderColor: '#66FCF1',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(11, 12, 16, 0.9)',
-                    titleColor: '#fff',
-                    bodyColor: '#66FCF1',
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                    borderWidth: 1,
-                    padding: 10,
-                    displayColors: false,
-                    titleFont: { family: 'Rajdhani', size: 14 },
-                    bodyFont: { family: 'Orbitron', size: 14 }
-                }
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'New Players',
+                    data: data,
+                    borderColor: '#66FCF1',
+                    backgroundColor: 'rgba(102, 252, 241, 0.1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#0B0C10',
+                    pointBorderColor: '#66FCF1',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4
+                }]
             },
-            scales: {
-                x: {
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.05)',
-                        borderColor: 'transparent'
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    ticks: {
-                        color: 'rgba(197, 198, 199, 0.5)',
-                        font: { family: 'Rajdhani', size: 12 }
+                    tooltip: {
+                        backgroundColor: 'rgba(11, 12, 16, 0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#66FCF1',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 10,
+                        displayColors: false,
+                        titleFont: { family: 'Rajdhani', size: 14 },
+                        bodyFont: { family: 'Orbitron', size: 14 }
                     }
                 },
-                y: {
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.05)',
-                        borderColor: 'transparent'
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            borderColor: 'transparent'
+                        },
+                        ticks: {
+                            color: 'rgba(197, 198, 199, 0.5)',
+                            font: { family: 'Rajdhani', size: 12 }
+                        }
                     },
-                    ticks: {
-                        color: 'rgba(197, 198, 199, 0.5)',
-                        font: { family: 'Rajdhani', size: 12 },
-                        stepSize: 1
-                    },
-                    beginAtZero: true
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            borderColor: 'transparent'
+                        },
+                        ticks: {
+                            color: 'rgba(197, 198, 199, 0.5)',
+                            font: { family: 'Rajdhani', size: 12 },
+                            stepSize: 1
+                        },
+                        beginAtZero: true
+                    }
                 }
             }
-        }
-    });
+        });
     });
 </script>
 {% endblock %}

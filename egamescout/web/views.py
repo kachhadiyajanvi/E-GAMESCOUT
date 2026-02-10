@@ -10,7 +10,7 @@ import random
 import time
 from django.core.mail import send_mail
 from .forms import EmailLoginForm, OTPVerifyForm, PlayerRegistrationForm
-from .models import Player
+from .models import Player, PlayerTask
 from django.views.decorators.cache import cache_control
 
 def auth_login(request):
@@ -243,7 +243,27 @@ def player_dashboard(request):
         
     player = Player.objects.get(id=player_id)
     
-    return render(request, 'web/Player/dashboard.html', {'player': player})
+    # Fetch Tasks & Events
+    from django.utils import timezone
+    now = timezone.now()
+    
+    upcoming_events = PlayerTask.objects.filter(
+        player=player, 
+        task_type='EVENT', 
+        due_date__gte=now
+    ).order_by('due_date')[:50]
+    
+    todo_list = PlayerTask.objects.filter(
+        player=player, 
+        task_type='TASK', 
+        is_completed=False
+    ).order_by('due_date')
+    
+    return render(request, 'web/Player/dashboard.html', {
+        'player': player,
+        'upcoming_events': upcoming_events,
+        'todo_list': todo_list
+    })
 
 from .forms import PlayerProfileForm
 
@@ -267,6 +287,20 @@ def player_profile(request):
         
     return render(request, 'web/Player/profile.html', {'player': player, 'form': form})
 
+def player_delete_account(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    if request.method == 'POST':
+        player = get_object_or_404(Player, id=player_id)
+        player.delete()
+        request.session.flush()
+        messages.success(request, 'Your account has been permanently deleted.')
+        return redirect('index')
+        
+    return render(request, 'web/Player/delete_account_confirm.html')
+
 def auth_logout(request):
     request.session.flush()
     return redirect('index')
@@ -279,6 +313,14 @@ def org_logout(request):
 
 def index(request):
     return render(request, 'web/index.html')
+
+def public_tournaments(request):
+    """Public view for upcoming tournaments"""
+    tournaments = Tournament.objects.filter(
+        Status__in=['Scheduled', 'Ongoing']
+    ).order_by('start_date')
+    
+    return render(request, 'web/tournaments.html', {'tournaments': tournaments})
 
 # --- Registration Flow ---
 
@@ -763,6 +805,21 @@ def update_profile_photo(request):
         org.profile_photo = request.FILES['profile_photo']
         org.save()
         messages.success(request, 'Profile photo updated successfully!')
+    return redirect('manage_profile')
+
+def org_delete_account(request):
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+        
+    if request.method == 'POST':
+        org = get_object_or_404(Organization, id=org_id)
+        org.delete()
+        request.session.flush()
+        messages.success(request, 'Organization account deleted successfully.')
+        return redirect('index')
+        
+    return render(request, 'web/Organization/org_delete_confirm.html')
     
     return redirect('manage_profile')
 

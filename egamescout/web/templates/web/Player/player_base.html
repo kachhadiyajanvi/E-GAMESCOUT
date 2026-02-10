@@ -43,6 +43,7 @@
     class="bg-brand-dark text-white font-sans selection:bg-accent-cyan selection:text-brand-dark min-h-screen flex flex-col relative overflow-x-hidden">
 
     <!-- Global Grain Overlay -->
+    <!-- Global Grain Overlay -->
     <div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[100]"
         style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');">
     </div>
@@ -50,7 +51,7 @@
     <!-- Grid Background -->
     <div class="fixed inset-0 bg-grid-pattern pointer-events-none -z-20"></div>
 
-    <!-- Navbar -->
+    <!-- Navbar (Simple) -->
     <nav
         class="w-full py-6 px-6 md:px-12 flex items-center justify-between border-b border-white/5 bg-brand-dark/50 backdrop-blur-md sticky top-0 z-50">
         <div class="flex items-center gap-2">
@@ -63,20 +64,9 @@
             </a>
         </div>
         <div class="flex items-center gap-4">
-            {% if request.session.player_id %}
-            <a href="{% url 'player_dashboard' %}"
-                class="text-sm font-bold text-gray-400 hover:text-white transition-colors uppercase">
-                Dashboard
-            </a>
-            <a href="{% url 'player_profile' %}"
-                class="text-sm font-bold text-gray-400 hover:text-white transition-colors uppercase">
-                Profile
-            </a>
-            <a href="{% url 'auth_logout' %}"
-                class="px-4 py-2 border border-red-500/50 text-red-500 font-bold text-xs rounded hover:bg-red-500 hover:text-white transition-all uppercase">
-                Logout
-            </a>
-            {% else %}
+            <a href="{% url 'index' %}"
+                class="text-sm font-bold text-gray-400 hover:text-white transition-colors">HOME</a>
+            {% if not request.session.player_id %}
             <a href="{% url 'auth_login' %}"
                 class="text-sm font-bold text-gray-400 hover:text-white mr-2 transition-colors">LOGIN</a>
             <a href="{% url 'auth_login' %}?action=register"
@@ -86,7 +76,6 @@
     </nav>
 
     <main class="flex-grow flex items-center justify-center p-6 relative z-10">
-
         <!-- Decoration Orbs -->
         <div
             class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] -z-10 animate-pulse-slow">
@@ -103,7 +92,8 @@
     </footer>
 
     <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed bottom-8 right-8 z-50 flex flex-col gap-4 pointer-events-none"></div>
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
 
     <!-- Django Messages Data -->
     {% if messages %}
@@ -145,7 +135,7 @@
                 rounded-xl p-4 pr-12
                 shadow-[0_8px_30px_rgb(0,0,0,0.5)]
                 flex items-center gap-4
-                transform transition-all duration-500 ease-out translate-y-20 opacity-0
+                transform transition-all duration-500 ease-out translate-x-20 opacity-0
                 min-w-[300px]
             `;
 
@@ -167,12 +157,12 @@
 
             // Animate In
             requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-x-20', 'opacity-0');
             });
 
             // Auto Dismiss
             setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
+                toast.classList.add('translate-x-20', 'opacity-0');
                 setTimeout(() => toast.remove(), 500);
             }, 5000);
         }

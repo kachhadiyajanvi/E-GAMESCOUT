@@ -97,3 +97,18 @@ class AdminNotification(models.Model):
 
 
 
+class PlayerTask(models.Model):
+    TASK_TYPES = [
+        ('EVENT', 'Event'),
+        ('TASK', 'Task'),
+    ]
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='tasks')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    due_date = models.DateTimeField()
+    is_completed = models.BooleanField(default=False)
+    task_type = models.CharField(max_length=10, choices=TASK_TYPES, default='TASK')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} ({self.player.username})"
