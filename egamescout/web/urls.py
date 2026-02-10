@@ -31,6 +31,7 @@ urlpatterns = [
     path('organization/tournaments/', views.tournament_list, name='tournament_list'),
     path('organization/players/', views.my_players, name='my_players'),
     path('organization/tournaments/create/', views.tournament_create, name='tournament_create'),
+    path('organization/tournaments/<int:tournament_id>/', views.tournament_detail, name='tournament_detail'),
     path('organization/tournaments/<int:tournament_id>/update/', views.tournament_update, name='tournament_update'),
     path('organization/tournaments/<int:tournament_id>/delete/', views.tournament_delete, name='tournament_delete'),
     
@@ -58,6 +59,8 @@ urlpatterns = [
     path('admin/players/delete/<int:player_id>/', admin_views.admin_delete_player, name='admin_delete_player'),
     path('admin/players/edit/<int:player_id>/', admin_views.admin_edit_player, name='admin_edit_player'),
     path('admin/tournaments/', admin_views.admin_tournaments_detail, name='admin_tournaments_detail'),
+    path('admin/tournaments/delete/<int:tournament_id>/', admin_views.admin_delete_tournament, name='admin_delete_tournament'),
+    path('admin/tournaments/edit/<int:tournament_id>/', admin_views.admin_edit_tournament, name='admin_edit_tournament'),
     path('admin/profile/', admin_views.admin_profile, name='admin_profile'),
     
     # Admin Notifications API

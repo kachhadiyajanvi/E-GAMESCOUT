@@ -858,15 +858,11 @@ def tournament_create(request):
             tournament.save()
             messages.success(request, f'Tournament "{tournament.Name}" created successfully!')
             return redirect('tournament_list')
-    if request.method == 'POST':
-        form = TournamentForm(request.POST)
-        if form.is_valid():
-            tournament = form.save(commit=False)
-            tournament.Organization_Name = org
-            tournament.save()
-            messages.success(request, f'Tournament "{tournament.Name}" created successfully!')
-            return redirect('tournament_list')
         else:
+            # Log errors to console for debugging
+            print(f"DEBUG: Tournament Creation Errors: {form.errors}")
+            messages.error(request, "Please correct the errors below.")
+            
             # If form is invalid, render the list template with the bound form and error flag
             tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-CreatedAt')
             return render(request, 'web/Organization/org_tournament_list.html', {
@@ -900,6 +896,17 @@ def tournament_update(request, tournament_id):
     
     return render(request, 'web/Organization/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Update', 'tournament': tournament})
 
+def tournament_detail(request, tournament_id):
+    """Display full details of a specific tournament"""
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    
+    org = get_object_or_404(Organization, id=org_id)
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name=org)
+    
+    return render(request, 'web/Organization/org_tournament_detail.html', {'org': org, 'tournament': tournament})
+
 def tournament_delete(request, tournament_id):
     """Delete a tournament"""
     org_id = request.session.get('organizer_id')
@@ -915,7 +922,9 @@ def tournament_delete(request, tournament_id):
         messages.success(request, f'Tournament "{tournament_name}" deleted successfully!')
         return redirect('tournament_list')
     
-    return render(request, 'web/Organization/org_tournament_confirm_delete.html', {'org': org, 'tournament': tournament})
+    # If not POST, just redirect back to list (or show error, but redirection is cleaner for "action" URLs)
+    messages.error(request, "Invalid request method for deletion.")
+    return redirect('tournament_list')
 def my_players(request):
     """Display list of players recruited by the organization"""
     org_id = request.session.get('organizer_id')

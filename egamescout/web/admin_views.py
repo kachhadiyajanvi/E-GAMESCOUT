@@ -284,3 +284,27 @@ def mark_all_notifications_read(request):
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_delete_tournament(request, tournament_id):
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id)
+    if request.method == 'POST':
+        name = tournament.Name
+        tournament.delete()
+        messages.success(request, f'Tournament "{name}" has been deleted.')
+        return redirect('admin_tournaments_detail')
+    
+    return redirect('admin_tournaments_detail')
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_edit_tournament(request, tournament_id):
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id)
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in ['Scheduled', 'Ongoing', 'Completed', 'Cancelled']:
+            tournament.Status = new_status
+            tournament.save()
+            messages.success(request, f'Tournament "{tournament.Name}" status updated to {new_status}.')
+        else:
+            messages.error(request, 'Invalid status selected.')
+            
+    return redirect('admin_tournaments_detail')

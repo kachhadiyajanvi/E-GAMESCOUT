@@ -223,15 +223,38 @@
                         <i class="fa-solid fa-circle-info text-sm"></i> BASIC INFORMATION
                     </h3>
 
+                    {% if form.non_field_errors %}
+                    <div class="bg-red-500/10 border border-red-500/50 rounded-lg p-4 mb-6">
+                        <p class="text-red-500 font-bold text-sm mb-2"><i
+                                class="fa-solid fa-triangle-exclamation mr-2"></i>Please correct the following errors:
+                        </p>
+                        <ul class="list-disc list-inside text-red-400 text-xs">
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Tournament Name -->
-                        <div class="md:col-span-2">
+                        <div class="md:col-span-1">
                             <label
                                 class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Tournament
                                 Name</label>
                             {{ form.Name }}
                             {% if form.Name.errors %}
                             <p class="text-red-500 text-xs mt-1">{{ form.Name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Status -->
+                        <div class="md:col-span-1">
+                            <label
+                                class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Status</label>
+                            {{ form.Status }}
+                            {% if form.Status.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.Status.errors.0 }}</p>
                             {% endif %}
                         </div>
 
@@ -313,7 +336,7 @@
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="is_offline" id="typeToggle" class="sr-only peer"
-                                    onchange="toggleVenueField()">
+                                    onchange="toggleVenueField()" {% if form.instance.is_offline %}checked{% endif %}>
                                 <div
                                     class="w-11 h-6 bg-brand-dark border border-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-brand-dark after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-brand-light after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-cyan peer-checked:after:bg-black">
                                 </div>
@@ -330,7 +353,8 @@
                                         class="text-xs text-brand-light/50 block mt-1 font-mono">SHOW_ON_WEBSITE</span>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="show_roadmap" id="roadmapToggle" class="sr-only peer"
+                                    <input {% if form.instance.show_roadmap %}checked{%endif %} type="checkbox"
+                                        name="show_roadmap" id="roadmapToggle" class="sr-only peer"
                                         onchange="toggleRoadmapEditor()">
                                     <div
                                         class="w-11 h-6 bg-brand-dark border border-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-brand-dark after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-brand-light after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-cyan peer-checked:after:bg-black">
@@ -403,14 +427,34 @@
     <!-- CKEditor 5 -->
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 
+    <!-- Prize Data for JS -->
+    {{ form.instance.prize_distribution|json_script:"initial-prizes-data" }}
+
     <script>
         let roadmapEditorInstance;
 
-        // Initialize with one prize row
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            addPrizeRow();
+            const dataScript = document.getElementById('initial-prizes-data');
+            let initialPrizes = [];
 
-            // Check if editing existing tournament (optional enhancement for update view)
+            try {
+                if (dataScript) {
+                    initialPrizes = JSON.parse(dataScript.textContent);
+                }
+            } catch (e) {
+                console.error("Failed to parse prize data", e);
+            }
+
+            if (Array.isArray(initialPrizes) && initialPrizes.length > 0) {
+                // Load existing prizes
+                initialPrizes.forEach(prize => {
+                    addPrizeRow(prize.position, prize.amount);
+                });
+            } else {
+                // Default empty row
+                addPrizeRow();
+            }
 
             // Init CKEditor
             ClassicEditor
@@ -428,6 +472,18 @@
                 .catch(error => {
                     console.error(error);
                 });
+
+            // Initialize Venue Toggle State
+            const venueToggle = document.getElementById('typeToggle');
+            if (venueToggle.checked) {
+                toggleVenueField();
+            }
+
+            // Initialize Roadmap Toggle State
+            const roadmapToggle = document.getElementById('roadmapToggle');
+            if (roadmapToggle.checked) {
+                toggleRoadmapEditor();
+            }
         });
 
         // Toggle Roadmap Editor

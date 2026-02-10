@@ -51,8 +51,8 @@
                                 </div>
                             </div>
                             <div>
-                                <h4 class="font-bold text-white group-hover:text-purple-400 transition-colors">{{
-                                    tournament.Name }}</h4>
+                                <h4 class="font-bold text-white group-hover:text-purple-400 transition-colors">
+                                    {{ tournament.Name }}</h4>
                                 <p class="text-xs text-white/40">ID: #{{ tournament.Tournament_ID }}</p>
                             </div>
                         </div>
@@ -88,10 +88,27 @@
                     <td class="p-4 text-brand-blue font-bold font-mono">{{ tournament.PrizePool }}</td>
                     <td class="p-4 text-white/40">{{ tournament.CreatedAt|date:"M d, Y" }}</td>
                     <td class="p-4 text-right">
-                        <button class="text-white/40 hover:text-white transition-colors px-2"><i
-                                class="fa-solid fa-pen-to-square"></i></button>
-                        <button class="text-white/40 hover:text-red-500 transition-colors px-2"><i
-                                class="fa-solid fa-trash"></i></button>
+                        <button onclick="openTournamentViewModal(this)" data-name="{{ tournament.Name }}"
+                            data-id="{{ tournament.Tournament_ID }}"
+                            data-org="{{ tournament.Organization_Name.Organization_Name }}"
+                            data-status="{{ tournament.Status }}" data-prizepool="{{ tournament.PrizePool }}"
+                            data-created="{{ tournament.CreatedAt|date:'M d, Y' }}"
+                            data-start="{{ tournament.start_date|date:'M d, Y' }}"
+                            data-end="{{ tournament.end_date|date:'M d, Y' }}" data-teams="{{ tournament.max_teams }}"
+                            data-type="{% if tournament.is_offline %}Offline{% else %}Online{% endif %}"
+                            class="text-white/40 hover:text-accent-cyan transition-colors px-2" title="View Details">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        <button
+                            onclick="openTournamentStatusModal('{{ tournament.Tournament_ID }}', '{{ tournament.Status }}')"
+                            class="text-white/40 hover:text-brand-blue transition-colors px-2" title="Edit Status">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button
+                            onclick="openTournamentDeleteModal('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
+                            class="text-white/40 hover:text-red-500 transition-colors px-2" title="Delete Tournament">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </td>
                 </tr>
                 {% empty %}
@@ -130,5 +147,226 @@
             </div>
         </div>
     </div>
+
+    <!-- View Tournament Modal -->
+    <div id="viewTournamentModal"
+        class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div
+            class="bg-brand-gray border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div class="p-6 border-b border-white/10 bg-black/20 flex items-center justify-between">
+                <h3 class="font-display font-bold text-xl text-white flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-purple-500"></i> Tournament Details
+                </h3>
+                <button type="button" onclick="closeModal('viewTournamentModal')"
+                    class="text-white/40 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-8 overflow-y-auto">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Left: Basic Info -->
+                    <div
+                        class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-white/10 pb-6 md:pb-0 md:pr-6 text-center">
+                        <div
+                            class="w-24 h-24 mx-auto bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl p-0.5 mb-4 shadow-lg shadow-purple-500/20">
+                            <div class="w-full h-full bg-black rounded-[10px] flex items-center justify-center">
+                                <i class="fa-solid fa-trophy text-4xl text-white"></i>
+                            </div>
+                        </div>
+                        <h2 id="viewTournName" class="text-xl font-display font-bold text-white mb-1"></h2>
+                        <p class="text-xs text-purple-400 font-bold uppercase tracking-wider mb-4" id="viewTournStatus">
+                        </p>
+
+                        <div class="bg-white/5 rounded-lg p-3 border border-white/5">
+                            <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Organizer</p>
+                            <p id="viewTournOrg" class="text-white font-bold text-sm"></p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Details -->
+                    <div class="flex-1 space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Prize Pool</p>
+                                <p class="text-accent-cyan font-bold font-mono">₹<span id="viewTournPrize"></span></p>
+                            </div>
+                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Type</p>
+                                <p id="viewTournType" class="text-white font-bold"></p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] text-white/40 uppercase font-bold mb-2">Schedule</p>
+                            <div
+                                class="flex items-center gap-3 text-sm text-gray-300 bg-black/20 p-3 rounded-lg border border-white/5">
+                                <i class="fa-regular fa-calendar text-purple-500"></i>
+                                <span id="viewTournStart"></span>
+                                <span class="text-white/20">to</span>
+                                <span id="viewTournEnd"></span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Max Teams</p>
+                                <p id="viewTournTeams" class="text-white">---</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Created On</p>
+                                <p id="viewTournCreated" class="text-white text-xs">---</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-black/20 border-t border-white/10 flex justify-end">
+                <button type="button" onclick="closeModal('viewTournamentModal')"
+                    class="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold uppercase text-sm transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Status Modal -->
+    <div id="statusTournamentModal"
+        class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-brand-gray border border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl relative">
+            <button type="button" onclick="closeModal('statusTournamentModal')"
+                class="absolute top-4 right-4 text-white/40 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="font-display font-bold text-xl text-white mb-4">Update Status</h3>
+            <form id="statusTournamentForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="space-y-2 mb-6">
+                    <label
+                        class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                        <input type="radio" name="status" value="Scheduled"
+                            class="text-brand-blue focus:ring-brand-blue bg-transparent">
+                        <span class="text-brand-blue font-bold">Scheduled</span>
+                    </label>
+                    <label
+                        class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                        <input type="radio" name="status" value="Ongoing"
+                            class="text-green-500 focus:ring-green-500 bg-transparent">
+                        <span class="text-green-400 font-bold">Ongoing</span>
+                    </label>
+                    <label
+                        class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                        <input type="radio" name="status" value="Completed"
+                            class="text-gray-400 focus:ring-gray-500 bg-transparent">
+                        <span class="text-gray-400 font-bold">Completed</span>
+                    </label>
+                    <label
+                        class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                        <input type="radio" name="status" value="Cancelled"
+                            class="text-red-500 focus:ring-red-500 bg-transparent">
+                        <span class="text-red-400 font-bold">Cancelled</span>
+                    </label>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('statusTournamentModal')"
+                        class="px-4 py-2 text-gray-400 hover:text-white text-sm font-bold uppercase">Cancel</button>
+                    <button type="submit"
+                        class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-bold uppercase shadow-[0_0_15px_rgba(147,51,234,0.3)] transition-all">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteTournamentModal"
+        class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-brand-gray border border-red-500/30 rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-triangle-exclamation text-3xl text-red-500"></i>
+                </div>
+                <h3 class="font-display font-bold text-xl text-white mb-2">Delete Tournament?</h3>
+                <p class="text-gray-400 text-sm">Are you sure you want to delete <span id="deleteTournNameSpan"
+                        class="text-white font-bold"></span>? This action cannot be undone.</p>
+            </div>
+            <form id="deleteTournamentForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeModal('deleteTournamentModal')"
+                        class="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white font-bold uppercase transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white font-bold uppercase shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
+
+<script>
+    function openTournamentViewModal(btn) {
+        const data = btn.dataset;
+        document.getElementById('viewTournName').textContent = data.name;
+        document.getElementById('viewTournOrg').textContent = data.org;
+        document.getElementById('viewTournStatus').textContent = data.status;
+        document.getElementById('viewTournPrize').textContent = data.prizepool;
+        document.getElementById('viewTournCreated').textContent = data.created;
+        document.getElementById('viewTournStart').textContent = data.start;
+        document.getElementById('viewTournEnd').textContent = data.end;
+        document.getElementById('viewTournTeams').textContent = data.teams;
+        document.getElementById('viewTournType').textContent = data.type;
+
+        // Status coloring
+        const statusEl = document.getElementById('viewTournStatus');
+        statusEl.className = 'text-xs font-bold uppercase tracking-wider mb-4 ';
+        if (data.status === 'Ongoing') statusEl.classList.add('text-green-400');
+        else if (data.status === 'Scheduled') statusEl.classList.add('text-brand-blue');
+        else if (data.status === 'Cancelled') statusEl.classList.add('text-red-400');
+        else statusEl.classList.add('text-gray-400');
+
+        openModal('viewTournamentModal');
+    }
+
+    function openTournamentStatusModal(id, currentStatus) {
+        const form = document.getElementById('statusTournamentForm');
+        form.action = `/admin/tournaments/edit/${id}/`;
+
+        // Select current
+        const radio = form.querySelector(`input[value="${currentStatus}"]`);
+        if (radio) radio.checked = true;
+
+        openModal('statusTournamentModal');
+    }
+
+    function openTournamentDeleteModal(id, name) {
+        const form = document.getElementById('deleteTournamentForm');
+        document.getElementById('deleteTournNameSpan').textContent = name;
+        form.action = `/admin/tournaments/delete/${id}/`;
+        openModal('deleteTournamentModal');
+    }
+
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // Close on click outside
+    window.onclick = function (event) {
+        if (event.target.classList.contains('fixed')) {
+            event.target.classList.add('hidden');
+            event.target.classList.remove('flex');
+        }
+    }
+</script>
 {% endblock %}

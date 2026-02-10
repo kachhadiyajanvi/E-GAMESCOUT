@@ -94,14 +94,18 @@
 
             <!-- Action Buttons -->
             <div class="flex gap-2">
+                <a href="{% url 'tournament_detail' tournament.Tournament_ID %}"
+                    class="flex-1 px-4 py-2 bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan rounded hover:bg-accent-cyan hover:text-black transition-all text-center font-medium text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-eye"></i> View
+                </a>
                 <a href="{% url 'tournament_update' tournament.Tournament_ID %}"
                     class="flex-1 px-4 py-2 bg-white/5 border border-white/10 text-white rounded hover:bg-white/10 hover:border-accent-cyan/50 transition-all text-center font-medium text-sm flex items-center justify-center gap-2">
                     <i class="fa-solid fa-edit"></i> Edit
                 </a>
-                <a href="{% url 'tournament_delete' tournament.Tournament_ID %}"
+                <button onclick="confirmDelete('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
                     class="flex-1 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded hover:bg-red-500/20 hover:border-red-500/50 transition-all text-center font-medium text-sm flex items-center justify-center gap-2">
                     <i class="fa-solid fa-trash"></i> Delete
-                </a>
+                </button>
             </div>
         </div>
         {% endfor %}
@@ -147,15 +151,37 @@
                     <i class="fa-solid fa-circle-info text-sm"></i> BASIC INFORMATION
                 </h3>
 
+                {% if form.non_field_errors %}
+                <div class="bg-red-500/10 border border-red-500/50 rounded-lg p-4 mb-6">
+                    <p class="text-red-500 font-bold text-sm mb-2"><i
+                            class="fa-solid fa-triangle-exclamation mr-2"></i>Please correct the following errors:</p>
+                    <ul class="list-disc list-inside text-red-400 text-xs">
+                        {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Tournament Name -->
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-1">
                         <label
                             class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Tournament
                             Name</label>
                         {{ form.Name }}
                         {% if form.Name.errors %}
                         <p class="text-red-500 text-xs mt-1">{{ form.Name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Status -->
+                    <div class="md:col-span-1">
+                        <label
+                            class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Status</label>
+                        {{ form.Status }}
+                        {% if form.Status.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.Status.errors.0 }}</p>
                         {% endif %}
                     </div>
 
@@ -316,6 +342,45 @@
         </form>
     </div>
 </div>
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 z-50">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0" id="deleteModalBackdrop">
+    </div>
+
+    <!-- Modal Content -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 transform transition-all scale-95 opacity-0"
+        id="deleteModalContent">
+        <div class="glass-panel rounded-xl border border-red-500/30 p-6 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent">
+            </div>
+
+            <div class="text-center mb-6">
+                <div
+                    class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+                    <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500"></i>
+                </div>
+                <h3 class="text-xl font-display font-bold text-white mb-2">Delete Tournament?</h3>
+                <p class="text-gray-400 text-sm">Are you sure you want to delete <span id="deleteTournamentName"
+                        class="text-white font-bold"></span>? This action cannot be undone.</p>
+            </div>
+
+            <form id="deleteForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeDeleteModal()"
+                        class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
+                        CANCEL
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-all font-bold text-sm shadow-[0_0_15px_rgba(239,68,68,0.4)]">
+                        DELETE
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -394,6 +459,61 @@
             formContainer.classList.add('hidden');
         }
     }
+
+    // Move modal to body to avoid z-index/overflow issues
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('deleteModal');
+        if (modal) {
+            document.body.appendChild(modal);
+        }
+    });
+
+    // Modal Functions
+    function confirmDelete(tournamentId, tournamentName) {
+        const modal = document.getElementById('deleteModal');
+        const backdrop = document.getElementById('deleteModalBackdrop');
+        const content = document.getElementById('deleteModalContent');
+        const form = document.getElementById('deleteForm');
+        const nameSpan = document.getElementById('deleteTournamentName');
+
+        if (!modal || !form || !nameSpan) {
+            console.error("Delete modal elements not found");
+            return;
+        }
+
+        form.action = `/organization/tournaments/${tournamentId}/delete/`;
+        // Use textContent for safety against XSS, though we escaped in template too
+        nameSpan.textContent = `"${tournamentName}"`;
+
+        modal.classList.remove('hidden');
+        // Animate in
+        requestAnimationFrame(() => {
+            backdrop.classList.remove('opacity-0');
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        });
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        const backdrop = document.getElementById('deleteModalBackdrop');
+        const content = document.getElementById('deleteModalContent');
+
+        if (!modal) return;
+
+        // Animate out
+        backdrop.classList.add('opacity-0');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    // Make functions global just in case
+    window.confirmDelete = confirmDelete;
+    window.closeDeleteModal = closeDeleteModal;
 
     function toggleRoadmapEditor() {
         const toggle = document.getElementById('roadmapToggle');
