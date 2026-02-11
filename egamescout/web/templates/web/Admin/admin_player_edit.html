@@ -1,0 +1,111 @@
+{% extends 'web/Admin/admin_dashboard.html' %}
+
+{% block content %}
+<div class="flex-1 overflow-y-auto p-8 flex justify-center">
+    <!-- Admin Player Edit Page -->
+    <div
+        class="bg-white/5 border border-white/10 rounded-2xl p-8 max-w-2xl w-full backdrop-blur-sm shadow-[0_0_50px_rgba(0,243,255,0.1)] relative">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="font-display font-bold text-2xl text-white">PLAYER DETAILS</h2>
+            <a href="{% url 'admin_players_detail' %}"
+                class="text-xs font-bold text-white/40 hover:text-white transition-colors uppercase tracking-wider">
+                <i class="fa-solid fa-arrow-left mr-2"></i> Back
+            </a>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Player Profile Header -->
+            <div class="flex items-center gap-6 mb-8 border-b border-white/5 pb-8">
+                <div class="w-24 h-24 rounded-full p-1 border-2 border-brand-blue relative">
+                    {% if player.profile_photo %}
+                    <img src="{{ player.profile_photo.url }}" class="w-full h-full rounded-full object-cover">
+                    {% else %}
+                    <div
+                        class="w-full h-full rounded-full bg-gradient-to-br from-brand-blue to-purple-600 flex items-center justify-center font-bold text-white text-2xl">
+                        {{ player.full_name|slice:":2"|upper }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 class="font-bold text-xl text-white mb-1">{{ player.full_name }}</h3>
+                    <p class="text-sm text-white/50 mb-2">@{{ player.username|default:'---' }}</p>
+                    <div class="flex gap-2">
+
+                        <span class="px-2 py-1 rounded bg-white/5 border border-white/10 text-[10px] text-white/60">
+                            Joined: {{ player.created_at|date:"M d, Y" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Read Only Fields -->
+                <div>
+                    <label class="block text-xs font-bold text-white/40 mb-2 uppercase tracking-wider">Full Name</label>
+                    <input type="text" value="{{ player.full_name }}" readonly
+                        class="w-full bg-[#0a0a0a]/50 border border-white/5 rounded-lg px-4 py-3 text-sm text-white/50 cursor-not-allowed outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-white/40 mb-2 uppercase tracking-wider">Username</label>
+                    <input type="text" value="{{ player.username|default:'---' }}" readonly
+                        class="w-full bg-[#0a0a0a]/50 border border-white/5 rounded-lg px-4 py-3 text-sm text-white/50 cursor-not-allowed outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-white/40 mb-2 uppercase tracking-wider">Email
+                        Address</label>
+                    <input type="email" value="{{ player.email }}" readonly
+                        class="w-full bg-[#0a0a0a]/50 border border-white/5 rounded-lg px-4 py-3 text-sm text-white/50 cursor-not-allowed outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-white/40 mb-2 uppercase tracking-wider">Mobile
+                        Number</label>
+                    <input type="text" value="{{ player.mobile_no }}" readonly
+                        class="w-full bg-[#0a0a0a]/50 border border-white/5 rounded-lg px-4 py-3 text-sm text-white/50 cursor-not-allowed outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-white/40 mb-2 uppercase tracking-wider">Age</label>
+                    <input type="text" value="{{ player.age }}" readonly
+                        class="w-full bg-[#0a0a0a]/50 border border-white/5 rounded-lg px-4 py-3 text-sm text-white/50 cursor-not-allowed outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-white/40 mb-2 uppercase tracking-wider">Aadhar
+                        Number</label>
+                    <input type="text" value="{{ player.aadhar_number|default:'---' }}" readonly
+                        class="w-full bg-[#0a0a0a]/50 border border-white/5 rounded-lg px-4 py-3 text-sm text-white/50 cursor-not-allowed outline-none">
+                </div>
+
+                <!-- Status Field (Editable) -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-white/40 mb-2 uppercase tracking-wider">Account
+                        Status</label>
+                    <div class="relative">
+                        <select name="status"
+                            class="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all appearance-none cursor-pointer">
+                            <option value="ACTIVE" {% if player.status=="ACTIVE" %}selected{% endif %}>Active</option>
+                            <option value="SUSPENDED" {% if player.status=="SUSPENDED" %}selected{% endif %}>Suspended
+                            </option>
+                            <option value="PENDING" {% if player.status=="PENDING" %}selected{% endif %}>Pending
+                            </option>
+                        </select>
+                        <i
+                            class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 flex gap-4">
+                <button type="submit"
+                    class="flex-1 bg-brand-blue text-black font-bold py-3 rounded-xl hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition-all">
+                    Update Status
+                </button>
+                <a href="{% url 'admin_delete_player' player.id %}"
+                    class="flex-1 bg-red-500/10 border border-red-500/20 text-red-500 font-bold py-3 rounded-xl hover:bg-red-500 hover:text-white transition-all text-center flex items-center justify-center">
+                    Delete Data
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -7,18 +7,18 @@ import time
 from django.conf import settings
 from groq import Groq
 
-def verify_age_with_groq(image_file):
+def extract_aadhar_details(image_file):
     """
-    Verifies age from an Aadhar card image using Groq's Vision model.
-    Returns a dictionary: {'success': bool, 'age': int, 'message': str}
+    Extracts name, age, and Aadhar number from an Aadhar card image using Groq's Vision model.
+    Returns: {'success': bool, 'data': dict, 'message': str}
     """
-    print(f"DEBUG: verify_age_with_groq called with {image_file.name}")
+    print(f"DEBUG: extract_aadhar_details called with {image_file.name}")
     
     if not settings.GROQ_API_KEY:
         print("DEBUG: GROQ_API_KEY is missing.")
         return {
             'success': False,
-            'age': None,
+            'data': None,
             'message': "Server Configuration Error: Groq API Key missing."
         }
         
@@ -42,19 +42,23 @@ def verify_age_with_groq(image_file):
 
         # Construct Prompt
         prompt = """
-        Analyze this Aadhar Card image. 
-        1. Find the Date of Birth (DOB). It is usually in format DD/MM/YYYY or Year of Birth: YYYY.
-        2. Calculate the person's age based on today's date (assuming today is 2026).
-        3. STRICTLY return ONLY a JSON object. Do not write any other text.
+        Analyze this Aadhar Card image and extract the following details:
+        1. Full Name (Name of the person)
+        2. Date of Birth (DOB) or Year of Birth. Calculate Age based on the current year (2025).
+        3. Aadhar Number (12 digit unique ID)
+
+        STRICTLY return ONLY a JSON object. Do not write any other text.
         
         Format:
         {
-            "dob_found": "DD/MM/YYYY" or "YYYY",
+            "full_name": "John Doe",
+            "aadhar_number": "1234 5678 9012",
+            "dob_found": "DD/MM/YYYY",
             "age": 25,
             "is_valid_aadhar": true
         }
         
-        If you cannot read the DOB or if it's not a valid ID card, set "is_valid_aadhar": false.
+        If it is NOT a valid Aadhar card or details are unreadable, set "is_valid_aadhar": false.
         """
         
         # List of models to try in order of preference
@@ -125,7 +129,7 @@ def verify_age_with_groq(image_file):
             print(f"ERROR: All AI models failed. Last error: {last_error}")
             return {
                 'success': False,
-                'age': None,
+                'data': None,
                 'message': f"AI Service is currently busy. Please try again later. (Ref: {str(last_error)[:50]}...)"
             }
 
@@ -136,33 +140,25 @@ def verify_age_with_groq(image_file):
             data = json.loads(response_content)
         except json.JSONDecodeError:
             # Fallback regex if JSON is malformed
+            # Simplified fallback for age only as full regex parsing is complex
             age_match = re.search(r'"age":\s*(\d+)', response_content)
             if age_match:
-                data = {'age': int(age_match.group(1)), 'is_valid_aadhar': True}
+                data = {'age': int(age_match.group(1)), 'is_valid_aadhar': True} # Very basic fallback
             else:
                 data = {}
 
-        if not data.get('is_valid_aadhar', False) and data.get('age') is None:
+        if not data.get('is_valid_aadhar', False):
              return {
                 'success': False,
-                'age': None,
-                'message': "Could not detect a valid Aadhar card or DOB. Please upload a clear image."
+                'data': None,
+                'message': "Could not detect a valid Aadhar card. Please upload a clear image."
             }
             
-        age = data.get('age')
-        
-        if age is not None:
-            return {
-                'success': True,
-                'age': int(age),
-                'message': f"Age verified successfully via {used_model}."
-            }
-        else:
-             return {
-                'success': False,
-                'age': None,
-                'message': "Could not calculate age from the image."
-            }
+        return {
+            'success': True,
+            'data': data,
+            'message': f"Verification successful via {used_model}."
+        }
 
     except Exception as e:
         print(f"ERROR: verify_age_with_groq critical failure: {str(e)}")

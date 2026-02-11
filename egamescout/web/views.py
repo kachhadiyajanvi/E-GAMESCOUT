@@ -7,10 +7,10 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 import random
+import time
 from django.core.mail import send_mail
 from .forms import EmailLoginForm, OTPVerifyForm, PlayerRegistrationForm
-from .models import Player
-
+from .models import Player, PlayerTask
 from django.views.decorators.cache import cache_control
 
 def auth_login(request):
@@ -22,7 +22,7 @@ def auth_login(request):
             request.session['player_id'] = player.id
             return redirect('player_dashboard')
         else:
-            return redirect('auth_register_details')
+            return redirect('auth_register_upload')
             
     # Strict Redirect: If already logged in, go to dashboard
     if request.session.get('player_id'):
@@ -42,6 +42,12 @@ def auth_login(request):
                     messages.error(request, "This email is not registered. Please Register first.")
                     # return redirect(f"{request.path}?action=register") # Removed redirect as requested
                     return redirect('auth_login') # Refresh to show message
+                
+                # Check Suspended Status
+                player = Player.objects.get(email=email)
+                if player.status == 'SUSPENDED':
+                    messages.error(request, 'Your account has been suspended. Please contact support.')
+                    return redirect('auth_login')
             
             else: # REGISTER FLOW
                 if player_exists:
@@ -54,6 +60,7 @@ def auth_login(request):
             # Save OTP in Session (Stateless)
             request.session['auth_email'] = email
             request.session['auth_otp'] = otp_code # Store OTP in session
+            request.session['auth_otp_created_at'] = time.time() # Store timestamp
             request.session['otp_verified'] = False # Reset verification status
             
             # Send Email
@@ -78,7 +85,7 @@ def auth_login(request):
     else:
         form = EmailLoginForm()
     
-    return render(request, 'web/login.html', {'form': form, 'is_register': is_register})
+    return render(request, 'web/Player/login.html', {'form': form, 'is_register': is_register})
 
 def auth_verify_otp(request):
     # Strict Redirect
@@ -94,7 +101,14 @@ def auth_verify_otp(request):
         if form.is_valid():
             otp_input = form.cleaned_data['otp_code']
             session_otp = request.session.get('auth_otp')
+            created_at = request.session.get('auth_otp_created_at')
             
+            # Check Expiry (5 minutes = 300 seconds)
+            if created_at and (time.time() - float(created_at) > 300):
+                messages.error(request, 'OTP Expired. Please login again.')
+                if 'auth_otp' in request.session: del request.session['auth_otp']
+                return redirect('auth_login')
+
             # Check OTP from Session
             if str(otp_input).strip() == str(session_otp).strip():
                 # OTP is valid
@@ -109,18 +123,20 @@ def auth_verify_otp(request):
                     request.session['player_id'] = player.id
                     return redirect('player_dashboard')
                 except Player.DoesNotExist:
-                    # New User -> Register Details
-                    return redirect('auth_register_details')
+                    # New User -> Register Step 1 (Aadhar Upload)
+                    return redirect('auth_register_upload')
             else:
                 messages.error(request, 'Invalid or Expired OTP')
     else:
         form = OTPVerifyForm()
         
-    return render(request, 'web/verify_otp.html', {'form': form, 'email': email})
+    return render(request, 'web/Player/verify_otp.html', {'form': form, 'email': email})
 
-from .helpers import verify_age_with_groq
+from .helpers import extract_aadhar_details
+from .forms import AadharUploadForm
 
-def auth_register_details(request):
+def auth_register_upload(request):
+    """Step 1: Upload Aadhar Card"""
     # Strict Redirect
     if request.session.get('player_id'):
         return redirect('player_dashboard')
@@ -128,56 +144,96 @@ def auth_register_details(request):
     email = request.session.get('auth_email')
     if not email:
         return redirect('auth_login')
+    
+    if request.method == 'POST':
+        form = AadharUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            aadhar_image = request.FILES.get('aadhar_card')
+            verification = extract_aadhar_details(aadhar_image)
+            
+            if verification['success']:
+                data = verification['data']
+                age = data.get('age')
+                
+                # Check Age
+                if age is not None and age < 16:
+                     messages.error(request, f"Age Restriction: You are {age} years old. Minimum age is 16.")
+                     return render(request, 'web/Player/register_step1.html', {'form': form, 'email': email})
+                
+                # Check Unique Aadhar
+                aadhar_num = data.get('aadhar_number')
+                if aadhar_num and Player.objects.filter(aadhar_number=aadhar_num).exists():
+                     messages.error(request, f"Identity Conflict: Aadhar number {aadhar_num} is already registered.")
+                     return render(request, 'web/Player/register_step1.html', {'form': form, 'email': email})
+
+                # Store in session
+                request.session['auth_register_data'] = data
+                messages.success(request, f"Identity Verified! Name: {data.get('full_name')}, Age: {age}")
+                return redirect('auth_register_details')
+            else:
+                messages.error(request, verification['message'])
+    else:
+        form = AadharUploadForm()
+        
+    return render(request, 'web/Player/register_step1.html', {'form': form, 'email': email})
+
+def auth_register_details(request):
+    """Step 2: Complete Profile"""
+    # Strict Redirect
+    if request.session.get('player_id'):
+        return redirect('player_dashboard')
+
+    email = request.session.get('auth_email')
+    # Check if step 1 completed
+    reg_data = request.session.get('auth_register_data')
+    
+    if not email:
+        return redirect('auth_login')
+    
+    if not reg_data:
+        messages.warning(request, "Please upload your Aadhar Card first.")
+        return redirect('auth_register_upload')
         
     if request.method == 'POST':
         form = PlayerRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
-            # Age Verification Logic
-            aadhar_image = request.FILES.get('aadhar_card')
-            if aadhar_image:
-                verification = verify_age_with_groq(aadhar_image)
+            player = form.save(commit=False)
+            player.email = email
+            player.age = reg_data.get('age', 18) # Default 18 if somehow missing, but step 1 checks it
+            player.status = 'ACTIVE'
+            player.save()
+            
+            # Send Welcome Email
+            try:
+                subject = 'Welcome to E-Game Scout - Journey Started'
+                html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name})
+                text_content = strip_tags(html_content)
                 
-                if verification['success']:
-                    if verification['age'] < 16:
-                        messages.error(request, f"Age Restriction: You are {verification['age']} years old. Minimum age is 16.")
-                        return render(request, 'web/register_details.html', {'form': form, 'email': email})
-                    else:
-                        # Proceed with registration
-                        player = form.save(commit=False)
-                        player.email = email
-                        player.age = verification['age'] # Force verified age
-                        player.status = 'ACTIVE'
-                        player.save()
-                        
-                        # Send Welcome Email
-                        try:
-                            subject = 'Welcome to E-Game Scout - Journey Started'
-                            html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name})
-                            text_content = strip_tags(html_content)
-                            
-                            msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-                            msg.attach_alternative(html_content, "text/html")
-                            msg.send()
-                            print(f"DEBUG: Welcome email sent to {email}")
-                        except Exception as e:
-                            print(f"ERROR: Failed to send welcome email: {e}")
+                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()
+                print(f"DEBUG: Welcome email sent to {email}")
+            except Exception as e:
+                print(f"ERROR: Failed to send welcome email: {e}")
 
-                        # Clear session to prevent auto-login in auth_login
-                        if 'auth_email' in request.session:
-                            del request.session['auth_email']
-                        if 'otp_verified' in request.session:
-                            del request.session['otp_verified']
-                        
-                        messages.success(request, f"Verification Successful! Age: {verification['age']}. Registration Complete. Welcome Email Sent! Please Login.")
-                        return redirect('auth_login')
-                else:
-                    messages.error(request, verification['message'])
-            else:
-                messages.error(request, "Please upload Aadhar Card.")
+            # Clear session
+            if 'auth_email' in request.session: del request.session['auth_email']
+            if 'otp_verified' in request.session: del request.session['otp_verified']
+            if 'auth_register_data' in request.session: del request.session['auth_register_data']
+            if 'auth_otp' in request.session: del request.session['auth_otp']
+            
+            messages.success(request, f"Registration Complete! Welcome {player.full_name}. Please Login.")
+            return redirect('auth_login')
     else:
-        form = PlayerRegistrationForm()
+        # Pre-fill form
+        initial_data = {
+            'full_name': reg_data.get('full_name', ''),
+            'aadhar_number': reg_data.get('aadhar_number', ''),
+            'age': reg_data.get('age', '')
+        }
+        form = PlayerRegistrationForm(initial=initial_data)
         
-    return render(request, 'web/register_details.html', {'form': form, 'email': email})
+    return render(request, 'web/Player/register_details.html', {'form': form, 'email': email})
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def player_dashboard(request):
@@ -186,7 +242,64 @@ def player_dashboard(request):
         return redirect('auth_login')
         
     player = Player.objects.get(id=player_id)
-    return render(request, 'web/dashboard.html', {'player': player})
+    
+    # Fetch Tasks & Events
+    from django.utils import timezone
+    now = timezone.now()
+    
+    upcoming_events = PlayerTask.objects.filter(
+        player=player, 
+        task_type='EVENT', 
+        due_date__gte=now
+    ).order_by('due_date')[:50]
+    
+    todo_list = PlayerTask.objects.filter(
+        player=player, 
+        task_type='TASK', 
+        is_completed=False
+    ).order_by('due_date')
+    
+    return render(request, 'web/Player/dashboard.html', {
+        'player': player,
+        'upcoming_events': upcoming_events,
+        'todo_list': todo_list
+    })
+
+from .forms import PlayerProfileForm
+
+def player_profile(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    player = get_object_or_404(Player, id=player_id)
+    
+    if request.method == 'POST':
+        form = PlayerProfileForm(request.POST, request.FILES, instance=player)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('player_profile')
+        else:
+             messages.error(request, 'Error updating profile. Please check the fields.')
+    else:
+        form = PlayerProfileForm(instance=player)
+        
+    return render(request, 'web/Player/profile.html', {'player': player, 'form': form})
+
+def player_delete_account(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    if request.method == 'POST':
+        player = get_object_or_404(Player, id=player_id)
+        player.delete()
+        request.session.flush()
+        messages.success(request, 'Your account has been permanently deleted.')
+        return redirect('index')
+        
+    return render(request, 'web/Player/delete_account_confirm.html')
 
 def auth_logout(request):
     request.session.flush()
@@ -201,6 +314,14 @@ def org_logout(request):
 def index(request):
     return render(request, 'web/index.html')
 
+def public_tournaments(request):
+    """Public view for upcoming tournaments"""
+    tournaments = Tournament.objects.filter(
+        Status__in=['Scheduled', 'Ongoing']
+    ).order_by('start_date')
+    
+    return render(request, 'web/tournaments.html', {'tournaments': tournaments})
+
 # --- Registration Flow ---
 
 def org_register_start(request):
@@ -212,11 +333,12 @@ def org_register_start(request):
             otp = str(random.randint(100000, 999999))
             request.session['reg_email'] = email
             request.session['reg_otp'] = otp
+            request.session['reg_otp_created_at'] = time.time()
             
             # Send OTP via Email
             # Send OTP via Email (HTML + Text)
             subject = 'E-Game Scout Registration OTP'
-            html_content = render_to_string('web/email_otp.html', {'otp': otp})
+            html_content = render_to_string('web/email/email_otp.html', {'otp': otp})
             text_content = strip_tags(html_content)
             
             msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -229,7 +351,7 @@ def org_register_start(request):
     else:
         form = OrganizationEmailForm()
     
-    return render(request, 'web/org_register_start.html', {'form': form})
+    return render(request, 'web/Organization/org_register_start.html', {'form': form})
 
 def org_register_otp(request):
     email = request.session.get('reg_email')
@@ -240,6 +362,13 @@ def org_register_otp(request):
         form = OTPForm(request.POST)
         if form.is_valid():
             otp = form.cleaned_data['otp']
+            
+            # Check Expiry
+            created_at = request.session.get('reg_otp_created_at')
+            if created_at and (time.time() - float(created_at) > 300):
+                 messages.error(request, 'OTP Expired. Please register again.')
+                 return redirect('org_register_start')
+
             if otp == request.session.get('reg_otp'):
                 return redirect('org_register_details')
             else:
@@ -247,7 +376,7 @@ def org_register_otp(request):
     else:
         form = OTPForm()
     
-    return render(request, 'web/org_register_otp.html', {'form': form, 'email': email})
+    return render(request, 'web/Organization/org_register_otp.html', {'form': form, 'email': email})
 
 def org_register_details(request):
     email = request.session.get('reg_email')
@@ -291,7 +420,7 @@ def org_register_details(request):
     else:
         form = OrganizationDetailsForm()
     
-    return render(request, 'web/org_register_details.html', {'form': form})
+    return render(request, 'web/Organization/org_register_details.html', {'form': form})
 
 # --- Login Flow ---
 
@@ -303,15 +432,20 @@ def org_login_start(request):
             try:
                 org = Organization.objects.get(Organization_Email=email)
                 
+                if org.status == 'Suspended':
+                    messages.error(request, 'Your account has been suspended. Please contact support.')
+                    return redirect('org_login_start')
+
                 # Generate OTP
                 otp = str(random.randint(100000, 999999))
                 request.session['login_email'] = email
                 request.session['login_otp'] = otp
+                request.session['login_otp_created_at'] = time.time()
                 
                 # Send OTP via Email
                 # Send OTP via Email (HTML + Text)
                 subject = 'E-Game Scout Login OTP'
-                html_content = render_to_string('web/email_otp.html', {'otp': otp})
+                html_content = render_to_string('web/email/email_otp.html', {'otp': otp})
                 text_content = strip_tags(html_content)
                 
                 msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -326,7 +460,7 @@ def org_login_start(request):
     else:
         form = OrganizationEmailForm()
     
-    return render(request, 'web/org_login_start.html', {'form': form})
+    return render(request, 'web/Organization/org_login_start.html', {'form': form})
 
 def org_login_otp(request):
     email = request.session.get('login_email')
@@ -340,6 +474,12 @@ def org_login_otp(request):
             session_otp = request.session.get('login_otp')
             print(f"DEBUG: Login OTP Attempt. Input: '{otp}' (type: {type(otp)}), Session: '{session_otp}' (type: {type(session_otp)})")
             
+            # Check Expiry
+            created_at = request.session.get('login_otp_created_at')
+            if created_at and (time.time() - float(created_at) > 300):
+                 messages.error(request, 'OTP Expired. Please login again.')
+                 return redirect('org_login_start')
+
             if str(otp).strip() == str(session_otp).strip():
                 # Login Success
                 org = Organization.objects.get(Organization_Email=email)
@@ -355,7 +495,7 @@ def org_login_otp(request):
     else:
         form = OTPForm()
     
-    return render(request, 'web/org_login_otp.html', {'form': form, 'email': email})
+    return render(request, 'web/Organization/org_login_otp.html', {'form': form, 'email': email})
 
 def organizer_dashboard(request):
     org_id = request.session.get('organizer_id')
@@ -363,8 +503,93 @@ def organizer_dashboard(request):
         return redirect('org_login_start')
         
     org = get_object_or_404(Organization, id=org_id)
-    print(f"DEBUG: Dashboard loading for Org: {org.Organization_Name}, Email: {org.Organization_Email}")
-    return render(request, 'web/organizer_dashboard.html', {'org': org})
+    
+    # --- Stats ---
+    total_players = Player.objects.filter(organization=org).count()
+    active_tournaments = Tournament.objects.filter(Organization_Name=org, Status='Ongoing').count()
+    
+    # --- Notifications Logic (Simulated for Demo) ---
+    # Combine recent player joins and tournament updates
+    recent_players = Player.objects.filter(organization=org).order_by('-created_at')[:3]
+    recent_tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-UpdatedAt')[:3]
+    
+    notifications = []
+    
+    for p in recent_players:
+        notifications.append({
+            'type': 'player',
+            'message': f"New player joined: {p.full_name}",
+            'time': p.created_at,
+            'link': '#'
+        })
+        
+    for t in recent_tournaments:
+        notifications.append({
+            'type': 'tournament',
+            'message': f"Tournament '{t.Name}' updated.",
+            'time': t.UpdatedAt,
+            'link': '#'
+        })
+    
+    # Sort by time descending
+    notifications.sort(key=lambda x: x['time'], reverse=True)
+    notifications = notifications[:5] # Limit to 5
+    
+    # --- Analytics: Player Growth (Last 6 Months) ---
+    from django.db.models.functions import TruncMonth
+    from django.db.models import Count
+    from django.utils import timezone
+    import datetime
+    
+    six_months_ago = timezone.now() - datetime.timedelta(days=180)
+    
+    # Get counts per month
+    growth_data = Player.objects.filter(
+        organization=org, 
+        created_at__gte=six_months_ago
+    ).annotate(
+        month=TruncMonth('created_at')
+    ).values('month').annotate(
+        count=Count('id')
+    ).order_by('month')
+    
+    # Format for Chart.js
+    analytics_labels = []
+    analytics_data = []
+    
+    # Pre-fill last 6 months to ensure continuous line even if 0
+    current = six_months_ago
+    end = timezone.now()
+    
+    # Create a dict for easy lookup
+    data_map = {item['month'].strftime('%Y-%m'): item['count'] for item in growth_data}
+    
+    while current <= end:
+        month_str = current.strftime('%Y-%m')
+        month_label = current.strftime('%b')
+        analytics_labels.append(month_label)
+        analytics_data.append(data_map.get(month_str, 0))
+        
+        # Increment month
+        if current.month == 12:
+            current = current.replace(year=current.year + 1, month=1)
+        else:
+            current = current.replace(month=current.month + 1)
+            
+    # --- Recent Recruits ---
+    recent_recruits = Player.objects.filter(organization=org).order_by('-created_at')[:5]
+    
+    print(f"DEBUG: Analytics Data: {analytics_data}")
+
+    return render(request, 'web/Organization/organizer_dashboard.html', {
+        'org': org,
+        'total_players': total_players,
+        'active_tournaments': active_tournaments,
+        'notifications': notifications,
+        'analytics_labels': analytics_labels,
+        'analytics_data': analytics_data,
+        'recent_recruits': recent_recruits
+    })
 
 from django.http import JsonResponse
 
@@ -381,12 +606,14 @@ def resend_otp(request):
         # Update session (determine which one to update)
         if request.session.get('reg_email'):
             request.session['reg_otp'] = otp
+            request.session['reg_otp_created_at'] = time.time()
         else:
             request.session['login_otp'] = otp
+            request.session['login_otp_created_at'] = time.time()
             
         # Send OTP via Email
         subject = 'E-Game Scout OTP Resend'
-        html_content = render_to_string('web/email_otp.html', {'otp': otp})
+        html_content = render_to_string('web/email/email_otp.html', {'otp': otp})
         text_content = strip_tags(html_content)
         
         msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -532,7 +759,7 @@ def scorecard_tool(request):
 
     # GET Request: Show history
     history = ScorecardAnalysis.objects.filter(organization=org).order_by('-created_at')
-    return render(request, 'web/org_scorecard_tool.html', {'org': org, 'history': history})
+    return render(request, 'web/Organization/org_scorecard_tool.html', {'org': org, 'history': history})
 
 # --- Profile Management ---
 
@@ -543,7 +770,7 @@ def manage_profile(request):
         return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
-    return render(request, 'web/org_manage_profile.html', {'org': org})
+    return render(request, 'web/Organization/org_manage_profile.html', {'org': org})
 
 def update_profile(request):
     """Update organization profile information"""
@@ -578,6 +805,21 @@ def update_profile_photo(request):
         org.profile_photo = request.FILES['profile_photo']
         org.save()
         messages.success(request, 'Profile photo updated successfully!')
+    return redirect('manage_profile')
+
+def org_delete_account(request):
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+        
+    if request.method == 'POST':
+        org = get_object_or_404(Organization, id=org_id)
+        org.delete()
+        request.session.flush()
+        messages.success(request, 'Organization account deleted successfully.')
+        return redirect('index')
+        
+    return render(request, 'web/Organization/org_delete_confirm.html')
     
     return redirect('manage_profile')
 
@@ -591,8 +833,14 @@ def tournament_list(request):
     
     org = get_object_or_404(Organization, id=org_id)
     tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-CreatedAt')
+    form = TournamentForm()
     
-    return render(request, 'web/org_tournament_list.html', {'org': org, 'tournaments': tournaments})
+    return render(request, 'web/Organization/org_tournament_list.html', {
+        'org': org, 
+        'tournaments': tournaments,
+        'form': form,
+        'show_form': False
+    })
 
 def tournament_create(request):
     """Create a new tournament"""
@@ -610,10 +858,23 @@ def tournament_create(request):
             tournament.save()
             messages.success(request, f'Tournament "{tournament.Name}" created successfully!')
             return redirect('tournament_list')
-    else:
-        form = TournamentForm()
+        else:
+            # Log errors to console for debugging
+            print(f"DEBUG: Tournament Creation Errors: {form.errors}")
+            messages.error(request, "Please correct the errors below.")
+            
+            # If form is invalid, render the list template with the bound form and error flag
+            tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-CreatedAt')
+            return render(request, 'web/Organization/org_tournament_list.html', {
+                'org': org, 
+                'tournaments': tournaments, 
+                'form': form, 
+                'show_form': True,
+                'action': 'Create'
+            })
     
-    return render(request, 'web/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Create'})
+    # If not POST, redirect to list
+    return redirect('tournament_list')
 
 def tournament_update(request, tournament_id):
     """Update an existing tournament"""
@@ -633,7 +894,18 @@ def tournament_update(request, tournament_id):
     else:
         form = TournamentForm(instance=tournament)
     
-    return render(request, 'web/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Update', 'tournament': tournament})
+    return render(request, 'web/Organization/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Update', 'tournament': tournament})
+
+def tournament_detail(request, tournament_id):
+    """Display full details of a specific tournament"""
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    
+    org = get_object_or_404(Organization, id=org_id)
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name=org)
+    
+    return render(request, 'web/Organization/org_tournament_detail.html', {'org': org, 'tournament': tournament})
 
 def tournament_delete(request, tournament_id):
     """Delete a tournament"""
@@ -650,7 +922,9 @@ def tournament_delete(request, tournament_id):
         messages.success(request, f'Tournament "{tournament_name}" deleted successfully!')
         return redirect('tournament_list')
     
-    return render(request, 'web/org_tournament_confirm_delete.html', {'org': org, 'tournament': tournament})
+    # If not POST, just redirect back to list (or show error, but redirection is cleaner for "action" URLs)
+    messages.error(request, "Invalid request method for deletion.")
+    return redirect('tournament_list')
 def my_players(request):
     """Display list of players recruited by the organization"""
     org_id = request.session.get('organizer_id')
@@ -660,4 +934,36 @@ def my_players(request):
     org = get_object_or_404(Organization, id=org_id)
     players = Player.objects.filter(organization=org).order_by('-created_at')
     
-    return render(request, 'web/org_my_players.html', {'org': org, 'players': players})
+    return render(request, 'web/Organization/org_my_players.html', {'org': org, 'players': players})
+
+def custom_error_view(request, exception=None, status_code=500):
+    """Generic error view for all HTTP status codes"""
+    error_messages = {
+        404: "Page Not Found",
+        500: "Internal Server Error",
+        403: "Access Forbidden",
+        400: "Bad Request"
+    }
+    
+    # If using Django's default handlers, standard function signature is used.
+    # We allow flexible usage.
+    
+    message = error_messages.get(status_code, "System Error")
+    
+    return render(request, 'web/error.html', {
+        'status_code': status_code,
+        'message': message
+    }, status=status_code)
+
+# Specific Handlers to match Django's expected signature
+def handler404(request, exception):
+    return custom_error_view(request, exception=exception, status_code=404)
+
+def handler500(request):
+    return custom_error_view(request, status_code=500)
+
+def handler403(request, exception):
+    return custom_error_view(request, exception=exception, status_code=403)
+
+def handler400(request, exception):
+    return custom_error_view(request, exception=exception, status_code=400)

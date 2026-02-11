@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Error | E-Game Scout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-dark': '#0B0C10',
+                        'accent-cyan': '#66FCF1',
+                        'accent-red': '#ef4444',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0B0C10;
+            color: white;
+            overflow: hidden;
+        }
+
+        .glitch {
+            position: relative;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch::before {
+            left: 2px;
+            text-shadow: -1px 0 red;
+            clip-path: inset(0 0 0 0);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+
+        .glitch::after {
+            left: -2px;
+            text-shadow: -1px 0 blue;
+            clip-path: inset(0 0 0 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-1 {
+            0% {
+                clip-path: inset(20% 0 80% 0);
+            }
+
+            20% {
+                clip-path: inset(60% 0 10% 0);
+            }
+
+            40% {
+                clip-path: inset(40% 0 50% 0);
+            }
+
+            60% {
+                clip-path: inset(80% 0 5% 0);
+            }
+
+            80% {
+                clip-path: inset(10% 0 60% 0);
+            }
+
+            100% {
+                clip-path: inset(30% 0 30% 0);
+            }
+        }
+
+        @keyframes glitch-anim-2 {
+            0% {
+                clip-path: inset(10% 0 60% 0);
+            }
+
+            20% {
+                clip-path: inset(30% 0 20% 0);
+            }
+
+            40% {
+                clip-path: inset(10% 0 50% 0);
+            }
+
+            60% {
+                clip-path: inset(50% 0 30% 0);
+            }
+
+            80% {
+                clip-path: inset(20% 0 40% 0);
+            }
+
+            100% {
+                clip-path: inset(60% 0 10% 0);
+            }
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center min-h-screen relative">
+    <!-- Grid Overlay -->
+    <div class="fixed inset-0 pointer-events-none opacity-20"
+        style="background-image: linear-gradient(rgba(102, 252, 241, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(102, 252, 241, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+    </div>
+
+    <!-- Glow -->
+    <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-500/10 rounded-full blur-[100px] -z-10">
+    </div>
+
+    <div class="text-center relative z-10 max-w-2xl px-6">
+        <div
+            class="mb-4 inline-flex items-center gap-2 px-3 py-1 bg-red-900/20 border border-red-500/30 rounded text-red-400 text-xs font-mono">
+            <i class="fa-solid fa-triangle-exclamation"></i> SYSTEM_CRITICAL // ERROR_{{ status_code|default:"UNKNOWN"
+            }}
+        </div>
+
+        <h1 class="text-9xl font-display font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600 mb-2 glitch"
+            data-text="{{ status_code|default:'ERROR' }}">
+            {{ status_code|default:"ERROR" }}
+        </h1>
+
+        <h2 class="text-2xl md:text-3xl font-display font-bold text-white mb-6 uppercase tracking-wide">
+            {{ message|default:"An unexpected error has occurred." }}
+        </h2>
+
+        <p class="text-white/40 mb-10 text-lg leading-relaxed max-w-lg mx-auto">
+            The system encountered an unrecoverable exception. The requested resource may be corrupted, missing, or
+            access is denied.
+        </p>
+
+        <div class="flex flex-col md:flex-row gap-4 justify-center">
+            <a href="/"
+                class="group relative px-8 py-3 bg-accent-cyan text-black font-display font-bold text-sm tracking-widest uppercase rounded hover:bg-white transition-all shadow-[0_0_20px_rgba(102,252,241,0.4)]">
+                <span class="relative z-10">Return to Base</span>
+            </a>
+            <button onclick="window.history.back()"
+                class="px-8 py-3 bg-transparent border border-white/20 text-white font-display font-bold text-sm tracking-widest uppercase rounded hover:bg-white/5 hover:border-white transition-all">
+                Retry Connection
+            </button>
+        </div>
+    </div>
+</body>
+
+</html>

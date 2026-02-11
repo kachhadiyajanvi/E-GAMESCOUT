@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Game Scout | Player Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-dark': '#0B0C10',
+                        'brand-gray': '#1F2833',
+                        'brand-light': '#C5C6C7',
+                        'accent-cyan': '#66FCF1',
+                        'accent-dark-cyan': '#45A29E',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+</head>
+
+<body
+    class="bg-brand-dark text-white font-sans selection:bg-accent-cyan selection:text-brand-dark min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Global Grain Overlay -->
+    <div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[100]"
+        style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');">
+    </div>
+
+    <!-- Grid Background -->
+    <div class="fixed inset-0 bg-grid-pattern pointer-events-none -z-20"></div>
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside
+            class="w-64 fixed h-screen z-50 bg-[#0B0C10]/95 backdrop-blur-xl border-r border-white/5 hidden lg:flex flex-col justify-between transition-all">
+            <!-- Logo Area -->
+            <div class="h-24 flex items-center px-8 border-b border-white/5">
+                <a href="{% url 'index' %}" class="flex items-center gap-3">
+                    <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-8 h-8 object-contain">
+                    <span class="font-display font-bold text-white tracking-wider">E-GAME SCOUT</span>
+                </a>
+            </div>
+
+            <!-- Nav Links -->
+            <div class="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
+                <p class="px-4 text-[10px] text-brand-light/30 uppercase tracking-widest font-bold mb-4">Main Menu</p>
+
+                <a href="{% url 'player_dashboard' %}"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if request.resolver_match.url_name == 'player_dashboard' %}bg-accent-cyan text-brand-dark font-bold shadow-[0_0_20px_rgba(102,252,241,0.3)]{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
+                    <i class="fa-solid fa-border-all text-lg"></i>
+                    Dashboard
+                </a>
+
+                <!-- Upcoming Features (Placeholder) -->
+                <a href="#"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all group opacity-50 cursor-not-allowed"
+                    title="Coming Soon">
+                    <i class="fa-solid fa-trophy text-lg"></i>
+                    My Tournaments
+                </a>
+            </div>
+
+            <!-- Logout Area -->
+            <div class="p-4 border-t border-white/5">
+                <a href="{% url 'auth_logout' %}"
+                    class="flex items-center justify-center gap-3 w-full py-3 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all font-bold text-sm">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    Log Out
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 w-full">
+
+            <!-- Top Navbar -->
+            <header
+                class="h-20 border-b border-white/5 bg-[#0B0C10]/80 backdrop-blur-md sticky top-0 z-40 px-6 md:px-8 flex items-center justify-between">
+
+                <!-- Mobile Toggle & Breadcrumbs -->
+                <div class="flex items-center gap-4">
+                    <!-- Mobile Toggle (Only visible on small screens) -->
+                    <button class="lg:hidden text-white/50 hover:text-white">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+
+                    <h2 class="text-white font-display font-bold text-lg hidden md:block">
+                        {% if request.resolver_match.url_name == 'player_dashboard' %}Dashboard
+                        {% elif request.resolver_match.url_name == 'player_profile' %}My Profile{% else %}Portal
+                        {% endif %}
+                    </h2>
+                </div>
+
+                <!-- User Profile Info -->
+                <div class="flex items-center gap-6">
+                    <div class="text-right hidden md:block">
+                        <h4 class="text-white font-bold text-sm leading-tight">{{ player.full_name|default:"Player" }}
+                        </h4>
+                        <p class="text-xs text-brand-light/40">{{ player.email|default:"" }}</p>
+                    </div>
+
+                    <div class="relative group cursor-pointer"
+                        onclick="document.getElementById('profile-dropdown').classList.toggle('hidden')">
+                        <div
+                            class="w-10 h-10 rounded-full border-2 border-accent-cyan/30 p-0.5 group-hover:border-accent-cyan transition-colors">
+                            {% if player.profile_photo %}
+                            <img src="{{ player.profile_photo.url }}" alt="Profile"
+                                class="w-full h-full rounded-full object-cover">
+                            {% else %}
+                            <div
+                                class="w-full h-full rounded-full bg-brand-gray flex items-center justify-center text-white">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Profile Dropdown -->
+                        <div id="profile-dropdown"
+                            class="absolute right-0 top-12 w-48 bg-[#0B0C10] border border-white/10 rounded-xl shadow-2xl hidden flex-col overflow-hidden z-50">
+                            <div class="p-3 border-b border-white/5">
+                                <p class="text-white font-bold text-sm truncate">{{ player.full_name|default:"Player" }}
+                                </p>
+                                <p class="text-xs text-gray-500 truncate">{{ player.email }}</p>
+                            </div>
+                            <a href="{% url 'player_profile' %}"
+                                class="px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-user-astronaut w-5"></i> My Profile
+                            </a>
+                            <a href="#"
+                                class="px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-gear w-5"></i> Settings
+                            </a>
+                            <div class="border-t border-white/5 my-1"></div>
+                            <a href="{% url 'auth_logout' %}"
+                                class="px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-right-from-bracket w-5"></i> Log Out
+                            </a>
+                        </div>
+
+                        <!-- Backdrop to close -->
+                        <div class="fixed inset-0 z-40 hidden"
+                            onclick="event.stopPropagation(); document.getElementById('profile-dropdown').classList.add('hidden')"
+                            id="dropdown-backdrop"></div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="p-6 md:p-8 flex-grow">
+                {% block content %}{% endblock %}
+            </main>
+
+            <footer class="py-6 text-center text-gray-600 text-xs border-t border-white/5">
+                &copy; 2026 E-Game Scout Player Portal.
+            </footer>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
+
+    <!-- Django Messages Data -->
+    {% if messages %}
+    <script id="django-messages" type="application/json">
+        [
+            {% for message in messages %}
+            {
+                "message": "{{ message|escapejs }}",
+                "tags": "{{ message.tags }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+    {% endif %}
+
+    <script>
+        function showToast(message, tags) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            // Style based on tags
+            let iconClass = 'fa-info-circle';
+            let iconColorClass = 'text-blue-500 bg-blue-500/10';
+            let title = 'Notification';
+
+            if (tags.includes('success')) {
+                iconClass = 'fa-check';
+                iconColorClass = 'text-green-500 bg-green-500/10';
+                title = 'Operation Successful';
+            } else if (tags.includes('error')) {
+                iconClass = 'fa-triangle-exclamation';
+                iconColorClass = 'text-red-500 bg-red-500/10';
+                title = 'Error Occurred';
+            } else if (tags.includes('warning')) {
+                iconClass = 'fa-triangle-exclamation';
+                iconColorClass = 'text-yellow-500 bg-yellow-500/10';
+                title = 'Warning';
+            } else if (tags.includes('info')) {
+                iconClass = 'fa-info-circle';
+                iconColorClass = 'text-blue-500 bg-blue-500/10';
+                title = 'Information';
+            }
+
+            // Heuristic for specific messages
+            const lowerMsg = message.toLowerCase();
+            if (lowerMsg.includes('welcome') || lowerMsg.includes('login') || lowerMsg.includes('logged in')) {
+                iconClass = 'fa-door-open';
+                title = 'Welcome Back';
+            } else if (lowerMsg.includes('profile') || lowerMsg.includes('updated')) {
+                iconClass = 'fa-user-pen';
+                title = 'Profile Updated';
+            } else if (lowerMsg.includes('tournament')) {
+                iconClass = 'fa-trophy';
+                title = 'Tournament Update';
+            } else if (lowerMsg.includes('otp') || lowerMsg.includes('code') || lowerMsg.includes('email')) {
+                iconClass = 'fa-envelope-open-text';
+                title = 'Check Your Inbox';
+            } else if (lowerMsg.includes('task') || lowerMsg.includes('todo')) {
+                iconClass = 'fa-list-check';
+                title = 'Task Update';
+            } else if (lowerMsg.includes('register') || lowerMsg.includes('account created')) {
+                iconClass = 'fa-user-plus';
+                title = 'Registration Complete';
+            } else if (lowerMsg.includes('upload') || lowerMsg.includes('file')) {
+                iconClass = 'fa-cloud-arrow-up';
+                title = 'Upload Status';
+            } else if (lowerMsg.includes('password') || lowerMsg.includes('security')) {
+                iconClass = 'fa-shield-halved';
+                title = 'Security Alert';
+            } else if (lowerMsg.includes('logout') || lowerMsg.includes('logged out')) {
+                iconClass = 'fa-right-from-bracket';
+                title = 'Signed Out';
+            }
+
+            toast.className = `
+                pointer-events-auto
+                bg-[#0a0a0a] border border-white/10 
+                rounded-xl p-4 pr-12
+                shadow-[0_8px_30px_rgb(0,0,0,0.5)]
+                flex items-center gap-4
+                transform transition-all duration-500 ease-out translate-x-20 opacity-0
+                min-w-[300px]
+            `;
+
+            toast.innerHTML = `
+                <div class="w-10 h-10 rounded-full ${iconColorClass} flex items-center justify-center shrink-0">
+                    <i class="fa-solid ${iconClass} text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-white text-sm font-display tracking-wide">${title}</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" 
+                    class="absolute top-4 right-4 text-white/20 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-20', 'opacity-0');
+            });
+
+            // Auto Dismiss
+            setTimeout(() => {
+                toast.classList.add('translate-x-20', 'opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        }
+
+        // Initialize Django Messages
+        document.addEventListener('DOMContentLoaded', () => {
+            const messagesJson = document.getElementById('django-messages');
+            if (messagesJson) {
+                try {
+                    const messages = JSON.parse(messagesJson.textContent);
+                    messages.forEach(item => {
+                        showToast(item.message, item.tags);
+                    });
+                } catch (e) {
+                    console.error('Error parsing messages:', e);
+                }
+            }
+        });
+    </script>
+
+</body>
+
+</html>

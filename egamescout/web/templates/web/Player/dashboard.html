@@ -1,0 +1,445 @@
+{% extends 'web/Player/player_dashboard_base.html' %}
+{% load static %}
+
+
+
+{% block content %}
+<div class="container mx-auto max-w-7xl">
+
+    <!-- Welcome Header (Simplified since Navbar has details) -->
+    <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-6">
+        <div>
+            <h1 class="text-3xl font-display font-bold text-white mb-1">
+                Dashboard Overview
+            </h1>
+            <p class="text-brand-light/60 text-sm">
+                Track your progress, manage tournaments, and stay organized.
+            </p>
+        </div>
+
+        <!-- Status Indicators -->
+        <div class="flex items-center gap-4">
+            <div class="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                <span
+                    class="text-xs font-bold text-green-400 uppercase tracking-wider">{{player.status|default:"ACTIVE"}}</span>
+            </div>
+            <div class="px-3 py-1 bg-white/5 border border-white/10 rounded-full flex items-center gap-2">
+                <i class="fa-solid fa-hashtag text-brand-light/30 text-xs"></i>
+                <span class="text-xs font-mono font-bold text-brand-light/70">{{ player.uid }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- LEFT COLUMN (Stats & Tournaments) -->
+        <div class="lg:col-span-2 space-y-8">
+
+            <!-- Quick Stats Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- Stat 1 -->
+                <div
+                    class="bg-[#0B0C10] border border-white/5 p-4 rounded-xl relative overflow-hidden group hover:border-accent-cyan/30 transition-all">
+                    <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fa-solid fa-trophy text-4xl text-accent-cyan"></i>
+                    </div>
+                    <p class="text-[10px] text-brand-light/40 uppercase font-bold tracking-widest">Tournaments</p>
+                    <h3 class="text-2xl font-display font-bold text-white mt-1">0</h3>
+                </div>
+                <!-- Stat 2 -->
+                <div
+                    class="bg-[#0B0C10] border border-white/5 p-4 rounded-xl relative overflow-hidden group hover:border-accent-cyan/30 transition-all">
+                    <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fa-solid fa-crosshairs text-4xl text-accent-cyan"></i>
+                    </div>
+                    <p class="text-[10px] text-brand-light/40 uppercase font-bold tracking-widest">Matches</p>
+                    <h3 class="text-2xl font-display font-bold text-white mt-1">0</h3>
+                </div>
+                <!-- Stat 3 -->
+                <div
+                    class="bg-[#0B0C10] border border-white/5 p-4 rounded-xl relative overflow-hidden group hover:border-accent-cyan/30 transition-all">
+                    <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fa-solid fa-coins text-4xl text-yellow-500"></i>
+                    </div>
+                    <p class="text-[10px] text-brand-light/40 uppercase font-bold tracking-widest">Credits</p>
+                    <h3 class="text-2xl font-display font-bold text-accent-cyan mt-1">0.00</h3>
+                </div>
+            </div>
+
+            <!-- Active Tournaments -->
+            <div class="bg-[#0B0C10]/50 border border-white/5 rounded-2xl p-6 min-h-[300px]">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-display font-bold text-white text-lg">Active Tournaments</h3>
+                    <button class="text-xs text-accent-cyan hover:text-white transition-colors">View All</button>
+                </div>
+
+                <!-- Empty State -->
+                <div class="flex flex-col items-center justify-center py-12 text-center opacity-50">
+                    <i class="fa-solid fa-trophy text-4xl text-brand-light/20 mb-4"></i>
+                    <p class="text-sm text-brand-light/50">No active tournaments found.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN (Calendar & Todo) -->
+        <div class="lg:col-span-1 space-y-6">
+
+            <!-- Calendar / Schedule Widget -->
+            <!-- Calendar / Schedule Widget -->
+            <div
+                class="bg-[#0B0C10] border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative text-white flex flex-col h-full min-h-[500px]">
+                <!-- Header (Month Nav) -->
+                <div class="px-6 py-6 flex justify-between items-center shrink-0 border-b border-white/5">
+                    <button
+                        class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors text-brand-light/50 hover:text-white">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="flex gap-6 text-sm font-bold text-gray-500 items-baseline">
+                        <span class="text-white text-xl font-display tracking-wide">February</span>
+                        <span class="cursor-pointer hover:text-white transition-colors">March</span>
+                        <span class="cursor-pointer hover:text-white transition-colors">April</span>
+                    </div>
+                    <button
+                        class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors text-brand-light/50 hover:text-white active:bg-accent-cyan active:text-brand-dark">
+                        <i class="fa-solid fa-calendar"></i>
+                    </button>
+                </div>
+
+                <!-- Days Scroller -->
+                <div
+                    class="px-6 py-4 flex justify-between items-center border-b border-white/5 mb-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] gap-2 shrink-0 select-none">
+                    <!-- Day Items -->
+                    <div class="flex flex-col items-center gap-2 min-w-[44px] cursor-pointer group">
+                        <span
+                            class="text-xl font-bold text-gray-400 group-hover:text-accent-cyan transition-colors">13</span>
+                        <span
+                            class="text-[10px] text-gray-600 font-bold uppercase tracking-wider group-hover:text-accent-cyan/70">Fri</span>
+                    </div>
+                    <div
+                        class="flex flex-col items-center gap-2 min-w-[44px] cursor-pointer relative bg-white/5 py-2 px-1 rounded-xl border border-white/5">
+                        <span class="text-xl font-bold text-accent-cyan">14</span>
+                        <span class="text-[10px] text-accent-cyan font-bold uppercase tracking-wider">Sat</span>
+                        <div class="w-1 h-1 rounded-full bg-accent-cyan absolute bottom-1 shadow-[0_0_10px_#66FCF1]">
+                        </div>
+                    </div>
+                    <div
+                        class="flex flex-col items-center gap-2 min-w-[44px] cursor-pointer group hover:bg-white/5 py-2 px-1 rounded-xl transition-all">
+                        <span class="text-xl font-bold text-gray-500 group-hover:text-white transition-colors">15</span>
+                        <span
+                            class="text-[10px] text-gray-700 font-bold uppercase tracking-wider group-hover:text-gray-400">Sun</span>
+                    </div>
+                    <div
+                        class="flex flex-col items-center gap-2 min-w-[44px] cursor-pointer group hover:bg-white/5 py-2 px-1 rounded-xl transition-all">
+                        <span class="text-xl font-bold text-gray-500 group-hover:text-white transition-colors">16</span>
+                        <span
+                            class="text-[10px] text-gray-700 font-bold uppercase tracking-wider group-hover:text-gray-400">Mon</span>
+                    </div>
+                    <div
+                        class="flex flex-col items-center gap-2 min-w-[44px] cursor-pointer group hover:bg-white/5 py-2 px-1 rounded-xl transition-all">
+                        <span class="text-xl font-bold text-gray-500 group-hover:text-white transition-colors">17</span>
+                        <span
+                            class="text-[10px] text-gray-700 font-bold uppercase tracking-wider group-hover:text-gray-400">Tue</span>
+                    </div>
+                </div>
+
+                <!-- Timeline / Events -->
+                <div class="px-4 pb-4 space-y-3 relative flex-grow overflow-y-auto custom-scrollbar h-[350px]">
+                    <!-- Time Indicator Line -->
+                    <div class="absolute left-[70px] top-0 bottom-0 w-[1px] bg-white/5 z-0"></div>
+
+                    <!-- Current Time Marker -->
+                    <div class="absolute left-[52px] top-8 z-20 flex items-center gap-2">
+                        <span
+                            class="bg-accent-cyan text-brand-dark text-[10px] font-bold px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(102,252,241,0.4)]">12:30</span>
+                        <div
+                            class="w-2.5 h-2.5 bg-accent-cyan rounded-full border-2 border-brand-dark shadow-[0_0_10px_#66FCF1]">
+                        </div>
+                    </div>
+
+                    {% if upcoming_events %}
+                    {% for event in upcoming_events %}
+                    <div class="relative z-10 pl-20 group py-1">
+                        <div
+                            class="p-3 rounded-xl bg-[#141619] border border-white/5 hover:border-accent-cyan/30 shadow-md hover:shadow-[0_0_15px_rgba(0,0,0,0.5)] transform hover:scale-[1.01] transition-all cursor-pointer group">
+                            <div class="flex items-center justify-between mb-1">
+                                <h4
+                                    class="font-bold text-white text-xs tracking-wide font-display group-hover:text-accent-cyan transition-colors truncate">
+                                    {{ event.title }}</h4>
+                            </div>
+                            <div class="flex items-center justify-between mt-2">
+                                <div class="flex -space-x-1.5">
+                                    <!-- Placeholder Avatars -->
+                                    <div class="w-5 h-5 rounded-full border border-[#141619] bg-brand-gray"></div>
+                                    <div
+                                        class="w-5 h-5 rounded-full border border-[#141619] bg-white/10 flex items-center justify-center text-[8px] text-white font-bold">
+                                        +2</div>
+                                </div>
+                                <span
+                                    class="text-[9px] text-brand-light/50 font-bold tracking-wider bg-white/5 px-1.5 py-0.5 rounded">{{
+                                    event.due_date|time:"H:i" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <!-- Visual Demo: Event 1 (Compact) -->
+                    <div class="relative z-10 pl-20 group pt-16">
+                        <div
+                            class="p-3 rounded-xl bg-[#141619] border border-white/5 hover:border-accent-cyan/30 shadow-md transition-all cursor-pointer group relative overflow-hidden hover:bg-white/5">
+                            <div class="relative z-10">
+                                <div class="flex items-center justify-between">
+                                    <h4
+                                        class="font-bold text-white text-xs tracking-wide font-display group-hover:text-accent-cyan transition-colors">
+                                        Team Scrims (BGMI)</h4>
+                                    <span
+                                        class="text-[9px] text-accent-cyan font-bold bg-accent-cyan/10 px-1 py-0.5 rounded">13:00</span>
+                                </div>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <div class="flex -space-x-1.5">
+                                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=64&h=64"
+                                            class="w-5 h-5 rounded-full border border-[#141619]">
+                                        <div
+                                            class="w-5 h-5 rounded-full border border-[#141619] bg-brand-gray flex items-center justify-center text-[8px] text-white font-bold">
+                                            +4</div>
+                                    </div>
+                                    <span class="text-[9px] text-brand-light/50 font-bold">SQUAD ALPHA</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Demo: Event 2 (Compact) -->
+                    <div class="relative z-10 pl-20 group mt-3">
+                        <div
+                            class="p-3 rounded-xl bg-[#141619] border border-white/5 hover:border-green-500/30 shadow-md transition-all cursor-pointer group relative overflow-hidden hover:bg-white/5">
+                            <div class="relative z-10">
+                                <div class="flex items-center justify-between">
+                                    <h4
+                                        class="font-bold text-white text-xs font-display group-hover:text-green-400 transition-colors">
+                                        Strategy Session</h4>
+                                    <span
+                                        class="text-[9px] text-green-500 font-bold bg-green-500/10 px-1 py-0.5 rounded">14:30</span>
+                                </div>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <i class="fa-solid fa-map-location-dot text-brand-light/40 text-[10px]"></i>
+                                    <p class="text-[9px] text-brand-light/40 font-bold tracking-wider uppercase">Map:
+                                        Erangel</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Demo: Event 3 (Compact) -->
+                    <div class="relative z-10 pl-20 group mt-3">
+                        <div
+                            class="p-3 rounded-xl bg-[#141619] border border-white/5 hover:border-purple-500/30 shadow-md transition-all cursor-pointer group relative overflow-hidden hover:bg-white/5">
+                            <div class="relative z-10">
+                                <div class="flex items-center justify-between">
+                                    <h4
+                                        class="font-bold text-white text-xs font-display group-hover:text-purple-400 transition-colors">
+                                        VOD Review</h4>
+                                    <span
+                                        class="text-[9px] text-purple-500 font-bold bg-purple-500/10 px-1 py-0.5 rounded">16:00</span>
+                                </div>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <i class="fa-solid fa-video text-brand-light/40 text-[10px]"></i>
+                                    <p class="text-[9px] text-brand-light/40 font-bold tracking-wider uppercase">Last
+                                        Match Analysis</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Demo: Event 4 (Compact) -->
+                    <div class="relative z-10 pl-20 group mt-3">
+                        <div
+                            class="p-3 rounded-xl bg-[#141619] border border-white/5 hover:border-yellow-500/30 shadow-md transition-all cursor-pointer group relative overflow-hidden hover:bg-white/5">
+                            <div class="relative z-10">
+                                <div class="flex items-center justify-between">
+                                    <h4
+                                        class="font-bold text-white text-xs font-display group-hover:text-yellow-400 transition-colors">
+                                        Team Meeting</h4>
+                                    <span
+                                        class="text-[9px] text-yellow-500 font-bold bg-yellow-500/10 px-1 py-0.5 rounded">18:00</span>
+                                </div>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <i class="fa-solid fa-headset text-brand-light/40 text-[10px]"></i>
+                                    <p class="text-[9px] text-brand-light/40 font-bold tracking-wider uppercase">Discord
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tasks / To-Do List -->
+            <div class="bg-[#0B0C10] border border-white/5 rounded-2xl p-6 relative overflow-hidden">
+                <!-- Decorative Glow -->
+                <div
+                    class="absolute top-0 right-0 w-32 h-32 bg-accent-cyan/5 rounded-full blur-3xl -z-10 pointer-events-none">
+                </div>
+
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-display font-bold text-white text-lg flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                            <i class="fa-solid fa-list-check text-accent-cyan text-sm"></i>
+                        </div>
+                        TASKS
+                    </h3>
+                    <span
+                        class="text-[10px] font-bold tracking-wider bg-accent-cyan/10 text-accent-cyan px-2 py-1 rounded border border-accent-cyan/20"
+                        id="pending-count">
+                        {{ todo_list|length|default:"2" }} PENDING
+                    </span>
+                </div>
+
+                <div class="space-y-2" id="todo-container">
+                    {% if todo_list %}
+                    {% for task in todo_list %}
+                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl group hover:bg-white/10 transition-colors cursor-pointer select-none border border-transparent hover:border-white/5"
+                        onclick="toggleTask(this)">
+                        <div
+                            class="w-5 h-5 rounded border border-white/20 flex items-center justify-center transition-all check-circle bg-[#0B0C10]">
+                            <i class="fa-solid fa-check text-[10px] text-transparent transition-colors check-icon"></i>
+                        </div>
+                        <span class="text-sm text-gray-300 group-hover:text-white transition-colors task-text">{{
+                            task.title }}</span>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <!-- Demo Task 1 -->
+                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl group hover:bg-white/10 transition-colors cursor-pointer select-none border border-transparent hover:border-white/5"
+                        onclick="toggleTask(this)">
+                        <div
+                            class="w-5 h-5 rounded border border-white/20 flex items-center justify-center transition-all check-circle bg-[#0B0C10]">
+                            <i class="fa-solid fa-check text-[10px] text-transparent transition-colors check-icon"></i>
+                        </div>
+                        <span
+                            class="text-sm text-gray-300 group-hover:text-white transition-colors task-text font-medium">Update
+                            Profile Bio</span>
+                    </div>
+                    <!-- Demo Task 2 -->
+                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl group hover:bg-white/10 transition-colors cursor-pointer select-none border border-transparent hover:border-white/5"
+                        onclick="toggleTask(this)">
+                        <div
+                            class="w-5 h-5 rounded border border-white/20 flex items-center justify-center transition-all check-circle bg-[#0B0C10]">
+                            <i class="fa-solid fa-check text-[10px] text-transparent transition-colors check-icon"></i>
+                        </div>
+                        <span
+                            class="text-sm text-gray-300 group-hover:text-white transition-colors task-text font-medium">Upload
+                            Gameplay Clip</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Add Task Input (Initially Hidden) -->
+                <div id="add-task-form" class="mt-4 hidden animate-fade-in-down">
+                    <div class="flex gap-2">
+                        <input type="text" id="new-task-input" placeholder="Enter task..."
+                            class="flex-1 bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-accent-cyan/50 placeholder-gray-600 font-medium">
+                        <button onclick="addTask()"
+                            class="bg-accent-cyan text-brand-dark px-4 py-2 rounded-xl font-bold text-sm hover:bg-accent-dark-cyan transition-colors">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button id="add-task-btn" onclick="showTaskInput()"
+                    class="w-full mt-4 py-3 flex items-center justify-center gap-2 text-xs font-bold text-brand-light/40 border border-brand-light/10 border-dashed rounded-xl hover:bg-white/5 hover:text-white hover:border-white/20 transition-all group tracking-widest uppercase">
+                    <i class="fa-solid fa-plus group-hover:rotate-90 transition-transform text-accent-cyan"></i> Add New
+                    Task
+                </button>
+            </div>
+
+            <script>
+                function toggleTask(element) {
+                    const circle = element.querySelector('.check-circle');
+                    const icon = element.querySelector('.check-icon');
+                    const text = element.querySelector('.task-text');
+
+                    const isCompleted = circle.classList.contains('bg-accent-cyan');
+
+                    if (!isCompleted) {
+                        // Mark as Complete
+                        circle.classList.remove('bg-[#0B0C10]', 'border-white/20');
+                        circle.classList.add('bg-accent-cyan', 'border-accent-cyan', 'shadow-[0_0_10px_#66FCF1]');
+
+                        icon.classList.remove('text-transparent');
+                        icon.classList.add('text-brand-dark');
+
+                        text.classList.add('line-through', 'text-gray-600');
+                        text.classList.remove('text-gray-300', 'group-hover:text-white');
+
+                        // Play a sound or show a mini toast? (Optional)
+                        showToast('Task completed!', 'success');
+                    } else {
+                        // Unmark
+                        circle.classList.add('bg-[#0B0C10]', 'border-white/20');
+                        circle.classList.remove('bg-accent-cyan', 'border-accent-cyan', 'shadow-[0_0_10px_#66FCF1]');
+
+                        icon.classList.add('text-transparent');
+                        icon.classList.remove('text-brand-dark');
+
+                        text.classList.remove('line-through', 'text-gray-600');
+                        text.classList.add('text-gray-300', 'group-hover:text-white');
+                    }
+                }
+
+                function showTaskInput() {
+                    document.getElementById('add-task-btn').classList.add('hidden');
+                    const form = document.getElementById('add-task-form');
+                    form.classList.remove('hidden');
+                    document.getElementById('new-task-input').focus();
+                }
+
+                function addTask() {
+                    const input = document.getElementById('new-task-input');
+                    const title = input.value.trim();
+
+                    if (title) {
+                        const container = document.getElementById('todo-container');
+
+                        // Create new task element
+                        const newTask = document.createElement('div');
+                        newTask.className = 'flex items-center gap-3 p-3 bg-white/5 rounded-xl group hover:bg-white/10 transition-colors cursor-pointer select-none border border-transparent hover:border-white/5 animate-fade-in-up';
+                        newTask.onclick = function () { toggleTask(this); };
+                        newTask.innerHTML = `
+                            <div class="w-5 h-5 rounded border border-white/20 flex items-center justify-center transition-all check-circle bg-[#0B0C10]">
+                                <i class="fa-solid fa-check text-[10px] text-transparent transition-colors check-icon"></i>
+                            </div>
+                            <span class="text-sm text-gray-300 group-hover:text-white transition-colors task-text font-medium">${title}</span>
+                        `;
+
+                        container.appendChild(newTask);
+                        input.value = '';
+
+                        // Reset UI
+                        document.getElementById('add-task-form').classList.add('hidden');
+                        document.getElementById('add-task-btn').classList.remove('hidden');
+
+                        showToast('Task added successfully', 'success');
+
+                        // Update counter (hacky for demo)
+                        const counter = document.getElementById('pending-count');
+                        let currentCount = parseInt(counter.innerText.split(' ')[0]) || 0;
+                        counter.innerText = `${currentCount + 1} PENDING`;
+                    }
+                }
+
+                // Allow Enter key to submit task
+                document.getElementById('new-task-input').addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        addTask();
+                    }
+                });
+            </script>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}

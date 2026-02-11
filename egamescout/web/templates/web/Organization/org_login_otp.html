@@ -1,0 +1,116 @@
+{% extends 'web/Organization/org_base.html' %}
+
+{% block content %}
+<div class="w-full max-w-md">
+    <div
+        class="glass-card p-8 rounded-xl border border-white/10 relative overflow-hidden group hover:border-accent-cyan/30 transition-all duration-300">
+        <!-- Header -->
+        <div class="mb-8 text-center">
+            <h2 class="text-3xl font-display font-bold text-white mb-2">AUTH CHECK</h2>
+            <p class="text-gray-400 text-sm">Enter the OTP sent to <span class="text-accent-cyan">{{ email }}</span></p>
+            <p class="text-xs text-gray-500 mt-2">Check the server console for the OTP (Dev Mode)</p>
+        </div>
+
+        <!-- Form -->
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-2">
+                    One-Time Password
+                </label>
+                {{ form.otp }}
+                {% if form.otp.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.otp.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit"
+                class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded transition-colors group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)]">
+                Access Dashboard
+            </button>
+            </button>
+        </form>
+
+        <!-- Resend OTP Section -->
+        <div class="mt-6 text-center">
+            <button id="resend-btn" type="button"
+                class="text-accent-cyan hover:text-white text-sm font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled onclick="resendOTP()">
+                Resend OTP (02:00)
+            </button>
+            <p id="resend-msg" class="text-xs text-green-400 mt-2 hidden"></p>
+        </div>
+
+        <script>
+            let timeLeft = 120; // 2 minutes
+            let timerInterval;
+            const resendBtn = document.getElementById('resend-btn');
+            const resendMsg = document.getElementById('resend-msg');
+
+            function updateTimerDisplay() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                resendBtn.innerText = `Resend OTP (${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')})`;
+            }
+
+            function startTimer() {
+                resendBtn.disabled = true;
+                clearInterval(timerInterval);
+                updateTimerDisplay();
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        resendBtn.innerText = "Resend OTP";
+                        resendBtn.disabled = false;
+                    }
+                }, 1000);
+            }
+
+            function resendOTP() {
+                resendBtn.innerText = "Sending...";
+                resendBtn.disabled = true;
+
+                fetch("{% url 'resend_otp' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            resendMsg.innerText = data.message;
+                            resendMsg.classList.remove('hidden');
+                            setTimeout(() => resendMsg.classList.add('hidden'), 3000);
+
+                            timeLeft = 120;
+                            startTimer();
+                        } else {
+                            alert(data.message);
+                            resendBtn.innerText = "Resend OTP";
+                            resendBtn.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        resendBtn.innerText = "Resend OTP";
+                        resendBtn.disabled = false;
+                    });
+            }
+
+            // Start timer on load
+            startTimer();
+        </script>
+
+        <div class="mt-6 text-center text-xs text-gray-500">
+            <a href="{% url 'org_login_start' %}" class="text-gray-400 hover:text-white">Change Email</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

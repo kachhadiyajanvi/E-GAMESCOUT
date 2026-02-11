@@ -12,14 +12,14 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
-import certifi
+# import certifi
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Fix for macOS SSL Certificate Verify Failed
-os.environ['SSL_CERT_FILE'] = certifi.where()
+# os.environ['SSL_CERT_FILE'] = certifi.where()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'web',
 ]
 

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EGAME SCOUT | ADMIN LOGIN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-blue': '#00f3ff',     /* Neon Cyan */
+                        'brand-pink': '#ec4899',     /* Hot Pink */
+                        'brand-dark': '#050505',     /* Almost Black */
+                    },
+                    keyframes: {
+                        pulse: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.6' },
+                        }
+                    },
+                    animation: {
+                        'pulse': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    {% load static %}
+</head>
+
+<body class="bg-black w-full h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden">
+
+    <!-- Deep Background (Solid Black + Noise) -->
+    <div
+        class="fixed inset-0 z-0 overflow-hidden pointer-events-none opacity-[0.07] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay">
+    </div>
+
+    <!-- Ambient Glows (Blue & Pink) -->
+    <div
+        class="fixed top-0 left-0 w-[500px] h-[500px] bg-brand-blue/10 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2 animate-pulse">
+    </div>
+    <div class="fixed bottom-0 right-0 w-[500px] h-[500px] bg-brand-pink/10 rounded-full blur-[120px] pointer-events-none translate-x-1/2 translate-y-1/2 animate-pulse"
+        style="animation-delay: 1.5s;"></div>
+
+    <!-- Main Container: COMPACT CENTERED GLASS CARD -->
+    <div
+        class="relative z-10 w-full max-w-[420px] backdrop-blur-md bg-white/5 border border-white/10 rounded-3xl shadow-[0_0_60px_-15px_rgba(0,0,0,1)] p-8 md:p-10 flex flex-col items-center ring-1 ring-white/5 overflow-hidden group">
+
+        <!-- Glass Shine -->
+        <div
+            class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+        </div>
+
+        <!-- Header: Horizontal Layout (Logo + Name) -->
+        <div class="mb-10 w-full flex items-center justify-center gap-4">
+            <!-- Logo Icon with Blue/Pink Gradient Border -->
+            <div
+                class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-black/40 border border-white/10 shadow-[0_0_15px_rgba(0,243,255,0.3)] relative overflow-hidden">
+                <!-- Inner Gradient -->
+                <div class="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-brand-pink/20 opacity-50"></div>
+                <i
+                    class="fa-solid fa-gamepad text-xl text-transparent bg-clip-text bg-gradient-to-br from-brand-blue to-brand-pink drop-shadow-[0_0_5px_rgba(255,255,255,0.5)] relative z-10"></i>
+            </div>
+
+            <!-- Site Name -->
+            <div class="flex flex-col">
+                <h1 class="font-display font-bold text-xl text-white tracking-widest leading-none">EGAME</h1>
+                <span
+                    class="font-display font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-pink tracking-widest leading-none">SCOUT</span>
+            </div>
+        </div>
+
+        <div class="w-full text-center mb-6">
+            <h2 class="text-white text-lg font-bold tracking-widest">ADMIN LOGIN</h2>
+        </div>
+
+        <!-- Form -->
+        <form method="post" class="space-y-5 w-full">
+            {% csrf_token %}
+
+            <div class="relative group">
+                <input type="text" name="username"
+                    class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/30 font-semibold focus:ring-1 focus:ring-brand-blue focus:border-brand-blue transition-all outline-none text-sm peer"
+                    placeholder=" " required>
+                <label
+                    class="absolute left-3 top-3.5 text-white/30 text-sm font-medium transition-all peer-focus:-translate-y-[22px] peer-focus:text-xs peer-focus:text-brand-blue peer-[:not(:placeholder-shown)]:-translate-y-[22px] peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-gray-400 pointer-events-none bg-black px-1">Username</label>
+                <i
+                    class="fa-regular fa-envelope absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-brand-blue transition-colors text-xs"></i>
+            </div>
+
+            <div class="relative group">
+                <input type="password" name="password" id="passwordInput"
+                    class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/30 font-semibold focus:ring-1 focus:ring-brand-pink focus:border-brand-pink transition-all outline-none text-sm peer"
+                    placeholder=" " required>
+                <label
+                    class="absolute left-3 top-3.5 text-white/30 text-sm font-medium transition-all peer-focus:-translate-y-[22px] peer-focus:text-xs peer-focus:text-brand-pink peer-[:not(:placeholder-shown)]:-translate-y-[22px] peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-gray-400 pointer-events-none bg-black px-1">Password</label>
+                <i id="togglePassword"
+                    class="fa-solid fa-eye-slash absolute right-4 top-1/2 -translate-y-1/2 text-white/20 cursor-pointer hover:text-brand-pink transition-colors z-20 text-xs"></i>
+            </div>
+
+            <button type="submit"
+                class="w-full mt-4 bg-white text-black font-display font-black py-4 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(236,72,153,0.4)] hover:scale-[1.02] transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 relative overflow-hidden group">
+                <div
+                    class="absolute inset-0 bg-gradient-to-r from-brand-blue via-purple-500 to-brand-pink opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                </div>
+                <span
+                    class="relative z-10 group-hover:text-white transition-colors duration-300 flex items-center gap-2">SIGN
+                    IN <i class="fa-solid fa-arrow-right"></i></span>
+            </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="mt-8 pt-6 border-t border-white/5 w-full text-center">
+            <p class="text-[10px] text-white/20 uppercase tracking-widest">E-Game Scout &copy; 2026</p>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
+
+    <script>
+        function showToast(message, tags) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            // Style based on tags
+            let iconClass = 'fa-info-circle';
+            let iconColorClass = 'text-blue-500 bg-blue-500/10';
+            let title = 'Notification';
+
+            if (tags.includes('success')) {
+                iconClass = 'fa-check';
+                iconColorClass = 'text-green-500 bg-green-500/10';
+                title = 'Success';
+            } else if (tags.includes('error') || tags.includes('warning')) {
+                iconClass = 'fa-triangle-exclamation';
+                iconColorClass = 'text-red-500 bg-red-500/10';
+                title = 'System Alert';
+            }
+
+            toast.className = `
+                pointer-events-auto
+                bg-[#0a0a0a] border border-white/10 
+                rounded-xl p-4 pr-12
+                shadow-[0_8px_30px_rgb(0,0,0,0.5)]
+                flex items-center gap-4
+                transform transition-all duration-500 ease-out translate-x-20 opacity-0
+                min-w-[300px]
+            `;
+
+            toast.innerHTML = `
+                <div class="w-10 h-10 rounded-full ${iconColorClass} flex items-center justify-center shrink-0">
+                    <i class="fa-solid ${iconClass} text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-white text-sm font-display tracking-wide">${title}</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" 
+                    class="absolute top-4 right-4 text-white/20 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-20', 'opacity-0');
+            });
+
+            // Auto Dismiss
+            setTimeout(() => {
+                toast.classList.add('translate-x-20', 'opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const togglePassword = document.querySelector('#togglePassword');
+            const password = document.querySelector('#passwordInput');
+
+            if (togglePassword && password) {
+                togglePassword.addEventListener('click', function (e) {
+                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                    password.setAttribute('type', type);
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
+                });
+            }
+
+            // Initialize Django Messages
+            const messagesJson = document.getElementById('django-messages');
+            if (messagesJson) {
+                try {
+                    const messages = JSON.parse(messagesJson.textContent);
+                    messages.forEach(item => {
+                        showToast(item.message, item.tags);
+                    });
+                } catch (e) {
+                    console.error('Error parsing messages:', e);
+                }
+            }
+        });
+    </script>
+
+    <!-- Django Messages Data -->
+    {% if messages %}
+    <script id="django-messages" type="application/json">
+        [
+            {% for message in messages %}
+            {
+                "message": "{{ message|escapejs }}",
+                "tags": "{{ message.tags }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+    {% endif %}
+</body>
+
+</html>

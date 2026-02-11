@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Game Scout | Organization Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-dark': '#0B0C10',
+                        'brand-gray': '#1F2833',
+                        'brand-light': '#C5C6C7',
+                        'accent-cyan': '#66FCF1',
+                        'accent-dark-cyan': '#45A29E',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+    <style>
+        /* Custom scrollbar for sidebar */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-brand-dark text-white font-sans selection:bg-accent-cyan selection:text-brand-dark h-screen overflow-hidden flex">
+
+    <!-- Global Grain Overlay -->
+    <div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[100]"
+        style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');">
+    </div>
+
+    <!-- Grid Background -->
+    <div class="fixed inset-0 bg-grid-pattern pointer-events-none -z-20"></div>
+
+    <!-- Sidebar -->
+    <aside
+        class="w-64 h-full bg-brand-dark/90 border-r border-white/5 flex flex-col z-50 transition-all duration-300 mobile-sidebar hidden md:flex">
+        <!-- Logo -->
+        <div class="p-6 border-b border-white/5 flex items-center gap-3">
+            <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-8 h-8 object-contain">
+            <span class="text-lg font-display font-bold text-white tracking-wider">E-GAME SCOUT</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-2 no-scrollbar">
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Main Menu</p>
+
+            <a href="{% url 'organizer_dashboard' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'organizer_dashboard' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i
+                    class="fa-solid fa-gauge-high text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Dashboard</span>
+            </a>
+
+            <a href="{% url 'tournament_list' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if 'tournament' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i
+                    class="fa-solid fa-trophy text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Tournaments</span>
+            </a>
+
+            <a href="{% url 'my_players' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'my_players' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i class="fa-solid fa-users text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">My Players</span>
+            </a>
+
+
+
+
+
+            <a href="{% url 'org_logout' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-500/10 group transition-colors text-gray-400 hover:text-red-400 border border-transparent hover:border-red-500/30 mt-4">
+                <i
+                    class="fa-solid fa-right-from-bracket text-lg w-6 text-center group-hover:text-red-400 transition-colors"></i>
+                <span class="font-medium group-hover:text-red-400 transition-colors">Logout</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col h-full relative overflow-hidden">
+
+        <!-- Top Navbar -->
+        <header
+            class="h-20 border-b border-white/5 bg-brand-dark/50 backdrop-blur-md flex items-center justify-between px-6 z-40">
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-white text-xl mr-4" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <!-- Page Title -->
+            <div>
+                <h2 class="text-xl font-display font-bold text-white tracking-wider">DASHBOARD</h2>
+                <p class="text-xs text-gray-500 font-mono">Organization Portal</p>
+            </div>
+
+            <!-- Right Actions -->
+            <div class="flex items-center gap-6">
+                <!-- Search (Visual) -->
+                <div
+                    class="hidden md:flex items-center bg-black/20 border border-white/10 rounded-full px-4 py-2 w-64 focus-within:border-accent-cyan/50 transition-colors">
+                    <i class="fa-solid fa-search text-gray-500 text-sm"></i>
+                    <input type="text" placeholder="Search..."
+                        class="bg-transparent border-none outline-none text-sm text-white ml-2 w-full placeholder-gray-600">
+                </div>
+
+                <!-- Notifications Dropdown -->
+                <div class="relative group">
+                    <button class="relative text-gray-400 hover:text-white transition-colors focus:outline-none"
+                        id="notification-btn" onclick="toggleNotifications()">
+                        <i class="fa-solid fa-bell text-xl"></i>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-accent-cyan rounded-full animate-pulse"></span>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div id="notification-dropdown"
+                        class="absolute right-0 mt-4 w-80 bg-[#0B0C10] border border-white/10 rounded-xl shadow-2xl overflow-hidden hidden transform transition-all duration-200 origin-top-right z-50">
+                        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
+                            <h3 class="text-sm font-bold text-white font-display">NOTIFICATIONS</h3>
+                            <button class="text-xs text-accent-cyan hover:text-white transition-colors">Mark all
+                                read</button>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto custom-scrollbar">
+                            {% if notifications %}
+                            {% for notification in notifications %}
+                            <!-- Notification Item -->
+                            <a href="{{ notification.link }}"
+                                class="p-3 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer flex gap-3 group">
+                                <div
+                                    class="w-2 h-2 rounded-full {% if notification.type == 'tournament' %}bg-accent-cyan shadow-[0_0_5px_#66FCF1]{% else %}bg-green-500 shadow-[0_0_5px_#22c55e]{% endif %} mt-1.5 shrink-0">
+                                </div>
+                                <div>
+                                    <p
+                                        class="text-xs text-white leading-relaxed group-hover:text-accent-cyan transition-colors">
+                                        {{ notification.message }}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">{{ notification.time|timesince }} ago</p>
+                                </div>
+                            </a>
+                            {% endfor %}
+                            {% else %}
+                            <div class="p-8 text-center">
+                                <i class="fa-regular fa-bell-slash text-gray-600 text-2xl mb-2"></i>
+                                <p class="text-xs text-gray-500">No new notifications</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div
+                            class="p-2 text-center bg-white/5 hover:bg-white/10 transition-colors cursor-pointer border-t border-white/5">
+                            <span class="text-[10px] font-bold text-accent-cyan uppercase tracking-wider">View
+                                All</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Management -->
+                <a href="{% url 'manage_profile' %}"
+                    class="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group"
+                    title="Manage Profile">
+
+                    <!-- Org Details -->
+                    <div class="hidden md:flex flex-col items-end">
+                        <span
+                            class="text-sm font-bold text-white group-hover:text-accent-cyan transition-colors font-display tracking-wide">
+                            {{ org.Organization_Name }}</span>
+                        <span class="text-[10px] text-gray-500 group-hover:text-gray-300 transition-colors">
+                            {{ org.Organization_Email }}</span>
+                    </div>
+
+                    <div
+                        class="w-9 h-9 rounded-full bg-brand-gray flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-accent-cyan/50 transition-colors shadow-lg">
+                        {% if org.profile_photo %}
+                        <img src="{{ org.profile_photo.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <i class="fa-solid fa-user text-sm"></i>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+        </header>
+
+        <!-- Content Scroll Area -->
+        <main class="flex-1 overflow-y-auto p-6 md:p-8 relative">
+            <!-- Decoration Orbs -->
+            <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+                <div class="absolute top-10 right-10 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px]"></div>
+                <div class="absolute bottom-10 left-10 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px]"></div>
+            </div>
+
+            <!-- Messages -->
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/80 z-40 hidden md:hidden backdrop-blur-sm"
+        onclick="toggleSidebar()"></div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
+
+    <!-- Django Messages Data -->
+    {% if messages %}
+    <script id="django-messages" type="application/json">
+        [
+            {% for message in messages %}
+            {
+                "message": "{{ message|escapejs }}",
+                "tags": "{{ message.tags }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+    {% endif %}
+
+    <script>
+        function showToast(message, tags) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            // Style based on tags
+            let iconClass = 'fa-info-circle';
+            let iconColorClass = 'text-blue-500 bg-blue-500/10';
+            let title = 'Notification';
+
+            if (tags.includes('success')) {
+                iconClass = 'fa-check';
+                iconColorClass = 'text-green-500 bg-green-500/10';
+                title = 'Success';
+            } else if (tags.includes('error') || tags.includes('warning')) {
+                iconClass = 'fa-triangle-exclamation';
+                iconColorClass = 'text-red-500 bg-red-500/10';
+                title = 'System Alert';
+            }
+
+            toast.className = `
+                pointer-events-auto
+                bg-[#0a0a0a] border border-white/10 
+                rounded-xl p-4 pr-12
+                shadow-[0_8px_30px_rgb(0,0,0,0.5)]
+                flex items-center gap-4
+                transform transition-all duration-500 ease-out translate-x-20 opacity-0
+                min-w-[300px]
+            `;
+
+            toast.innerHTML = `
+                <div class="w-10 h-10 rounded-full ${iconColorClass} flex items-center justify-center shrink-0">
+                    <i class="fa-solid ${iconClass} text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-white text-sm font-display tracking-wide">${title}</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" 
+                    class="absolute top-4 right-4 text-white/20 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-20', 'opacity-0');
+            });
+
+            // Auto Dismiss
+            setTimeout(() => {
+                toast.classList.add('translate-x-20', 'opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        }
+
+        // Initialize Django Messages
+        document.addEventListener('DOMContentLoaded', () => {
+            const messagesJson = document.getElementById('django-messages');
+            if (messagesJson) {
+                try {
+                    const messages = JSON.parse(messagesJson.textContent);
+                    messages.forEach(item => {
+                        showToast(item.message, item.tags);
+                    });
+                } catch (e) {
+                    console.error('Error parsing messages:', e);
+                }
+            }
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.mobile-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('absolute', 'top-0', 'left-0', 'h-full', 'shadow-2xl');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('absolute', 'top-0', 'left-0', 'h-full', 'shadow-2xl');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notification-dropdown');
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                dropdown.classList.add('scale-100', 'opacity-100');
+                dropdown.classList.remove('scale-95', 'opacity-0');
+            } else {
+                dropdown.classList.add('hidden');
+                dropdown.classList.remove('scale-100', 'opacity-100');
+                dropdown.classList.add('scale-95', 'opacity-0');
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (event) {
+            const dropdown = document.getElementById('notification-dropdown');
+            const btn = document.getElementById('notification-btn');
+
+            if (!dropdown || !btn) return;
+
+            if (!dropdown.contains(event.target) && !btn.contains(event.target) && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    </script>
+    </script>
+    <script>
+        // Global Validation Script
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('form').forEach(form => {
+                // Add class on invalid event (capture phase)
+                form.addEventListener('invalid', (e) => {
+                    e.target.classList.add('is-invalid');
+                }, true);
+
+                // Remove class on input if valid
+                form.addEventListener('input', (e) => {
+                    const input = e.target;
+                    if (input.classList.contains('is-invalid')) {
+                        if (input.checkValidity()) {
+                            input.classList.remove('is-invalid');
+                            input.classList.add('is-valid');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

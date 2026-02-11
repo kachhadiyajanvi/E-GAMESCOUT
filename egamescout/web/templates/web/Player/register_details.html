@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Profile | E-Game Scout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Rajdhani', 'sans-serif'], display: ['Orbitron', 'sans-serif'] },
+                    colors: { 'brand-dark': '#0B0C10', 'brand-gray': '#1F2833', 'brand-light': '#C5C6C7', 'accent-cyan': '#66FCF1' }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-brand-dark text-white font-sans overflow-hidden h-screen flex items-center justify-center">
+
+    <div class="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,_#1a2b4b_0%,_#0B0C10_100%)] -z-10"></div>
+    <div
+        class="fixed inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover opacity-5 -z-10">
+    </div>
+
+    <div
+        class="w-full max-w-lg p-8 bg-brand-gray/20 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(102,252,241,0.1)] relative">
+
+        <div class="text-center mb-6">
+            <h2 class="text-3xl font-display font-bold text-white mb-2 tracking-wide">PLAYER PROFILE</h2>
+            <p class="text-brand-light text-sm">Verify your identity to join.</p>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div
+                class="p-3 rounded text-sm text-center border {% if message.tags == 'success' %}bg-green-500/10 border-green-500/50 text-green-400{% else %}bg-red-500/10 border-red-500/50 text-red-500{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% csrf_token %}
+
+            <div class="md:col-span-2">
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Full Name</label>
+                {{ form.full_name }}
+                {% if form.full_name.errors %}
+                <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{
+                    form.full_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="md:col-span-1">
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Age</label>
+                {{ form.age }}
+                {% if form.age.errors %}
+                <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{
+                    form.age.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="md:col-span-1">
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Aadhar
+                    Number</label>
+                {{ form.aadhar_number }}
+                {% if form.aadhar_number.errors %}
+                <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{
+                    form.aadhar_number.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Game UID</label>
+                {{ form.uid }}
+                <p id="uid-error" class="text-red-500 text-xs mt-1 font-bold hidden"><i
+                        class="fa-solid fa-circle-exclamation mr-1"></i> Invalid UID</p>
+                {% if form.uid.errors %}
+                <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{
+                    form.uid.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Mobile No</label>
+                {{ form.mobile_no }}
+                <p id="mobile-error" class="text-red-500 text-xs mt-1 font-bold hidden"><i
+                        class="fa-solid fa-circle-exclamation mr-1"></i> Invalid Mobile Number</p>
+                {% if form.mobile_no.errors %}
+                <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{
+                    form.mobile_no.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="md:col-span-2 mt-4">
+                <button type="submit"
+                    class="w-full py-3 bg-accent-cyan text-brand-dark font-display font-bold uppercase tracking-wider rounded-lg hover:bg-white hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(102,252,241,0.4)]">
+                    Activate Profile <i class="fa-solid fa-rocket ml-2"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+    <script>
+        // Real-time Validation Script
+        document.addEventListener('DOMContentLoaded', function () {
+            const nameInput = document.querySelector('input[name="full_name"]');
+            const uidInput = document.querySelector('input[name="uid"]');
+            const mobileInput = document.querySelector('input[name="mobile_no"]');
+
+            const nameError = document.getElementById('fullname-error');
+            const uidError = document.getElementById('uid-error');
+            const mobileError = document.getElementById('mobile-error');
+
+            if (nameInput) {
+                nameInput.addEventListener('input', function () {
+                    if (this.value.trim().length === 0) {
+                        nameError.classList.remove('hidden');
+                        this.classList.add('border-red-500');
+                    } else {
+                        nameError.classList.add('hidden');
+                        this.classList.remove('border-red-500');
+                    }
+                });
+            }
+
+            if (uidInput) {
+                // UID: Length 10-12
+                uidInput.addEventListener('input', function () {
+                    const val = this.value;
+                    if (val.length > 0 && (val.length < 10 || val.length > 12)) {
+                        uidError.textContent = `UID must be between 10-12 chars (Current: ${val.length})`;
+                        uidError.classList.remove('hidden');
+                        this.classList.add('border-red-500');
+                    } else {
+                        uidError.classList.add('hidden');
+                        this.classList.remove('border-red-500');
+                    }
+                });
+            }
+
+            if (mobileInput) {
+                // Mobile: Digits only, exact 10
+                mobileInput.addEventListener('input', function () {
+                    // Enforce numeric
+                    this.value = this.value.replace(/[^0-9]/g, '');
+
+                    const val = this.value;
+                    if (val.length > 0 && val.length !== 10) {
+                        mobileError.textContent = `Mobile must be 10 digits (Current: ${val.length})`;
+                        mobileError.classList.remove('hidden');
+                        this.classList.add('border-red-500');
+                    } else {
+                        mobileError.classList.add('hidden');
+                        this.classList.remove('border-red-500');
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>

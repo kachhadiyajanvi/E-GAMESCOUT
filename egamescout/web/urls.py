@@ -1,8 +1,9 @@
 from django.urls import path
-from . import views
+from . import views, admin_views
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('tournaments/', views.public_tournaments, name='public_tournaments'),
     
     # Organization Registration
     path('organization/register/', views.org_register_start, name='org_register_start'),
@@ -21,6 +22,7 @@ urlpatterns = [
     path('organization/profile/', views.manage_profile, name='manage_profile'),
     path('organization/profile/update/', views.update_profile, name='update_profile'),
     path('organization/profile/photo/update/', views.update_profile_photo, name='update_profile_photo'),
+    path('organization/delete/', views.org_delete_account, name='org_delete_account'),
     
     # Tools
     path('organization/tools/scorecard/', views.scorecard_tool, name='scorecard_tool'),
@@ -29,6 +31,7 @@ urlpatterns = [
     path('organization/tournaments/', views.tournament_list, name='tournament_list'),
     path('organization/players/', views.my_players, name='my_players'),
     path('organization/tournaments/create/', views.tournament_create, name='tournament_create'),
+    path('organization/tournaments/<int:tournament_id>/', views.tournament_detail, name='tournament_detail'),
     path('organization/tournaments/<int:tournament_id>/update/', views.tournament_update, name='tournament_update'),
     path('organization/tournaments/<int:tournament_id>/delete/', views.tournament_delete, name='tournament_delete'),
     
@@ -36,7 +39,33 @@ urlpatterns = [
     path('organization/resend-otp/', views.resend_otp, name='resend_otp'),
     path('auth/login/', views.auth_login, name='auth_login'),
     path('auth/verify/', views.auth_verify_otp, name='auth_verify_otp'),
-    path('auth/register/', views.auth_register_details, name='auth_register_details'),
+    path('auth/register/upload/', views.auth_register_upload, name='auth_register_upload'),
+    path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
+    path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
     path('player/dashboard/', views.player_dashboard, name='player_dashboard'),
+    path('player/profile/', views.player_profile, name='player_profile'),
+    path('player/delete/', views.player_delete_account, name='player_delete_account'),
     path('auth/logout/', views.auth_logout, name='auth_logout'),
+
+    # Admin Portal
+    path('admin/login/', admin_views.admin_login, name='admin_login'),
+    path('admin/logout/', admin_views.admin_logout, name='admin_logout'),
+    path('admin/', admin_views.admin_dashboard, name='admin_dashboard'),
+    path('admin/players/', admin_views.admin_players_detail, name='admin_players_detail'),
+    path('admin/organizations/', admin_views.admin_organization_detail, name='admin_organization_detail'),
+    path('admin/organizations/delete/<int:org_id>/', admin_views.admin_delete_organization, name='admin_delete_organization'),
+    path('admin/organizations/edit/<int:org_id>/', admin_views.admin_edit_organization, name='admin_edit_organization'),
+    path('admin/players/update-status/<int:player_id>/', admin_views.admin_update_player_status, name='admin_update_player_status'),
+    path('admin/players/delete/<int:player_id>/', admin_views.admin_delete_player, name='admin_delete_player'),
+    path('admin/players/edit/<int:player_id>/', admin_views.admin_edit_player, name='admin_edit_player'),
+    path('admin/tournaments/', admin_views.admin_tournaments_detail, name='admin_tournaments_detail'),
+    path('admin/tournaments/delete/<int:tournament_id>/', admin_views.admin_delete_tournament, name='admin_delete_tournament'),
+    path('admin/tournaments/edit/<int:tournament_id>/', admin_views.admin_edit_tournament, name='admin_edit_tournament'),
+    path('admin/profile/', admin_views.admin_profile, name='admin_profile'),
+    path('admin/analytics/', admin_views.admin_analytics, name='admin_analytics'),
+    
+    # Admin Notifications API
+    path('admin/api/notifications/', admin_views.get_notifications, name='get_notifications'),
+    path('admin/api/notifications/read/<int:notif_id>/', admin_views.mark_notification_read, name='mark_notification_read'),
+    path('admin/api/notifications/read-all/', admin_views.mark_all_notifications_read, name='mark_all_notifications_read'),
 ]

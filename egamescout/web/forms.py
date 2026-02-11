@@ -130,16 +130,19 @@ class OTPVerifyForm(forms.Form):
         label="Enter Authentication Code"
     )
 
+class AadharUploadForm(forms.Form):
+    aadhar_card = forms.ImageField(required=True, label="Upload Aadhar Card (For Identity Verification)")
+
 class PlayerRegistrationForm(forms.ModelForm):
-    aadhar_card = forms.ImageField(required=True, label="Upload Aadhar Card (For Age Verification)")
-    
     class Meta:
         model = Player
-        fields = ['full_name', 'uid', 'mobile_no', 'aadhar_card'] # Age is calculated via AI
+        fields = ['full_name', 'age', 'uid', 'mobile_no', 'aadhar_number'] # Age & Aadhar extracted via AI
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors', 'placeholder': 'Enter Full Name'}),
+            'full_name': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors opacity-70 cursor-not-allowed', 'placeholder': 'Enter Full Name', 'readonly': 'readonly'}),
+            'age': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors opacity-70 cursor-not-allowed', 'placeholder': 'Age', 'readonly': 'readonly'}),
             'uid': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors', 'placeholder': 'Enter Game ID'}),
             'mobile_no': forms.NumberInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors', 'placeholder': 'Enter Mobile Number'}),
+            'aadhar_number': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors opacity-70 cursor-not-allowed', 'placeholder': 'Aadhar Number', 'readonly': 'readonly'}),
         }
 
     def clean_mobile_no(self):
@@ -156,32 +159,99 @@ class PlayerRegistrationForm(forms.ModelForm):
             raise forms.ValidationError("Game UID must be between 10 and 12 characters.")
         return uid
 
+    def clean_aadhar_number(self):
+        aadhar = self.cleaned_data.get('aadhar_number')
+        if not aadhar:
+             raise forms.ValidationError("Aadhar Number is required.")
+        # Check uniqueness (though model handles it, nice to have custom error)
+        if Player.objects.filter(aadhar_number=aadhar).exists():
+             raise forms.ValidationError("This Aadhar Number is already registered.")
+        return aadhar
+
     def clean_age(self):
+        # Age is not in form fields, it's handled in view/model, but if it were:
         age = self.cleaned_data.get('age')
-        if age < 16:
+        if age and age < 16:
             raise forms.ValidationError("You must be at least 16 years old to register.")
         return age
+
+class PlayerProfileForm(forms.ModelForm):
+    class Meta:
+        model = Player
+        fields = ['username', 'profile_photo']
+        widgets = {
+             'username': forms.TextInput(attrs={
+                'class': 'flex-1 bg-transparent border-none outline-none text-white', 
+                'placeholder': 'gamer_tag',
+                'required': 'required'
+            }),
+             'profile_photo': forms.FileInput(attrs={
+                'class': 'hidden',
+                'id': 'photo-upload',
+                'onchange': 'this.form.submit()'
+            }),
+        }
+    
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if not username:
+            raise forms.ValidationError("Username is required.")
+        # Check uniqueness, excluding current user is tricky here without passing user instance, 
+        # but ModelForm handles basic uniqueness. 
+        # For custom unique check excluding self, we'd need to init with instance (which we do in view).
+        return username
 
 class TournamentForm(forms.ModelForm):
     class Meta:
         model = Tournament
-        fields = ['Name', 'Status', 'PrizePool']
+        fields = ['Name', 'Status', 'PrizePool', 'description', 'max_teams', 'start_date', 'end_date', 'is_offline', 'venue', 'show_roadmap', 'roadmap_content', 'prize_distribution']
         widgets = {
             'Name': forms.TextInput(attrs={
-                'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
-                'placeholder': 'Tournament Name',
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'placeholder': 'e.g. Winter Championship 2024',
                 'required': 'required'
             }),
             'Status': forms.Select(attrs={
-                'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors'
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all cyber-input'
             }),
             'PrizePool': forms.NumberInput(attrs={
-                'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
-                'placeholder': 'Prize Pool Amount',
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded pl-8 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'placeholder': '50000',
                 'step': '0.01',
                 'min': '0',
                 'required': 'required'
             }),
+             'description': forms.Textarea(attrs={
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'placeholder': 'Enter tournament details, rules, and format...',
+                'rows': 4,
+                'required': 'required'
+            }),
+            'max_teams': forms.NumberInput(attrs={
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'placeholder': 'e.g. 16',
+                'min': '2',
+                'required': 'required'
+            }),
+            'start_date': forms.DateInput(attrs={
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'type': 'date',
+                'required': 'required'
+            }),
+            'end_date': forms.DateInput(attrs={
+                 'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'type': 'date',
+                'required': 'required'
+            }),
+             'venue': forms.TextInput(attrs={
+                'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'placeholder': 'e.g. Los Angeles Convention Center'
+            }),
+             'roadmap_content': forms.Textarea(attrs={
+                'class': 'hidden',
+                'id': 'roadmap_content'
+            }),
+             # Hidden inputs for booleans/JSON are handled manually or via simple widgets
         }
     
     def clean_Name(self):
@@ -195,3 +265,14 @@ class TournamentForm(forms.ModelForm):
         if prize_pool is None or prize_pool < 0:
             raise forms.ValidationError("Prize Pool must be a positive number.")
         return prize_pool
+
+    def clean_prize_distribution(self):
+        data = self.cleaned_data.get('prize_distribution')
+        # If it comes as a string (from hidden input), try to parse it
+        if isinstance(data, str):
+            import json
+            try:
+                data = json.loads(data)
+            except json.JSONDecodeError:
+                raise forms.ValidationError("Invalid Prize Distribution Format")
+        return data
