@@ -62,6 +62,7 @@ urlpatterns = [
     path('admin/tournaments/delete/<int:tournament_id>/', admin_views.admin_delete_tournament, name='admin_delete_tournament'),
     path('admin/tournaments/edit/<int:tournament_id>/', admin_views.admin_edit_tournament, name='admin_edit_tournament'),
     path('admin/profile/', admin_views.admin_profile, name='admin_profile'),
+    path('admin/analytics/', admin_views.admin_analytics, name='admin_analytics'),
     
     # Admin Notifications API
     path('admin/api/notifications/', admin_views.get_notifications, name='get_notifications'),

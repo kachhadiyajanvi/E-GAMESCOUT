@@ -308,3 +308,144 @@ def admin_edit_tournament(request, tournament_id):
             messages.error(request, 'Invalid status selected.')
             
     return redirect('admin_tournaments_detail')
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_analytics(request):
+    # Time ranges
+    now = timezone.now()
+    week_start = now - timedelta(days=7)
+    month_start = now - timedelta(days=30)
+    
+    # 1. Total Counts
+    total_players = Player.objects.count()
+    total_orgs = Organization.objects.count()
+    total_tournaments = Tournament.objects.count()
+    
+    # 2. Growth (Weekly)
+    new_players_week = Player.objects.filter(created_at__gte=week_start).count()
+    new_orgs_week = Organization.objects.filter(CreatedAt__gte=week_start).count()
+    new_tournaments_week = Tournament.objects.filter(CreatedAt__gte=week_start).count()
+    
+    # 3. Growth (Monthly)
+    new_players_month = Player.objects.filter(created_at__gte=month_start).count()
+    new_orgs_month = Organization.objects.filter(CreatedAt__gte=month_start).count()
+    new_tournaments_month = Tournament.objects.filter(CreatedAt__gte=month_start).count()
+    
+    # 4. Financials (Prize Pool)
+    total_prize_pool = Tournament.objects.aggregate(Sum('PrizePool'))['PrizePool__sum'] or 0
+    
+    # 5. Charts Logic
+    # ---------------------------------------------------------
+    # WEEKLY DATA (Last 7 Days - Daily)
+    # ---------------------------------------------------------
+    week_labels = []
+    player_data_week = []
+    org_data_week = []
+    
+    for i in range(7):
+        day_start = now.date() - timedelta(days=6-i)
+        week_labels.append(day_start.strftime('%a')) # Mon, Tue
+        
+        p_count = Player.objects.filter(created_at__date=day_start).count()
+        o_count = Organization.objects.filter(CreatedAt__date=day_start).count()
+        
+        player_data_week.append(p_count)
+        org_data_week.append(o_count)
+
+    # ---------------------------------------------------------
+    # MONTHLY DATA (Last 30 Days - Daily)
+    # ---------------------------------------------------------
+    month_labels = []
+    player_data_month = []
+    org_data_month = []
+    tournament_data_month = [] # Keeping this for sparkline usage if needed
+    
+    for i in range(30):
+        day_start = now.date() - timedelta(days=29-i)
+        month_labels.append(day_start.strftime('%d %b')) # 10 Feb
+        
+        p_count = Player.objects.filter(created_at__date=day_start).count()
+        o_count = Organization.objects.filter(CreatedAt__date=day_start).count()
+        t_count = Tournament.objects.filter(CreatedAt__date=day_start).count()
+        
+        player_data_month.append(p_count)
+        org_data_month.append(o_count)
+        tournament_data_month.append(t_count)
+
+    # ---------------------------------------------------------
+    # YEARLY DATA (Last 12 Months - Monthly)
+    # ---------------------------------------------------------
+    year_labels = []
+    player_data_year = []
+    org_data_year = []
+    
+    # Iterate backwards 11 months + current month
+    for i in range(12):
+        # Calculate month start and end
+        # We want to go back 11 months from now. 
+        # i=0 -> 11 months ago, i=11 -> current month
+        # Simplest way: start from 1st day of month
+        
+        # Current month start
+        this_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        # Move back (11 - i) months
+        # Logic: relative delta would be better but let's do manual calc to avoid extra deps if possible
+        # Using basic month arithmetic
+        month_offset = 11 - i
+        target_year = this_month_start.year
+        target_month = this_month_start.month - month_offset
+        
+        while target_month <= 0:
+            target_month += 12
+            target_year -= 1
+            
+        loop_month_start = this_month_start.replace(year=target_year, month=target_month)
+        
+        # Next month for range end
+        if target_month == 12:
+            loop_month_end = loop_month_start.replace(year=target_year + 1, month=1)
+        else:
+            loop_month_end = loop_month_start.replace(month=target_month + 1)
+            
+        year_labels.append(loop_month_start.strftime('%b %Y')) # Jan 2025
+        
+        p_count = Player.objects.filter(created_at__gte=loop_month_start, created_at__lt=loop_month_end).count()
+        o_count = Organization.objects.filter(CreatedAt__gte=loop_month_start, CreatedAt__lt=loop_month_end).count()
+        
+        player_data_year.append(p_count)
+        org_data_year.append(o_count)
+        
+    context = {
+        'total_players': total_players,
+        'total_orgs': total_orgs,
+        'total_tournaments': total_tournaments,
+        'new_players_week': new_players_week,
+        'new_orgs_week': new_orgs_week,
+        'new_tournaments_week': new_tournaments_week,
+        'new_players_month': new_players_month,
+        'new_orgs_month': new_orgs_month,
+        'new_tournaments_month': new_tournaments_month,
+        
+        # Charts - Multi-period
+        'week_labels': week_labels,
+        'player_data_week': player_data_week,
+        'org_data_week': org_data_week,
+        
+        'month_labels': month_labels,
+        'player_data_month': player_data_month,
+        'org_data_month': org_data_month,
+        
+        'year_labels': year_labels,
+        'player_data_year': player_data_year,
+        'org_data_year': org_data_year,
+        
+        # Sparklines use month data for now or we can pass logic
+        'tournament_growth_data': tournament_data_month, 
+        
+        # Keep original keys if templates depend on them for sparklines
+        'chart_labels': month_labels, # Default for sparklines
+        'player_growth_data': player_data_month,
+        'org_growth_data': org_data_month,
+    }
+    return render(request, 'web/Admin/admin_analytics.html', context)

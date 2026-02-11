@@ -16,7 +16,7 @@
             <h1 class="font-display font-bold text-3xl text-white mb-1">MY PROFILE</h1>
             <p class="text-white/40 text-sm">Manage your account settings and preferences.</p>
         </div>
-        <a href="{% url 'admin_login' %}"
+        <a href="{% url 'admin_logout' %}"
             class="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-6 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 border border-red-500/20 hover:border-red-500/50 group shadow-[0_0_20px_rgba(239,68,68,0.1)]">
             <i class="fa-solid fa-right-from-bracket group-hover:rotate-180 transition-transform duration-300"></i>
             Logout
@@ -47,7 +47,10 @@
                     </button>
                 </div>
 
-                <h2 class="font-display font-bold text-2xl text-white mb-1">Admin User</h2>
+                <h2 class="font-display font-bold text-2xl text-white mb-1 flex items-center justify-center gap-2">
+                    Admin User
+                    <i class="fa-solid fa-circle-check text-brand-blue text-lg" title="Verified"></i>
+                </h2>
                 <p class="text-brand-blue text-sm font-bold tracking-wider mb-6">SUPER ADMIN</p>
 
                 <div class="grid grid-cols-2 gap-4 w-full">
@@ -72,10 +75,13 @@
                         <div class="flex items-center gap-3">
                             <div
                                 class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center text-green-500">
-                                <i class="fa-solid fa-shield-check"></i>
+                                <i class="fa-solid fa-check"></i>
                             </div>
                             <div>
-                                <p class="text-sm font-bold text-white">Verified</p>
+                                <p class="text-sm font-bold text-white flex items-center gap-2">
+                                    Verified
+                                    <i class="fa-solid fa-circle-check text-green-500"></i>
+                                </p>
                                 <p class="text-[10px] text-white/40">Account is active</p>
                             </div>
                         </div>

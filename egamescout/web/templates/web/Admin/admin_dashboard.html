@@ -135,9 +135,10 @@
                 <span class="font-bold tracking-wider text-sm">Tournaments</span>
             </a>
 
-            <a href="#"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
-                <i class="fa-solid fa-chart-pie w-5 text-center group-hover:text-brand-pink transition-colors"></i>
+            <a href="{% url 'admin_analytics' %}"
+                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_analytics' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+                <i
+                    class="fa-solid fa-chart-pie w-5 text-center {% if request.resolver_match.url_name != 'admin_analytics' %}group-hover:text-brand-pink{% endif %} transition-colors"></i>
                 <span class="font-bold tracking-wider text-sm">Analytics</span>
             </a>
         </nav>
@@ -225,8 +226,8 @@
                         {% endif %}
                     </div>
                     <h3 class="text-3xl font-display font-bold text-white mb-1 relative z-10">{{ player_count }}</h3>
-                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase relative z-10">Total Players ({{
-                        active_players }} Active)</p>
+                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase relative z-10">
+                        Total Players ({{active_players }} Active)</p>
                 </div>
 
                 <!-- Stat Card 2: Tournaments -->
@@ -270,8 +271,8 @@
                         {% endif %}
                     </div>
                     <h3 class="text-3xl font-display font-bold text-white mb-1 relative z-10">{{ org_count }}</h3>
-                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase relative z-10">Organizations ({{
-                        active_orgs }} Active)</p>
+                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase relative z-10">
+                        Organizations ({{active_orgs }} Active)</p>
                 </div>
             </div>
 
@@ -306,8 +307,8 @@
                                     {{ item.name }}</h4>
                                 <p class="text-[10px] text-white/40 flex items-center gap-2">
                                     <span
-                                        class="{% if item.type == 'PLAYER' %}text-brand-blue{% else %}text-brand-pink{% endif %} font-bold">{{
-                                        item.type }}</span>
+                                        class="{% if item.type == 'PLAYER' %}text-brand-blue{% else %}text-brand-pink{% endif %} font-bold">
+                                        {{item.type }}</span>
                                     <span>• {{ item.time|timesince }} ago</span>
                                 </p>
                             </div>
