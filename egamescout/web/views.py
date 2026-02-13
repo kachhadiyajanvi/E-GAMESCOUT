@@ -12,6 +12,7 @@ from django.core.mail import send_mail
 from .forms import EmailLoginForm, OTPVerifyForm, PlayerRegistrationForm
 from .models import Player, PlayerTask
 from django.views.decorators.cache import cache_control
+from .decorators import login_required_organization
 
 def auth_login(request):
     # Check if a verification flow is already in progress and verified
@@ -317,7 +318,8 @@ def index(request):
 def public_tournaments(request):
     """Public view for upcoming tournaments"""
     tournaments = Tournament.objects.filter(
-        Status__in=['Scheduled', 'Ongoing']
+        Status__in=['Scheduled', 'Ongoing'],
+        is_archived=False
     ).order_by('start_date')
     
     return render(request, 'web/tournaments.html', {'tournaments': tournaments})
@@ -325,6 +327,9 @@ def public_tournaments(request):
 # --- Registration Flow ---
 
 def org_register_start(request):
+    if request.session.get('organizer_id'):
+        return redirect('organizer_dashboard')
+
     if request.method == 'POST':
         form = OrganizationEmailForm(request.POST)
         if form.is_valid():
@@ -354,6 +359,9 @@ def org_register_start(request):
     return render(request, 'web/Organization/org_register_start.html', {'form': form})
 
 def org_register_otp(request):
+    if request.session.get('organizer_id'):
+        return redirect('organizer_dashboard')
+
     email = request.session.get('reg_email')
     if not email:
         return redirect('org_register_start')
@@ -379,6 +387,9 @@ def org_register_otp(request):
     return render(request, 'web/Organization/org_register_otp.html', {'form': form, 'email': email})
 
 def org_register_details(request):
+    if request.session.get('organizer_id'):
+        return redirect('organizer_dashboard')
+
     email = request.session.get('reg_email')
     if not email:
         return redirect('org_register_start')
@@ -425,6 +436,9 @@ def org_register_details(request):
 # --- Login Flow ---
 
 def org_login_start(request):
+    if request.session.get('organizer_id'):
+        return redirect('organizer_dashboard')
+
     if request.method == 'POST':
         form = OrganizationLoginForm(request.POST)
         if form.is_valid():
@@ -497,10 +511,9 @@ def org_login_otp(request):
     
     return render(request, 'web/Organization/org_login_otp.html', {'form': form, 'email': email})
 
+@login_required_organization
 def organizer_dashboard(request):
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
         
     org = get_object_or_404(Organization, id=org_id)
     
@@ -632,10 +645,9 @@ from groq import Groq
 import base64
 from .models import ScorecardAnalysis
 
+@login_required_organization
 def scorecard_tool(request):
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
         
     org = get_object_or_404(Organization, id=org_id)
     
@@ -763,20 +775,18 @@ def scorecard_tool(request):
 
 # --- Profile Management ---
 
+@login_required_organization
 def manage_profile(request):
     """Display the manage profile page"""
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
     return render(request, 'web/Organization/org_manage_profile.html', {'org': org})
 
+@login_required_organization
 def update_profile(request):
     """Update organization profile information"""
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
     
@@ -793,11 +803,10 @@ def update_profile(request):
     
     return redirect('manage_profile')
 
+@login_required_organization
 def update_profile_photo(request):
     """Update organization profile photo"""
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
     
@@ -807,10 +816,9 @@ def update_profile_photo(request):
         messages.success(request, 'Profile photo updated successfully!')
     return redirect('manage_profile')
 
+@login_required_organization
 def org_delete_account(request):
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
         
     if request.method == 'POST':
         org = get_object_or_404(Organization, id=org_id)
@@ -825,14 +833,13 @@ def org_delete_account(request):
 
 # --- Tournament Management ---
 
+@login_required_organization
 def tournament_list(request):
     """Display list of tournaments for the organization"""
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
-    tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-CreatedAt')
+    tournaments = Tournament.objects.filter(Organization_Name=org, is_archived=False).order_by('-CreatedAt')
     form = TournamentForm()
     
     return render(request, 'web/Organization/org_tournament_list.html', {
@@ -842,11 +849,10 @@ def tournament_list(request):
         'show_form': False
     })
 
+@login_required_organization
 def tournament_create(request):
     """Create a new tournament"""
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
     
@@ -864,7 +870,7 @@ def tournament_create(request):
             messages.error(request, "Please correct the errors below.")
             
             # If form is invalid, render the list template with the bound form and error flag
-            tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-CreatedAt')
+            tournaments = Tournament.objects.filter(Organization_Name=org, is_archived=False).order_by('-CreatedAt')
             return render(request, 'web/Organization/org_tournament_list.html', {
                 'org': org, 
                 'tournaments': tournaments, 
@@ -876,11 +882,10 @@ def tournament_create(request):
     # If not POST, redirect to list
     return redirect('tournament_list')
 
+@login_required_organization
 def tournament_update(request, tournament_id):
     """Update an existing tournament"""
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
     tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name=org)
@@ -896,40 +901,39 @@ def tournament_update(request, tournament_id):
     
     return render(request, 'web/Organization/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Update', 'tournament': tournament})
 
+@login_required_organization
 def tournament_detail(request, tournament_id):
     """Display full details of a specific tournament"""
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
     tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name=org)
     
     return render(request, 'web/Organization/org_tournament_detail.html', {'org': org, 'tournament': tournament})
 
+@login_required_organization
 def tournament_delete(request, tournament_id):
     """Delete a tournament"""
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
     tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name=org)
     
     if request.method == 'POST':
         tournament_name = tournament.Name
-        tournament.delete()
-        messages.success(request, f'Tournament "{tournament_name}" deleted successfully!')
+        # Soft delete: archive instead of hard delete
+        tournament.is_archived = True
+        tournament.save()
+        messages.success(request, f'Tournament "{tournament_name}" archived successfully!')
         return redirect('tournament_list')
     
     # If not POST, just redirect back to list (or show error, but redirection is cleaner for "action" URLs)
     messages.error(request, "Invalid request method for deletion.")
     return redirect('tournament_list')
+@login_required_organization
 def my_players(request):
     """Display list of players recruited by the organization"""
     org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
     players = Player.objects.filter(organization=org).order_by('-created_at')

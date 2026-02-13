@@ -18,6 +18,7 @@ class Organization(models.Model):
         ('Pending', 'Pending'),
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Active')
+    is_archived = models.BooleanField(default=False)
     CreatedAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -58,7 +59,9 @@ class Tournament(models.Model):
     venue = models.CharField(max_length=255, null=True, blank=True)
     show_roadmap = models.BooleanField(default=False)
     roadmap_content = models.TextField(null=True, blank=True)
+    roadmap_content = models.TextField(null=True, blank=True)
     prize_distribution = models.JSONField(default=list, blank=True)
+    is_archived = models.BooleanField(default=False)
     
     def __str__(self):
         return f"{self.Name} - {self.Organization_Name.Organization_Name}"
@@ -80,6 +83,7 @@ class Player(models.Model):
     age = models.IntegerField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='players')
+    is_archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

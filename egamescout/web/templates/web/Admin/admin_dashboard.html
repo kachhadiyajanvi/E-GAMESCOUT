@@ -445,7 +445,7 @@
                     <h3 class="font-display font-bold text-xl text-white">SEND NOTIFICATION</h3>
                     <p class="text-xs text-white/40">Compose a message</p>
                 </div>
-                <button onclick="closeModal()"
+                <button onclick="closeNotificationModal()"
                     class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -489,7 +489,7 @@
                 </div>
 
                 <div class="pt-2 flex justify-end gap-3">
-                    <button type="button" onclick="closeModal()"
+                    <button type="button" onclick="closeNotificationModal()"
                         class="px-4 py-2 rounded-lg text-sm font-bold text-white/60 hover:text-white hover:bg-white/5 transition-all">Cancel</button>
                     <button type="submit"
                         class="px-6 py-2 rounded-lg bg-gradient-to-r from-brand-blue to-cyan-600 text-black font-bold text-sm hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition-all flex items-center gap-2">
@@ -631,7 +631,7 @@
 
 
         // --- Existing Modal Logic ---
-        function openModal(type) {
+        function openNotificationModal(type) {
             recipientSelect.innerHTML = '';
             const players = ['John Doe', 'Alice Smith', 'Mike K.'];
             const orgs = ['Red Dragon Esports', 'Phantom Gaming', 'Voltage Squad'];
@@ -655,7 +655,7 @@
             }, 10);
         }
 
-        function closeModal() {
+        function closeNotificationModal() {
             modalBackdrop.classList.add('opacity-0');
             modalContent.classList.remove('scale-100', 'opacity-100');
             modalContent.classList.add('scale-95', 'opacity-0');
@@ -664,7 +664,7 @@
 
         function sendNotification(e) {
             e.preventDefault();
-            closeModal();
+            closeNotificationModal();
             // Simulate sending text (Toast for admin's action)
             showToast({
                 id: 0,
@@ -675,7 +675,7 @@
         }
 
         modal.addEventListener('click', (e) => {
-            if (e.target === modal || e.target === modalBackdrop) { closeModal(); }
+            if (e.target === modal || e.target === modalBackdrop) { closeNotificationModal(); }
         });
     </script>
 
