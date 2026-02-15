@@ -910,20 +910,9 @@ def tournament_create(request):
             return redirect('tournament_list')
         else:
             messages.error(request, "Please correct the errors below.")
-<<<<<<< HEAD
             return render(request, 'web/Organization/org_tournament_form.html', {
                 'org': org,
                 'form': form,
-=======
-            
-            # If form is invalid, render the list template with the bound form and error flag
-            tournaments = Tournament.objects.filter(Organization_Name=org, is_archived=False).order_by('-CreatedAt')
-            return render(request, 'web/Organization/org_tournament_list.html', {
-                'org': org, 
-                'tournaments': tournaments, 
-                'form': form, 
-                'show_form': True,
->>>>>>> b05acf81df0d97b468ca68a226ff433530f23da8
                 'action': 'Create'
             })
     
@@ -989,8 +978,8 @@ def tournament_delete(request, tournament_id):
     # If not POST, just redirect back to list (or show error, but redirection is cleaner for "action" URLs)
     messages.error(request, "Invalid request method for deletion.")
     return redirect('tournament_list')
-<<<<<<< HEAD
 
+@login_required_organization
 def tournament_participants(request, tournament_id):
     """View to list participants (organizations) of a tournament"""
     org_id = request.session.get('organizer_id')
@@ -1009,9 +998,8 @@ def tournament_participants(request, tournament_id):
         'tournament': tournament,
         'bidders': bidders
     })
-=======
+
 @login_required_organization
->>>>>>> b05acf81df0d97b468ca68a226ff433530f23da8
 def my_players(request):
     """Display list of players recruited by the organization"""
     org_id = request.session.get('organizer_id')
