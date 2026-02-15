@@ -1,0 +1,334 @@
+{% extends 'web/Admin/admin_dashboard.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="font-display font-bold text-3xl text-white mb-1">ANALYTICS</h1>
+            <p class="text-white/40 text-sm">Comprehensive platform insights and growth metrics.</p>
+        </div>
+        <button
+            class="bg-brand-blue/10 border border-brand-blue/50 text-brand-blue hover:bg-brand-blue hover:text-black px-6 py-2.5 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
+            <i class="fa-solid fa-download"></i> Export Report
+        </button>
+    </div>
+
+    <!-- Key Metrics Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Players -->
+        <div
+            class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group hover:border-brand-blue/30 transition-all">
+            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <i class="fa-solid fa-users text-6xl text-brand-blue"></i>
+            </div>
+            <p class="text-white/40 text-xs font-bold tracking-wider uppercase mb-2">Total Players</p>
+            <h3 class="text-3xl font-display font-bold text-white mb-4">{{ total_players|intcomma }}</h3>
+
+            <div class="flex gap-4 text-xs font-bold relative z-10">
+                <div class="flex items-center gap-1 text-green-400 bg-green-400/10 px-2 py-1 rounded-lg">
+                    <i class="fa-solid fa-arrow-trend-up"></i> +{{ new_players_week }} W
+                </div>
+                <div class="flex items-center gap-1 text-brand-blue bg-brand-blue/10 px-2 py-1 rounded-lg">
+                    <i class="fa-solid fa-calendar-days"></i> +{{ new_players_month }} M
+                </div>
+            </div>
+            <div class="absolute bottom-0 left-0 w-full h-16 opacity-30 pointer-events-none">
+                <canvas id="playerSparkline"></canvas>
+            </div>
+        </div>
+
+        <!-- Organizations -->
+        <div
+            class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group hover:border-brand-pink/30 transition-all">
+            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <i class="fa-solid fa-building text-6xl text-brand-pink"></i>
+            </div>
+            <p class="text-white/40 text-xs font-bold tracking-wider uppercase mb-2">Organizations</p>
+            <h3 class="text-3xl font-display font-bold text-white mb-4">{{ total_orgs|intcomma }}</h3>
+            <div class="flex gap-4 text-xs font-bold relative z-10">
+                <div class="flex items-center gap-1 text-green-400 bg-green-400/10 px-2 py-1 rounded-lg">
+                    <i class="fa-solid fa-arrow-trend-up"></i> +{{ new_orgs_week }} W
+                </div>
+                <div class="flex items-center gap-1 text-brand-pink bg-brand-pink/10 px-2 py-1 rounded-lg">
+                    <i class="fa-solid fa-calendar-days"></i> +{{ new_orgs_month }} M
+                </div>
+            </div>
+            <div class="absolute bottom-0 left-0 w-full h-16 opacity-30 pointer-events-none">
+                <canvas id="orgSparkline"></canvas>
+            </div>
+        </div>
+
+        <!-- Tournaments -->
+        <div
+            class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group hover:border-purple-500/30 transition-all">
+            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <i class="fa-solid fa-trophy text-6xl text-purple-500"></i>
+            </div>
+            <p class="text-white/40 text-xs font-bold tracking-wider uppercase mb-2">Tournaments</p>
+            <h3 class="text-3xl font-display font-bold text-white mb-4">{{ total_tournaments|intcomma }}</h3>
+            <div class="flex gap-4 text-xs font-bold relative z-10">
+                <div class="flex items-center gap-1 text-green-400 bg-green-400/10 px-2 py-1 rounded-lg">
+                    <i class="fa-solid fa-arrow-trend-up"></i> +{{ new_tournaments_week }} W
+                </div>
+                <div class="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-1 rounded-lg">
+                    <i class="fa-solid fa-calendar-days"></i> +{{ new_tournaments_month }} M
+                </div>
+            </div>
+            <div class="absolute bottom-0 left-0 w-full h-16 opacity-30 pointer-events-none">
+                <canvas id="tournamentSparkline"></canvas>
+            </div>
+        </div>
+
+        <!-- Prize Pool removed as per request -->
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Growth Chart -->
+        <div class="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="font-display font-bold text-lg text-white">PLATFORM GROWTH</h3>
+                    <div class="text-xs text-white/40 font-mono" id="chartPeriodLabel">Last 30 Days</div>
+                </div>
+                <!-- Timeframe Toggles -->
+                <div class="flex bg-white/5 rounded-lg p-1 gap-1">
+                    <button onclick="updateChart('week')" id="btn-week"
+                        class="px-4 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5">
+                        WEEK
+                    </button>
+                    <button onclick="updateChart('month')" id="btn-month"
+                        class="px-4 py-1.5 rounded-md text-xs font-bold transition-all bg-brand-blue text-black shadow-lg shadow-brand-blue/20">
+                        MONTH
+                    </button>
+                    <button onclick="updateChart('year')" id="btn-year"
+                        class="px-4 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5">
+                        YEAR
+                    </button>
+                </div>
+            </div>
+            <div class="h-80 w-full relative">
+                <canvas id="analyticsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Secondary Info / Pie Logic -->
+        <div
+            class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col items-center justify-center text-center">
+            <h3 class="font-display font-bold text-lg text-white mb-2">TOTAL USERS</h3>
+            <span class="text-4xl font-bold text-white">{{ total_players|add:total_orgs }}</span>
+            <p class="text-xs text-white/40 uppercase mt-1">Combined Players & Orgs</p>
+        </div>
+    </div>
+</div>
+
+{{ chart_labels|json_script:"chart-labels" }}
+{{ player_growth_data|json_script:"player-data" }}
+{{ org_growth_data|json_script:"org-data" }}
+{{ tournament_growth_data|json_script:"tournament-data" }}
+
+<!-- Multi-Period Data -->
+{{ week_labels|json_script:"week-labels" }}
+{{ player_data_week|json_script:"player-data-week" }}
+{{ org_data_week|json_script:"org-data-week" }}
+
+{{ month_labels|json_script:"month-labels" }}
+{{ player_data_month|json_script:"player-data-month" }}
+{{ org_data_month|json_script:"org-data-month" }}
+
+{{ year_labels|json_script:"year-labels" }}
+{{ player_data_year|json_script:"player-data-year" }}
+{{ org_data_year|json_script:"org-data-year" }}
+
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let mainChart; // Global reference for update
+
+    // Data Containers
+    const dataStore = {
+        week: {
+            labels: JSON.parse(document.getElementById('week-labels').textContent),
+            player: JSON.parse(document.getElementById('player-data-week').textContent),
+            org: JSON.parse(document.getElementById('org-data-week').textContent),
+            desc: "Last 7 days"
+        },
+        month: {
+            labels: JSON.parse(document.getElementById('month-labels').textContent),
+            player: JSON.parse(document.getElementById('player-data-month').textContent),
+            org: JSON.parse(document.getElementById('org-data-month').textContent),
+            desc: "Last 30 days"
+        },
+        year: {
+            labels: JSON.parse(document.getElementById('year-labels').textContent),
+            player: JSON.parse(document.getElementById('player-data-year').textContent),
+            org: JSON.parse(document.getElementById('org-data-year').textContent),
+            desc: "Last 12 months"
+        }
+    };
+
+    function updateChart(period) {
+        // Update Buttons
+        ['week', 'month', 'year'].forEach(p => {
+            const btn = document.getElementById(`btn-${p}`);
+            if (p === period) {
+                btn.className = "px-4 py-1.5 rounded-md text-xs font-bold transition-all bg-brand-blue text-black shadow-lg shadow-brand-blue/20";
+            } else {
+                btn.className = "px-4 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5";
+            }
+        });
+
+        // Update Label
+        document.getElementById('chartPeriodLabel').innerText = dataStore[period].desc;
+
+        // Update Chart Data
+        if (mainChart) {
+            mainChart.data.labels = dataStore[period].labels;
+            mainChart.data.datasets[0].data = dataStore[period].player;
+            mainChart.data.datasets[1].data = dataStore[period].org;
+            mainChart.update();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- Sparklines (Using Default Data injected previously, typically Month) ---
+        const sparklineOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            scales: {
+                x: { display: false },
+                y: { display: false, min: 0 }
+            },
+            elements: {
+                point: { radius: 0 },
+                line: { borderWidth: 2, tension: 0.4 }
+            }
+        };
+
+        const defaultLabels = JSON.parse(document.getElementById('chart-labels').textContent);
+        const playerSparkData = JSON.parse(document.getElementById('player-data').textContent);
+        const orgSparkData = JSON.parse(document.getElementById('org-data').textContent);
+        const tournamentSparkData = JSON.parse(document.getElementById('tournament-data').textContent);
+
+        // Player Sparkline
+        new Chart(document.getElementById('playerSparkline').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: defaultLabels,
+                datasets: [{
+                    data: playerSparkData,
+                    borderColor: '#00f3ff',
+                    backgroundColor: 'rgba(0, 243, 255, 0.1)',
+                    fill: true
+                }]
+            },
+            options: sparklineOptions
+        });
+
+        // Org Sparkline
+        new Chart(document.getElementById('orgSparkline').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: defaultLabels,
+                datasets: [{
+                    data: orgSparkData,
+                    borderColor: '#ec4899',
+                    backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                    fill: true
+                }]
+            },
+            options: sparklineOptions
+        });
+
+        // Tournament Sparkline
+        new Chart(document.getElementById('tournamentSparkline').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: defaultLabels,
+                datasets: [{
+                    data: tournamentSparkData,
+                    borderColor: '#a855f7',
+                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                    fill: true
+                }]
+            },
+            options: sparklineOptions
+        });
+
+        // --- Main Growth Chart (Initialize with Month) ---
+        const ctx = document.getElementById('analyticsChart').getContext('2d');
+        const gradientPlayer = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientPlayer.addColorStop(0, 'rgba(0, 243, 255, 0.5)');
+        gradientPlayer.addColorStop(1, 'rgba(0, 243, 255, 0)');
+
+        const gradientOrg = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientOrg.addColorStop(0, 'rgba(236, 72, 153, 0.5)');
+        gradientOrg.addColorStop(1, 'rgba(236, 72, 153, 0)');
+
+        mainChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dataStore.month.labels,
+                datasets: [
+                    {
+                        label: 'Players',
+                        data: dataStore.month.player,
+                        borderColor: '#00f3ff',
+                        backgroundColor: gradientPlayer,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#00f3ff',
+                        pointBorderColor: '#000',
+                    },
+                    {
+                        label: 'Organizations',
+                        data: dataStore.month.org,
+                        borderColor: '#ec4899',
+                        backgroundColor: gradientOrg,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#ec4899',
+                        pointBorderColor: '#000',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: 'rgba(255, 255, 255, 0.7)', font: { family: 'Rajdhani', size: 12 } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: '#fff',
+                        bodyColor: 'rgba(255, 255, 255, 0.7)',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 10,
+                        titleFont: { family: 'Orbitron' },
+                        bodyFont: { family: 'Rajdhani' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { family: 'Rajdhani' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { family: 'Rajdhani' }, maxTicksLimit: 10 }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

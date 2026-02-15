@@ -84,16 +84,36 @@
             </a>
 
             <a href="{% url 'tournament_list' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if 'tournament' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if 'tournament' in request.resolver_match.url_name and 'upcoming' not in request.resolver_match.url_name %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
                 <i
                     class="fa-solid fa-trophy text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
                 <span class="font-medium group-hover:text-white transition-colors">Tournaments</span>
+            </a>
+
+            <a href="{% url 'org_upcoming_tournaments' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if 'upcoming' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i
+                    class="fa-regular fa-calendar-check text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Upcoming</span>
             </a>
 
             <a href="{% url 'my_players' %}"
                 class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'my_players' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
                 <i class="fa-solid fa-users text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
                 <span class="font-medium group-hover:text-white transition-colors">My Players</span>
+            </a>
+
+            <a href="{% url 'org_live_bidding' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if 'bidding' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i class="fa-solid fa-gavel text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Live Bidding</span>
+            </a>
+
+            <a href="{% url 'transaction_history' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'transaction_history' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i
+                    class="fa-solid fa-receipt text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Transactions</span>
             </a>
 
 
@@ -136,6 +156,20 @@
                         class="bg-transparent border-none outline-none text-sm text-white ml-2 w-full placeholder-gray-600">
                 </div>
 
+                <!-- Coin Balance -->
+                <div
+                    class="hidden md:flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/20 rounded-full px-4 py-2 relative group cursor-help">
+                    <i class="fa-solid fa-coins text-yellow-500 text-sm"></i>
+                    <span class="text-sm font-bold text-yellow-500 font-display tracking-wider">{{ org.coins }}</span>
+
+                    <!-- Tooltip -->
+                    <div
+                        class="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-40 bg-black/90 border border-white/10 rounded-lg p-2 text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                        <p class="text-[10px] text-gray-400">Exchange Rate</p>
+                        <p class="text-xs font-bold text-white">1 Coin = ₹1 INR</p>
+                    </div>
+                </div>
+
                 <!-- Notifications Dropdown -->
                 <div class="relative group">
                     <button class="relative text-gray-400 hover:text-white transition-colors focus:outline-none"
@@ -149,25 +183,42 @@
                         class="absolute right-0 mt-4 w-80 bg-[#0B0C10] border border-white/10 rounded-xl shadow-2xl overflow-hidden hidden transform transition-all duration-200 origin-top-right z-50">
                         <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
                             <h3 class="text-sm font-bold text-white font-display">NOTIFICATIONS</h3>
-                            <button class="text-xs text-accent-cyan hover:text-white transition-colors">Mark all
-                                read</button>
+                            <a href="{% url 'mark_all_notifications_read' %}"
+                                class="text-xs text-accent-cyan hover:text-white transition-colors">Mark all
+                                read</a>
                         </div>
                         <div class="max-h-64 overflow-y-auto custom-scrollbar">
                             {% if notifications %}
                             {% for notification in notifications %}
                             <!-- Notification Item -->
-                            <a href="{{ notification.link }}"
-                                class="p-3 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer flex gap-3 group">
-                                <div
-                                    class="w-2 h-2 rounded-full {% if notification.type == 'tournament' %}bg-accent-cyan shadow-[0_0_5px_#66FCF1]{% else %}bg-green-500 shadow-[0_0_5px_#22c55e]{% endif %} mt-1.5 shrink-0">
+                            <div class="p-3 border-b border-white/5 hover:bg-white/5 transition-colors group">
+                                <a href="{{ notification.link }}" class="flex gap-3">
+                                    <div
+                                        class="w-2 h-2 rounded-full {% if notification.type == 'tournament' %}bg-accent-cyan shadow-[0_0_5px_#66FCF1]{% elif notification.is_invite %}bg-yellow-500 shadow-[0_0_5px_#eab308]{% else %}bg-green-500 shadow-[0_0_5px_#22c55e]{% endif %} mt-1.5 shrink-0">
+                                    </div>
+                                    <div class="flex-1">
+                                        <p
+                                            class="text-xs text-white leading-relaxed group-hover:text-accent-cyan transition-colors">
+                                            {{ notification.message }}</p>
+                                        <p class="text-[10px] text-gray-500 mt-1">{{ notification.time|timesince }} ago
+                                        </p>
+                                    </div>
+                                </a>
+
+                                <!-- Actions for Bidding Invites -->
+                                {% if notification.is_invite %}
+                                <div class="flex gap-2 mt-2 ml-5">
+                                    <a href="{% url 'handle_bidding_invite' notification.id 'accept' %}"
+                                        class="text-[10px] px-2 py-1 bg-green-500/10 text-green-500 border border-green-500/30 rounded hover:bg-green-500 hover:text-white transition-all">
+                                        <i class="fa-solid fa-check mr-1"></i> Accept
+                                    </a>
+                                    <a href="{% url 'handle_bidding_invite' notification.id 'decline' %}"
+                                        class="text-[10px] px-2 py-1 bg-red-500/10 text-red-500 border border-red-500/30 rounded hover:bg-red-500 hover:text-white transition-all">
+                                        <i class="fa-solid fa-xmark mr-1"></i> Decline
+                                    </a>
                                 </div>
-                                <div>
-                                    <p
-                                        class="text-xs text-white leading-relaxed group-hover:text-accent-cyan transition-colors">
-                                        {{ notification.message }}</p>
-                                    <p class="text-[10px] text-gray-500 mt-1">{{ notification.time|timesince }} ago</p>
-                                </div>
-                            </a>
+                                {% endif %}
+                            </div>
                             {% endfor %}
                             {% else %}
                             <div class="p-8 text-center">

@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-from .models import Organization, Player, Tournament
+from .models import Organization, Player, Tournament, PlayerBid
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import timedelta
@@ -45,17 +45,17 @@ def admin_logout(request):
 def admin_dashboard(request):
     # --- Real-time Counters ---
     # Players
-    player_qs = Player.objects.all()
+    player_qs = Player.objects.filter(is_archived=False)
     player_count = player_qs.count()
     active_players = player_qs.filter(status='ACTIVE').count()
     
     # Organizations
-    org_qs = Organization.objects.all()
+    org_qs = Organization.objects.filter(is_archived=False)
     org_count = org_qs.count()
     active_orgs = org_qs.filter(status='Active').count()
     
     # Tournaments
-    tournament_qs = Tournament.objects.all()
+    tournament_qs = Tournament.objects.filter(is_archived=False)
     tournament_count = tournament_qs.count()
     active_tournaments = tournament_qs.filter(Status='Ongoing').count()
 
@@ -138,10 +138,11 @@ def admin_players_detail(request):
         players_list = Player.objects.filter(
             Q(full_name__icontains=search_query) | 
             Q(username__icontains=search_query) |
-            Q(email__icontains=search_query)
+            Q(email__icontains=search_query),
+            is_archived=False
         ).order_by('-created_at')
     else:
-        players_list = Player.objects.all().order_by('-created_at')
+        players_list = Player.objects.filter(is_archived=False).order_by('-created_at')
         
     paginator = Paginator(players_list, 10) # Show 10 players per page
     page_number = request.GET.get('page')
@@ -160,10 +161,11 @@ def admin_organization_detail(request):
         organizations_list = Organization.objects.filter(
             Q(Organization_Name__icontains=search_query) | 
             Q(Organization_UserName__icontains=search_query) | 
-            Q(Organization_Email__icontains=search_query)
+            Q(Organization_Email__icontains=search_query),
+            is_archived=False
         ).order_by('-CreatedAt')
     else:
-        organizations_list = Organization.objects.all().order_by('-CreatedAt')
+        organizations_list = Organization.objects.filter(is_archived=False).order_by('-CreatedAt')
 
     paginator = Paginator(organizations_list, 10)
     page_number = request.GET.get('page')
@@ -179,17 +181,40 @@ def admin_profile(request):
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_tournaments_detail(request):
-    tournaments_list = Tournament.objects.all().order_by('-CreatedAt')
+    tournaments_list = Tournament.objects.filter(is_archived=False).order_by('-CreatedAt')
     paginator = Paginator(tournaments_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'web/Admin/admin_tournaments_detail.html', {'tournaments': page_obj, 'page_obj': page_obj})
 
 @user_passes_test(is_superuser, login_url='admin_login')
+def admin_bids_detail(request):
+    search_query = request.GET.get('q', '')
+    if search_query:
+        bids_list = PlayerBid.objects.filter(
+            Q(organization__Organization_Name__icontains=search_query) | 
+            Q(player__username__icontains=search_query) |
+            Q(message__icontains=search_query)
+        ).order_by('-created_at')
+    else:
+        bids_list = PlayerBid.objects.all().order_by('-created_at')
+        
+    paginator = Paginator(bids_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'web/Admin/admin_bids_detail.html', {
+        'page_obj': page_obj,
+        'search_query': search_query
+    })
+
+
+@user_passes_test(is_superuser, login_url='admin_login')
 def admin_delete_organization(request, org_id):
     org = get_object_or_404(Organization, id=org_id)
     if request.method == 'POST':
-        org.delete()
+        org.is_archived = True
+        org.save()
         messages.success(request, f'Organization "{org.Organization_Name}" has been deleted.')
         return redirect('admin_organization_detail')
     
@@ -227,7 +252,8 @@ def admin_delete_player(request, player_id):
     player = get_object_or_404(Player, id=player_id)
     if request.method == 'POST':
         player_name = player.full_name
-        player.delete()
+        player.is_archived = True
+        player.save()
         messages.success(request, f'Player {player_name} has been deleted.')
         return redirect('admin_players_detail')
     
@@ -289,7 +315,8 @@ def admin_delete_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id)
     if request.method == 'POST':
         name = tournament.Name
-        tournament.delete()
+        tournament.is_archived = True
+        tournament.save()
         messages.success(request, f'Tournament "{name}" has been deleted.')
         return redirect('admin_tournaments_detail')
     
@@ -317,9 +344,9 @@ def admin_analytics(request):
     month_start = now - timedelta(days=30)
     
     # 1. Total Counts
-    total_players = Player.objects.count()
-    total_orgs = Organization.objects.count()
-    total_tournaments = Tournament.objects.count()
+    total_players = Player.objects.filter(is_archived=False).count()
+    total_orgs = Organization.objects.filter(is_archived=False).count()
+    total_tournaments = Tournament.objects.filter(is_archived=False).count()
     
     # 2. Growth (Weekly)
     new_players_week = Player.objects.filter(created_at__gte=week_start).count()
@@ -418,7 +445,9 @@ def admin_analytics(request):
         
     context = {
         'total_players': total_players,
+        'active_players': Player.objects.filter(status='ACTIVE').count(),
         'total_orgs': total_orgs,
+        'active_orgs': Organization.objects.filter(status='Active').count(),
         'total_tournaments': total_tournaments,
         'new_players_week': new_players_week,
         'new_orgs_week': new_orgs_week,

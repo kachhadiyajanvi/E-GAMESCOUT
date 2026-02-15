@@ -72,12 +72,17 @@
                     Dashboard
                 </a>
 
+                <a href="{% url 'player_bids' %}"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'bids' in request.resolver_match.url_name %}bg-accent-cyan text-brand-dark font-bold shadow-[0_0_20px_rgba(102,252,241,0.3)]{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
+                    <i class="fa-solid fa-gavel text-lg"></i>
+                    My Bids
+                </a>
+
                 <!-- Upcoming Features (Placeholder) -->
-                <a href="#"
-                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all group opacity-50 cursor-not-allowed"
-                    title="Coming Soon">
+                <a href="{% url 'player_upcoming_tournaments' %}"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'upcoming' in request.resolver_match.url_name %}bg-accent-cyan text-brand-dark font-bold shadow-[0_0_20px_rgba(102,252,241,0.3)]{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
                     <i class="fa-solid fa-trophy text-lg"></i>
-                    My Tournaments
+                    Upcoming Tournaments
                 </a>
             </div>
 
@@ -114,6 +119,20 @@
 
                 <!-- User Profile Info -->
                 <div class="flex items-center gap-6">
+                    <!-- Coin Balance -->
+                    <div
+                        class="hidden md:flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/20 rounded-full px-4 py-2 relative group cursor-help">
+                        <i class="fa-solid fa-coins text-yellow-500 text-sm"></i>
+                        <span class="text-sm font-bold text-yellow-500 font-display tracking-wider">
+                            {{ player.coins}}</span>
+
+                        <!-- Tooltip -->
+                        <div
+                            class="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-40 bg-black/90 border border-white/10 rounded-lg p-2 text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                            <p class="text-[10px] text-gray-400">Exchange Rate</p>
+                            <p class="text-xs font-bold text-white">1 Coin = ₹1 INR</p>
+                        </div>
+                    </div>
                     <div class="text-right hidden md:block">
                         <h4 class="text-white font-bold text-sm leading-tight">{{ player.full_name|default:"Player" }}
                         </h4>
