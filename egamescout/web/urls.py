@@ -29,11 +29,19 @@ urlpatterns = [
     
     # Tournament Management
     path('organization/tournaments/', views.tournament_list, name='tournament_list'),
+    path('organization/transactions/', views.transaction_history, name='transaction_history'),
     path('organization/players/', views.my_players, name='my_players'),
     path('organization/tournaments/create/', views.tournament_create, name='tournament_create'),
     path('organization/tournaments/<int:tournament_id>/', views.tournament_detail, name='tournament_detail'),
     path('organization/tournaments/<int:tournament_id>/update/', views.tournament_update, name='tournament_update'),
     path('organization/tournaments/<int:tournament_id>/delete/', views.tournament_delete, name='tournament_delete'),
+    path('organization/tournaments/<int:tournament_id>/participants/', views.tournament_participants, name='tournament_participants'),
+    
+    # Live Player Bidding (Organization)
+    path('organization/bidding/live/', views.org_live_bidding, name='org_live_bidding'),
+    path('organization/bidding/place/<int:player_id>/', views.place_player_bid, name='place_player_bid'),
+    path('organization/bidding/negotiations/', views.org_negotiations, name='org_negotiations'),
+    path('organization/bidding/negotiations/<int:bid_id>/<str:action>/', views.handle_negotiation, name='handle_negotiation'),
     
     # Utilities
     path('organization/resend-otp/', views.resend_otp, name='resend_otp'),
@@ -41,9 +49,13 @@ urlpatterns = [
     path('auth/verify/', views.auth_verify_otp, name='auth_verify_otp'),
     path('auth/register/upload/', views.auth_register_upload, name='auth_register_upload'),
     path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
-    path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
     path('player/dashboard/', views.player_dashboard, name='player_dashboard'),
     path('player/profile/', views.player_profile, name='player_profile'),
+    
+    # Live Player Bidding (Player)
+    path('player/bids/', views.player_bids, name='player_bids'),
+    path('player/bids/<int:bid_id>/<str:action>/', views.handle_player_bid, name='handle_player_bid'),
+    
     path('player/delete/', views.player_delete_account, name='player_delete_account'),
     path('auth/logout/', views.auth_logout, name='auth_logout'),
 
@@ -63,7 +75,18 @@ urlpatterns = [
     path('admin/tournaments/edit/<int:tournament_id>/', admin_views.admin_edit_tournament, name='admin_edit_tournament'),
     path('admin/profile/', admin_views.admin_profile, name='admin_profile'),
     path('admin/analytics/', admin_views.admin_analytics, name='admin_analytics'),
+    path('admin/bids/', admin_views.admin_bids_detail, name='admin_bids_detail'),
+
+    # Tournament Publishing
+    path('organization/tournaments/publish/<int:tournament_id>/', views.publish_tournament, name='publish_tournament'),
+    path('organization/tournaments/upcoming/', views.org_upcoming_tournaments, name='org_upcoming_tournaments'),
+    path('player/tournaments/upcoming/', views.player_upcoming_tournaments, name='player_upcoming_tournaments'),
     
+    # Bidding
+    path('organization/tournaments/bidding/open/<int:tournament_id>/', views.open_bidding, name='open_bidding'),
+    path('organization/notifications/invite/<int:notification_id>/<str:action>/', views.handle_bidding_invite, name='handle_bidding_invite'),
+    path('organization/notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+
     # Admin Notifications API
     path('admin/api/notifications/', admin_views.get_notifications, name='get_notifications'),
     path('admin/api/notifications/read/<int:notif_id>/', admin_views.mark_notification_read, name='mark_notification_read'),

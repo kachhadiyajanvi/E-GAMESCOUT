@@ -90,191 +90,203 @@
             <!-- Calendar / Schedule Widget -->
             <div
                 class="bg-[#0B0C10] border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative text-white flex flex-col h-full min-h-[500px]">
+
+                <!-- JSON Data -->
+                <input type="hidden" id="calendar-data" value="{{ calendar_events_json|default:'[]' }}">
+
                 <!-- Header (Month Nav) -->
                 <div class="px-6 py-6 flex justify-between items-center shrink-0 border-b border-white/5">
-                    <button
+                    <button onclick="changeMonth(-1)"
                         class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors text-brand-light/50 hover:text-white">
                         <i class="fa-solid fa-chevron-left"></i>
                     </button>
-                    <div class="flex gap-6 text-sm font-bold text-gray-500 items-baseline">
-                        <span class="text-white text-xl font-display tracking-wide">February</span>
-                        <span class="cursor-pointer hover:text-white transition-colors">March</span>
-                        <span class="cursor-pointer hover:text-white transition-colors">April</span>
+                    <div class="flex gap-4 text-sm font-bold text-gray-500 items-baseline" id="month-display">
+                        <!-- Dynamic Month -->
                     </div>
-                    <button
+                    <button onclick="changeMonth(1)"
                         class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors text-brand-light/50 hover:text-white active:bg-accent-cyan active:text-brand-dark">
-                        <i class="fa-solid fa-calendar"></i>
+                        <i class="fa-solid fa-chevron-right"></i>
                     </button>
                 </div>
 
                 <!-- Days Scroller -->
-                <div
-                    class="px-6 py-4 flex justify-between items-center border-b border-white/5 mb-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] gap-2 shrink-0 select-none">
-                    <!-- Day Items -->
-                    <div class="flex flex-col items-center gap-2 min-w-[44px] cursor-pointer group">
-                        <span
-                            class="text-xl font-bold text-gray-400 group-hover:text-accent-cyan transition-colors">13</span>
-                        <span
-                            class="text-[10px] text-gray-600 font-bold uppercase tracking-wider group-hover:text-accent-cyan/70">Fri</span>
-                    </div>
-                    <div
-                        class="flex flex-col items-center gap-2 min-w-[44px] cursor-pointer relative bg-white/5 py-2 px-1 rounded-xl border border-white/5">
-                        <span class="text-xl font-bold text-accent-cyan">14</span>
-                        <span class="text-[10px] text-accent-cyan font-bold uppercase tracking-wider">Sat</span>
-                        <div class="w-1 h-1 rounded-full bg-accent-cyan absolute bottom-1 shadow-[0_0_10px_#66FCF1]">
-                        </div>
-                    </div>
-                    <div
-                        class="flex flex-col items-center gap-2 min-w-[44px] cursor-pointer group hover:bg-white/5 py-2 px-1 rounded-xl transition-all">
-                        <span class="text-xl font-bold text-gray-500 group-hover:text-white transition-colors">15</span>
-                        <span
-                            class="text-[10px] text-gray-700 font-bold uppercase tracking-wider group-hover:text-gray-400">Sun</span>
-                    </div>
-                    <div
-                        class="flex flex-col items-center gap-2 min-w-[44px] cursor-pointer group hover:bg-white/5 py-2 px-1 rounded-xl transition-all">
-                        <span class="text-xl font-bold text-gray-500 group-hover:text-white transition-colors">16</span>
-                        <span
-                            class="text-[10px] text-gray-700 font-bold uppercase tracking-wider group-hover:text-gray-400">Mon</span>
-                    </div>
-                    <div
-                        class="flex flex-col items-center gap-2 min-w-[44px] cursor-pointer group hover:bg-white/5 py-2 px-1 rounded-xl transition-all">
-                        <span class="text-xl font-bold text-gray-500 group-hover:text-white transition-colors">17</span>
-                        <span
-                            class="text-[10px] text-gray-700 font-bold uppercase tracking-wider group-hover:text-gray-400">Tue</span>
-                    </div>
+                <div id="days-scroller"
+                    class="px-6 py-4 flex items-center border-b border-white/5 mb-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] gap-2 shrink-0 select-none">
+                    <!-- Dynamic Days -->
                 </div>
 
                 <!-- Timeline / Events -->
-                <div class="px-4 pb-4 space-y-3 relative flex-grow overflow-y-auto custom-scrollbar h-[350px]">
-                    <!-- Time Indicator Line -->
-                    <div class="absolute left-[70px] top-0 bottom-0 w-[1px] bg-white/5 z-0"></div>
-
-                    <!-- Current Time Marker -->
-                    <div class="absolute left-[52px] top-8 z-20 flex items-center gap-2">
-                        <span
-                            class="bg-accent-cyan text-brand-dark text-[10px] font-bold px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(102,252,241,0.4)]">12:30</span>
-                        <div
-                            class="w-2.5 h-2.5 bg-accent-cyan rounded-full border-2 border-brand-dark shadow-[0_0_10px_#66FCF1]">
-                        </div>
-                    </div>
-
-                    {% if upcoming_events %}
-                    {% for event in upcoming_events %}
-                    <div class="relative z-10 pl-20 group py-1">
-                        <div
-                            class="p-3 rounded-xl bg-[#141619] border border-white/5 hover:border-accent-cyan/30 shadow-md hover:shadow-[0_0_15px_rgba(0,0,0,0.5)] transform hover:scale-[1.01] transition-all cursor-pointer group">
-                            <div class="flex items-center justify-between mb-1">
-                                <h4
-                                    class="font-bold text-white text-xs tracking-wide font-display group-hover:text-accent-cyan transition-colors truncate">
-                                    {{ event.title }}</h4>
-                            </div>
-                            <div class="flex items-center justify-between mt-2">
-                                <div class="flex -space-x-1.5">
-                                    <!-- Placeholder Avatars -->
-                                    <div class="w-5 h-5 rounded-full border border-[#141619] bg-brand-gray"></div>
-                                    <div
-                                        class="w-5 h-5 rounded-full border border-[#141619] bg-white/10 flex items-center justify-center text-[8px] text-white font-bold">
-                                        +2</div>
-                                </div>
-                                <span
-                                    class="text-[9px] text-brand-light/50 font-bold tracking-wider bg-white/5 px-1.5 py-0.5 rounded">{{
-                                    event.due_date|time:"H:i" }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% else %}
-                    <!-- Visual Demo: Event 1 (Compact) -->
-                    <div class="relative z-10 pl-20 group pt-16">
-                        <div
-                            class="p-3 rounded-xl bg-[#141619] border border-white/5 hover:border-accent-cyan/30 shadow-md transition-all cursor-pointer group relative overflow-hidden hover:bg-white/5">
-                            <div class="relative z-10">
-                                <div class="flex items-center justify-between">
-                                    <h4
-                                        class="font-bold text-white text-xs tracking-wide font-display group-hover:text-accent-cyan transition-colors">
-                                        Team Scrims (BGMI)</h4>
-                                    <span
-                                        class="text-[9px] text-accent-cyan font-bold bg-accent-cyan/10 px-1 py-0.5 rounded">13:00</span>
-                                </div>
-                                <div class="flex items-center gap-2 mt-2">
-                                    <div class="flex -space-x-1.5">
-                                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=64&h=64"
-                                            class="w-5 h-5 rounded-full border border-[#141619]">
-                                        <div
-                                            class="w-5 h-5 rounded-full border border-[#141619] bg-brand-gray flex items-center justify-center text-[8px] text-white font-bold">
-                                            +4</div>
-                                    </div>
-                                    <span class="text-[9px] text-brand-light/50 font-bold">SQUAD ALPHA</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Visual Demo: Event 2 (Compact) -->
-                    <div class="relative z-10 pl-20 group mt-3">
-                        <div
-                            class="p-3 rounded-xl bg-[#141619] border border-white/5 hover:border-green-500/30 shadow-md transition-all cursor-pointer group relative overflow-hidden hover:bg-white/5">
-                            <div class="relative z-10">
-                                <div class="flex items-center justify-between">
-                                    <h4
-                                        class="font-bold text-white text-xs font-display group-hover:text-green-400 transition-colors">
-                                        Strategy Session</h4>
-                                    <span
-                                        class="text-[9px] text-green-500 font-bold bg-green-500/10 px-1 py-0.5 rounded">14:30</span>
-                                </div>
-                                <div class="flex items-center gap-2 mt-2">
-                                    <i class="fa-solid fa-map-location-dot text-brand-light/40 text-[10px]"></i>
-                                    <p class="text-[9px] text-brand-light/40 font-bold tracking-wider uppercase">Map:
-                                        Erangel</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Visual Demo: Event 3 (Compact) -->
-                    <div class="relative z-10 pl-20 group mt-3">
-                        <div
-                            class="p-3 rounded-xl bg-[#141619] border border-white/5 hover:border-purple-500/30 shadow-md transition-all cursor-pointer group relative overflow-hidden hover:bg-white/5">
-                            <div class="relative z-10">
-                                <div class="flex items-center justify-between">
-                                    <h4
-                                        class="font-bold text-white text-xs font-display group-hover:text-purple-400 transition-colors">
-                                        VOD Review</h4>
-                                    <span
-                                        class="text-[9px] text-purple-500 font-bold bg-purple-500/10 px-1 py-0.5 rounded">16:00</span>
-                                </div>
-                                <div class="flex items-center gap-2 mt-2">
-                                    <i class="fa-solid fa-video text-brand-light/40 text-[10px]"></i>
-                                    <p class="text-[9px] text-brand-light/40 font-bold tracking-wider uppercase">Last
-                                        Match Analysis</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Visual Demo: Event 4 (Compact) -->
-                    <div class="relative z-10 pl-20 group mt-3">
-                        <div
-                            class="p-3 rounded-xl bg-[#141619] border border-white/5 hover:border-yellow-500/30 shadow-md transition-all cursor-pointer group relative overflow-hidden hover:bg-white/5">
-                            <div class="relative z-10">
-                                <div class="flex items-center justify-between">
-                                    <h4
-                                        class="font-bold text-white text-xs font-display group-hover:text-yellow-400 transition-colors">
-                                        Team Meeting</h4>
-                                    <span
-                                        class="text-[9px] text-yellow-500 font-bold bg-yellow-500/10 px-1 py-0.5 rounded">18:00</span>
-                                </div>
-                                <div class="flex items-center gap-2 mt-2">
-                                    <i class="fa-solid fa-headset text-brand-light/40 text-[10px]"></i>
-                                    <p class="text-[9px] text-brand-light/40 font-bold tracking-wider uppercase">Discord
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
+                <div class="px-4 pb-4 space-y-3 relative flex-grow overflow-y-auto custom-scrollbar h-[350px]"
+                    id="events-container">
+                    <!-- Dynamic Events -->
                 </div>
             </div>
+
+            <script>
+                // --- Calendar Logic ---
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                const daysShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+                let currentDate = new Date();
+                let selectedDate = new Date(); // Tracks the clicked day
+                let eventsData = [];
+
+                try {
+                    eventsData = JSON.parse(document.getElementById('calendar-data').value);
+                } catch (e) {
+                    console.error("Error parsing calendar data", e);
+                }
+
+                function initCalendar() {
+                    renderHeader();
+                    renderDays();
+                    renderEvents(selectedDate);
+                }
+
+                function renderHeader() {
+                    const monthDisplay = document.getElementById('month-display');
+                    const monthName = monthNames[currentDate.getMonth()];
+                    const year = currentDate.getFullYear();
+
+                    // Show Current, Next, Next+1 (Simplified to just Current Month Year for clarity in this layout)
+                    monthDisplay.innerHTML = `
+                        <span class="text-white text-xl font-display tracking-wide">${monthName}</span>
+                        <span class="text-white/30 text-lg">${year}</span>
+                    `;
+                }
+
+                function renderDays() {
+                    const scroller = document.getElementById('days-scroller');
+                    scroller.innerHTML = '';
+
+                    const year = currentDate.getFullYear();
+                    const month = currentDate.getMonth();
+
+                    // Get number of days in month
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                    for (let i = 1; i <= daysInMonth; i++) {
+                        const dateParams = new Date(year, month, i);
+                        const dayName = daysShort[dateParams.getDay()];
+                        const isSelected = isSameDay(dateParams, selectedDate);
+                        const hasEvent = checkEventOnDay(dateParams);
+
+                        const dayEl = document.createElement('div');
+
+                        if (isSelected) {
+                            dayEl.className = "flex flex-col items-center gap-2 min-w-[44px] cursor-pointer relative bg-white/5 py-2 px-1 rounded-xl border border-white/5 transition-all transform scale-105 shadow-lg shadow-accent-cyan/10";
+                            dayEl.innerHTML = `
+                                <span class="text-xl font-bold text-accent-cyan">${i}</span>
+                                <span class="text-[10px] text-accent-cyan font-bold uppercase tracking-wider">${dayName}</span>
+                                <div class="w-1 h-1 rounded-full bg-accent-cyan absolute bottom-1 shadow-[0_0_10px_#66FCF1]"></div>
+                            `;
+                        } else {
+                            dayEl.className = "flex flex-col items-center gap-2 min-w-[44px] cursor-pointer group hover:bg-white/5 py-2 px-1 rounded-xl transition-all";
+                            dayEl.innerHTML = `
+                                <span class="text-xl font-bold text-gray-500 group-hover:text-white transition-colors">${i}</span>
+                                <span class="text-[10px] text-gray-700 font-bold uppercase tracking-wider group-hover:text-gray-400">${dayName}</span>
+                                ${hasEvent ? '<div class="w-1 h-1 rounded-full bg-white/30 absolute bottom-1"></div>' : ''}
+                            `;
+                        }
+
+                        dayEl.onclick = () => {
+                            selectedDate = new Date(year, month, i);
+                            renderDays(); // Re-render to update selection style
+                            renderEvents(selectedDate);
+                        };
+
+                        scroller.appendChild(dayEl);
+
+                        // Auto-scroll to selected day logic could go here
+                    }
+                }
+
+                function checkEventOnDay(date) {
+                    const dateStr = formatDate(date);
+                    return eventsData.some(e => e.date === dateStr);
+                }
+
+                function renderEvents(date) {
+                    const container = document.getElementById('events-container');
+                    container.innerHTML = '';
+
+                    // Time Line Decoration
+                    const timeLine = document.createElement('div');
+                    timeLine.className = 'absolute left-[70px] top-0 bottom-0 w-[1px] bg-white/5 z-0';
+                    container.appendChild(timeLine);
+
+                    const dateStr = formatDate(date);
+                    const daysEvents = eventsData.filter(e => e.date === dateStr);
+
+                    if (daysEvents.length === 0) {
+                        const emptyState = document.createElement('div');
+                        emptyState.className = "flex flex-col items-center justify-center h-full text-brand-light/30 text-xs py-10";
+                        emptyState.innerHTML = "<p>No events for this day</p>";
+                        container.appendChild(emptyState);
+                        return;
+                    }
+
+                    daysEvents.sort((a, b) => a.time.localeCompare(b.time));
+
+                    daysEvents.forEach(event => {
+                        const el = document.createElement('div');
+                        el.className = "relative z-10 pl-20 group py-2 animate-fade-in-up";
+
+                        // Determine border/text color based on type
+                        let borderColor = 'hover:border-white/20';
+                        let textColor = 'group-hover:text-white';
+                        let badgeClass = 'text-brand-light/50 bg-white/5';
+
+                        if (event.type === 'TOURNAMENT') {
+                            borderColor = 'hover:border-accent-cyan/50';
+                            textColor = 'group-hover:text-accent-cyan';
+                            badgeClass = 'text-accent-cyan bg-accent-cyan/10';
+                        } else if (event.type === 'TASK') {
+                            borderColor = 'hover:border-green-500/50';
+                            textColor = 'group-hover:text-green-400';
+                            badgeClass = 'text-green-400 bg-green-400/10';
+                        }
+
+                        el.innerHTML = `
+                             <div class="p-3 rounded-xl bg-[#141619] border border-white/5 ${borderColor} shadow-md transition-all cursor-pointer group relative overflow-hidden hover:bg-white/5">
+                                <div class="relative z-10">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-bold text-white text-xs tracking-wide font-display ${textColor} transition-colors truncate max-w-[150px]">${event.title}</h4>
+                                        <span class="text-[9px] font-bold ${badgeClass} px-1.5 py-0.5 rounded">${event.time}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <p class="text-[9px] text-brand-light/40 font-bold tracking-wider uppercase">${event.type}</p>
+                                    </div>
+                                </div>
+                            </div>
+                         `;
+                        container.appendChild(el);
+                    });
+                }
+
+                function changeMonth(step) {
+                    currentDate.setMonth(currentDate.getMonth() + step);
+                    renderHeader();
+                    renderDays();
+                    // Optional: reset selectedDate to 1st of new month or keep same day if possible
+                }
+
+                function isSameDay(d1, d2) {
+                    return d1.getFullYear() === d2.getFullYear() &&
+                        d1.getMonth() === d2.getMonth() &&
+                        d1.getDate() === d2.getDate();
+                }
+
+                function formatDate(date) {
+                    // YYYY-MM-DD
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                }
+
+                document.addEventListener('DOMContentLoaded', initCalendar);
+            </script>
 
             <!-- Tasks / To-Do List -->
             <div class="bg-[#0B0C10] border border-white/5 rounded-2xl p-6 relative overflow-hidden">

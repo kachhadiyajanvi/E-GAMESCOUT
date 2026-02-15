@@ -6,13 +6,12 @@ from .models import Organization, Tournament
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from django.utils import timezone
 from django.conf import settings
 import random
 import time
 from django.core.mail import send_mail
 from .forms import EmailLoginForm, OTPVerifyForm, PlayerRegistrationForm
-from .models import Player, PlayerTask, Organization, Tournament, GlobalSettings
+from .models import Player, PlayerTask
 from django.views.decorators.cache import cache_control
 from decimal import Decimal
 
@@ -248,12 +247,8 @@ def player_dashboard(request):
     
     # Fetch Tasks & Events
     from django.utils import timezone
-    import json
-    from django.core.serializers.json import DjangoJSONEncoder
-    
     now = timezone.now()
     
-    # Existing queries
     upcoming_events = PlayerTask.objects.filter(
         player=player, 
         task_type='EVENT', 
@@ -265,50 +260,11 @@ def player_dashboard(request):
         task_type='TASK', 
         is_completed=False
     ).order_by('due_date')
-
-    # --- Calendar Data Injection ---
-    # 1. Scheduled Tournaments
-    calendar_tournaments = Tournament.objects.filter(
-        Status__in=['Scheduled', 'Ongoing'],
-        start_date__isnull=False
-    ).values('Name', 'start_date', 'Status', 'Tournament_ID')
-
-    # 2. Player Tasks (Events)
-    calendar_tasks = PlayerTask.objects.filter(
-        player=player,
-        due_date__isnull=False
-    ).values('title', 'due_date', 'task_type', 'is_completed')
-
-    # Combine & Format for JS
-    calendar_events = []
-
-    for t in calendar_tournaments:
-        if t['start_date']:
-            calendar_events.append({
-                'title': t['Name'],
-                'date': t['start_date'].strftime('%Y-%m-%d'),
-                'time': '00:00', # Default for tournaments if time not set
-                'type': 'TOURNAMENT',
-                'status': t['Status'],
-                'color': '#66FCF1' # Accent Cyan
-            })
-
-    for task in calendar_tasks:
-        if task['due_date']:
-            calendar_events.append({
-                'title': task['title'],
-                'date': task['due_date'].strftime('%Y-%m-%d'), # Local time handling might be needed
-                'time': task['due_date'].strftime('%H:%M'),
-                'type': task['task_type'],
-                'status': 'Completed' if task['is_completed'] else 'Pending',
-                'color': '#22c55e' if task['task_type'] == 'TASK' else '#a855f7' # Green or Purple
-            })
-
+    
     return render(request, 'web/Player/dashboard.html', {
         'player': player,
         'upcoming_events': upcoming_events,
-        'todo_list': todo_list,
-        'calendar_events_json': json.dumps(calendar_events, cls=DjangoJSONEncoder)
+        'todo_list': todo_list
     })
 
 from .forms import PlayerProfileForm
@@ -903,20 +859,22 @@ def tournament_create(request):
             messages.success(request, f'Tournament "{tournament.Name}" created successfully!')
             return redirect('tournament_list')
         else:
+            # Log errors to console for debugging
+            print(f"DEBUG: Tournament Creation Errors: {form.errors}")
             messages.error(request, "Please correct the errors below.")
-            return render(request, 'web/Organization/org_tournament_form.html', {
-                'org': org,
-                'form': form,
+            
+            # If form is invalid, render the list template with the bound form and error flag
+            tournaments = Tournament.objects.filter(Organization_Name=org).order_by('-CreatedAt')
+            return render(request, 'web/Organization/org_tournament_list.html', {
+                'org': org, 
+                'tournaments': tournaments, 
+                'form': form, 
+                'show_form': True,
                 'action': 'Create'
             })
     
-    # GET Request
-    form = TournamentForm()
-    return render(request, 'web/Organization/org_tournament_form.html', {
-        'org': org,
-        'form': form,
-        'action': 'Create'
-    })
+    # If not POST, redirect to list
+    return redirect('tournament_list')
 
 def tournament_update(request, tournament_id):
     """Update an existing tournament"""
@@ -945,13 +903,7 @@ def tournament_detail(request, tournament_id):
         return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
-    
-    # Allow access if: Owner OR Bidder OR Published
-    from django.db.models import Q
-    tournament = get_object_or_404(Tournament, 
-        Q(Tournament_ID=tournament_id) & 
-        (Q(Organization_Name=org) | Q(bidders__organization=org) | Q(is_published=True))
-    )
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name=org)
     
     return render(request, 'web/Organization/org_tournament_detail.html', {'org': org, 'tournament': tournament})
 
@@ -973,25 +925,6 @@ def tournament_delete(request, tournament_id):
     # If not POST, just redirect back to list (or show error, but redirection is cleaner for "action" URLs)
     messages.error(request, "Invalid request method for deletion.")
     return redirect('tournament_list')
-
-def tournament_participants(request, tournament_id):
-    """View to list participants (organizations) of a tournament"""
-    org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
-    
-    org = get_object_or_404(Organization, id=org_id)
-    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name=org)
-    
-    # Fetch Bidders (Participants)
-    # Note: 'bidders' related_name on TournamentBidder model refers to the relation from Tournament to TournamentBidder
-    bidders = tournament.bidders.all().select_related('organization').order_by('joined_at')
-    
-    return render(request, 'web/Organization/org_tournament_participants.html', {
-        'org': org,
-        'tournament': tournament,
-        'bidders': bidders
-    })
 def my_players(request):
     """Display list of players recruited by the organization"""
     org_id = request.session.get('organizer_id')
@@ -1043,29 +976,12 @@ def publish_tournament(request, tournament_id):
     if not org_id:
         return redirect('org_login_start')
         
-    from .models import Organization, OrganizationNotification
     tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name_id=org_id)
-    org = get_object_or_404(Organization, id=org_id)
     
     if request.method == 'POST':
         tournament.is_published = True
         tournament.save()
-        
-        # Send Invites to all Active Organizations
-        other_orgs = Organization.objects.filter(status='Active').exclude(id=org_id)
-        
-        notifications = []
-        for other in other_orgs:
-            notifications.append(OrganizationNotification(
-                recipient=other,
-                message=f"{org.Organization_Name} invites you to bid for '{tournament.Name}'",
-                notification_type='BIDDING_INVITE',
-                related_tournament=tournament
-            ))
-        
-        OrganizationNotification.objects.bulk_create(notifications)
-        
-        messages.success(request, f"Tournament published! Sent invites to {len(notifications)} organizations.")
+        messages.success(request, f"Tournament '{tournament.Name}' has been published successfully!")
         return redirect('tournament_list')
         
     return redirect('tournament_list')
@@ -1125,8 +1041,7 @@ def open_bidding(request, tournament_id):
             coin_amount = Decimal('0.00')
             
         # Calculate Cost
-        other_orgs = Organization.objects.filter(status='Active').exclude(id=org_id)
-        print(f"DEBUG: Sending invites to {other_orgs.count()} organizations")
+        other_orgs = Organization.objects.exclude(id=org_id)
         
         # User Logic: "One Payment, All Receive"
         # Organizer pays 'coin_amount' TOTAL.
@@ -1142,9 +1057,9 @@ def open_bidding(request, tournament_id):
         
         try:
             with transaction.atomic():
-                # Deduct from Organizer (Flat Fee) - REMOVED as per user request
-                # org.coins -= total_cost
-                # org.save()
+                # Deduct from Organizer (Flat Fee) - Allow Negative
+                org.coins -= total_cost
+                org.save()
                 
                 # RECORD TRANSACTION: Sender
                 Transaction.objects.create(
@@ -1155,31 +1070,45 @@ def open_bidding(request, tournament_id):
                     description=f"Sent bidding incentives for '{tournament.Name}'"
                 )
                 
-                # Parse dates to be timezone aware
-                from django.utils.dateparse import parse_datetime
-                from django.utils import timezone
-                
-                dt_start = None
-                dt_end = None
-
-                if start_date:
-                    dt_start = parse_datetime(start_date)
-                    if dt_start and timezone.is_naive(dt_start):
-                        dt_start = timezone.make_aware(dt_start)
-                
-                if end_date:
-                    dt_end = parse_datetime(end_date)
-                    if dt_end and timezone.is_naive(dt_end):
-                        dt_end = timezone.make_aware(dt_end)
-                
                 # Update Tournament
                 tournament.bidding_open = True
-                tournament.bidding_start_date = dt_start
-                tournament.bidding_end_date = dt_end
+                tournament.bidding_start_date = start_date if start_date else None
+                tournament.bidding_end_date = end_date if end_date else None
                 tournament.bidding_invite_fee = total_cost 
                 tournament.save()
                 
-            messages.success(request, f"Bidding opened! Fee set to {total_cost}.")
+                # Distribute Coins and Notify
+                notifications = []
+                for other in other_orgs:
+                    # Add coins to recipient (Full Amount)
+                    if coin_amount > 0:
+                        other.coins += coin_amount
+                        other.save()
+                        
+                        # RECORD TRANSACTION: Recipient
+                        Transaction.objects.create(
+                            recipient=other,
+                            amount=coin_amount,
+                            transaction_type='BIDDING_INCENTIVE',
+                            related_tournament=tournament,
+                            description=f"Received bidding incentive from {org.Organization_Name}"
+                        )
+                    
+                    # Create Notification
+                    msg = f"{org.Organization_Name} invites you to bid for '{tournament.Name}'"
+                    if coin_amount > 0:
+                        msg += f" and sent you {coin_amount} coins!"
+                        
+                    notifications.append(OrganizationNotification(
+                        recipient=other,
+                        message=msg,
+                        notification_type='BIDDING_INVITE',
+                        related_tournament=tournament
+                    ))
+                    
+                OrganizationNotification.objects.bulk_create(notifications)
+                
+            messages.success(request, f"Bidding opened! Sent {coin_amount} coins to {len(notifications)} organizations (Total: {total_cost}).")
         except Exception as e:
             messages.error(request, f"Error processing transaction: {str(e)}")
             
@@ -1193,40 +1122,16 @@ def handle_bidding_invite(request, notification_id, action):
         return redirect('org_login_start')
         
     from .models import OrganizationNotification, TournamentBidder
-    org = get_object_or_404(Organization, id=org_id)
     notification = get_object_or_404(OrganizationNotification, id=notification_id, recipient_id=org_id)
     
     if action == 'accept':
         # Create Bidder entry
         if notification.related_tournament:
-            bidder, created = TournamentBidder.objects.get_or_create(
+            TournamentBidder.objects.get_or_create(
                 tournament=notification.related_tournament,
                 organization_id=org_id
             )
-            
-            if created:
-                # Credit Invite Fee to Organization
-                invite_fee = notification.related_tournament.bidding_invite_fee
-                if invite_fee > 0:
-                    from django.db import transaction as db_transaction
-                    from .models import Transaction
-                    
-                    with db_transaction.atomic():
-                        org.coins += invite_fee
-                        org.save()
-                        
-                        Transaction.objects.create(
-                            recipient=org,
-                            amount=invite_fee,
-                            transaction_type='BIDDING_INCENTIVE',
-                            related_tournament=notification.related_tournament,
-                            description=f"Received bidding incentive for '{notification.related_tournament.Name}'"
-                        )
-                    messages.success(request, f"Accepted! You received {invite_fee} coins.")
-                else:
-                    messages.success(request, f"You have accepted the invitation for '{notification.related_tournament.Name}'")
-            else:
-                messages.info(request, "You have already joined this tournament.")
+            messages.success(request, f"You have accepted the invitation for '{notification.related_tournament.Name}'")
         
         # Delete notification after action
         notification.delete()
@@ -1270,122 +1175,14 @@ def org_live_bidding(request):
     
     org = get_object_or_404(Organization, id=org_id)
     
-    # Get Active Bidding Tournaments
-    # Prioritize: 
-    # 1. Active (Live)
-    # 2. Upcoming (Scheduled)
-    # 3. Just Completed
-    
-    from django.db.models import Q
-    now = timezone.now()
-    
-    # --- Process Completed Bidding Sessions ---
-    completed_biddings = Tournament.objects.filter(
-        bidding_end_date__lt=now,
-        bidding_open=True,
-        bidding_notifications_sent=False
-    )
-    
-    if completed_biddings.exists():
-        from .models import PlayerNotification, OrganizationNotification, TournamentBidder
-        
-        for tournament in completed_biddings:
-            # 1. Notify All Players
-            players = Player.objects.exclude(status='SUSPENDED')
-            player_notifs = [
-                PlayerNotification(
-                    recipient=p,
-                    message=f"Bidding for '{tournament.Name}' has ended.",
-                    notification_type='INFO'
-                ) for p in players
-            ]
-            PlayerNotification.objects.bulk_create(player_notifs)
-            
-            # 2. Notify Accepted Organizations (Bidders)
-            bidders = TournamentBidder.objects.filter(tournament=tournament)
-            org_notifs = [
-                OrganizationNotification(
-                    recipient=bidder.organization,
-                    message=f"Bidding for '{tournament.Name}' has ended.",
-                    notification_type='INFO',
-                    related_tournament=tournament
-                ) for bidder in bidders
-            ]
-            OrganizationNotification.objects.bulk_create(org_notifs)
-            
-            # 3. Create Matches (Optional/Future: If "match" meant creating matches)
-            # For now, just mark processed.
-            
-            # 4. Update Tournament
-            tournament.bidding_notifications_sent = True
-            tournament.bidding_open = False # Close bidding
-            tournament.save()
-            
-            messages.info(request, f"Bidding for '{tournament.Name}' has ended and notifications sent.")
-            
-    # --- End Processing ---
-    
-    # Check for LIVE tournaments
-    active_tournament = Tournament.objects.filter(
-        bidding_open=True, 
-        bidding_start_date__lte=now, 
-        bidding_end_date__gte=now
-    ).first()
-    
-    status = 'NOT_CONFIGURED'
-    start_time = None
-    end_time = None
-    tournament_name = None
-    
-    if active_tournament:
-        status = 'LIVE'
-        start_time = active_tournament.bidding_start_date
-        end_time = active_tournament.bidding_end_date
-        tournament_name = active_tournament.Name
-    else:
-        # Check for UPCOMING
-        upcoming_tournament = Tournament.objects.filter(
-            bidding_open=True,
-            bidding_start_date__gt=now
-        ).order_by('bidding_start_date').first()
-        
-        if upcoming_tournament:
-            status = 'UPCOMING'
-            start_time = upcoming_tournament.bidding_start_date
-            end_time = upcoming_tournament.bidding_end_date
-            tournament_name = upcoming_tournament.Name
-        else:
-            # Check for RECENTLY COMPLETED (Optional, but good for UX)
-            completed_tournament = Tournament.objects.filter(
-                bidding_open=True,
-                bidding_end_date__lt=now
-            ).order_by('-bidding_end_date').first()
-            
-            if completed_tournament:
-                status = 'COMPLETED'
-                start_time = completed_tournament.bidding_start_date
-                end_time = completed_tournament.bidding_end_date
-                tournament_name = completed_tournament.Name
-
-    # Check if starting soon (within 30 mins)
-    is_starting_soon = False
-    if status == 'UPCOMING' and start_time:
-        time_diff = start_time - now
-        if time_diff.total_seconds() <= 1800: # 30 mins
-             is_starting_soon = True
-
     # Get players who are NOT already in an organization (or status='ACTIVE'/'PENDING' but free agents)
-    # Get ALL players (excluding Suspended) to show Sold Out status
-    # Players with organization__isnull=False will be marked as Sold Out
-    available_players = Player.objects.exclude(status='SUSPENDED')
+    # Assuming 'PENDING' means looking for team, 'ACTIVE' means in team? 
+    # Let's assume we bid on players who don't have an organization yet.
+    available_players = Player.objects.filter(organization__isnull=True).exclude(status='SUSPENDED')
     
     return render(request, 'web/Organization/org_live_bidding.html', {
         'org': org,
-        'players': available_players,
-        'bidding_status': status,
-        'start_time': start_time,
-        'end_time': end_time,
-        'tournament_name': tournament_name
+        'players': available_players
     })
 
 
@@ -1505,24 +1302,6 @@ def handle_negotiation(request, bid_id, action):
             notification_type='INFO'
         )
         
-        # 6. Reject all other pending/negotiating bids for this player
-        other_bids = PlayerBid.objects.filter(
-            player=bid.player,
-            status__in=['PENDING', 'NEGOTIATING']
-        ).exclude(id=bid_id)
-        
-        for other_bid in other_bids:
-            other_bid.status = 'REJECTED'
-            other_bid.save()
-            
-            # Notify the organization
-            from .models import OrganizationNotification
-            OrganizationNotification.objects.create(
-                recipient=other_bid.organization,
-                message=f"{bid.player.username} has accepted another offer. Your bid has been automatically rejected.",
-                notification_type='INFO'
-            )
-        
         messages.success(request, f"Deal finalized! {bid.player.username} is now in your team.")
         
     elif action == 'reject':
@@ -1606,29 +1385,11 @@ def handle_player_bid(request, bid_id, action):
         
         # 5. Notify Org
         from .models import OrganizationNotification
-        player_name = player.username or player.full_name or "Player"
         OrganizationNotification.objects.create(
             recipient=org,
-            message=f"{player_name} ACCEPTED your bid of {final_amount}!",
+            message=f"{player.username} ACCEPTED your bid of {final_amount}!",
             notification_type='INFO'
         )
-        
-        # 6. Reject all other pending/negotiating bids for this player
-        other_bids = PlayerBid.objects.filter(
-            player=player,
-            status__in=['PENDING', 'NEGOTIATING']
-        ).exclude(id=bid_id)
-        
-        for other_bid in other_bids:
-            other_bid.status = 'REJECTED'
-            other_bid.save()
-            
-            # Notify the organization
-            OrganizationNotification.objects.create(
-                recipient=other_bid.organization,
-                message=f"{player.username} has accepted another offer. Your bid has been automatically rejected.",
-                notification_type='INFO'
-            )
         
         messages.success(request, f"Congratulations! You have joined {org.Organization_Name}.")
         
@@ -1669,19 +1430,3 @@ def handle_player_bid(request, bid_id, action):
             messages.success(request, "Counter-offer sent successfully.")
             
     return redirect('player_bids')
-
-
-def mark_all_notifications_read(request):
-    """Mark all notifications as read"""
-    org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
-        
-    # Mark as read instead of deleting
-    from .models import OrganizationNotification
-    OrganizationNotification.objects.filter(recipient_id=org_id, is_read=False).update(is_read=True)
-    
-    messages.success(request, "All notifications marked as read.")
-    # Redirect back to where the user came from
-    return request.META.get('HTTP_REFERER') and redirect(request.META.get('HTTP_REFERER')) or redirect('organizer_dashboard')
-

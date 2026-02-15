@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-from .models import Organization, Player, Tournament
+from .models import Organization, Player, Tournament, PlayerBid
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import timedelta
@@ -184,6 +184,28 @@ def admin_tournaments_detail(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'web/Admin/admin_tournaments_detail.html', {'tournaments': page_obj, 'page_obj': page_obj})
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_bids_detail(request):
+    search_query = request.GET.get('q', '')
+    if search_query:
+        bids_list = PlayerBid.objects.filter(
+            Q(organization__Organization_Name__icontains=search_query) | 
+            Q(player__username__icontains=search_query) |
+            Q(message__icontains=search_query)
+        ).order_by('-created_at')
+    else:
+        bids_list = PlayerBid.objects.all().order_by('-created_at')
+        
+    paginator = Paginator(bids_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'web/Admin/admin_bids_detail.html', {
+        'page_obj': page_obj,
+        'search_query': search_query
+    })
+
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_delete_organization(request, org_id):
@@ -418,7 +440,9 @@ def admin_analytics(request):
         
     context = {
         'total_players': total_players,
+        'active_players': Player.objects.filter(status='ACTIVE').count(),
         'total_orgs': total_orgs,
+        'active_orgs': Organization.objects.filter(status='Active').count(),
         'total_tournaments': total_tournaments,
         'new_players_week': new_players_week,
         'new_orgs_week': new_orgs_week,

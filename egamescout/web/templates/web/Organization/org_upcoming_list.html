@@ -1,0 +1,99 @@
+{% extends 'web/Organization/dashboard_base.html' %}
+
+{% block title %}Upcoming Tournaments - E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-display font-bold text-white mb-2">Upcoming Tournaments</h1>
+            <p class="text-gray-400">Discover upcoming tournaments from all organizations</p>
+        </div>
+    </div>
+
+    <!-- Tournaments Grid -->
+    {% if tournaments %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for tournament in tournaments %}
+        <div
+            class="bg-brand-dark/60 border border-white/10 rounded-lg p-6 hover:border-accent-cyan/50 transition-all group relative overflow-hidden">
+            <!-- Glow Effect -->
+            <div
+                class="absolute top-0 right-0 w-24 h-24 bg-accent-cyan/10 blur-3xl rounded-full -mr-10 -mt-10 group-hover:bg-accent-cyan/20 transition-all">
+            </div>
+
+            <!-- Tournament Content -->
+            <div class="relative z-10">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3
+                            class="text-xl font-display font-bold text-white group-hover:text-accent-cyan transition-colors">
+                            {{ tournament.Name }}
+                        </h3>
+                        <p class="text-xs text-brand-light/70 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-building"></i>
+                            {{ tournament.Organization_Name.Organization_Name }}
+                        </p>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="text-xs text-gray-400 flex items-center gap-1">
+                                <i class="fa-solid fa-users text-accent-cyan/70"></i>
+                                {{ tournament.max_teams }} Teams
+                            </span>
+                            <span class="text-xs text-brand-light/20">|</span>
+                            <span class="text-xs text-gray-400 flex items-center gap-1">
+                                <i class="fa-regular fa-calendar text-accent-cyan/70"></i>
+                                {{ tournament.start_date|date:"M d" }} - {{ tournament.end_date|date:"M d, Y" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <!-- Prize Pool -->
+                    <div class="p-3 bg-accent-cyan/5 border border-accent-cyan/20 rounded-lg">
+                        <p class="text-[10px] text-accent-cyan/70 font-display uppercase tracking-wider mb-1">Prize Pool
+                        </p>
+                        <p class="text-lg font-display font-bold text-accent-cyan">
+                            ₹{{ tournament.PrizePool|floatformat:0 }}
+                        </p>
+                    </div>
+
+                    <!-- Type/Venue -->
+                    <div class="p-3 bg-white/5 border border-white/10 rounded-lg flex flex-col justify-center">
+                        <p class="text-[10px] text-brand-light/50 font-display uppercase tracking-wider mb-1">
+                            {% if tournament.is_offline %}VENUE{% else %}FORMAT{% endif %}
+                        </p>
+                        <p class="text-xs font-bold text-white truncate">
+                            {% if tournament.is_offline %}
+                            <i class="fa-solid fa-location-dot text-red-400 mr-1"></i>
+                            {{ tournament.venue|default:"TBA"}}
+                            {% else %}
+                            <i class="fa-solid fa-wifi text-green-400 mr-1"></i> ONLINE
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <a href="{% url 'tournament_detail' tournament.Tournament_ID %}"
+                    class="block w-full px-4 py-2 bg-accent-cyan text-brand-dark font-bold text-center rounded hover:bg-white transition-all shadow-[0_0_10px_rgba(102,252,241,0.2)] hover:shadow-[0_0_20px_rgba(102,252,241,0.4)]">
+                    <i class="fa-solid fa-eye mr-2"></i> View Details
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-20">
+        <div class="w-24 h-24 mx-auto mb-6 bg-accent-cyan/10 rounded-full flex items-center justify-center">
+            <i class="fa-regular fa-calendar-xmark text-4xl text-accent-cyan/50"></i>
+        </div>
+        <h3 class="text-2xl font-display font-bold text-white mb-2">No Upcoming Tournaments</h3>
+        <p class="text-gray-400 mb-6">There are no upcoming tournaments available at the moment.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

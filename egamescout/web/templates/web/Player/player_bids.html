@@ -1,0 +1,143 @@
+{% extends 'web/Player/player_dashboard_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}My Bids | E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="relative min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+
+    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-accent-cyan/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="relative z-10 max-w-4xl mx-auto">
+        <!-- Header -->
+        <h1 class="text-3xl font-display font-bold text-white mb-2 tracking-tight">
+            Incoming <span class="text-accent-cyan">Bids</span>
+        </h1>
+        <p class="text-gray-400 mb-8">Review offers from organizations and negotiate your terms.</p>
+
+        <div class="space-y-6">
+            {% for bid in bids %}
+            <div
+                class="bg-brand-dark/40 border {% if bid.status == 'NEGOTIATING' %}border-purple-500/30{% else %}border-white/10{% endif %} rounded-2xl p-6 relative overflow-hidden transition-all hover:border-accent-cyan/30">
+                <!-- Org Logo / Info -->
+                <div class="flex items-start justify-between mb-6">
+                    <div class="flex gap-4">
+                        <div
+                            class="w-16 h-16 rounded-xl bg-brand-gray border border-white/10 overflow-hidden flex items-center justify-center">
+                            {% if bid.organization.profile_photo %}
+                            <img src="{{ bid.organization.profile_photo.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                            <i class="fa-solid fa-building text-2xl text-gray-500"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-display">{{ bid.organization.Organization_Name
+                                }}</h3>
+                            <p class="text-sm text-gray-400">Time: {{ bid.created_at|date:"M d, Y H:i" }}</p>
+
+                            {% if bid.status == 'NEGOTIATING' %}
+                            <span
+                                class="inline-block mt-2 px-2 py-1 bg-purple-500/20 text-purple-400 text-[10px] font-bold rounded border border-purple-500/30 uppercase">
+                                Negotiation in Progress
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="text-right">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Offer Amount</p>
+                        <p class="text-3xl font-display font-bold text-yellow-500">
+                            {{ bid.amount|floatformat:2 }} <span class="text-sm font-sans text-gray-400">coins</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Message -->
+                {% if bid.message %}
+                <div class="bg-black/30 rounded-lg p-4 mb-6 border border-white/5">
+                    <i class="fa-solid fa-quote-left text-gray-600 mb-2 block"></i>
+                    <p class="text-sm text-gray-300 italic">{{ bid.message }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Actions -->
+                {% if bid.status == 'PENDING' %}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <a href="{% url 'handle_player_bid' bid.id 'accept' %}"
+                        class="px-4 py-3 bg-green-500 hover:bg-green-400 text-black font-bold rounded-xl text-center transition-colors shadow-[0_0_15px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-check"></i> Accept Offer
+                    </a>
+
+                    <button onclick="toggleNegotiate('{{ bid.id }}')"
+                        class="px-4 py-3 bg-purple-500/10 hover:bg-purple-500 text-purple-400 hover:text-white border border-purple-500/30 font-bold rounded-xl text-center transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-comments-dollar"></i> Negotiate
+                    </button>
+
+                    <a href="{% url 'handle_player_bid' bid.id 'reject' %}"
+                        class="px-4 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 font-bold rounded-xl text-center transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-xmark"></i> Reject
+                    </a>
+                </div>
+
+                <!-- Negotiation Form (Hidden) -->
+                <div id="negotiateForm-{{ bid.id }}"
+                    class="hidden mt-4 pt-4 border-t border-white/10 animate-in fade-in slide-in-from-top-2">
+                    <form action="{% url 'handle_player_bid' bid.id 'negotiate' %}" method="POST"
+                        class="bg-purple-500/5 rounded-xl p-4 border border-purple-500/10">
+                        {% csrf_token %}
+                        <h4 class="text-sm font-bold text-purple-400 mb-3 uppercase tracking-wider">Counter Offer</h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Your Price (Coins)</label>
+                                <input type="number" name="counter_amount" required min="1" step="0.01"
+                                    value="{{ bid.amount }}"
+                                    class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-purple-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Message</label>
+                                <input type="text" name="counter_message" placeholder="Why this price?"
+                                    class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-purple-500 outline-none">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-3">
+                            <button type="button" onclick="toggleNegotiate('{{ bid.id }}')"
+                                class="text-xs text-gray-500 hover:text-white transition-colors">Cancel</button>
+                            <button type="submit"
+                                class="px-4 py-2 bg-purple-500 hover:bg-purple-400 text-white text-xs font-bold rounded-lg transition-colors">
+                                Send Counter-Offer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {% elif bid.status == 'NEGOTIATING' %}
+                <div class="bg-black/30 rounded-lg p-4 border border-dashed border-purple-500/30 text-center">
+                    <p class="text-sm text-purple-400 font-bold mb-1">Negotiation Sent</p>
+                    <p class="text-xs text-gray-500">You countered with <span class="text-white">{{ bid.counter_amount
+                            }} coins</span>. Waiting for organization response.</p>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="text-center py-16 bg-white/5 rounded-2xl border border-white/5">
+                <i class="fa-solid fa-inbox text-4xl text-gray-600 mb-3"></i>
+                <h3 class="text-xl font-bold text-white">No Bids Yet</h3>
+                <p class="text-gray-400">You haven't received any offers from organizations yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleNegotiate(bidId) {
+        const form = document.getElementById(`negotiateForm-${bidId}`);
+        form.classList.toggle('hidden');
+    }
+</script>
+{% endblock %}

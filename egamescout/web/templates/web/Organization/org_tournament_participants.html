@@ -1,0 +1,106 @@
+{% extends 'web/Organization/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Tournament Participants | E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <a href="{% url 'tournament_list' %}" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i> Back
+                </a>
+                <span class="text-gray-600">/</span>
+                <span class="text-accent-cyan font-bold">{{ tournament.Name }}</span>
+            </div>
+            <h1 class="text-4xl font-display font-bold text-white tracking-wide">Participants</h1>
+            <p class="text-gray-400 text-sm">Organizations joined in this tournament.</p>
+        </div>
+
+        <div class="bg-brand-dark/50 px-6 py-3 rounded-xl border border-white/5 backdrop-blur-sm">
+            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Total Teams</p>
+            <p class="text-2xl font-display font-bold text-white">{{ bidders.count }} <span
+                    class="text-sm text-gray-500 font-normal">/ {{ tournament.max_teams }}</span></p>
+        </div>
+    </div>
+
+    <!-- Participants Table -->
+    <div
+        class="bg-brand-dark/30 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-xl relative">
+        <!-- Decoration -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent-cyan via-blue-500 to-purple-500">
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-white/5 text-gray-400 uppercase text-xs font-bold tracking-wider">
+                    <tr>
+                        <th class="px-6 py-4">Organization</th>
+                        <th class="px-6 py-4">Contact</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-right">Joined Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for bidder in bidders %}
+                    <tr class="hover:bg-white/5 transition-colors group">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-brand-gray border border-white/10 overflow-hidden flex items-center justify-center">
+                                    {% if bidder.organization.profile_photo %}
+                                    <img src="{{ bidder.organization.profile_photo.url }}"
+                                        alt="{{ bidder.organization.Organization_Name }}"
+                                        class="w-full h-full object-cover">
+                                    {% else %}
+                                    <span class="text-lg font-bold text-gray-500">{{
+                                        bidder.organization.Organization_Name|slice:":1" }}</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="text-white font-bold group-hover:text-accent-cyan transition-colors">{{
+                                        bidder.organization.Organization_Name }}</p>
+                                    <p class="text-xs text-gray-500">@{{ bidder.organization.Organization_UserName }}
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-300">
+                                <p><i class="fa-solid fa-envelope text-gray-500 mr-2 w-4"></i> {{
+                                    bidder.organization.Organization_Email }}</p>
+                                <p class="mt-1"><i class="fa-solid fa-phone text-gray-500 mr-2 w-4"></i> {{
+                                    bidder.organization.Organization_Contact }}</p>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span
+                                class="px-2 py-1 rounded-md bg-green-500/10 text-green-400 border border-green-500/20 text-xs font-bold">
+                                ACCEPTED
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <p class="text-white font-mono text-sm">{{ bidder.joined_at|date:"M d, Y" }}</p>
+                            <p class="text-xs text-gray-500">{{ bidder.joined_at|date:"H:i" }}</p>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-16 text-center">
+                            <div
+                                class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fa-solid fa-user-slash text-2xl text-gray-600"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-1">No Participants Yet</h3>
+                            <p class="text-gray-400 text-sm">Organizations that accept your invite will appear here.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

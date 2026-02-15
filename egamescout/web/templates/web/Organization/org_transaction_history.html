@@ -1,0 +1,102 @@
+{% extends 'web/Organization/dashboard_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Transaction History | E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="relative min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+
+    <!-- Background Elements -->
+    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-accent-cyan/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-4xl font-display font-bold text-white mb-2 tracking-tight">
+                    Transaction <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500">History</span>
+                </h1>
+                <p class="text-gray-400">Track all your incoming and outgoing transactions.</p>
+            </div>
+
+            <div class="flex items-center gap-4 bg-brand-dark/50 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
+                <div class="text-right">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">Current Balance</p>
+                    <p class="text-2xl font-display font-bold text-yellow-500 flex items-center justify-end gap-2">
+                        <i class="fa-solid fa-coins text-lg"></i> {{ org.coins|floatformat:2|intcomma }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="glass-panel rounded-xl overflow-hidden border border-white/10">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-brand-dark/80 text-gray-400 text-xs uppercase tracking-wider">
+                            <th class="px-6 py-4 font-medium">Date</th>
+                            <th class="px-6 py-4 font-medium">Type</th>
+                            <th class="px-6 py-4 font-medium">Description</th>
+                            <th class="px-6 py-4 font-medium text-right">Amount</th>
+                            <th class="px-6 py-4 font-medium text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
+                        {% for t in transactions %}
+                        <tr class="hover:bg-white/5 transition-colors group">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                {{ t.timestamp|date:"M d, Y H:i" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-bold rounded-full 
+                                    {% if t.sender == org %}bg-red-500/10 text-red-500 border border-red-500/20
+                                    {% else %}bg-green-500/10 text-green-500 border border-green-500/20{% endif %}">
+                                    {{ t.get_transaction_type_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-300">
+                                <div class="font-medium text-white">{{ t.description }}</div>
+                                {% if t.related_tournament %}
+                                <div class="text-xs text-gray-500 mt-0.5">
+                                    Tournament: {{ t.related_tournament.Name }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold font-mono">
+                                {% if t.sender == org %}
+                                <span class="text-red-400">- {{ t.amount|floatformat:2|intcomma }}</span>
+                                {% else %}
+                                <span class="text-green-400">+ {{ t.amount|floatformat:2|intcomma }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="text-accent-cyan text-xs"><i class="fa-solid fa-check-circle"></i>
+                                    Success</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                                <i class="fa-solid fa-receipt text-4xl mb-3 opacity-20"></i>
+                                <p>No transactions found.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination (if needed) -->
+            <!-- <div class="px-6 py-4 border-t border-white/5 bg-brand-dark/30">
+                ...
+            </div> -->
+        </div>
+    </div>
+</div>
+{% endblock %}
