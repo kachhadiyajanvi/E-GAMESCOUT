@@ -19,6 +19,7 @@ class Organization(models.Model):
         ('Pending', 'Pending'),
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Active')
+    is_archived = models.BooleanField(default=False)
     CreatedAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -61,7 +62,9 @@ class Tournament(models.Model):
     venue = models.CharField(max_length=255, null=True, blank=True)
     show_roadmap = models.BooleanField(default=False)
     roadmap_content = models.TextField(null=True, blank=True)
+    roadmap_content = models.TextField(null=True, blank=True)
     prize_distribution = models.JSONField(default=list, blank=True)
+    is_archived = models.BooleanField(default=False)
     
     # Bidding Fields
     bidding_start_date = models.DateTimeField(null=True, blank=True)
@@ -122,6 +125,7 @@ class Player(models.Model):
     coins = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='players')
+    is_archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
