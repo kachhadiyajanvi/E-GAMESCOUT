@@ -1,7 +1,7 @@
 {% extends 'web/Organization/dashboard_base.html' %}
 
 {% block content %}
-<div class="dashboard-container rounded-2xl p-6 min-h-[calc(100vh-80px)]">
+<div class="dashboard-container rounded-2xl p-8 min-h-[calc(100vh-80px)]">
 
 
 
@@ -40,30 +40,30 @@
 
         <!-- Active Tournaments -->
         <div
-            class="glass-panel p-5 rounded-xl relative overflow-hidden group hover:border-blue-400/50 transition-all duration-300 backdrop-blur-md">
+            class="bg-black/40 border border-white/10 p-5 rounded-xl relative overflow-hidden group hover:border-purple-500/50 transition-all duration-300 backdrop-blur-md shadow-2xl">
             <div
-                class="absolute inset-0 bg-gradient-to-br from-blue-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
             </div>
             <div class="relative z-10 flex justify-between items-start">
                 <div>
                     <div
-                        class="w-10 h-10 rounded-lg bg-[#0B0C10]/80 border border-white/10 flex items-center justify-center mb-2 group-hover:border-blue-400/30 transition-colors shadow-lg">
+                        class="w-10 h-10 rounded-lg bg-[#0B0C10]/80 border border-white/10 flex items-center justify-center mb-2 group-hover:border-purple-500/30 transition-colors shadow-lg">
                         <i
-                            class="fa-solid fa-trophy text-brand-light/50 group-hover:text-accent-blue transition-colors text-lg"></i>
+                            class="fa-solid fa-trophy text-brand-light/50 group-hover:text-purple-400 transition-colors text-lg"></i>
                     </div>
                     <span class="text-brand-light/40 text-[10px] uppercase tracking-widest font-bold">Active
                         Tournaments</span>
                     <h3
-                        class="text-2xl font-display font-bold text-white mt-1 group-hover:text-accent-blue transition-colors">
+                        class="text-2xl font-display font-bold text-white mt-1 group-hover:text-purple-400 transition-colors">
                         {{ active_tournaments }}</h3>
                 </div>
                 <div
-                    class="bg-accent-blue-dim border border-blue-400/20 text-accent-blue text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1 animate-pulse">
+                    class="bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1 animate-pulse shadow-[0_0_10px_rgba(168,85,247,0.2)]">
                     <i class="fa-solid fa-circle-play"></i> LIVE
                 </div>
             </div>
             <div class="absolute bottom-0 left-0 w-full h-1 bg-[#0B0C10]">
-                <div class="absolute inset-0 bg-blue-400/50 blur-[2px] opacity-50"></div>
+                <div class="absolute inset-0 bg-purple-500/50 blur-[2px] opacity-50"></div>
             </div>
         </div>
 
@@ -246,11 +246,17 @@
                 datasets: [{
                     label: 'New Players',
                     data: data,
-                    borderColor: '#66FCF1',
-                    backgroundColor: 'rgba(102, 252, 241, 0.1)',
+                    borderColor: '#FF2A6D',
+                    backgroundColor: (context) => {
+                        const ctx = context.chart.ctx;
+                        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                        gradient.addColorStop(0, 'rgba(255, 42, 109, 0.2)');
+                        gradient.addColorStop(1, 'rgba(102, 252, 241, 0.05)');
+                        return gradient;
+                    },
                     borderWidth: 2,
                     pointBackgroundColor: '#0B0C10',
-                    pointBorderColor: '#66FCF1',
+                    pointBorderColor: '#FF2A6D',
                     pointBorderWidth: 2,
                     pointRadius: 4,
                     pointHoverRadius: 6,

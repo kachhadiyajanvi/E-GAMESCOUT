@@ -56,8 +56,8 @@ class Tournament(models.Model):
     # New Fields
     description = models.TextField(default='')
     max_teams = models.IntegerField(default=16)
-    start_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
     is_offline = models.BooleanField(default=False)
     venue = models.CharField(max_length=255, null=True, blank=True)
     show_roadmap = models.BooleanField(default=False)

@@ -26,6 +26,10 @@ def admin_login(request):
         
         if user is not None:
             if user.is_superuser:
+                # Clear conflicting sessions
+                if 'organizer_id' in request.session: del request.session['organizer_id']
+                if 'player_id' in request.session: del request.session['player_id']
+                
                 login(request, user)
                 return redirect('admin_dashboard')
             else:
@@ -455,6 +459,14 @@ def admin_analytics(request):
         'new_players_month': new_players_month,
         'new_orgs_month': new_orgs_month,
         'new_tournaments_month': new_tournaments_month,
+        
+
+        
+        # Account Status Metrics
+        'deactivated_players': Player.objects.filter(status='SUSPENDED', is_archived=False).count(),
+        'deleted_players': Player.objects.filter(is_archived=True).count(),
+        'deactivated_orgs': Organization.objects.filter(status='Suspended', is_archived=False).count(),
+        'deleted_orgs': Organization.objects.filter(is_archived=True).count(),
         
         # Charts - Multi-period
         'week_labels': week_labels,

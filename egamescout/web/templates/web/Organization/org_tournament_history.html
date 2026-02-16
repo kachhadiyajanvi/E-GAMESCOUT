@@ -13,16 +13,16 @@
             <div>
                 <h1 class="text-4xl font-display font-bold text-white mb-2 tracking-wide">
                     Tournament <span
-                        class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500">Management</span>
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500">History</span>
                 </h1>
-                <p class="text-gray-400 text-sm">Create and manage your esports tournaments</p>
+                <p class="text-gray-400 text-sm">View your past tournaments and results</p>
             </div>
         </div>
         <div class="flex gap-3">
-            <a href="{% url 'tournament_history' %}"
+            <a href="{% url 'tournament_list' %}"
                 class="px-5 py-3.5 bg-brand-gray border border-white/10 text-white font-display font-bold rounded-xl hover:bg-white/5 hover:border-accent-cyan/50 transition-all duration-300 flex items-center gap-2.5">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                Completed Tournaments
+                <i class="fa-solid fa-trophy"></i>
+                Active Tournaments
             </a>
             <a href="{% url 'tournament_create' %}"
                 class="px-6 py-3.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl hover:bg-purple-500 hover:text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center gap-2.5 group font-bold">
@@ -100,97 +100,50 @@
                 </div>
 
                 <!-- Info Grid with enhanced styling -->
+                <!-- Info Grid with enhanced styling -->
                 <div class="grid grid-cols-2 gap-4 mb-6">
-                    <!-- Prize Pool with glow effect -->
-                    <div
-                        class="relative p-4 bg-gradient-to-br from-accent-cyan/10 to-accent-cyan/5 border border-accent-cyan/30 rounded-xl overflow-hidden group/prize hover:shadow-[0_0_20px_rgba(102,252,241,0.2)] transition-all duration-300">
-                        <div
-                            class="absolute inset-0 bg-gradient-to-tr from-accent-cyan/5 to-transparent opacity-0 group-hover/prize:opacity-100 transition-opacity">
-                        </div>
-                        <p
-                            class="text-[10px] text-accent-cyan/80 font-display uppercase tracking-widest mb-1.5 relative z-10">
-                            Prize Pool</p>
-                        <p
-                            class="text-xl font-display font-bold text-accent-cyan relative z-10 group-hover/prize:scale-105 transition-transform">
+                    <!-- Prize Pool -->
+                    <div class="p-3 bg-accent-cyan/5 border border-accent-cyan/20 rounded-xl">
+                        <p class="text-[10px] text-accent-cyan/70 font-display uppercase tracking-wider mb-1">Prize Pool
+                        </p>
+                        <p class="text-lg font-display font-bold text-accent-cyan">
                             ₹{{ tournament.PrizePool|floatformat:0 }}
                         </p>
                     </div>
 
                     <!-- Location/Roadmap -->
-                    <div
-                        class="p-4 bg-white/5 border border-white/15 rounded-xl flex flex-col justify-center hover:bg-white/10 transition-all duration-300">
+                    <div class="p-3 bg-white/5 border border-white/10 rounded-xl flex flex-col justify-center">
                         {% if tournament.is_offline and tournament.venue %}
-                        <p class="text-[10px] text-brand-light/60 font-display uppercase tracking-widest mb-1.5">Venue
+                        <p class="text-[10px] text-brand-light/50 font-display uppercase tracking-wider mb-1">Venue
                         </p>
                         <p class="text-xs font-bold text-white truncate" title="{{ tournament.venue }}">
-                            <i class="fa-solid fa-location-dot text-accent-cyan mr-1.5"></i> {{ tournament.venue }}
+                            <i class="fa-solid fa-location-dot text-red-400 mr-1"></i> {{ tournament.venue }}
                         </p>
                         {% else %}
-                        <p class="text-[10px] text-brand-light/60 font-display uppercase tracking-widest mb-1.5">Roadmap
+                        <p class="text-[10px] text-brand-light/50 font-display uppercase tracking-wider mb-1">Format
                         </p>
                         <p class="text-xs font-bold text-white">
-                            {% if tournament.show_roadmap %}
-                            <i class="fa-solid fa-check text-green-400 mr-1.5"></i> Published
-                            {% else %}
-                            <i class="fa-solid fa-ban text-brand-light/40 mr-1.5"></i> Hidden
-                            {% endif %}
+                            <i class="fa-solid fa-wifi text-green-400 mr-1"></i> ONLINE
                         </p>
                         {% endif %}
                     </div>
                 </div>
 
-                <!-- Action Buttons with enhanced styling -->
-                <div class="flex flex-wrap gap-2">
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-3 gap-2">
                     <a href="{% url 'tournament_detail' tournament.Tournament_ID %}"
-                        class="flex-1 min-w-[100px] px-4 py-2.5 bg-accent-cyan/10 border border-accent-cyan/40 text-accent-cyan rounded-lg hover:bg-accent-cyan hover:text-black transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 hover:shadow-[0_0_15px_rgba(102,252,241,0.4)] group/btn">
-                        <i class="fa-solid fa-eye group-hover/btn:scale-110 transition-transform"></i> View
+                        class="px-3 py-2 bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan hover:bg-accent-cyan hover:text-brand-dark font-bold text-center rounded-lg transition-all text-xs flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-eye"></i> View
                     </a>
-                    <a href="{% url 'tournament_update' tournament.Tournament_ID %}"
-                        class="flex-1 min-w-[100px] px-4 py-2.5 bg-white/5 border border-white/20 text-white rounded-lg hover:bg-white/15 hover:border-accent-cyan/60 transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                        <i class="fa-solid fa-edit group-hover/btn:rotate-12 transition-transform"></i> Edit
-                    </a>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-2">
+
                     <a href="{% url 'tournament_participants' tournament.Tournament_ID %}"
-                        class="flex-1 min-w-[140px] px-4 py-2.5 bg-blue-500/10 border border-blue-500/40 text-blue-400 rounded-lg hover:bg-blue-500/20 hover:border-blue-500/60 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                        <i class="fa-solid fa-users group-hover/btn:scale-110 transition-transform"></i> Participants
+                        class="px-3 py-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white font-bold text-center rounded-lg transition-all text-xs flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-users"></i> Teams
                     </a>
 
-                    {% if tournament.Status != 'Cancelled' and tournament.Status != 'Completed' %}
-                    <!-- Cancel Button -->
-                    <button onclick="confirmCancel('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
-                        class="flex-1 min-w-[100px] px-4 py-2.5 bg-orange-500/10 border border-orange-500/40 text-orange-400 rounded-lg hover:bg-orange-500/20 hover:border-orange-500/60 hover:shadow-[0_0_15px_rgba(249,115,22,0.4)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                        <i class="fa-solid fa-ban group-hover/btn:scale-110 transition-transform"></i> Cancel
-                    </button>
-                    {% endif %}
-
-                    {% if not tournament.is_published %}
-                    <form action="{% url 'publish_tournament' tournament.Tournament_ID %}" method="POST"
-                        class="flex-1 min-w-[120px]">
-                        {% csrf_token %}
-                        <button type="submit"
-                            class="w-full px-4 py-2.5 bg-purple-500/10 border border-purple-500/40 text-purple-400 rounded-lg hover:bg-purple-500/20 hover:border-purple-500/60 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                            <i class="fa-solid fa-bullhorn group-hover/btn:scale-110 transition-transform"></i> Publish
-                        </button>
-                    </form>
-                    {% else %}
-                    <!-- Open Bidding Button -->
-                    {% if not tournament.bidding_open %}
-                    <button
-                        onclick="openBiddingModal('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
-                        class="flex-1 min-w-[130px] px-4 py-2.5 bg-yellow-500/10 border border-yellow-500/40 text-yellow-400 rounded-lg hover:bg-yellow-500/20 hover:border-yellow-500/60 hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                        <i class="fa-solid fa-gavel group-hover/btn:rotate-12 transition-transform"></i> Open Bidding
-                    </button>
-                    {% else %}
-                    <div class="flex-1 min-w-[130px] px-4 py-2.5 bg-yellow-500/5 border border-yellow-500/20 text-yellow-500/60 rounded-lg text-center font-bold text-sm flex items-center justify-center gap-2 cursor-default"
-                        title="Fee: {{ tournament.bidding_invite_fee }} coins">
-                        <i class="fa-solid fa-check"></i> Bidding Open
-                    </div>
-                    {% endif %}
-                    {% endif %}
                     <button onclick="confirmDelete('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
-                        class="flex-1 min-w-[100px] px-4 py-2.5 bg-red-500/10 border border-red-500/40 text-red-400 rounded-lg hover:bg-red-500/20 hover:border-red-500/60 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                        <i class="fa-solid fa-trash group-hover/btn:scale-110 transition-transform"></i> Delete
+                        class="px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white font-bold text-center rounded-lg transition-all text-xs flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-trash"></i> Delete
                     </button>
                 </div>
             </div>
@@ -345,9 +298,6 @@
 
                 const biddingModal = document.getElementById('biddingModal');
                 if (biddingModal) document.body.appendChild(biddingModal);
-
-                const cancelModal = document.getElementById('cancelModal');
-                if (cancelModal) document.body.appendChild(cancelModal);
             });
 
             // Bidding Modal Logic
@@ -391,87 +341,48 @@
                 }, 300);
             }
 
-            // --- Cancel Modal Logic ---
-            const cancelModal = document.getElementById('cancelModal');
-            const cancelBackdrop = document.getElementById('cancelBackdrop');
-            const cancelModalContent = document.getElementById('cancelModalContent');
-            const cancelForm = document.getElementById('cancelForm');
-            const cancelTournamentNameSpan = document.getElementById('cancelTournamentName');
-
-            function confirmCancel(tournamentId, tournamentName) {
-                cancelForm.action = `/organization/tournaments/${tournamentId}/cancel/`;
-                cancelTournamentNameSpan.textContent = tournamentName;
-
-                cancelModal.classList.remove('hidden');
-                // Trigger reflow
-                void cancelModal.offsetWidth;
-
-                // Animate in
-                cancelBackdrop.classList.remove('opacity-0');
-                cancelModalContent.classList.remove('scale-95', 'opacity-0');
-                cancelModalContent.classList.add('scale-100', 'opacity-100');
-            }
-
-            function closeCancelModal() {
-                // Animate out
-                cancelBackdrop.classList.add('opacity-0');
-                cancelModalContent.classList.remove('scale-100', 'opacity-100');
-                cancelModalContent.classList.add('scale-95', 'opacity-0');
-
-                setTimeout(() => {
-                    cancelModal.classList.add('hidden');
-                }, 300);
-            }
-
-            // Close on backdrop click
-            cancelModal.addEventListener('click', (e) => {
-                if (e.target === cancelBackdrop || e.target === cancelModal) {
-                    closeCancelModal();
-                }
-            });
-
-            // Make global
-            window.confirmCancel = confirmCancel;
-            window.closeCancelModal = closeCancelModal;
-
-            // --- Delete Modal Logic (Existing) ---
-            const deleteModal = document.getElementById('deleteModal');
-            const deleteModalBackdrop = document.getElementById('deleteModalBackdrop');
-            const deleteModalContent = document.getElementById('deleteModalContent');
-            const deleteForm = document.getElementById('deleteForm');
-            const deleteTournamentNameSpan = document.getElementById('deleteTournamentName');
-
+            // Modal Functions
             function confirmDelete(tournamentId, tournamentName) {
-                deleteForm.action = `/organization/tournaments/${tournamentId}/delete/`;
-                deleteTournamentNameSpan.textContent = `"${tournamentName}"`;
+                const modal = document.getElementById('deleteModal');
+                const backdrop = document.getElementById('deleteModalBackdrop');
+                const content = document.getElementById('deleteModalContent');
+                const form = document.getElementById('deleteForm');
+                const nameSpan = document.getElementById('deleteTournamentName');
 
-                deleteModal.classList.remove('hidden');
-                // Trigger reflow
-                void deleteModal.offsetWidth;
+                if (!modal || !form || !nameSpan) {
+                    console.error("Delete modal elements not found");
+                    return;
+                }
 
+                form.action = `/organization/tournaments/${tournamentId}/delete/`;
+                // Use textContent for safety against XSS, though we escaped in template too
+                nameSpan.textContent = `"${tournamentName}"`;
+
+                modal.classList.remove('hidden');
                 // Animate in
-                deleteModalBackdrop.classList.remove('opacity-0');
-                deleteModalContent.classList.remove('scale-95', 'opacity-0');
-                deleteModalContent.classList.add('scale-100', 'opacity-100');
+                requestAnimationFrame(() => {
+                    backdrop.classList.remove('opacity-0');
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                });
             }
 
             function closeDeleteModal() {
+                const modal = document.getElementById('deleteModal');
+                const backdrop = document.getElementById('deleteModalBackdrop');
+                const content = document.getElementById('deleteModalContent');
+
+                if (!modal) return;
+
                 // Animate out
-                deleteModalBackdrop.classList.add('opacity-0');
-                deleteModalContent.classList.remove('scale-100', 'opacity-100');
-                deleteModalContent.classList.add('scale-95', 'opacity-0');
+                backdrop.classList.add('opacity-0');
+                content.classList.remove('scale-100', 'opacity-100');
+                content.classList.add('scale-95', 'opacity-0');
 
                 setTimeout(() => {
-                    deleteModal.classList.add('hidden');
+                    modal.classList.add('hidden');
                 }, 300);
             }
-
-            // Close on backdrop click
-            deleteModal.addEventListener('click', (e) => {
-                if (e.target === deleteModalBackdrop || e.target === deleteModal) {
-                    closeDeleteModal();
-                }
-            });
 
             // Make functions global just in case
             window.confirmDelete = confirmDelete;
