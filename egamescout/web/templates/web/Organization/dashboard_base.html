@@ -33,6 +33,7 @@
                         'brand-light': '#C5C6C7',
                         'accent-cyan': '#66FCF1',
                         'accent-dark-cyan': '#45A29E',
+                        'accent-pink': '#FF2A6D', // Cyberpunk Pink
                     }
                 }
             }
@@ -142,8 +143,11 @@
 
             <!-- Page Title -->
             <div>
-                <h2 class="text-xl font-display font-bold text-white tracking-wider">DASHBOARD</h2>
-                <p class="text-xs text-gray-500 font-mono">Organization Portal</p>
+                <h2 class="text-xl font-display font-bold text-white tracking-wider">
+                    ORGANIZATION <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500">DASHBOARD</span>
+                </h2>
+                <p class="text-xs text-gray-500 font-mono">Manage your esports organization</p>
             </div>
 
             <!-- Right Actions -->
@@ -266,7 +270,11 @@
             <!-- Decoration Orbs -->
             <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
                 <div class="absolute top-10 right-10 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px]"></div>
-                <div class="absolute bottom-10 left-10 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px]"></div>
+                <!-- Pink Ambient Glow -->
+                <div class="absolute bottom-10 left-10 w-64 h-64 bg-accent-pink/5 rounded-full blur-[80px]"></div>
+                <div
+                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent-pink/5 rounded-full blur-[120px] opacity-30">
+                </div>
             </div>
 
             <!-- Messages -->

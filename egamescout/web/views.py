@@ -124,6 +124,10 @@ def auth_verify_otp(request):
                 try:
                     player = Player.objects.get(email=email)
                     # Login User
+                    # Clear conflicting sessions
+                    if request.user.is_authenticated: logout(request)
+                    if 'organizer_id' in request.session: del request.session['organizer_id']
+                    
                     request.session['player_id'] = player.id
                     return redirect('player_dashboard')
                 except Player.DoesNotExist:
@@ -542,6 +546,10 @@ def org_login_otp(request):
 
             if str(otp).strip() == str(session_otp).strip():
                 # Login Success
+                # Clear conflicting sessions
+                if request.user.is_authenticated: logout(request)
+                if 'player_id' in request.session: del request.session['player_id']
+
                 org = Organization.objects.get(Organization_Email=email)
                 request.session['organizer_id'] = org.id
                 
@@ -555,13 +563,41 @@ def org_login_otp(request):
     else:
         form = OTPForm()
     
+    
     return render(request, 'web/Organization/org_login_otp.html', {'form': form, 'email': email})
+
+def update_tournament_statuses(org):
+    """Refreshes tournament statuses based on current time."""
+    from django.utils import timezone
+    now = timezone.now()
+    
+    # 1. Update to 'Ongoing': Start Date passed AND End Date in future/now
+    Tournament.objects.filter(
+        Organization_Name=org,
+        start_date__lte=now,
+        end_date__gt=now
+    ).exclude(Status__in=['Ongoing', 'Completed', 'Cancelled']).update(Status='Ongoing')
+    
+    # 2. Update to 'Completed': End Date passed
+    Tournament.objects.filter(
+        Organization_Name=org,
+        end_date__lte=now
+    ).exclude(Status__in=['Completed', 'Cancelled']).update(Status='Completed')
+    
+    # 3. Optional: Revert to 'Scheduled' if dates pushed back? 
+    Tournament.objects.filter(
+        Organization_Name=org,
+        start_date__gt=now
+    ).exclude(Status__in=['Scheduled', 'Cancelled']).update(Status='Scheduled')
 
 @login_required_organization
 def organizer_dashboard(request):
     org_id = request.session.get('organizer_id')
         
     org = get_object_or_404(Organization, id=org_id)
+    
+    # Verify/Update tournament statuses first
+    update_tournament_statuses(org)
     
     # --- Stats ---
     total_players = Player.objects.filter(organization=org).count()
@@ -879,9 +915,31 @@ def tournament_list(request):
     org_id = request.session.get('organizer_id')
     
     org = get_object_or_404(Organization, id=org_id)
-    tournaments = Tournament.objects.filter(Organization_Name=org, is_archived=False).order_by('-CreatedAt')
-    form = TournamentForm()
     
+    # Verify/Update tournament statuses first
+    update_tournament_statuses(org)
+    
+    # Logic for Completed Tournaments
+    # Active: now < end_date
+    # Completed: now >= end_date
+    
+    from django.db.models import Q
+    from django.utils import timezone
+    
+    # Get current local time
+    now = timezone.now()
+    
+    # Completed = (Status='Completed') OR (end_date <= now)
+    q_completed = Q(Status='Completed') | Q(end_date__lte=now)
+    
+    # Filter Active Tournaments (Exclude completed)
+    tournaments = Tournament.objects.filter(
+        Organization_Name=org, 
+        is_archived=False
+    ).exclude(q_completed).order_by('start_date')
+    
+    form = TournamentForm()
+
     # Count other organizations for bidding cost calculation
     total_org_count = Organization.objects.exclude(id=org_id).count()
     
@@ -891,6 +949,38 @@ def tournament_list(request):
         'form': form,
         'show_form': False,
         'total_org_count': total_org_count
+    })
+
+@login_required_organization
+def tournament_history(request):
+    """Display list of completed tournaments for the organization"""
+    org_id = request.session.get('organizer_id')
+    
+    org = get_object_or_404(Organization, id=org_id)
+    
+    from django.db.models import Q
+    from django.utils import timezone
+    
+    # Logic for Completed Tournaments (Same as above)
+    now = timezone.now()
+    
+    print(f"DEBUG HISTORY: Now={now}")
+    
+    # Completed = (Status='Completed') OR (end_date <= now)
+    q_completed = Q(Status='Completed') | Q(end_date__lte=now)
+    
+    completed_tournaments = Tournament.objects.filter(
+        Organization_Name=org,
+        is_archived=False
+    ).filter(q_completed).distinct().order_by('-end_date')
+    
+    print(f"DEBUG HISTORY: Found {completed_tournaments.count()} completed tournaments")
+    for t in completed_tournaments:
+        print(f"DEBUG HISTORY: - {t.Name} (End: {t.end_date}, Status: {t.Status})")
+
+    return render(request, 'web/Organization/org_tournament_history.html', {
+        'org': org, 
+        'completed_tournaments': completed_tournaments
     })
 
 @login_required_organization
@@ -958,6 +1048,65 @@ def tournament_detail(request, tournament_id):
     )
     
     return render(request, 'web/Organization/org_tournament_detail.html', {'org': org, 'tournament': tournament})
+
+@login_required_organization
+def cancel_tournament(request, tournament_id):
+    """Cancel a tournament and notify the organization."""
+    if request.method != 'POST':
+        return redirect('tournament_list')
+        
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name=org)
+    
+    # Check if already cancelled or completed
+    if tournament.Status in ['Cancelled', 'Completed']:
+        messages.error(request, "This tournament cannot be cancelled.")
+        return redirect('tournament_list')
+    
+    # Update Status
+    tournament.Status = 'Cancelled'
+    tournament.save()
+    
+    # Create Notification
+    from .models import OrganizationNotification
+    message = f"Tournament '{tournament.Name}' has been cancelled."
+    OrganizationNotification.objects.create(
+        recipient=org,
+        message=message,
+        notification_type='INFO',
+        related_tournament=tournament
+    )
+    
+    # Send Email
+    from django.core.mail import send_mail
+    from django.conf import settings
+    
+    subject = f"Tournament Cancelled: {tournament.Name}"
+    email_message = f"""
+    Hello {org.Organization_Name},
+    
+    Your tournament '{tournament.Name}' has been successfully cancelled.
+    
+    If this was a mistake, please contact support.
+    
+    Regards,
+    E-Game Scout Team
+    """
+    
+    try:
+        send_mail(
+            subject,
+            email_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [org.Organization_Email],
+            fail_silently=True,
+        )
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        
+    messages.success(request, "Tournament cancelled successfully.")
+    return redirect('tournament_list')
 
 @login_required_organization
 def tournament_delete(request, tournament_id):

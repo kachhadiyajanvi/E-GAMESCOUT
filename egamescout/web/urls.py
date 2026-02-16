@@ -30,10 +30,12 @@ urlpatterns = [
     # Tournament Management
     path('organization/tournaments/', views.tournament_list, name='tournament_list'),
     path('organization/transactions/', views.transaction_history, name='transaction_history'),
+    path('organization/tournaments/history/', views.tournament_history, name='tournament_history'),
     path('organization/players/', views.my_players, name='my_players'),
     path('organization/tournaments/create/', views.tournament_create, name='tournament_create'),
     path('organization/tournaments/<int:tournament_id>/', views.tournament_detail, name='tournament_detail'),
-    path('organization/tournaments/<int:tournament_id>/update/', views.tournament_update, name='tournament_update'),
+    path('organization/tournaments/<int:tournament_id>/cancel/', views.cancel_tournament, name='cancel_tournament'),
+    path('organization/tournaments/<int:tournament_id>/edit/', views.tournament_update, name='tournament_update'),
     path('organization/tournaments/<int:tournament_id>/delete/', views.tournament_delete, name='tournament_delete'),
     path('organization/tournaments/<int:tournament_id>/participants/', views.tournament_participants, name='tournament_participants'),
     
