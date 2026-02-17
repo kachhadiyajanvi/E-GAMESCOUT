@@ -3,6 +3,17 @@
 {% block content %}
 <div class="h-[calc(100vh-80px)] p-8 overflow-hidden flex flex-col">
     <!-- Page Header -->
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm mb-6">
+        <a href="{% url 'organizer_dashboard' %}"
+            class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
+            <i class="fa-solid fa-home text-xs"></i>
+            <span>Home</span>
+        </a>
+        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
+        <span class="text-white font-semibold">Manage Profile</span>
+    </nav>
+
     <!-- Page Header (Compact) -->
     <div class="mb-10 flex justify-between items-center shrink-0">
         <div>

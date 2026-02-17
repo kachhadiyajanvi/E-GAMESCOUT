@@ -1,0 +1,89 @@
+{% extends 'web/Organization/dashboard_base.html' %}
+
+{% block title %}Notifications - E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm mb-6">
+        <a href="{% url 'organizer_dashboard' %}"
+            class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
+            <i class="fa-solid fa-home text-xs"></i>
+            <span>Home</span>
+        </a>
+        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
+        <span class="text-white font-semibold">Notifications</span>
+    </nav>
+
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-display font-bold text-white mb-2">Notifications</h1>
+            <p class="text-gray-400">Manage your alerts and updates</p>
+        </div>
+
+        {% if notifications %}
+        <a href="{% url 'org_mark_all_notifications_read' %}"
+            class="px-4 py-2 bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan rounded hover:bg-accent-cyan hover:text-brand-dark transition-all font-bold text-sm flex items-center gap-2">
+            <i class="fa-solid fa-check-double"></i> Mark All Read
+        </a>
+        {% endif %}
+    </div>
+
+    {% if notifications %}
+    <div class="space-y-4">
+        {% for notification in notifications %}
+        <div
+            class="glass-panel p-4 rounded-xl flex items-start gap-4 group hover:border-accent-cyan/30 transition-all {% if not notification.is_read %}bg-white/5 border-l-4 border-l-accent-cyan{% endif %}">
+            <!-- Icon -->
+            <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0
+                {% if notification.type == 'tournament' %}bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20
+                {% elif notification.is_invite %}bg-yellow-500/10 text-yellow-500 border border-yellow-500/20
+                {% else %}bg-green-500/10 text-green-500 border border-green-500/20{% endif %}">
+                <i
+                    class="fa-solid {% if notification.type == 'tournament' %}fa-trophy{% elif notification.is_invite %}fa-gavel{% else %}fa-bell{% endif %}"></i>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1">
+                <div class="flex justify-between items-start">
+                    <p class="text-white font-medium mb-1">{{ notification.message }}</p>
+                    <span class="text-xs text-gray-500 whitespace-nowrap ml-4">{{ notification.time|timesince }}
+                        ago</span>
+                </div>
+
+                {% if notification.link %}
+                <a href="{{ notification.link }}" class="text-sm text-accent-cyan hover:underline mt-2 inline-block">
+                    View Details <i class="fa-solid fa-arrow-right ml-1 text-xs"></i>
+                </a>
+                {% endif %}
+
+                {% if notification.is_invite %}
+                <div class="flex gap-3 mt-3">
+                    <a href="{% url 'tournament_detail' notification.related_tournament_id %}"
+                        class="px-3 py-1.5 bg-orange-500/10 text-orange-500 border border-orange-500/30 rounded text-xs font-bold hover:bg-orange-500 hover:text-white transition-all">
+                        Participate
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Delete Action -->
+            <a href="{% url 'delete_notification' notification.id %}"
+                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-500 transition-colors"
+                title="Delete">
+                <i class="fa-solid fa-trash-can"></i>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20 bg-white/5 rounded-xl border border-white/10">
+        <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fa-regular fa-bell-slash text-4xl text-gray-500"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">No Notifications</h3>
+        <p class="text-gray-400">You're all caught up!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

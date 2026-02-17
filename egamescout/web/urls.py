@@ -38,6 +38,7 @@ urlpatterns = [
     path('organization/tournaments/<int:tournament_id>/edit/', views.tournament_update, name='tournament_update'),
     path('organization/tournaments/<int:tournament_id>/delete/', views.tournament_delete, name='tournament_delete'),
     path('organization/tournaments/<int:tournament_id>/participants/', views.tournament_participants, name='tournament_participants'),
+    path('organization/tournaments/<int:tournament_id>/join/', views.join_tournament, name='join_tournament'),
     
     # Live Player Bidding (Organization)
     path('organization/bidding/live/', views.org_live_bidding, name='org_live_bidding'),
@@ -80,14 +81,16 @@ urlpatterns = [
     path('admin/bids/', admin_views.admin_bids_detail, name='admin_bids_detail'),
 
     # Tournament Publishing
-    path('organization/tournaments/publish/<int:tournament_id>/', views.publish_tournament, name='publish_tournament'),
+    path('organization/tournaments/<int:tournament_id>/publish/', views.publish_tournament, name='publish_tournament'),
     path('organization/tournaments/upcoming/', views.org_upcoming_tournaments, name='org_upcoming_tournaments'),
     path('player/tournaments/upcoming/', views.player_upcoming_tournaments, name='player_upcoming_tournaments'),
     
     # Bidding
     path('organization/tournaments/bidding/open/<int:tournament_id>/', views.open_bidding, name='open_bidding'),
     path('organization/notifications/invite/<int:notification_id>/<str:action>/', views.handle_bidding_invite, name='handle_bidding_invite'),
-    path('organization/notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('organization/notifications/mark-all-read/', views.org_mark_all_notifications_read, name='org_mark_all_notifications_read'),
+    path('organization/notifications/delete/<int:notification_id>/', views.delete_notification, name='delete_notification'),
+    path('organization/notifications/', views.org_notifications, name='org_notifications'),
 
     # Admin Notifications API
     path('admin/api/notifications/', admin_views.get_notifications, name='get_notifications'),

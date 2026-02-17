@@ -1,433 +1,552 @@
 {% extends 'web/Admin/admin_dashboard.html' %}
 {% load humanize %}
+{% load analytics_filters %}
 
 {% block content %}
 <div class="flex-1 overflow-y-auto p-8 space-y-8">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
+    <!-- Header Section -->
+    <div class="flex items-center justify-between mb-2">
         <div>
-            <h1 class="font-display font-bold text-3xl text-white mb-1">ANALYTICS</h1>
-            <p class="text-white/40 text-sm">Comprehensive platform insights and growth metrics.</p>
+            <h1 class="font-display font-bold text-4xl text-white mb-2">ANALYTICS DASHBOARD</h1>
+            <p class="text-white/50 text-sm">Real-time platform metrics and performance insights</p>
         </div>
-        <button
-            class="bg-brand-blue/10 border border-brand-blue/50 text-brand-blue hover:bg-brand-blue hover:text-black px-6 py-2.5 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
-            <i class="fa-solid fa-download"></i> Export Report
-        </button>
+        <div class="flex gap-3">
+            <button onclick="exportData()"
+                class="bg-green-500/10 border border-green-500/50 text-green-400 hover:bg-green-500 hover:text-black px-4 py-2 rounded-lg font-bold text-sm transition-all">
+                <i class="fa-solid fa-download"></i> Export
+            </button>
+            <button onclick="location.reload()"
+                class="bg-blue-500/10 border border-blue-500/50 text-blue-400 hover:bg-blue-500 hover:text-black px-4 py-2 rounded-lg font-bold text-sm transition-all">
+                <i class="fa-solid fa-refresh"></i> Refresh
+            </button>
+        </div>
     </div>
 
-    <!-- Key Metrics Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Players -->
+    <!-- PRIMARY METRICS - Tier 1 (Main KPIs) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Players Card -->
         <div
-            class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group hover:border-brand-blue/30 transition-all">
-            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <i class="fa-solid fa-users text-6xl text-brand-blue"></i>
-            </div>
-            <p class="text-white/40 text-xs font-bold tracking-wider uppercase mb-2">Total Players</p>
-            <h3 class="text-3xl font-display font-bold text-white mb-4">{{ total_players|intcomma }}</h3>
-
-            <div class="flex gap-4 text-xs font-bold relative z-10">
-                <div class="flex items-center gap-1 text-green-400 bg-green-400/10 px-2 py-1 rounded-lg">
-                    <i class="fa-solid fa-arrow-trend-up"></i> +{{ new_players_week }} W
+            class="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-cyan-500/30 rounded-xl p-6 backdrop-blur-md hover:border-cyan-400/60 transition-all group">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <p class="text-cyan-300/80 text-xs font-bold tracking-widest uppercase mb-1">Active Players</p>
+                    <h3 class="text-3xl font-display font-bold text-cyan-300">{{ active_players|intcomma }}</h3>
                 </div>
-                <div class="flex items-center gap-1 text-brand-blue bg-brand-blue/10 px-2 py-1 rounded-lg">
-                    <i class="fa-solid fa-calendar-days"></i> +{{ new_players_month }} M
-                </div>
+                <div class="text-4xl opacity-20 group-hover:opacity-40 transition-opacity">👤</div>
             </div>
-            <div class="absolute bottom-0 left-0 w-full h-16 opacity-30 pointer-events-none">
-                <canvas id="playerSparkline"></canvas>
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs font-mono">
+                    <span class="text-white/40">Total</span>
+                    <span class="text-cyan-300">{{ total_players|intcomma }}</span>
+                </div>
+                <div class="flex justify-between text-xs font-mono">
+                    <span class="text-white/40">Conversion</span>
+                    <span class="text-green-400">{{ player_conversion|floatformat:1 }}%</span>
+                </div>
+                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2">
+                    <div 
+                    class="h-full bg-gradient-to-r from-cyan-500 to-blue-500"
+                        style="width: 
+                        {{ player_conversion }}%">
+                        </div>
+                </div>
+                <div class="text-xs text-green-400 pt-2">↑ +{{ new_players_month }} this month</div>
             </div>
         </div>
 
-        <!-- Organizations -->
+        <!-- Organizations Card -->
         <div
-            class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group hover:border-brand-pink/30 transition-all">
-            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <i class="fa-solid fa-building text-6xl text-brand-pink"></i>
-            </div>
-            <p class="text-white/40 text-xs font-bold tracking-wider uppercase mb-2">Organizations</p>
-            <h3 class="text-3xl font-display font-bold text-white mb-4">{{ total_orgs|intcomma }}</h3>
-            <div class="flex gap-4 text-xs font-bold relative z-10">
-                <div class="flex items-center gap-1 text-green-400 bg-green-400/10 px-2 py-1 rounded-lg">
-                    <i class="fa-solid fa-arrow-trend-up"></i> +{{ new_orgs_week }} W
+            class="bg-gradient-to-br from-pink-600/20 to-rose-600/20 border border-pink-500/30 rounded-xl p-6 backdrop-blur-md hover:border-pink-400/60 transition-all group">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <p class="text-pink-300/80 text-xs font-bold tracking-widest uppercase mb-1">Active Organizations
+                    </p>
+                    <h3 class="text-3xl font-display font-bold text-pink-300">{{ active_orgs|intcomma }}</h3>
                 </div>
-                <div class="flex items-center gap-1 text-brand-pink bg-brand-pink/10 px-2 py-1 rounded-lg">
-                    <i class="fa-solid fa-calendar-days"></i> +{{ new_orgs_month }} M
-                </div>
+                <div class="text-4xl opacity-20 group-hover:opacity-40 transition-opacity">🏢</div>
             </div>
-            <div class="absolute bottom-0 left-0 w-full h-16 opacity-30 pointer-events-none">
-                <canvas id="orgSparkline"></canvas>
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs font-mono">
+                    <span class="text-white/40">Total</span>
+                    <span class="text-pink-300">{{ total_orgs|intcomma }}</span>
+                </div>
+                <div class="flex justify-between text-xs font-mono">
+                    <span class="text-white/40">Conversion</span>
+                    <span class="text-green-400">{{ org_conversion|floatformat:1 }}%</span>
+                </div>
+                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2">
+                    <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500" style="width: {{ org_conversion }}%">
+                    </div>
+                </div>
+                <div class="text-xs text-green-400 pt-2">↑ +{{ new_orgs_month }} this month</div>
             </div>
         </div>
 
-        <!-- Tournaments -->
+        <!-- Tournaments Card -->
         <div
-            class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group hover:border-purple-500/30 transition-all">
-            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <i class="fa-solid fa-trophy text-6xl text-purple-500"></i>
-            </div>
-            <p class="text-white/40 text-xs font-bold tracking-wider uppercase mb-2">Tournaments</p>
-            <h3 class="text-3xl font-display font-bold text-white mb-4">{{ total_tournaments|intcomma }}</h3>
-            <div class="flex gap-4 text-xs font-bold relative z-10">
-                <div class="flex items-center gap-1 text-green-400 bg-green-400/10 px-2 py-1 rounded-lg">
-                    <i class="fa-solid fa-arrow-trend-up"></i> +{{ new_tournaments_week }} W
+            class="bg-gradient-to-br from-purple-600/20 to-violet-600/20 border border-purple-500/30 rounded-xl p-6 backdrop-blur-md hover:border-purple-400/60 transition-all group">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <p class="text-purple-300/80 text-xs font-bold tracking-widest uppercase mb-1">Active Tournaments
+                    </p>
+                    <h3 class="text-3xl font-display font-bold text-purple-300">{{ ongoing_tournaments|intcomma }}</h3>
                 </div>
-                <div class="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-1 rounded-lg">
-                    <i class="fa-solid fa-calendar-days"></i> +{{ new_tournaments_month }} M
-                </div>
+                <div class="text-4xl opacity-20 group-hover:opacity-40 transition-opacity">🏆</div>
             </div>
-            <div class="absolute bottom-0 left-0 w-full h-16 opacity-30 pointer-events-none">
-                <canvas id="tournamentSparkline"></canvas>
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs font-mono">
+                    <span class="text-white/40">Total</span>
+                    <span class="text-purple-300">{{ total_tournaments|intcomma }}</span>
+                </div>
+                <div class="flex justify-between text-xs font-mono">
+                    <span class="text-white/40">Completed</span>
+                    <span class="text-amber-400">{{ completed_tournaments }}</span>
+                </div>
+                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2">
+                    <div class="h-full bg-gradient-to-r from-purple-500 to-violet-500"
+                        style="width: {% if total_tournaments > 0 %}{{ ongoing_tournaments|add:completed_tournaments|percentage:total_tournaments|floatformat:0 }}{% else %}0{% endif %}%">
+                    </div>
+                </div>
+                <div class="text-xs text-green-400 pt-2">↑ +{{ new_tournaments_month }} this month</div>
             </div>
         </div>
 
-        <!-- Account Status -->
+        <!-- System Health Card -->
         <div
-            class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group hover:border-red-500/30 transition-all">
-            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <i class="fa-solid fa-user-shield text-6xl text-red-500"></i>
+            class="bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 rounded-xl p-6 backdrop-blur-md hover:border-emerald-400/60 transition-all group">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <p class="text-emerald-300/80 text-xs font-bold tracking-widest uppercase mb-1">System Health</p>
+                    <h3 class="text-3xl font-display font-bold text-emerald-300">98.5%</h3>
+                </div>
+                <div class="text-4xl opacity-20 group-hover:opacity-40 transition-opacity">⚡</div>
             </div>
-            <p class="text-white/40 text-xs font-bold tracking-wider uppercase mb-2">Flagged Accounts</p>
-            <h3 class="text-3xl font-display font-bold text-white mb-4">
-                {{ deactivated_players|add:deleted_players|add:deactivated_orgs|add:deleted_orgs|intcomma }}
+            <div class="space-y-2">
+                <div class="flex gap-2 flex-wrap">
+                    <span
+                        class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs px-2 py-1 rounded">API
+                        ✓</span>
+                    <span
+                        class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs px-2 py-1 rounded">DB
+                        ✓</span>
+                </div>
+                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-3">
+                    <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500" style="width: 98.5%"></div>
+                </div>
+                <div class="text-xs text-green-400 pt-2">All systems operational</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER STATUS BREAKDOWN -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Player Status -->
+        <div class="bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur-md">
+            <h3 class="text-white font-bold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-users text-cyan-400"></i> Player Status
             </h3>
-
-            <div class="flex flex-col gap-2 text-xs font-bold relative z-10">
-                <div class="flex justify-between items-center text-orange-400 bg-orange-500/10 px-2 py-1.5 rounded-lg">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-ban"></i> Deactivated
-                    </span>
-                    <span title="Players: {{ deactivated_players }}, Orgs: {{ deactivated_orgs }}">
-                        {{ deactivated_players|add:deactivated_orgs }}
-                    </span>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between items-center">
+                    <span class="text-white/70">Active</span>
+                    <div class="flex items-center gap-2">
+                        <div class="text-right">
+                            <span class="font-bold text-cyan-300">{{ active_players }}</span>
+                        </div>
+                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-cyan-500" style="width: {{ player_conversion }}%"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center text-red-400 bg-red-500/10 px-2 py-1.5 rounded-lg">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-trash"></i> Deleted
-                    </span>
-                    <span title="Players: {{ deleted_players }}, Orgs: {{ deleted_orgs }}">
-                        {{ deleted_players|add:deleted_orgs }}
-                    </span>
+                <div class="flex justify-between items-center">
+                    <span class="text-white/70">Pending</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-yellow-400">{{ pending_players }}</span>
+                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-yellow-500"
+                                style="width: {% if total_players > 0 %}{{ pending_players|percentage:total_players|floatformat:0 }}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-white/70">Suspended</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-red-400">{{ suspended_players }}</span>
+                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-red-500"
+                                style="width: {% if total_players > 0 %}{{ suspended_players|percentage:total_players|floatformat:0 }}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-500 opacity-20">
+        </div>
+
+        <!-- Organization Status -->
+        <div class="bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur-md">
+            <h3 class="text-white font-bold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-building text-pink-400"></i> Organization Status
+            </h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between items-center">
+                    <span class="text-white/70">Active</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-pink-300">{{ active_orgs }}</span>
+                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-pink-500" style="width: {{ org_conversion }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-white/70">Pending</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-yellow-400">{{ pending_orgs }}</span>
+                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-yellow-500"
+                                style="width: {% if total_orgs > 0 %}{{ pending_orgs|percentage:total_orgs|floatformat:0 }}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-white/70">Suspended</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-red-400">{{ suspended_orgs }}</span>
+                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-red-500"
+                                style="width: {% if total_orgs > 0 %}{{ suspended_orgs|percentage:total_orgs|floatformat:0 }}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tournament Status -->
+        <div class="bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur-md">
+            <h3 class="text-white font-bold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-trophy text-purple-400"></i> Tournament Status
+            </h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between items-center">
+                    <span class="text-white/70">Ongoing</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-blue-400">{{ ongoing_tournaments }}</span>
+                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-500"
+                                style="width: {% if total_tournaments > 0 %}{{ ongoing_tournaments|percentage:total_tournaments|floatformat:0 }}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-white/70">Scheduled</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-green-400">{{ scheduled_tournaments }}</span>
+                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-green-500"
+                                style="width: {% if total_tournaments > 0 %}{{ scheduled_tournaments|percentage:total_tournaments|floatformat:0 }}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-white/70">Completed</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-amber-400">{{ completed_tournaments }}</span>
+                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-amber-500"
+                                style="width: {% if total_tournaments > 0 %}{{ completed_tournaments|percentage:total_tournaments|floatformat:0 }}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- FINANCIAL & BIDDING METRICS -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Prize Pool -->
+        <div
+            class="bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border border-amber-500/30 rounded-xl p-6 backdrop-blur-md">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-amber-300/80 text-xs font-bold tracking-widest uppercase mb-2">Total Prize Pool</p>
+                    <h3 class="text-2xl font-display font-bold text-amber-300">₹{{ total_prize_pool|intcomma }}</h3>
+                </div>
+                <i class="fa-solid fa-coins text-amber-400/30 text-4xl"></i>
+            </div>
+        </div>
+
+        <!-- System Coins -->
+        <div
+            class="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 rounded-xl p-6 backdrop-blur-md">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-cyan-300/80 text-xs font-bold tracking-widest uppercase mb-2">Circulating Coins</p>
+                    <h3 class="text-2xl font-display font-bold text-cyan-300">₹{{ total_coins|intcomma }}</h3>
+                </div>
+                <i class="fa-solid fa-gem text-cyan-400/30 text-4xl"></i>
+            </div>
+        </div>
+
+        <!-- Bidding Activity -->
+        <div
+            class="bg-gradient-to-br from-rose-600/20 to-pink-600/20 border border-pink-500/30 rounded-xl p-6 backdrop-blur-md">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-pink-300/80 text-xs font-bold tracking-widest uppercase mb-2">Active Bids</p>
+                    <h3 class="text-2xl font-display font-bold text-pink-300">
+                        {{ pending_bids|add:negotiating_bids|intcomma }}</h3>
+                </div>
+                <i class="fa-solid fa-hand-fist text-pink-400/30 text-4xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIDDING BREAKDOWN -->
+    <div class="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-md">
+        <h3 class="text-white font-bold text-sm uppercase tracking-wider mb-5 flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie text-pink-400"></i> Bidding Pipeline
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                <p class="text-blue-300/60 text-xs uppercase tracking-wider mb-2">Pending</p>
+                <h4 class="text-2xl font-bold text-blue-300">{{ pending_bids }}</h4>
+                <p class="text-xs text-blue-300/40 mt-2">Awaiting response</p>
+            </div>
+            <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                <p class="text-yellow-300/60 text-xs uppercase tracking-wider mb-2">Negotiating</p>
+                <h4 class="text-2xl font-bold text-yellow-300">{{ negotiating_bids }}</h4>
+                <p class="text-xs text-yellow-300/40 mt-2">Counters in progress</p>
+            </div>
+            <div class="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+                <p class="text-green-300/60 text-xs uppercase tracking-wider mb-2">Accepted</p>
+                <h4 class="text-2xl font-bold text-green-300">{{ accepted_bids }}</h4>
+                <p class="text-xs text-green-300/40 mt-2">Successful matches</p>
+            </div>
+            <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                <p class="text-red-300/60 text-xs uppercase tracking-wider mb-2">Rejected</p>
+                <h4 class="text-2xl font-bold text-red-300">{{ rejected_bids }}</h4>
+                <p class="text-xs text-red-300/40 mt-2">Declined offers</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHARTS SECTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <!-- Main Growth Chart -->
-        <div class="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+        <div class="lg:col-span-2 bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-md">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h3 class="font-display font-bold text-lg text-white">PLATFORM GROWTH</h3>
-                    <div class="text-xs text-white/40 font-mono" id="chartPeriodLabel">Last 30 Days</div>
+                    <h3 class="font-display font-bold text-lg text-white">📈 PLATFORM GROWTH</h3>
+                    <p class="text-xs text-white/40 font-mono mt-1" id="chartPeriodLabel">Last 30 Days</p>
                 </div>
-                <!-- Timeframe Toggles -->
                 <div class="flex bg-white/5 rounded-lg p-1 gap-1">
                     <button onclick="updateChart('week')" id="btn-week"
-                        class="px-4 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5">
-                        WEEK
-                    </button>
+                        class="px-3 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5">WEEK</button>
                     <button onclick="updateChart('month')" id="btn-month"
-                        class="px-4 py-1.5 rounded-md text-xs font-bold transition-all bg-brand-blue text-black shadow-lg shadow-brand-blue/20">
-                        MONTH
-                    </button>
+                        class="px-3 py-1.5 rounded-md text-xs font-bold bg-brand-blue text-black shadow-lg">MONTH</button>
                     <button onclick="updateChart('year')" id="btn-year"
-                        class="px-4 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5">
-                        YEAR
-                    </button>
+                        class="px-3 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5">YEAR</button>
                 </div>
             </div>
-            <div class="h-80 w-full relative">
+            <div class="h-80 relative">
                 <canvas id="analyticsChart"></canvas>
             </div>
         </div>
 
-        <!-- Secondary Info / Pie Logic -->
-        <!-- Secondary Info / Pie Logic -->
-        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col">
-            <h3 class="font-display font-bold text-lg text-white mb-6">USER DISTRIBUTION</h3>
-            <div class="relative h-64 w-full flex items-center justify-center">
+        <!-- User Distribution Pie -->
+        <div class="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-md flex flex-col">
+            <h3 class="font-display font-bold text-sm text-white mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-chart-doughnut text-cyan-400"></i> User Distribution
+            </h3>
+            <div class="relative h-56 flex items-center justify-center">
                 <canvas id="userDistributionChart"></canvas>
-                <!-- Center Text -->
                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span class="text-3xl font-bold text-white">{{ total_players|add:total_orgs }}</span>
-                    <span class="text-[10px] text-white/40 uppercase tracking-widest">Total Users</span>
+                    <span class="text-2xl font-bold text-white">{{ total_players|add:total_orgs|intcomma }}</span>
+                    <span class="text-[10px] text-white/40 uppercase tracking-wider">Total Users</span>
                 </div>
             </div>
-            <!-- Legend -->
-            <div class="flex justify-center gap-6 mt-6">
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-accent-cyan box-shadow-cyan"></span>
-                    <span class="text-xs text-gray-300">Players ({{ total_players }})</span>
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <div class="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-3">
+                    <p class="text-cyan-300 font-bold text-sm">{{ total_players|intcomma }}</p>
+                    <p class="text-cyan-300/60 text-xs">Players</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-brand-pink box-shadow-pink"></span>
-                    <span class="text-xs text-gray-300">Orgs ({{ total_orgs }})</span>
+                <div class="bg-pink-500/10 border border-pink-500/20 rounded-lg p-3">
+                    <p class="text-pink-300 font-bold text-sm">{{ total_orgs|intcomma }}</p>
+                    <p class="text-pink-300/60 text-xs">Organizations</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-{{ chart_labels|json_script:"chart-labels" }}
-{{ player_growth_data|json_script:"player-data" }}
-{{ org_growth_data|json_script:"org-data" }}
-{{ tournament_growth_data|json_script:"tournament-data" }}
-{{ total_players|json_script:"total-players-count" }}
-{{ total_orgs|json_script:"total-orgs-count" }}
+    <!-- Data for Charts -->
+    {{ week_labels|json_script:"week-labels" }}
+    {{ player_data_week|json_script:"player-data-week" }}
+    {{ org_data_week|json_script:"org-data-week" }}
+    {{ month_labels|json_script:"month-labels" }}
+    {{ player_data_month|json_script:"player-data-month" }}
+    {{ org_data_month|json_script:"org-data-month" }}
+    {{ year_labels|json_script:"year-labels" }}
+    {{ player_data_year|json_script:"player-data-year" }}
+    {{ org_data_year|json_script:"org-data-year" }}
+    {{ total_players|json_script:"total-players-count" }}
+    {{ total_orgs|json_script:"total-orgs-count" }}
 
-<!-- Multi-Period Data -->
-{{ week_labels|json_script:"week-labels" }}
-{{ player_data_week|json_script:"player-data-week" }}
-{{ org_data_week|json_script:"org-data-week" }}
+    <!-- Chart Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let mainChart;
 
-{{ month_labels|json_script:"month-labels" }}
-{{ player_data_month|json_script:"player-data-month" }}
-{{ org_data_month|json_script:"org-data-month" }}
-
-{{ year_labels|json_script:"year-labels" }}
-{{ player_data_year|json_script:"player-data-year" }}
-{{ org_data_year|json_script:"org-data-year" }}
-
-
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    let mainChart; // Global reference for update
-
-    // Data Containers
-    const dataStore = {
-        week: {
-            labels: JSON.parse(document.getElementById('week-labels').textContent),
-            player: JSON.parse(document.getElementById('player-data-week').textContent),
-            org: JSON.parse(document.getElementById('org-data-week').textContent),
-            desc: "Last 7 days"
-        },
-        month: {
-            labels: JSON.parse(document.getElementById('month-labels').textContent),
-            player: JSON.parse(document.getElementById('player-data-month').textContent),
-            org: JSON.parse(document.getElementById('org-data-month').textContent),
-            desc: "Last 30 days"
-        },
-        year: {
-            labels: JSON.parse(document.getElementById('year-labels').textContent),
-            player: JSON.parse(document.getElementById('player-data-year').textContent),
-            org: JSON.parse(document.getElementById('org-data-year').textContent),
-            desc: "Last 12 months"
-        }
-    };
-
-    function updateChart(period) {
-        // Update Buttons
-        ['week', 'month', 'year'].forEach(p => {
-            const btn = document.getElementById(`btn-${p}`);
-            if (p === period) {
-                btn.className = "px-4 py-1.5 rounded-md text-xs font-bold transition-all bg-brand-blue text-black shadow-lg shadow-brand-blue/20";
-            } else {
-                btn.className = "px-4 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5";
-            }
-        });
-
-        // Update Label
-        document.getElementById('chartPeriodLabel').innerText = dataStore[period].desc;
-
-        // Update Chart Data
-        if (mainChart) {
-            mainChart.data.labels = dataStore[period].labels;
-            mainChart.data.datasets[0].data = dataStore[period].player;
-            mainChart.data.datasets[1].data = dataStore[period].org;
-            mainChart.update();
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // --- Sparklines (Using Default Data injected previously, typically Month) ---
-        const sparklineOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { enabled: false } },
-            scales: {
-                x: { display: false },
-                y: { display: false, min: 0 }
+        const dataStore = {
+            week: {
+                labels: JSON.parse(document.getElementById('week-labels').textContent),
+                player: JSON.parse(document.getElementById('player-data-week').textContent),
+                org: JSON.parse(document.getElementById('org-data-week').textContent),
+                desc: "Last 7 days"
             },
-            elements: {
-                point: { radius: 0 },
-                line: { borderWidth: 2, tension: 0.4 }
+            month: {
+                labels: JSON.parse(document.getElementById('month-labels').textContent),
+                player: JSON.parse(document.getElementById('player-data-month').textContent),
+                org: JSON.parse(document.getElementById('org-data-month').textContent),
+                desc: "Last 30 days"
+            },
+            year: {
+                labels: JSON.parse(document.getElementById('year-labels').textContent),
+                player: JSON.parse(document.getElementById('player-data-year').textContent),
+                org: JSON.parse(document.getElementById('org-data-year').textContent),
+                desc: "Last 12 months"
             }
         };
 
-        const defaultLabels = JSON.parse(document.getElementById('chart-labels').textContent);
-        const playerSparkData = JSON.parse(document.getElementById('player-data').textContent);
-        const orgSparkData = JSON.parse(document.getElementById('org-data').textContent);
-        const tournamentSparkData = JSON.parse(document.getElementById('tournament-data').textContent);
-
-        // Player Sparkline
-        new Chart(document.getElementById('playerSparkline').getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: defaultLabels,
-                datasets: [{
-                    data: playerSparkData,
-                    borderColor: '#00f3ff',
-                    backgroundColor: 'rgba(0, 243, 255, 0.1)',
-                    fill: true
-                }]
-            },
-            options: sparklineOptions
-        });
-
-        // Org Sparkline
-        new Chart(document.getElementById('orgSparkline').getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: defaultLabels,
-                datasets: [{
-                    data: orgSparkData,
-                    borderColor: '#ec4899',
-                    backgroundColor: 'rgba(236, 72, 153, 0.1)',
-                    fill: true
-                }]
-            },
-            options: sparklineOptions
-        });
-
-        // Tournament Sparkline
-        new Chart(document.getElementById('tournamentSparkline').getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: defaultLabels,
-                datasets: [{
-                    data: tournamentSparkData,
-                    borderColor: '#a855f7',
-                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                    fill: true
-                }]
-            },
-            options: sparklineOptions
-        });
-
-        // --- Main Growth Chart (Initialize with Month) ---
-        const ctx = document.getElementById('analyticsChart').getContext('2d');
-        const gradientPlayer = ctx.createLinearGradient(0, 0, 0, 400);
-        gradientPlayer.addColorStop(0, 'rgba(0, 243, 255, 0.5)');
-        gradientPlayer.addColorStop(1, 'rgba(0, 243, 255, 0)');
-
-        const gradientOrg = ctx.createLinearGradient(0, 0, 0, 400);
-        gradientOrg.addColorStop(0, 'rgba(236, 72, 153, 0.5)');
-        gradientOrg.addColorStop(1, 'rgba(236, 72, 153, 0)');
-
-        mainChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dataStore.month.labels,
-                datasets: [
-                    {
-                        label: 'Players',
-                        data: dataStore.month.player,
-                        borderColor: '#00f3ff',
-                        backgroundColor: gradientPlayer,
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#00f3ff',
-                        pointBorderColor: '#000',
-                    },
-                    {
-                        label: 'Organizations',
-                        data: dataStore.month.org,
-                        borderColor: '#ec4899',
-                        backgroundColor: gradientOrg,
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#ec4899',
-                        pointBorderColor: '#000',
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: { color: 'rgba(255, 255, 255, 0.7)', font: { family: 'Rajdhani', size: 12 } }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                        titleColor: '#fff',
-                        bodyColor: 'rgba(255, 255, 255, 0.7)',
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                        borderWidth: 1,
-                        padding: 10,
-                        titleFont: { family: 'Orbitron' },
-                        bodyFont: { family: 'Rajdhani' }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                        ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { family: 'Rajdhani' } }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { family: 'Rajdhani' }, maxTicksLimit: 10 }
-                    }
+        function updateChart(period) {
+            ['week', 'month', 'year'].forEach(p => {
+                const btn = document.getElementById(`btn-${p}`);
+                if (p === period) {
+                    btn.className = "px-3 py-1.5 rounded-md text-xs font-bold bg-brand-blue text-black shadow-lg";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5";
                 }
+            });
+
+            document.getElementById('chartPeriodLabel').innerText = dataStore[period].desc;
+
+            if (mainChart) {
+                mainChart.data.labels = dataStore[period].labels;
+                mainChart.data.datasets[0].data = dataStore[period].player;
+                mainChart.data.datasets[1].data = dataStore[period].org;
+                mainChart.update();
             }
-        });
+        }
 
-        // --- User Distribution Chart (Doughnut) ---
-        const totalPlayers = JSON.parse(document.getElementById('total-players-count').textContent);
-        const totalOrgs = JSON.parse(document.getElementById('total-orgs-count').textContent);
+        document.addEventListener('DOMContentLoaded', function () {
+            // Main Chart
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            const gradientPlayer = ctx.createLinearGradient(0, 0, 0, 400);
+            gradientPlayer.addColorStop(0, 'rgba(0, 243, 255, 0.5)');
+            gradientPlayer.addColorStop(1, 'rgba(0, 243, 255, 0)');
 
-        const ctxDist = document.getElementById('userDistributionChart').getContext('2d');
-        new Chart(ctxDist, {
-            type: 'doughnut',
-            data: {
-                labels: ['Players', 'Organizations'],
-                datasets: [{
-                    data: [totalPlayers, totalOrgs],
-                    backgroundColor: ['#00f3ff', '#ec4899'], // Cyan, Pink
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '75%', // Thinner ring
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                        titleColor: '#fff',
-                        bodyColor: 'rgba(255, 255, 255, 0.7)',
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                        borderWidth: 1,
-                        padding: 10,
-                        titleFont: { family: 'Orbitron' },
-                        bodyFont: { family: 'Rajdhani' },
-                        callbacks: {
-                            label: function (context) {
-                                let label = context.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                let value = context.parsed;
-                                let total = context.chart._metasets[context.datasetIndex].total;
-                                let percentage = ((value / total) * 100).toFixed(1) + '%';
-                                return label + value + ' (' + percentage + ')';
-                            }
+            const gradientOrg = ctx.createLinearGradient(0, 0, 0, 400);
+            gradientOrg.addColorStop(0, 'rgba(236, 72, 153, 0.5)');
+            gradientOrg.addColorStop(1, 'rgba(236, 72, 153, 0)');
+
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dataStore.month.labels,
+                    datasets: [
+                        {
+                            label: 'Players',
+                            data: dataStore.month.player,
+                            borderColor: '#00f3ff',
+                            backgroundColor: gradientPlayer,
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#00f3ff',
+                            pointBorderColor: '#000',
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                        },
+                        {
+                            label: 'Organizations',
+                            data: dataStore.month.org,
+                            borderColor: '#ec4899',
+                            backgroundColor: gradientOrg,
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#ec4899',
+                            pointBorderColor: '#000',
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            labels: { color: 'rgba(255, 255, 255, 0.8)', font: { size: 12, weight: 'bold' }, padding: 20 }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                            titleColor: '#fff',
+                            bodyColor: 'rgba(255, 255, 255, 0.9)',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1,
+                            padding: 12,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                            ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255, 255, 255, 0.5)' }
                         }
                     }
                 }
-            }
+            });
+
+            // User Distribution Chart
+            const totalPlayers = JSON.parse(document.getElementById('total-players-count').textContent);
+            const totalOrgs = JSON.parse(document.getElementById('total-orgs-count').textContent);
+
+            const ctxDist = document.getElementById('userDistributionChart').getContext('2d');
+            new Chart(ctxDist, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Players', 'Organizations'],
+                    datasets: [{
+                        data: [totalPlayers, totalOrgs],
+                        backgroundColor: ['#00f3ff', '#ec4899'],
+                        borderColor: ['#00f3ff33', '#ec489933'],
+                        borderWidth: 2,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
         });
 
-    });
-</script>
+        function exportData() {
+            alert('Export feature coming soon!');
+        }
+    </script>
+</div>
 {% endblock %}

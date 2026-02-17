@@ -4,11 +4,33 @@
 
 {% block content %}
 <div class="p-8">
-    <!-- Header -->
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm mb-6">
+        <a href="{% url 'organizer_dashboard' %}"
+            class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
+            <i class="fa-solid fa-home text-xs"></i>
+            <span>Home</span>
+        </a>
+        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
+
+        {% if source == 'upcoming' %}
+        <a href="{% url 'org_upcoming_tournaments' %}" class="text-gray-400 hover:text-accent-cyan transition-colors">
+            <span>Upcoming Tournaments</span>
+        </a>
+        {% else %}
+        <a href="{% url 'tournament_list' %}" class="text-gray-400 hover:text-accent-cyan transition-colors">
+            <span>Tournaments</span>
+        </a>
+        {% endif %}
+
+        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
+        <span class="text-white font-semibold">{{ tournament.Name }}</span>
+    </nav>
+
     <div class="flex justify-between items-start mb-8">
         <div>
             <div class="flex items-center gap-4 mb-2">
-                <a href="{% url 'tournament_list' %}"
+                <a href="{% if source == 'upcoming' %}{% url 'org_upcoming_tournaments' %}{% else %}{% url 'tournament_list' %}{% endif %}"
                     class="text-brand-light/50 hover:text-accent-cyan transition-colors">
                     <i class="fa-solid fa-arrow-left"></i>
                 </a>
@@ -25,14 +47,19 @@
         </div>
 
         <div class="flex gap-3">
-            <a href="{% url 'tournament_update' tournament.Tournament_ID %}"
-                class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded hover:bg-white/10 hover:border-accent-cyan/50 transition-all text-sm font-bold flex items-center gap-2">
-                <i class="fa-solid fa-edit"></i> Edit
-            </a>
-            <button onclick="confirmDelete('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
-                class="px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded hover:bg-red-500/20 hover:border-red-500/50 transition-all text-sm font-bold flex items-center gap-2">
-                <i class="fa-solid fa-trash"></i>
+            {% if is_owner %}
+            <!-- Edit/Delete only available in list view -->
+            {% elif is_participant %}
+            <button disabled
+                class="px-4 py-2 bg-green-500/10 border border-green-500/30 text-green-400 rounded cursor-default text-sm font-bold flex items-center gap-2">
+                <i class="fa-solid fa-check"></i> Joined
             </button>
+            {% else %}
+            <button onclick="openParticipateModal('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
+                class="px-6 py-2 bg-orange-500 text-white border border-orange-400 rounded hover:bg-orange-600 hover:scale-105 transition-all shadow-[0_0_15px_rgba(249,115,22,0.4)] text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
+                <i class="fa-solid fa-gamepad"></i> Participate
+            </button>
+            {% endif %}
         </div>
     </div>
 
@@ -229,5 +256,136 @@
 
     window.confirmDelete = confirmDelete;
     window.closeDeleteModal = closeDeleteModal;
+
+    // --- Participate Modal Logic ---
+    function openParticipateModal(tournamentId, tournamentName) {
+        const modal = document.getElementById('participateModal');
+        const backdrop = document.getElementById('participateModalBackdrop');
+        const content = document.getElementById('participateModalContent');
+        const form = document.getElementById('participateForm');
+        const nameSpan1 = document.getElementById('participateTournamentName1');
+        const nameSpan2 = document.getElementById('participateTournamentName2');
+
+        if (!modal) return;
+
+        // Reset to Step 1
+        document.getElementById('participateStep1').classList.remove('hidden');
+        document.getElementById('participateStep2').classList.add('hidden');
+
+        form.action = `/organization/tournaments/${tournamentId}/join/`;
+        nameSpan1.textContent = tournamentName;
+        nameSpan2.textContent = tournamentName;
+
+        modal.classList.remove('hidden');
+        document.body.appendChild(modal); // Ensure it's on top
+
+        requestAnimationFrame(() => {
+            backdrop.classList.remove('opacity-0');
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        });
+    }
+
+    function closeParticipateModal() {
+        const modal = document.getElementById('participateModal');
+        const backdrop = document.getElementById('participateModalBackdrop');
+        const content = document.getElementById('participateModalContent');
+
+        if (!modal) return;
+
+        backdrop.classList.add('opacity-0');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    function nextParticipateStep() {
+        document.getElementById('participateStep1').classList.add('hidden');
+        document.getElementById('participateStep2').classList.remove('hidden');
+    }
+
+    window.openParticipateModal = openParticipateModal;
+    window.closeParticipateModal = closeParticipateModal;
+    window.nextParticipateStep = nextParticipateStep;
+
 </script>
+
+<!-- Participate Confirmation Modal -->
+<div id="participateModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0"
+        id="participateModalBackdrop"></div>
+
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 transform transition-all scale-95 opacity-0"
+        id="participateModalContent">
+        <div class="glass-panel rounded-xl border border-orange-500/30 p-6 relative overflow-hidden">
+            <div
+                class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent">
+            </div>
+
+            <form id="participateForm" method="POST" action="">
+                {% csrf_token %}
+
+                <!-- Step 1: Info -->
+                <div id="participateStep1">
+                    <div class="text-center mb-6">
+                        <div
+                            class="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto mb-4 border border-orange-500/20">
+                            <i class="fa-solid fa-trophy text-2xl text-orange-500"></i>
+                        </div>
+                        <h3 class="text-xl font-display font-bold text-white mb-2">Join Tournament?</h3>
+                        <p class="text-gray-400 text-sm mb-4">You are about to join <span
+                                id="participateTournamentName1" class="text-white font-bold"></span>.</p>
+
+                        <div class="bg-white/5 rounded-lg p-3 text-left">
+                            <p class="text-xs text-gray-400 mb-1"><i
+                                    class="fa-solid fa-check text-green-500 mr-2"></i>Access tournament details</p>
+                            <p class="text-xs text-gray-400 mb-1"><i
+                                    class="fa-solid fa-check text-green-500 mr-2"></i>Compete for the prize pool</p>
+                            <p class="text-xs text-gray-400"><i
+                                    class="fa-solid fa-check text-green-500 mr-2"></i>Receive updates</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="button" onclick="closeParticipateModal()"
+                            class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
+                            CANCEL
+                        </button>
+                        <button type="button" onclick="nextParticipateStep()"
+                            class="flex-1 px-4 py-2 rounded bg-orange-500/10 text-orange-500 border border-orange-500/50 hover:bg-orange-500 hover:text-white transition-all font-bold text-sm">
+                            NEXT <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Confirmation -->
+                <div id="participateStep2" class="hidden">
+                    <div class="text-center mb-6">
+                        <div
+                            class="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto mb-4 border border-orange-500/20">
+                            <i class="fa-solid fa-handshake-simple text-2xl text-orange-500"></i>
+                        </div>
+                        <h3 class="text-xl font-display font-bold text-white mb-2">Confirm Participation</h3>
+                        <p class="text-gray-400 text-sm">Are you sure you want to officially join <span
+                                id="participateTournamentName2" class="text-white font-bold"></span>?</p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="button" onclick="closeParticipateModal()"
+                            class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
+                            CANCEL
+                        </button>
+                        <button type="submit"
+                            class="flex-1 px-4 py-2 rounded bg-orange-500 text-white hover:bg-orange-600 transition-all font-bold text-sm shadow-[0_0_15px_rgba(249,115,22,0.4)]">
+                            CONFIRM JOIN
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
