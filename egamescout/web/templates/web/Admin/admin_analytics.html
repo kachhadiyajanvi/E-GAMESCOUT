@@ -44,11 +44,9 @@
                     <span class="text-green-400">{{ player_conversion|floatformat:1 }}%</span>
                 </div>
                 <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2">
-                    <div 
-                    class="h-full bg-gradient-to-r from-cyan-500 to-blue-500"
-                        style="width: 
-                        {{ player_conversion }}%">
-                        </div>
+                    <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 w-[var(--progress)]"
+                        style="--progress: {{ player_conversion|floatformat:0 }}%;">
+                    </div>
                 </div>
                 <div class="text-xs text-green-400 pt-2">↑ +{{ new_players_month }} this month</div>
             </div>
@@ -75,7 +73,8 @@
                     <span class="text-green-400">{{ org_conversion|floatformat:1 }}%</span>
                 </div>
                 <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2">
-                    <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500" style="width: {{ org_conversion }}%">
+                    <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 w-[var(--progress)]"
+                        style="--progress: {{ org_conversion|floatformat:0 }}%;">
                     </div>
                 </div>
                 <div class="text-xs text-green-400 pt-2">↑ +{{ new_orgs_month }} this month</div>
@@ -103,8 +102,8 @@
                     <span class="text-amber-400">{{ completed_tournaments }}</span>
                 </div>
                 <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2">
-                    <div class="h-full bg-gradient-to-r from-purple-500 to-violet-500"
-                        style="width: {% if total_tournaments > 0 %}{{ ongoing_tournaments|add:completed_tournaments|percentage:total_tournaments|floatformat:0 }}{% else %}0{% endif %}%">
+                    <div class="h-full bg-gradient-to-r from-purple-500 to-violet-500 w-[var(--progress)]"
+                        style="--progress: {{ ongoing_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                     </div>
                 </div>
                 <div class="text-xs text-green-400 pt-2">↑ +{{ new_tournaments_month }} this month</div>
@@ -153,7 +152,8 @@
                             <span class="font-bold text-cyan-300">{{ active_players }}</span>
                         </div>
                         <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div class="h-full bg-cyan-500" style="width: {{ player_conversion }}%"></div>
+                            <div class="h-full bg-cyan-500 w-[var(--progress)]"
+                                style="--progress: {{ player_conversion|floatformat:0 }}%;"></div>
                         </div>
                     </div>
                 </div>
@@ -162,8 +162,8 @@
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-yellow-400">{{ pending_players }}</span>
                         <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div class="h-full bg-yellow-500"
-                                style="width: {% if total_players > 0 %}{{ pending_players|percentage:total_players|floatformat:0 }}{% else %}0{% endif %}%">
+                            <div class="h-full bg-yellow-500 w-[var(--progress)]"
+                                style="--progress: {{ pending_players|percentage:total_players|floatformat:0 }}%;">
                             </div>
                         </div>
                     </div>
@@ -173,8 +173,8 @@
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-red-400">{{ suspended_players }}</span>
                         <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div class="h-full bg-red-500"
-                                style="width: {% if total_players > 0 %}{{ suspended_players|percentage:total_players|floatformat:0 }}{% else %}0{% endif %}%">
+                            <div class="h-full bg-red-500 w-[var(--progress)]"
+                                style="--progress: {{ suspended_players|percentage:total_players|floatformat:0 }}%;">
                             </div>
                         </div>
                     </div>
@@ -193,7 +193,8 @@
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-pink-300">{{ active_orgs }}</span>
                         <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div class="h-full bg-pink-500" style="width: {{ org_conversion }}%"></div>
+                            <div class="h-full bg-pink-500 w-[var(--progress)]"
+                                style="--progress: {{ org_conversion|floatformat:0 }}%;"></div>
                         </div>
                     </div>
                 </div>
@@ -202,8 +203,8 @@
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-yellow-400">{{ pending_orgs }}</span>
                         <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div class="h-full bg-yellow-500"
-                                style="width: {% if total_orgs > 0 %}{{ pending_orgs|percentage:total_orgs|floatformat:0 }}{% else %}0{% endif %}%">
+                            <div class="h-full bg-yellow-500 w-[var(--progress)]"
+                                style="--progress: {{ pending_orgs|percentage:total_orgs|floatformat:0 }}%;">
                             </div>
                         </div>
                     </div>
@@ -213,8 +214,8 @@
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-red-400">{{ suspended_orgs }}</span>
                         <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div class="h-full bg-red-500"
-                                style="width: {% if total_orgs > 0 %}{{ suspended_orgs|percentage:total_orgs|floatformat:0 }}{% else %}0{% endif %}%">
+                            <div class="h-full bg-red-500 w-[var(--progress)]"
+                                style="--progress: {{ suspended_orgs|percentage:total_orgs|floatformat:0 }}%;">
                             </div>
                         </div>
                     </div>
@@ -233,8 +234,8 @@
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-blue-400">{{ ongoing_tournaments }}</span>
                         <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div class="h-full bg-blue-500"
-                                style="width: {% if total_tournaments > 0 %}{{ ongoing_tournaments|percentage:total_tournaments|floatformat:0 }}{% else %}0{% endif %}%">
+                            <div class="h-full bg-blue-500 w-[var(--progress)]"
+                                style="--progress: {{ ongoing_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                             </div>
                         </div>
                     </div>
@@ -244,8 +245,8 @@
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-green-400">{{ scheduled_tournaments }}</span>
                         <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div class="h-full bg-green-500"
-                                style="width: {% if total_tournaments > 0 %}{{ scheduled_tournaments|percentage:total_tournaments|floatformat:0 }}{% else %}0{% endif %}%">
+                            <div class="h-full bg-green-500 w-[var(--progress)]"
+                                style="--progress: {{ scheduled_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                             </div>
                         </div>
                     </div>
@@ -255,8 +256,8 @@
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-amber-400">{{ completed_tournaments }}</span>
                         <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div class="h-full bg-amber-500"
-                                style="width: {% if total_tournaments > 0 %}{{ completed_tournaments|percentage:total_tournaments|floatformat:0 }}{% else %}0{% endif %}%">
+                            <div class="h-full bg-amber-500 w-[var(--progress)]"
+                                style="--progress: {{ completed_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                             </div>
                         </div>
                     </div>
@@ -517,8 +518,14 @@
             });
 
             // User Distribution Chart
-            const totalPlayers = JSON.parse(document.getElementById('total-players-count').textContent);
-            const totalOrgs = JSON.parse(document.getElementById('total-orgs-count').textContent);
+            let totalPlayers = 0;
+            let totalOrgs = 0;
+            try {
+                totalPlayers = JSON.parse(document.getElementById('total-players-count').textContent) || 0;
+                totalOrgs = JSON.parse(document.getElementById('total-orgs-count').textContent) || 0;
+            } catch (e) {
+                console.error("Error parsing user totals", e);
+            }
 
             const ctxDist = document.getElementById('userDistributionChart').getContext('2d');
             new Chart(ctxDist, {

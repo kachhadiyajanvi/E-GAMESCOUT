@@ -443,9 +443,9 @@ def admin_analytics(request):
         day_start = timezone.make_aware(datetime.combine(day_date, time.min))
         day_end = timezone.make_aware(datetime.combine(day_date, time.max))
         
-        p_count = Player.objects.filter(created_at__range=(day_start, day_end)).count()
-        o_count = Organization.objects.filter(CreatedAt__range=(day_start, day_end)).count()
-        t_count = Tournament.objects.filter(CreatedAt__range=(day_start, day_end)).count()
+        p_count = Player.objects.filter(created_at__range=(day_start, day_end), is_archived=False).count()
+        o_count = Organization.objects.filter(CreatedAt__range=(day_start, day_end), is_archived=False).count()
+        t_count = Tournament.objects.filter(CreatedAt__range=(day_start, day_end), is_archived=False).count()
         
         player_data_month.append(p_count)
         org_data_month.append(o_count)
@@ -551,6 +551,7 @@ def admin_analytics(request):
         'org_data_year': org_data_year,
         
         'tournament_growth_data': tournament_data_month,
+        'tournament_data_month': tournament_data_month,
         
         'chart_labels': month_labels,
         'player_growth_data': player_data_month,

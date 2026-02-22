@@ -49,6 +49,13 @@ urlpatterns = [
     # Utilities
     path('organization/resend-otp/', views.resend_otp, name='resend_otp'),
     path('auth/login/', views.auth_login, name='auth_login'),
+    # API Authentication Setup
+    path('api/login/send-otp', views.api_send_otp, name='api_send_otp'),
+    path('api/login/verify-otp', views.api_verify_otp, name='api_verify_otp'),
+    path('api/register/send-otp', views.api_register_send_otp, name='api_register_send_otp'),
+    path('api/register/verify-otp', views.api_register_verify_otp, name='api_register_verify_otp'),
+    path('api/register/step1', views.api_register_step1, name='api_register_step1'),
+    path('api/register/step2', views.api_register_step2, name='api_register_step2'),
     path('auth/verify/', views.auth_verify_otp, name='auth_verify_otp'),
     path('auth/register/upload/', views.auth_register_upload, name='auth_register_upload'),
     path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
