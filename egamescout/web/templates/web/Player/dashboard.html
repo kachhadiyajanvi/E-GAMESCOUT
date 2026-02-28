@@ -63,87 +63,132 @@
             </div>
         </div>
 
-        <!-- Tournaments Section (Full Width Now) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Active Tournaments -->
-            <div class="bg-[#0B0C10]/50 border border-white/5 rounded-2xl p-5 flex flex-col min-h-[160px]">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-display font-bold text-white text-md flex items-center gap-2">
-                        <i class="fa-solid fa-fire text-orange-500"></i> Active
-                    </h3>
-                    <a href="{% url 'player_bids' %}"
-                        class="text-xs text-accent-cyan hover:text-white transition-colors">View All</a>
-                </div>
-
-                {% if active_tournaments %}
-                <div class="space-y-3 flex-1 overflow-y-auto custom-scrollbar max-h-[120px]">
-                    {% for tournament in active_tournaments %}
-                    <div
-                        class="bg-white/5 border border-white/5 rounded-xl p-3 flex justify-between items-center hover:bg-white/10 transition-colors">
-                        <div class="overflow-hidden">
-                            <h4 class="text-white font-bold font-display text-base truncate pr-2">{{ tournament.Name }}
-                            </h4>
-                            <p class="text-xs text-brand-light/50 mt-1 truncate">
-                                Org: {{tournament.Organization_Name.Organization_Name }}</p>
-                        </div>
-                        <div class="text-right shrink-0">
-                            <span
-                                class="text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-1 rounded font-bold">ONGOING</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <!-- Empty State -->
-                <div class="flex flex-col items-center justify-center py-4 text-center opacity-50 flex-1">
-                    <i class="fa-solid fa-trophy text-3xl text-brand-light/20 mb-3"></i>
-                    <p class="text-xs text-brand-light/50">No active tournaments</p>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Upcoming Tournaments -->
-            <div class="bg-[#0B0C10]/50 border border-white/5 rounded-2xl p-5 flex flex-col min-h-[160px]">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-display font-bold text-white text-md flex items-center gap-2">
-                        <i class="fa-regular fa-calendar-check text-blue-400"></i> Upcoming
-                    </h3>
-                    <a href="{% url 'player_upcoming_tournaments' %}"
-                        class="text-xs text-accent-cyan hover:text-white transition-colors">View All</a>
-                </div>
-
-                {% if upcoming_tournaments_list %}
-                <div class="space-y-3 flex-1 overflow-y-auto custom-scrollbar max-h-[120px]">
-                    {% for tournament in upcoming_tournaments_list %}
-                    <div
-                        class="bg-white/5 border border-white/5 rounded-xl p-3 flex justify-between items-center hover:bg-white/10 transition-colors">
-                        <div class="overflow-hidden">
-                            <h4 class="text-white font-bold font-display text-base truncate pr-2">{{ tournament.Name }}
-                            </h4>
-                            <p class="text-xs text-brand-light/50 mt-1">
-                                Starts: {{ tournament.start_date|date:"M d,Y"|default:"TBA" }}</p>
-                        </div>
-                        <div class="text-right shrink-0">
-                            <span
-                                class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded font-bold">SCHEDULED</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <!-- Empty State -->
-                <div class="flex flex-col items-center justify-center py-4 text-center opacity-50 flex-1">
-                    <i class="fa-regular fa-calendar-xmark text-3xl text-brand-light/20 mb-3"></i>
-                    <p class="text-xs text-brand-light/50">No upcoming tournaments</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- 2 Column Layout below Tournaments for Calendar and other items -->
+        <!-- Main Split Layout -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left Side Empty for now or can add other widgets later -->
-            <div class="lg:col-span-2"></div>
+
+            <!-- LEFT COLUMN (Main Content) -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Tournaments Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Active Tournaments -->
+                    <div class="bg-[#0B0C10]/50 border border-white/5 rounded-2xl p-5 flex flex-col min-h-[160px]">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-display font-bold text-white text-md flex items-center gap-2">
+                                <i class="fa-solid fa-fire text-orange-500"></i> Active
+                            </h3>
+                            <a href="{% url 'player_bids' %}"
+                                class="text-xs text-accent-cyan hover:text-white transition-colors">View All</a>
+                        </div>
+
+                        {% if active_tournaments %}
+                        <div class="space-y-3 flex-1 overflow-y-auto custom-scrollbar max-h-[180px]">
+                            {% for tournament in active_tournaments %}
+                            <div
+                                class="bg-white/5 border border-white/5 rounded-xl p-3 flex justify-between items-center hover:bg-white/10 transition-colors">
+                                <div class="overflow-hidden">
+                                    <h4 class="text-white font-bold font-display text-base truncate pr-2">{{
+                                        tournament.Name }}
+                                    </h4>
+                                    <p class="text-xs text-brand-light/50 mt-1 truncate">
+                                        Org: {{tournament.Organization_Name.Organization_Name }}</p>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span
+                                        class="text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-1 rounded font-bold">ONGOING</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <!-- Empty State -->
+                        <div class="flex flex-col items-center justify-center py-4 text-center opacity-50 flex-1">
+                            <i class="fa-solid fa-trophy text-3xl text-brand-light/20 mb-3"></i>
+                            <p class="text-xs text-brand-light/50">No active tournaments</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Upcoming Tournaments -->
+                    <div class="bg-[#0B0C10]/50 border border-white/5 rounded-2xl p-5 flex flex-col min-h-[160px]">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-display font-bold text-white text-md flex items-center gap-2">
+                                <i class="fa-regular fa-calendar-check text-blue-400"></i> Upcoming
+                            </h3>
+                            <a href="{% url 'player_upcoming_tournaments' %}"
+                                class="text-xs text-accent-cyan hover:text-white transition-colors">View All</a>
+                        </div>
+
+                        {% if upcoming_tournaments_list %}
+                        <div class="space-y-3 flex-1 overflow-y-auto custom-scrollbar max-h-[180px]">
+                            {% for tournament in upcoming_tournaments_list %}
+                            <div
+                                class="bg-white/5 border border-white/5 rounded-xl p-3 flex justify-between items-center hover:bg-white/10 transition-colors">
+                                <div class="overflow-hidden">
+                                    <h4 class="text-white font-bold font-display text-base truncate pr-2">{{
+                                        tournament.Name }}
+                                    </h4>
+                                    <p class="text-xs text-brand-light/50 mt-1">
+                                        Starts: {{ tournament.start_date|date:"M d,Y"|default:"TBA" }}</p>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span
+                                        class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded font-bold">SCHEDULED</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <!-- Empty State -->
+                        <div class="flex flex-col items-center justify-center py-4 text-center opacity-50 flex-1">
+                            <i class="fa-regular fa-calendar-xmark text-3xl text-brand-light/20 mb-3"></i>
+                            <p class="text-xs text-brand-light/50">No upcoming tournaments</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Upcoming Events Section -->
+                <div class="bg-[#0B0C10]/50 border border-white/5 rounded-2xl p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-display font-bold text-white text-md flex items-center gap-2">
+                            <i class="fa-solid fa-clock text-purple-500"></i> Upcoming Events
+                        </h3>
+                    </div>
+
+                    {% if upcoming_events %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {% for event in upcoming_events|slice:":4" %}
+                        <div
+                            class="bg-white/5 border border-white/5 rounded-xl p-4 flex gap-4 items-center hover:bg-white/10 transition-colors border-l-2 border-l-purple-500/50 hover:border-l-purple-400">
+                            <div
+                                class="w-12 h-12 rounded-lg bg-purple-500/10 flex flex-col items-center justify-center shrink-0 border border-purple-500/20">
+                                <span class="text-[10px] text-purple-400 font-bold uppercase">{{ event.due_date|date:"M"
+                                    }}</span>
+                                <span class="text-xl text-white font-display font-bold leading-none">{{
+                                    event.due_date|date:"d" }}</span>
+                            </div>
+                            <div class="overflow-hidden">
+                                <h4 class="text-white font-bold font-display text-sm truncate"
+                                    title="{{ event.title }}">{{ event.title }}</h4>
+                                <p class="text-[10px] text-brand-light/50 mt-1 flex items-center gap-1">
+                                    <i class="fa-regular fa-clock"></i> {{ event.due_date|date:"h:i A" }}
+                                </p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <!-- Empty State -->
+                    <div
+                        class="flex items-center justify-center py-8 text-center opacity-50 bg-white/5 rounded-xl border border-white/5 border-dashed">
+                        <div>
+                            <i class="fa-solid fa-calendar-times text-2xl text-brand-light/20 mb-2"></i>
+                            <p class="text-xs text-brand-light/50">No events currently scheduled</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
 
             <!-- RIGHT COLUMN (Calendar & Todo) -->
             <div class="lg:col-span-1 space-y-6">
