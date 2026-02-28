@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Game Scout | Player Portal</title>
+    <title>{% block title %}E-Game Scout | Player Portal{% endblock %}</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -31,6 +31,10 @@
                         'brand-light': '#C5C6C7',
                         'accent-cyan': '#66FCF1',
                         'accent-dark-cyan': '#45A29E',
+                        'neon-blue': '#00D4FF',
+                        'neon-lightblue': '#7DF9FF',
+                        'neon-pink': '#FF2A6D',
+                        'neon-orange': '#FF6B35',
                     }
                 }
             }
@@ -50,6 +54,42 @@
     <!-- Grid Background -->
     <div class="fixed inset-0 bg-grid-pattern pointer-events-none -z-20"></div>
 
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-sidebar" class="lg:hidden hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onclick="document.getElementById('mobile-sidebar').classList.add('hidden')"></div>
+        <aside
+            class="absolute left-0 top-0 h-full w-64 bg-[#0B0C10] border-r border-white/5 flex flex-col justify-between">
+            <div class="h-24 flex items-center px-8 border-b border-white/5">
+                <a href="{% url 'index' %}" class="flex items-center gap-3">
+                    <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-8 h-8 object-contain">
+                    <span class="font-display font-bold text-white tracking-wider">E-GAME SCOUT</span>
+                </a>
+            </div>
+            <div class="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
+                <p class="px-4 text-[10px] text-brand-light/30 uppercase tracking-widest font-bold mb-4">Main Menu</p>
+                <a href="{% url 'player_dashboard' %}"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if request.resolver_match.url_name == 'player_dashboard' %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
+                    <i class="fa-solid fa-border-all text-lg group-hover:text-accent-cyan"></i> Dashboard
+                </a>
+                <a href="{% url 'player_bids' %}"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'bids' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
+                    <i class="fa-solid fa-gavel text-lg group-hover:text-accent-cyan"></i> My Bids
+                </a>
+                <a href="{% url 'player_upcoming_tournaments' %}"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'upcoming' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
+                    <i class="fa-solid fa-trophy text-lg group-hover:text-accent-cyan"></i> Upcoming Tournaments
+                </a>
+            </div>
+            <div class="p-4 border-t border-white/5">
+                <a href="{% url 'auth_logout' %}"
+                    class="flex items-center justify-center gap-3 w-full py-3 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all font-bold text-sm">
+                    <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                </a>
+            </div>
+        </aside>
+    </div>
+
     <div class="flex min-h-screen">
         <!-- Sidebar Navigation -->
         <aside
@@ -67,20 +107,19 @@
                 <p class="px-4 text-[10px] text-brand-light/30 uppercase tracking-widest font-bold mb-4">Main Menu</p>
 
                 <a href="{% url 'player_dashboard' %}"
-                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if request.resolver_match.url_name == 'player_dashboard' %}bg-accent-cyan text-brand-dark font-bold shadow-[0_0_20px_rgba(102,252,241,0.3)]{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if request.resolver_match.url_name == 'player_dashboard' %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
                     <i class="fa-solid fa-border-all text-lg"></i>
                     Dashboard
                 </a>
 
                 <a href="{% url 'player_bids' %}"
-                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'bids' in request.resolver_match.url_name %}bg-accent-cyan text-brand-dark font-bold shadow-[0_0_20px_rgba(102,252,241,0.3)]{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'bids' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
                     <i class="fa-solid fa-gavel text-lg"></i>
                     My Bids
                 </a>
 
-                <!-- Upcoming Features (Placeholder) -->
                 <a href="{% url 'player_upcoming_tournaments' %}"
-                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'upcoming' in request.resolver_match.url_name %}bg-accent-cyan text-brand-dark font-bold shadow-[0_0_20px_rgba(102,252,241,0.3)]{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'upcoming' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
                     <i class="fa-solid fa-trophy text-lg"></i>
                     Upcoming Tournaments
                 </a>
@@ -106,28 +145,25 @@
                 <!-- Mobile Toggle & Breadcrumbs -->
                 <div class="flex items-center gap-4">
                     <!-- Mobile Toggle (Only visible on small screens) -->
-                    <button class="lg:hidden text-white/50 hover:text-white">
+                    <button class="lg:hidden text-white/50 hover:text-white"
+                        onclick="document.getElementById('mobile-sidebar').classList.toggle('hidden')">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
 
-                    <nav class="hidden md:flex items-center gap-3 text-sm font-display tracking-wider">
-                        <a href="{% url 'player_dashboard' %}"
-                            class="text-white/50 hover:text-accent-cyan transition-colors">
-                            <i class="fa-solid fa-house"></i>
-                        </a>
-                        <span class="text-white/30">/</span>
-                        <a href="{% url 'player_dashboard' %}"
-                            class="text-white/50 hover:text-accent-cyan transition-colors">Player</a>
-                        <span class="text-white/30">/</span>
-                        <span class="text-accent-cyan font-bold drop-shadow-[0_0_10px_rgba(102,252,241,0.5)]">
-                            {% if request.resolver_match.url_name == 'player_dashboard' %}Dashboard
-                            {% elif request.resolver_match.url_name == 'player_profile' %}My Profile
-                            {% elif request.resolver_match.url_name == 'player_bids' %}My Bids
-                            {% elif 'upcoming' in request.resolver_match.url_name %}Upcoming Tournaments
-                            {% else %}Portal
+                    <div>
+                        <h2 class="text-xl font-display font-bold tracking-wider">
+                            PLAYER <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-dark-cyan">
+                            {% if request.resolver_match.url_name == 'player_dashboard' %}DASHBOARD
+                            {% elif request.resolver_match.url_name == 'player_profile' %}PROFILE
+                            {% elif request.resolver_match.url_name == 'player_bids' %}BIDS
+                            {% elif 'upcoming' in request.resolver_match.url_name %}TOURNAMENTS
+                            {% elif request.resolver_match.url_name == 'player_delete_account' %}SETTINGS
+                            {% else %}PORTAL
                             {% endif %}
-                        </span>
-                    </nav>
+                            </span>
+                        </h2>
+                        <p class="text-xs text-gray-500 font-mono hidden md:block">{{ player.full_name|default:"Player" }} • {{ player.uid }}</p>
+                    </div>
                 </div>
 
                 <!-- User Profile Info -->
@@ -152,10 +188,59 @@
                         <p class="text-xs text-brand-light/40">{{ player.email|default:"" }}</p>
                     </div>
 
-                    <div class="relative group cursor-pointer"
-                        onclick="document.getElementById('profile-dropdown').classList.toggle('hidden')">
+                    <!-- Notifications Dropdown -->
+                    <div class="relative group">
+                        <button class="relative text-gray-400 hover:text-white transition-colors focus:outline-none"
+                            id="player-notification-btn" onclick="togglePlayerNotifications()">
+                            <i class="fa-solid fa-bell text-xl"></i>
+                            {% if player_notifications_count > 0 %}
+                            <span
+                                class="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-accent-cyan text-brand-dark text-[10px] font-bold rounded-full">
+                                {% if player_notifications_count > 4 %}4+{% else %}{{ player_notifications_count }}{% endif %}
+                            </span>
+                            {% endif %}
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="player-notification-dropdown"
+                            class="absolute right-0 mt-4 w-80 bg-[#0B0C10] border border-white/10 rounded-xl shadow-2xl overflow-hidden hidden transform transition-all duration-200 origin-top-right z-50">
+                            <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
+                                <h3 class="text-sm font-bold text-white font-display">NOTIFICATIONS</h3>
+                            </div>
+                            <div class="max-h-64 overflow-y-auto custom-scrollbar">
+                                {% if player_notifications %}
+                                {% for notification in player_notifications|slice:":4" %}
+                                <!-- Notification Item -->
+                                <div
+                                    class="p-3 border-b border-white/5 hover:bg-white/5 transition-colors group relative">
+                                    <a href="{{ notification.link|default:'#' }}" class="flex gap-3 pr-6">
+                                        <div
+                                            class="w-2 h-2 rounded-full {% if notification.notification_type == 'BID' %}bg-accent-cyan shadow-[0_0_5px_#66FCF1]{% else %}bg-green-500 shadow-[0_0_5px_#22c55e]{% endif %} mt-1.5 shrink-0">
+                                        </div>
+                                        <div class="flex-1">
+                                            <p
+                                                class="text-xs text-white leading-relaxed group-hover:text-accent-cyan transition-colors">
+                                                {{ notification.message }}</p>
+                                            <p class="text-[10px] text-gray-500 mt-1">{{
+                                                notification.created_at|timesince }} ago
+                                            </p>
+                                        </div>
+                                    </a>
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <div class="p-8 text-center">
+                                    <i class="fa-regular fa-bell-slash text-gray-600 text-2xl mb-2"></i>
+                                    <p class="text-xs text-gray-500">No new notifications</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'player_profile' %}" class="block group" aria-label="My Profile">
                         <div
-                            class="w-10 h-10 rounded-full border-2 border-accent-cyan/30 p-0.5 group-hover:border-accent-cyan transition-colors">
+                            class="w-10 h-10 rounded-full border-2 border-white/20 p-0.5 group-hover:border-accent-cyan transition-colors">
                             {% if player.profile_photo %}
                             <img src="{{ player.profile_photo.url }}" alt="Profile"
                                 class="w-full h-full rounded-full object-cover">
@@ -166,35 +251,7 @@
                             </div>
                             {% endif %}
                         </div>
-
-                        <!-- Profile Dropdown -->
-                        <div id="profile-dropdown"
-                            class="absolute right-0 top-12 w-48 bg-[#0B0C10] border border-white/10 rounded-xl shadow-2xl hidden flex-col overflow-hidden z-50">
-                            <div class="p-3 border-b border-white/5">
-                                <p class="text-white font-bold text-sm truncate">{{ player.full_name|default:"Player" }}
-                                </p>
-                                <p class="text-xs text-gray-500 truncate">{{ player.email }}</p>
-                            </div>
-                            <a href="{% url 'player_profile' %}"
-                                class="px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
-                                <i class="fa-solid fa-user-astronaut w-5"></i> My Profile
-                            </a>
-                            <a href="#"
-                                class="px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
-                                <i class="fa-solid fa-gear w-5"></i> Settings
-                            </a>
-                            <div class="border-t border-white/5 my-1"></div>
-                            <a href="{% url 'auth_logout' %}"
-                                class="px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-2">
-                                <i class="fa-solid fa-right-from-bracket w-5"></i> Log Out
-                            </a>
-                        </div>
-
-                        <!-- Backdrop to close -->
-                        <div class="fixed inset-0 z-40 hidden"
-                            onclick="event.stopPropagation(); document.getElementById('profile-dropdown').classList.add('hidden')"
-                            id="dropdown-backdrop"></div>
-                    </div>
+                    </a>
                 </div>
             </header>
 
@@ -211,6 +268,29 @@
 
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
+
+    <!-- Breadcrumb Toast (shows when navigating away from dashboard) -->
+    {% if request.resolver_match.url_name != 'player_dashboard' %}
+    <div id="breadcrumb-toast"
+        class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] pointer-events-auto opacity-0 translate-y-8 transition-all duration-500 ease-out">
+        <div
+            class="flex items-center gap-3 px-6 py-3.5 rounded-2xl backdrop-blur-2xl bg-[rgba(31,40,51,0.7)] border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] min-w-[280px] justify-center">
+            <i class="fa-solid fa-location-dot text-accent-cyan text-sm"></i>
+            <span class="text-sm text-white font-medium">You're viewing</span>
+            <span class="text-accent-cyan font-bold font-display tracking-wider">
+                {% if request.resolver_match.url_name == 'player_profile' %}My Profile
+                {% elif request.resolver_match.url_name == 'player_bids' %}My Bids
+                {% elif 'upcoming' in request.resolver_match.url_name %}Upcoming Tournaments
+                {% elif request.resolver_match.url_name == 'player_delete_account' %}Delete Account
+                {% else %}Portal
+                {% endif %}
+            </span>
+            <button onclick="dismissBreadcrumbToast()" class="text-white/40 hover:text-white transition-colors ml-1">
+                <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Django Messages Data -->
     {% if messages %}
@@ -336,9 +416,56 @@
                     console.error('Error parsing messages:', e);
                 }
             }
+            // Show breadcrumb toast from bottom (slides up with glassy effect)
+            const bcToast = document.getElementById('breadcrumb-toast');
+            if (bcToast) {
+                requestAnimationFrame(() => {
+                    bcToast.classList.remove('opacity-0', 'translate-y-8');
+                    bcToast.classList.add('opacity-100', 'translate-y-0');
+                });
+                setTimeout(() => {
+                    if (bcToast.parentElement) {
+                        bcToast.classList.add('opacity-0', 'translate-y-8');
+                        setTimeout(() => bcToast.remove(), 500);
+                    }
+                }, 4000);
+            }
         });
-    </script>
+        function dismissBreadcrumbToast() {
+            const bc = document.getElementById('breadcrumb-toast');
+            if (bc) {
+                bc.classList.add('opacity-0', 'translate-y-8');
+                setTimeout(() => bc.remove(), 500);
+            }
+        }
 
+        function togglePlayerNotifications() {
+            const dropdown = document.getElementById('player-notification-dropdown');
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                dropdown.classList.add('scale-100', 'opacity-100');
+                dropdown.classList.remove('scale-95', 'opacity-0');
+            } else {
+                dropdown.classList.add('hidden');
+                dropdown.classList.remove('scale-100', 'opacity-100');
+                dropdown.classList.add('scale-95', 'opacity-0');
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (event) {
+            const dropdown = document.getElementById('player-notification-dropdown');
+            const btn = document.getElementById('player-notification-btn');
+
+            if (!dropdown || !btn) return;
+
+            if (!dropdown.contains(event.target) && !btn.contains(event.target) && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+    </script>
+    {% block scripts %}{% endblock %}
 </body>
 
 </html>

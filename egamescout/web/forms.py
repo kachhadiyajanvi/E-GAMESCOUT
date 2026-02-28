@@ -114,7 +114,7 @@ class OrganizationPhotoForm(forms.ModelForm):
 class EmailLoginForm(forms.Form):
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
-            'class': 'w-full bg-brand-dark/50 border border-white/10 rounded-lg p-3 text-white focus:border-accent-cyan outline-none transition-colors placeholder-white/30', 
+            'class': 'cyber-input w-full rounded-lg p-3 placeholder-white/30',
             'placeholder': 'Enter your email'
         }),
         label="Email Address"
@@ -124,7 +124,7 @@ class OTPVerifyForm(forms.Form):
     otp_code = forms.CharField(
         max_length=6,
         widget=forms.TextInput(attrs={
-            'class': 'w-full bg-brand-dark/50 border border-white/10 rounded-lg p-3 text-white focus:border-accent-cyan outline-none transition-colors placeholder-white/30 text-center tracking-[0.5em] text-xl font-mono', 
+            'class': 'cyber-input w-full rounded-lg p-3 placeholder-white/30 text-center tracking-[0.5em] text-xl font-mono',
             'placeholder': '000000'
         }),
         label="Enter Authentication Code"
@@ -138,11 +138,11 @@ class PlayerRegistrationForm(forms.ModelForm):
         model = Player
         fields = ['full_name', 'age', 'uid', 'mobile_no', 'aadhar_number'] # Age & Aadhar extracted via AI
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors opacity-70 cursor-not-allowed', 'placeholder': 'Enter Full Name', 'readonly': 'readonly'}),
-            'age': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors opacity-70 cursor-not-allowed', 'placeholder': 'Age', 'readonly': 'readonly'}),
-            'uid': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors', 'placeholder': 'Enter Game ID'}),
-            'mobile_no': forms.NumberInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors', 'placeholder': 'Enter Mobile Number'}),
-            'aadhar_number': forms.TextInput(attrs={'class': 'w-full bg-brand-gray/50 border border-white/10 rounded p-3 text-white focus:border-accent-cyan outline-none transition-colors opacity-70 cursor-not-allowed', 'placeholder': 'Aadhar Number', 'readonly': 'readonly'}),
+            'full_name': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3 opacity-70 cursor-not-allowed', 'placeholder': 'Enter Full Name', 'readonly': 'readonly'}),
+            'age': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3 opacity-70 cursor-not-allowed', 'placeholder': 'Age', 'readonly': 'readonly'}),
+            'uid': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3', 'placeholder': 'Enter Game ID'}),
+            'mobile_no': forms.NumberInput(attrs={'class': 'cyber-input w-full rounded-lg p-3', 'placeholder': 'Enter Mobile Number'}),
+            'aadhar_number': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3 opacity-70 cursor-not-allowed', 'placeholder': 'Aadhar Number', 'readonly': 'readonly'}),
         }
 
     def clean_mobile_no(self):

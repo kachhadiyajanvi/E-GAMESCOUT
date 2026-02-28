@@ -1,37 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'web/Player/player_base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Identity Verification | E-Game Scout</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Rajdhani', 'sans-serif'], display: ['Orbitron', 'sans-serif'] },
-                    colors: { 'brand-dark': '#0B0C10', 'brand-gray': '#1F2833', 'brand-light': '#C5C6C7', 'accent-cyan': '#66FCF1' }
-                }
-            }
-        }
-    </script>
-</head>
+{% block title %}Identity Verification | E-Game Scout{% endblock %}
 
-<body class="bg-brand-dark text-white font-sans overflow-hidden h-screen flex items-center justify-center">
-
-    <div class="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,_#1a2b4b_0%,_#0B0C10_100%)] -z-10"></div>
+{% block content %}
+<div class="w-full max-w-lg">
     <div
-        class="fixed inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover opacity-5 -z-10">
-    </div>
-
-    <div
-        class="w-full max-w-lg p-8 bg-brand-gray/20 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(102,252,241,0.1)] relative">
-
+        class="glass-card p-8 rounded-xl border border-white/10 relative overflow-hidden group hover:border-accent-cyan/30 transition-all duration-300 shadow-[0_0_30px_rgba(102,252,241,0.08)]">
         <div class="text-center mb-6">
             <h2 class="text-3xl font-display font-bold text-white mb-2 tracking-wide">IDENTITY VERIFICATION</h2>
             <p class="text-brand-light text-sm">Step 1: Upload Aadhar Card to auto-fill details.</p>
@@ -40,7 +15,7 @@
         {% if messages %}
         <div class="mb-4">
             {% for message in messages %}
-            <div class="p-3 bg-red-500/10 border border-red-500/50 rounded text-red-500 text-sm text-center">
+            <div class="p-3 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-sm text-center">
                 {{ message }}
             </div>
             {% endfor %}
@@ -51,8 +26,7 @@
             {% csrf_token %}
 
             <div>
-                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-2">Upload Aadhar
-                    Card</label>
+                <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-2">Upload Aadhar Card</label>
 
                 <div class="relative w-full">
                     <input type="file" name="aadhar_card" accept="image/png, image/jpeg, image/webp" class="hidden"
@@ -61,25 +35,20 @@
                         class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-accent-cyan/50 hover:bg-white/5 transition-all group"
                         id="upload-label">
 
-                        <!-- Default State -->
                         <div id="upload-placeholder" class="flex flex-col items-center pt-5 pb-6">
-                            <i
-                                class="fa-solid fa-id-card text-3xl text-accent-cyan mb-3 group-hover:scale-110 transition-transform"></i>
-                            <div
-                                class="px-6 py-2 bg-accent-cyan text-brand-dark font-bold rounded-full mb-2 hover:bg-white transition-colors">
+                            <i class="fa-solid fa-id-card text-3xl text-accent-cyan mb-3 group-hover:scale-110 transition-transform"></i>
+                            <div class="px-6 py-2 bg-accent-cyan text-brand-dark font-bold rounded-full mb-2 group-hover:bg-white transition-colors">
                                 Select Image
                             </div>
-                            <p class="mb-2 text-sm text-gray-400">drop a file here</p>
+                            <p class="mb-2 text-sm text-gray-400">Drop a file here</p>
                             <p class="text-xs text-gray-500">*Values extracted automatically by AI</p>
                         </div>
 
-                        <!-- Selected State -->
                         <div id="file-info" class="hidden flex-col items-center pt-5 pb-6">
                             <i class="fa-solid fa-circle-check text-4xl text-green-400 mb-3 animate-bounce"></i>
                             <p class="text-sm text-white font-bold mb-1" id="filename-display">filename.jpg</p>
                             <p class="text-xs text-green-400 font-bold uppercase tracking-widest">Ready to Scan</p>
-                            <p class="text-xs text-gray-500 mt-2 hover:text-red-400 pointer-events-auto"
-                                onclick="resetUpload(event)">(Click here to change)</p>
+                            <p class="text-xs text-gray-500 mt-2 hover:text-red-400 cursor-pointer" onclick="event.preventDefault(); document.getElementById('id_aadhar_card').value=''; document.getElementById('upload-placeholder').classList.remove('hidden'); document.getElementById('file-info').classList.add('hidden'); document.getElementById('file-info').classList.remove('flex');">(Click here to change)</p>
                         </div>
                     </label>
                 </div>
@@ -93,25 +62,32 @@
                 <p class="text-accent-cyan text-sm animate-pulse">Analyzing Identity...</p>
             </div>
 
-            <div class="mt-4">
+            <div>
                 <button type="submit" id="submit-btn"
-                    class="w-full py-3 bg-accent-cyan text-brand-dark font-display font-bold uppercase tracking-wider rounded-lg hover:bg-white hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(102,252,241,0.4)]">
+                    class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded-xl transition-colors group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)]">
                     Verify & Continue <i class="fa-solid fa-arrow-right ml-2"></i>
                 </button>
             </div>
         </form>
+
+        <div class="mt-6 text-center text-xs text-gray-500">
+            <a href="{% url 'auth_login' %}" class="text-accent-cyan hover:underline">Back to Login</a>
+        </div>
     </div>
+</div>
 
-    <script>
-        const fileInput = document.getElementById('id_aadhar_card');
-        const placeholder = document.getElementById('upload-placeholder');
-        const fileInfo = document.getElementById('file-info');
-        const filenameDisplay = document.getElementById('filename-display');
-        const form = document.querySelector('form');
-        const submitBtn = document.getElementById('submit-btn');
-        const loadingSpinner = document.getElementById('loading-spinner');
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const fileInput = document.getElementById('id_aadhar_card');
+    const placeholder = document.getElementById('upload-placeholder');
+    const fileInfo = document.getElementById('file-info');
+    const filenameDisplay = document.getElementById('filename-display');
+    const form = document.querySelector('form');
+    const submitBtn = document.getElementById('submit-btn');
+    const loadingSpinner = document.getElementById('loading-spinner');
 
-        fileInput.addEventListener('change', function (e) {
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
             if (this.files && this.files[0]) {
                 const file = this.files[0];
                 filenameDisplay.textContent = file.name;
@@ -120,17 +96,17 @@
                 fileInfo.classList.add('flex');
             }
         });
+    }
 
+    if (form) {
         form.addEventListener('submit', function () {
-            submitBtn.classList.add('hidden');
-            loadingSpinner.classList.remove('hidden');
-            loadingSpinner.classList.add('flex');
+            if (submitBtn) submitBtn.classList.add('hidden');
+            if (loadingSpinner) {
+                loadingSpinner.classList.remove('hidden');
+                loadingSpinner.classList.add('flex');
+            }
         });
-
-        function resetUpload(e) {
-            // Visual helper
-        }
-    </script>
-</body>
-
-</html>
+    }
+});
+</script>
+{% endblock %}

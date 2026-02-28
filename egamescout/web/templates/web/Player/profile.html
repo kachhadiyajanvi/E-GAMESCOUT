@@ -1,191 +1,266 @@
 {% extends 'web/Player/player_dashboard_base.html' %}
 {% load static %}
 
+{% block title %}My Profile | E-Game Scout{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-6 py-12">
-    <div class="max-w-4xl mx-auto">
-        <!-- Page Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-display font-bold text-white mb-2">My Profile</h1>
-            <p class="text-gray-400 text-sm">Manage your gamer identity</p>
+<div class="container mx-auto max-w-7xl animate-fade-in pb-12">
+
+    <!-- Hero Banner -->
+    <div
+        class="relative bg-gradient-to-r from-[#0a0a0e] via-[#111217] to-[#0a0a0e] rounded-3xl p-8 mb-8 border border-white/5 overflow-hidden shadow-xl">
+        <div
+            class="absolute inset-0 bg-grid-pattern opacity-10 mask-image:linear-gradient(to_bottom,white,transparent)">
         </div>
+        <div class="absolute -top-32 -left-32 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px] pointer-events-none"></div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Profile Photo Section -->
-            <div class="lg:col-span-1">
-                <div class="bg-brand-gray/20 p-6 rounded-xl border border-white/10 backdrop-blur-md">
-                    <h3 class="text-lg font-display font-bold text-white mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-camera text-accent-cyan"></i>
-                        Avatar
-                    </h3>
-
-                    <div class="flex flex-col items-center">
-                        <div class="relative group mb-4">
-                            <div
-                                class="w-32 h-32 rounded-full overflow-hidden border-4 border-accent-cyan/30 group-hover:border-accent-cyan transition-colors bg-brand-dark">
-                                {% if player.profile_photo %}
-                                <img src="{{ player.profile_photo.url }}" class="w-full h-full object-cover">
-                                {% else %}
-                                <div class="w-full h-full flex items-center justify-center text-accent-cyan text-4xl">
-                                    <i class="fa-solid fa-user-ninja"></i>
-                                </div>
-                                {% endif %}
-                            </div>
-                            <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                                onclick="document.getElementById('photo-upload').click()">
-                                <i class="fa-solid fa-camera text-white text-2xl"></i>
-                            </div>
-                        </div>
-
-                        <form method="post" enctype="multipart/form-data" class="w-full">
-                            {% csrf_token %}
-
-                            {{ form.profile_photo }}
-                            <input type="file" name="profile_photo" id="photo-upload" class="hidden"
-                                onchange="this.form.submit()">
-
-                            <button type="button" onclick="document.getElementById('photo-upload').click()"
-                                class="w-full py-2 bg-accent-cyan/10 hover:bg-accent-cyan/20 text-accent-cyan rounded-lg border border-accent-cyan/30 transition-colors font-bold uppercase tracking-wider text-sm mb-2">
-                                <i class="fa-solid fa-upload mr-2"></i>Change Avatar
-                            </button>
-                            <p class="text-xs text-gray-500 text-center">Supported: JPG, PNG, WEBP</p>
+        <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
+            <!-- Profile Photo -->
+            <div class="relative group shrink-0">
+                <div
+                    class="w-32 h-32 rounded-full overflow-hidden border-4 border-[#0a0a0e] shadow-[0_0_0_2px_rgba(102,252,241,0.2)] group-hover:shadow-[0_0_0_2px_rgba(102,252,241,0.5)] transition-all bg-brand-dark duration-300 transform group-hover:scale-105">
+                    {% if player.profile_photo %}
+                    <img src="{{ player.profile_photo.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-accent-cyan text-4xl bg-[#111217]">
+                        <i class="fa-solid fa-user-ninja"></i>
                     </div>
+                    {% endif %}
                 </div>
-                <div class="bg-brand-gray/20 p-6 rounded-xl border border-white/10 backdrop-blur-md mt-6">
-                    <h4 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Account Status</h4>
-
-                    <div class="space-y-3">
-                        <!-- Verified Status -->
-                        <div
-                            class="p-4 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-between group hover:border-green-500/40 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400">
-                                    <i class="fa-solid fa-user-shield"></i>
-                                </div>
-                                <div>
-                                    <h5 class="font-bold text-white text-sm">Verified</h5>
-                                    <p class="text-xs text-green-400/80">Account is active</p>
-                                </div>
-                            </div>
-                            <div class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]">
-                            </div>
-                        </div>
-
-                        <!-- Email Status -->
-                        <div
-                            class="p-4 rounded-xl bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-between group hover:border-accent-cyan/40 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-10 h-10 rounded-lg bg-accent-cyan/20 flex items-center justify-center text-accent-cyan">
-                                    <i class="fa-solid fa-envelope"></i>
-                                </div>
-                                <div>
-                                    <h5 class="font-bold text-white text-sm">Email</h5>
-                                    <p class="text-xs text-accent-cyan/80">Confirmed</p>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-check text-accent-cyan"></i>
-                        </div>
-                    </div>
+                <div class="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-sm"
+                    onclick="document.getElementById('photo-upload').click()">
+                    <i class="fa-solid fa-camera text-white text-xl mb-1 mt-1"></i>
+                    <span class="text-[9px] font-bold text-white uppercase tracking-widest">Update</span>
                 </div>
+                <!-- Status Dot -->
+                <div class="absolute bottom-1 right-2 w-5 h-5 bg-green-500 rounded-full border-4 border-[#0a0a0e] shadow-[0_0_10px_rgba(34,197,94,0.5)]"
+                    title="Online"></div>
             </div>
 
-            <!-- Profile Information Section -->
-            <div class="lg:col-span-2">
-                <div class="bg-brand-gray/20 p-6 rounded-xl border border-white/10 backdrop-blur-md">
-                    <h3 class="text-lg font-display font-bold text-white mb-6 flex items-center gap-2">
-                        <i class="fa-solid fa-id-badge text-accent-cyan"></i>
-                        Gamer Identity
-                    </h3>
-
-                    <div class="space-y-4">
-                        <!-- Username -->
-                        <div>
-                            <label class="block text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                Gamer Tag (Username)
-                            </label>
-                            <div
-                                class="flex items-center bg-black/20 border border-white/10 rounded-lg px-4 py-3 focus-within:border-accent-cyan/50 transition-colors">
-                                <span class="text-gray-500 mr-2">@</span>
-                                {{ form.username }}
-                            </div>
-                            {% if form.username.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.username.errors.0 }}</p>
-                            {% endif %}
-                            <p class="text-xs text-gray-600 mt-1">This is your unique identity in tournaments.</p>
-                        </div>
-
-                        <!-- Read Only Info Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Full
-                                    Name</label>
-                                <input type="text" value="{{ player.full_name }}" readonly
-                                    class="w-full bg-black/40 border border-white/5 rounded px-3 py-2 text-gray-400 cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Game
-                                    UID</label>
-                                <input type="text" value="{{ player.uid }}" readonly
-                                    class="w-full bg-black/40 border border-white/5 rounded px-3 py-2 text-gray-400 cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Email</label>
-                                <input type="text" value="{{ player.email }}" readonly
-                                    class="w-full bg-black/40 border border-white/5 rounded px-3 py-2 text-gray-400 cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Mobile</label>
-                                <input type="text" value="{{ player.mobile_no }}" readonly
-                                    class="w-full bg-black/40 border border-white/5 rounded px-3 py-2 text-gray-400 cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Age</label>
-                                <input type="text" value="{{ player.age }}" readonly
-                                    class="w-full bg-black/40 border border-white/5 rounded px-3 py-2 text-gray-400 cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Aadhar
-                                    (Last 4)</label>
-                                <input type="text" value="XXXX-XXXX-{{ player.aadhar_number|slice:'-4:' }}" readonly
-                                    class="w-full bg-black/40 border border-white/5 rounded px-3 py-2 text-gray-400 cursor-not-allowed">
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="pt-4 flex justify-end">
-                            <button type="submit"
-                                class="px-8 py-3 bg-accent-cyan hover:bg-accent-cyan/90 text-brand-dark rounded-lg font-bold uppercase tracking-wider transition-colors shadow-[0_0_15px_rgba(102,252,241,0.3)]">
-                                <i class="fa-solid fa-save mr-2"></i>Save Profile
-                            </button>
-                        </div>
-                        </form>
-                    </div>
+            <div class="text-center md:text-left flex-1">
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan text-[10px] font-bold tracking-widest uppercase mb-3">
+                    <i class="fa-solid fa-id-card"></i> Player Profile
                 </div>
-                <div class="bg-brand-gray/20 p-6 mt-6 rounded-xl border border-white/10 backdrop-blur-md">
-                    <h3 class="text-lg font-display font-bold text-white mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-gear text-accent-cyan"></i>
-                        Settings
-                    </h3>
+                <h1
+                    class="text-3xl font-display font-bold text-white tracking-tight mb-1">
+                    {{ player.full_name|default:"Gamer Identity" }}
+                </h1>
+                <p class="text-brand-light/50 text-sm flex items-center justify-center md:justify-start gap-2">
+                    <i class="fa-solid fa-hashtag text-brand-light/30"></i> UID: <span
+                        class="font-mono text-brand-light/80">{{ player.uid }}</span>
+                </p>
+            </div>
 
-                    <div class="flex items-center justify-between p-4 bg-black/20 rounded-lg border border-white/5">
-                        <div>
-                            <h4 class="font-bold text-white">Danger Zone</h4>
-                            <p class="text-sm text-gray-500">Permanently delete your account and data.</p>
-                        </div>
-                        <a href="{% url 'player_delete_account' %}"
-                            class="px-5 py-2 border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors font-bold uppercase text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-trash-can"></i> Delete Account
-                        </a>
-                    </div>
+            <div class="shrink-0 flex gap-3 text-center">
+                <div class="bg-black/30 backdrop-blur-md rounded-2xl border border-white/5 p-4 min-w-[120px]">
+                    <i
+                        class="fa-solid fa-coins text-yellow-500 text-xl mb-2 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]"></i>
+                    <h4 class="text-xl font-display font-black text-white leading-none mb-1">
+                        {{player.coins|default:"0.00"|floatformat:2 }}</h4>
+                    <p class="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Credits</p>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Forms Section -->
+    <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {% csrf_token %}
+        <input type="file" name="profile_photo" id="photo-upload" class="hidden" onchange="this.form.submit()">
+
+        <!-- Left Column: Status & Identity -->
+        <div class="lg:col-span-1 space-y-6">
+
+            <!-- Account Status -->
+            <div
+                class="bg-[#111217] p-6 rounded-3xl border border-white/5 shadow-xl relative overflow-hidden group hover:border-white/10 transition-colors duration-300">
+                <div class="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent"></div>
+                <h3
+                    class="text-sm font-display font-bold text-white mb-5 flex items-center gap-2 uppercase tracking-wide">
+                    <i class="fa-solid fa-shield-halved text-accent-cyan"></i> Security Status
+                </h3>
+
+                <div class="space-y-4 relative z-10">
+                    <!-- Verified Status -->
+                    <div class="p-4 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-400 border border-green-500/20">
+                                <i class="fa-solid fa-user-check"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-white text-sm">Account Active</h5>
+                                <p class="text-[11px] text-green-400/80">Fully verified</p>
+                            </div>
+                        </div>
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    </div>
+
+                    <!-- Email Status -->
+                    <div class="p-4 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan border border-accent-cyan/20">
+                                <i class="fa-solid fa-envelope-circle-check"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-white text-sm">Email Status</h5>
+                                <p class="text-[11px] text-accent-cyan/80">Confirmed</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-check text-accent-cyan"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div
+                class="bg-red-500/5 p-6 rounded-3xl border border-red-500/10 shadow-xl hover:border-red-500/20 transition-colors duration-300 max-w-sm">
+                <h3
+                    class="text-sm font-display font-bold text-red-400 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Danger Zone
+                </h3>
+                <p class="text-xs text-gray-400 mb-5 leading-relaxed">
+                    Once you delete your account, there is no going back. Please be certain.
+                </p>
+                <a href="{% url 'player_delete_account' %}"
+                    class="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-500 text-sm font-bold uppercase tracking-wider rounded-xl transition-all border border-red-500/20">
+                    <i class="fa-solid fa-trash-can"></i> Delete Account
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Form Fields -->
+        <div class="lg:col-span-2">
+            <div
+                class="bg-[#111217] p-8 rounded-3xl border border-white/5 shadow-xl relative overflow-hidden group hover:border-white/10 transition-colors duration-300">
+                <div class="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent"></div>
+
+                <div class="relative z-10">
+                    <div class="flex justify-between items-center mb-8 pb-6 border-b border-white/5">
+                        <h3 class="text-lg font-display font-bold text-white flex items-center gap-3">
+                            <i class="fa-solid fa-user-gear text-accent-cyan"></i>
+                            Profile Details
+                        </h3>
+                        <button type="submit"
+                            class="px-6 py-2.5 bg-accent-cyan text-black text-sm font-bold tracking-wider uppercase rounded-xl hover:bg-white transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-check-double"></i> Save Changes
+                        </button>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- Editable Username Field -->
+                        <div class="bg-black/20 p-5 rounded-2xl border border-white/5">
+                            <label class="block text-xs font-bold text-accent-cyan uppercase tracking-widest mb-2">Gamer
+                                Tag (Username)</label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 font-bold">@</span>
+                                </div>
+                                <!-- Render form.username but with dynamic tailwind classes replaced via JS or template widget styling, here we'll use a hack to style the input if it's rendered by Django -->
+                                <div class="django-input-wrapper">
+                                    {{ form.username }}
+                                </div>
+                            </div>
+                            {% if form.username.errors %}
+                            <p class="text-red-400 text-xs mt-2 flex items-center gap-1"><i
+                                    class="fa-solid fa-circle-exclamation"></i> {{ form.username.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-[11px] text-gray-500 mt-2">This is your unique identity shown in tournaments
+                                and bids.</p>
+                        </div>
+
+                        <!-- Read-only Fields Grid -->
+                        <h4
+                            class="text-xs font-bold text-gray-500 uppercase tracking-widest pt-4 pb-2 border-b border-white/5">
+                            Personal Information (Read-Only)</h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <!-- Full Name -->
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-1">Full
+                                    Legal Name</label>
+                                <div
+                                    class="bg-[#0a0a0e] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3 opacity-70">
+                                    <i class="fa-solid fa-address-card text-gray-600 text-sm"></i>
+                                    <span class="text-sm font-bold text-gray-300">{{ player.full_name }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="space-y-1.5">
+                                <label
+                                    class="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-1">Registered
+                                    Email</label>
+                                <div
+                                    class="bg-[#0a0a0e] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3 opacity-70">
+                                    <i class="fa-solid fa-at text-gray-600 text-sm"></i>
+                                    <span class="text-sm font-bold text-gray-300 truncate">{{ player.email }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Mobile -->
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-1">Mobile
+                                    Number</label>
+                                <div
+                                    class="bg-[#0a0a0e] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3 opacity-70">
+                                    <i class="fa-solid fa-mobile-screen text-gray-600 text-sm"></i>
+                                    <span class="text-sm font-bold text-gray-300">{{ player.mobile_no }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Age -->
+                            <div class="space-y-1.5">
+                                <label
+                                    class="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-1">Age</label>
+                                <div
+                                    class="bg-[#0a0a0e] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3 opacity-70">
+                                    <i class="fa-solid fa-calendar-day text-gray-600 text-sm"></i>
+                                    <span class="text-sm font-bold text-gray-300">{{ player.age }} Years</span>
+                                </div>
+                            </div>
+
+                            <!-- Aadhar -->
+                            <div class="space-y-1.5 md:col-span-2">
+                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-1">Govt ID
+                                    (Aadhar)</label>
+                                <div
+                                    class="bg-[#0a0a0e] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3 opacity-70">
+                                    <i class="fa-solid fa-fingerprint text-gray-600 text-sm"></i>
+                                    <span class="text-sm font-bold text-gray-300 tracking-widest font-mono">XXXX - XXXX
+                                        - {{ player.aadhar_number|slice:'-4:' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
+
+<!-- JS to style Django's auto-generated input fields -->
+<style>
+    .django-input-wrapper input {
+        width: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.75rem;
+        padding: 0.875rem 1rem 0.875rem 2.5rem;
+        color: white;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+    .django-input-wrapper input:focus {
+        border-color: #66FCF1;
+        box-shadow: 0 0 0 2px rgba(102, 252, 241, 0.1);
+        background-color: rgba(0, 0, 0, 0.6);
+    }
+</style>
+
 {% endblock %}
