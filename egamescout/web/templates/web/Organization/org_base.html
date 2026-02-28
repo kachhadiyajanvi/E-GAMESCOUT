@@ -63,6 +63,8 @@
             </a>
         </div>
         <div>
+            <a href="{% url 'index' %}"
+                class="text-sm font-bold text-gray-400 hover:text-white mr-4 transition-colors">HOME</a>
             <a href="{% url 'org_login_start' %}"
                 class="text-sm font-bold text-gray-400 hover:text-white mr-4 transition-colors">LOGIN</a>
             <a href="{% url 'org_register_start' %}"
@@ -83,8 +85,12 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="py-6 text-center text-gray-600 text-xs border-t border-white/5">
-        &copy; 2026 E-Game Scout Organization Portal.
+    <footer class="py-6 flex flex-col items-center gap-2 border-t border-white/5">
+        <div class="text-gray-600 text-xs">&copy; 2026 E-Game Scout Organization Portal.</div>
+        <a href="mailto:help.egamescout@gmail.com"
+            class="text-gray-400 hover:text-accent-cyan transition-colors text-sm flex items-center gap-2">
+            <i class="fa-solid fa-envelope"></i> help.egamescout@gmail.com
+        </a>
     </footer>
 
     <!-- Toast Notification Container -->

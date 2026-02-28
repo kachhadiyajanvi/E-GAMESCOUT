@@ -547,6 +547,7 @@ def player_dashboard(request):
     from django.utils import timezone
     import json
     from django.core.serializers.json import DjangoJSONEncoder
+    from .models import PlayerBid, Tournament
     
     now = timezone.now()
     
@@ -594,18 +595,37 @@ def player_dashboard(request):
         if task['due_date']:
             calendar_events.append({
                 'title': task['title'],
-                'date': task['due_date'].strftime('%Y-%m-%d'), # Local time handling might be needed
+                'date': task['due_date'].strftime('%Y-%m-%d'), 
                 'time': task['due_date'].strftime('%H:%M'),
                 'type': task['task_type'],
                 'status': 'Completed' if task['is_completed'] else 'Pending',
-                'color': '#22c55e' if task['task_type'] == 'TASK' else '#a855f7' # Green or Purple
+                'color': '#22c55e' if task['task_type'] == 'TASK' else '#a855f7' 
             })
+
+    # Find the tournaments the player is actually participating in
+    accepted_tournament_ids = PlayerBid.objects.filter(
+        player=player, 
+        status='ACCEPTED', 
+        tournament__isnull=False
+    ).values_list('tournament_id', flat=True).distinct()
+
+    active_tournaments = Tournament.objects.filter(
+        Tournament_ID__in=accepted_tournament_ids,
+        Status='Ongoing'
+    )
+    
+    upcoming_tournaments_list = Tournament.objects.filter(
+        Tournament_ID__in=accepted_tournament_ids,
+        Status='Scheduled'
+    )[:5] # limit to 5 for dashboard card
 
     return render(request, 'web/Player/dashboard.html', {
         'player': player,
         'upcoming_events': upcoming_events,
         'todo_list': todo_list,
-        'calendar_events_json': json.dumps(calendar_events, cls=DjangoJSONEncoder)
+        'calendar_events_json': json.dumps(calendar_events, cls=DjangoJSONEncoder),
+        'active_tournaments': active_tournaments,
+        'upcoming_tournaments_list': upcoming_tournaments_list,
     })
 
 from .forms import PlayerProfileForm
@@ -655,7 +675,8 @@ def org_logout(request):
     return redirect('index')
 
 def index(request):
-    return render(request, 'web/index.html')
+    organizations = Organization.objects.filter(status='Active')[:10]
+    return render(request, 'web/index.html', {'organizations': organizations})
 
 def public_tournaments(request):
     """Public view for upcoming tournaments"""
@@ -1094,7 +1115,7 @@ def scorecard_tool(request):
                         client = genai.Client(api_key=provider['key'])
                         
                         # Upload file and generate content
-                        uploaded_file = client.files.upload(file=file_path)
+                        uploaded_file = client.files.upload(file_path)
                         
                         response = client.models.generate_content(
                             model='gemini-2.0-flash-001',
@@ -1682,6 +1703,15 @@ def open_bidding(request, tournament_id):
                 tournament.bidding_invite_fee = total_cost 
                 tournament.save()
                 
+                # Send invites immediately, but funds are claimed on join
+                for other in other_orgs:
+                    OrganizationNotification.objects.create(
+                        recipient=other,
+                        message=f"You are invited! Join '{tournament.Name}' to claim {total_cost} coins participation bonus.",
+                        notification_type='BIDDING_INVITE',
+                        related_tournament=tournament
+                    )
+                
             messages.success(request, f"Bidding opened! Fee set to {total_cost}.")
         except Exception as e:
             messages.error(request, f"Error processing transaction: {str(e)}")
@@ -1877,6 +1907,23 @@ def org_live_bidding(request):
             ]
             OrganizationNotification.objects.bulk_create(org_notifs)
             
+            # Empty the wallet of participating organizations
+            from .models import Transaction
+            for bidder in bidders:
+                org = bidder.organization
+                if org.coins > 0:
+                    amount_to_remove = org.coins
+                    org.coins = 0
+                    org.save()
+                    
+                    Transaction.objects.create(
+                        sender=org,
+                        amount=amount_to_remove,
+                        transaction_type='OTHER',
+                        related_tournament=tournament,
+                        description=f"Unused bidding coins flushed upon closing '{tournament.Name}'"
+                    )
+            
             # 3. Create Matches (Optional/Future: If "match" meant creating matches)
             # For now, just mark processed.
             
@@ -1972,6 +2019,10 @@ def place_player_bid(request, player_id):
         messages.error(request, "Bid amount must be greater than 0.")
         return redirect('org_live_bidding')
         
+    if org.coins < amount:
+        messages.error(request, "Insufficient funds to place this bid.")
+        return redirect('org_live_bidding')
+        
     # Create Bid
     from .models import PlayerBid, PlayerNotification
     
@@ -2028,7 +2079,11 @@ def handle_negotiation(request, bid_id, action):
         # Finalize Deal with Counter Amount
         final_amount = bid.counter_amount
         
-        # 1. Deduct from Org (Allow Overdraft)
+        if org.coins < final_amount:
+            messages.error(request, "Insufficient funds to accept this counter-offer.")
+            return redirect('org_negotiations')
+            
+        # 1. Deduct from Org
         org.coins -= final_amount
         org.save()
         
@@ -2137,16 +2192,13 @@ def handle_player_bid(request, bid_id, action):
     if action == 'accept':
         
         org = bid.organization
-        
-        # 1. Deduct from Org (Allow Overdraft)
-        # Assuming that amount is negotiable or fixed, here we use bid.amount
-        # BUT if it was negotiated, we should use counter_amount?
-        # Let's check status. If NEGOTIATING, use counter_amount?
-        # Actually user flow: Player proposed counter -> link to accept goes to handle_negotiation (Org side).
-        # This function handles Player accepting the ORIGINAL bid.
-        
         final_amount = bid.amount
         
+        if org.coins < final_amount:
+            messages.error(request, f"Cannot accept bid: {org.Organization_Name} has insufficient funds.")
+            return redirect('player_bids')
+            
+        # 1. Deduct from Org
         org.coins -= final_amount
         org.save()
         

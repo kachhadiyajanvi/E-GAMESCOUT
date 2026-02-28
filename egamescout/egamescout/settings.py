@@ -32,12 +32,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-change-this')
 
 # AI Provider Keys - Multiple Gemini keys with fallback
-GEMINI_API_KEYS = [
-    key.strip() for key in os.getenv('GEMINI_API_KEY_1', '').split(',') if key.strip()
-]
+GEMINI_API_KEYS = []
+for i in range(1, 4):
+    key = os.getenv(f'GEMINI_API_KEY_{i}', '').strip()
+    if key:
+        GEMINI_API_KEYS.append(key)
+
 if not GEMINI_API_KEYS:
     # Fallback for single GEMINI_API_KEY (legacy)
-    legacy_key = os.getenv('GEMINI_API_KEY', '')
+    legacy_key = os.getenv('GEMINI_API_KEY', '').strip()
     if legacy_key:
         GEMINI_API_KEYS = [legacy_key]
 
@@ -46,7 +49,7 @@ GEMINI_API_KEY = GEMINI_API_KEYS[0] if GEMINI_API_KEYS else ''
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -159,11 +162,15 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Email Configuration
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # For development
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # For production
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = f'E-Game Scout <{EMAIL_HOST_USER}>'
+DEFAULT_FROM_EMAIL = f'E-Game Scout <{EMAIL_HOST_USER}>' if EMAIL_HOST_USER else 'E-Game Scout <noreply@egamescout.com>'

@@ -38,6 +38,42 @@
     </script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+    <style>
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .animate-marquee {
+            animation: marquee 30s linear infinite;
+            display: flex;
+            width: max-content;
+        }
+
+        @keyframes scan {
+
+            0%,
+            100% {
+                top: 0%;
+                opacity: 0;
+            }
+
+            10%,
+            90% {
+                opacity: 1;
+            }
+
+            50% {
+                top: 100%;
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-brand-dark text-white font-sans selection:bg-accent-cyan selection:text-brand-dark overflow-x-hidden">
@@ -124,13 +160,16 @@
                     <div class="flex flex-col sm:flex-row gap-4 opacity-0 animate-fade-in-up"
                         style="animation-delay: 0.4s;">
                         <a href="{% url 'auth_login' %}"
-                            class="group relative px-6 py-3 rounded-full bg-accent-cyan text-brand-dark font-display font-bold flex items-center justify-center gap-3 transition-all hover:bg-white hover:scale-105 hover:shadow-[0_0_30px_rgba(102,252,241,0.6)]">
-                            <span class="text-sm"><i class="fa-solid fa-gamepad mr-2"></i> JOIN AS PLAYER</span>
+                            class="group relative px-6 py-3 rounded-full bg-accent-cyan text-brand-dark font-display font-bold flex items-center justify-center gap-3 transition-all duration-300 hover:bg-white hover:scale-105 hover:shadow-[0_0_30px_rgba(102,252,241,0.8)]">
+                            <span class="text-sm transition-transform group-hover:scale-105 text-glow-none"><i
+                                    class="fa-solid fa-gamepad mr-2 animate-pulse-slow"></i> JOIN AS PLAYER</span>
                         </a>
 
                         <a href="{% url 'org_register_start' %}"
-                            class="group relative px-6 py-3 rounded-full bg-transparent border border-white text-white font-display font-bold flex items-center justify-center gap-3 transition-all hover:bg-white/10 hover:border-accent-cyan hover:text-accent-cyan">
-                            <span class="text-sm"><i class="fa-solid fa-trophy mr-2"></i> JOIN AS ORGANIZATION</span>
+                            class="group relative px-6 py-3 rounded-full bg-transparent border border-white text-white font-display font-bold flex items-center justify-center gap-3 transition-all duration-300 hover:bg-white/10 hover:border-accent-cyan hover:text-accent-cyan hover:scale-105 hover:shadow-[0_0_20px_rgba(102,252,241,0.3)]">
+                            <span class="text-sm transition-transform group-hover:scale-105"><i
+                                    class="fa-solid fa-trophy mr-2 group-hover:text-yellow-400 transition-colors"></i>
+                                JOIN AS ORGANIZATION</span>
                         </a>
                     </div>
                 </div>
@@ -155,7 +194,7 @@
 
                     <!-- Integrated HUD Roadmap (Mobile: Listed Below, Desktop: Floating Side) -->
                     <div
-                        class="relative lg:absolute lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2 lg:right-[-20px] w-full lg:w-auto p-4 lg:p-0 flex flex-col items-center lg:items-end gap-3 z-30 pointer-events-none order-2 lg:order-none mt-[-40px] lg:mt-0">
+                        class="relative lg:absolute lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2 lg:right-[-20px] w-full lg:w-auto p-4 lg:p-0 flex flex-col items-center lg:items-end gap-3 z-30 pointer-events-none order-2 lg:order-none mt-8 lg:mt-0 lg:pl-10">
 
                         <!-- Header (Hidden on mobile to save space, visible on large) -->
                         <div class="hidden lg:block text-right mb-2 opacity-0 animate-fade-in-left"
@@ -240,6 +279,85 @@
         </div>
     </section>
 
+    <!-- Top Organizations Marquee Section -->
+    <section
+        class="py-8 border-y border-white/5 bg-[#090a0f] overflow-hidden relative shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]">
+        <!-- Fade Edges -->
+        <div
+            class="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#090a0f] to-transparent z-10 pointer-events-none">
+        </div>
+        <div
+            class="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#090a0f] to-transparent z-10 pointer-events-none">
+        </div>
+
+        <!-- Live Indicator -->
+        <div
+            class="absolute left-6 md:left-12 top-1/2 -translate-y-1/2 z-20 hidden md:flex items-center gap-3 px-4 py-2 bg-[#0B0C10]/80 backdrop-blur border border-accent-cyan/30 rounded shadow-[0_0_15px_rgba(102,252,241,0.1)]">
+            <span class="relative flex h-2.5 w-2.5">
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-cyan opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-cyan"></span>
+            </span>
+            <span
+                class="text-accent-cyan font-display text-[10px] tracking-[0.2em] font-bold uppercase whitespace-nowrap">LIVE
+                SCOUTING</span>
+        </div>
+
+        <!-- Marquee Content -->
+        {% if organizations %}
+        <div
+            class="flex space-x-12 animate-marquee opacity-60 hover:opacity-100 transition-opacity duration-300 items-center md:ml-48">
+            {% for org in organizations %}
+            <div
+                class="text-3xl font-display font-black text-white/80 hover:text-accent-cyan transition-colors cursor-default whitespace-nowrap px-6 flex items-center gap-4">
+                {% if org.Organization_Photo %}
+                <img src="{{ org.Organization_Photo.url }}" alt="{{ org.Organization_Name }}"
+                    class="w-8 h-8 rounded border-b-2 border-accent-cyan object-cover mix-blend-luminosity hover:mix-blend-normal transition-all"
+                    onerror="this.style.display='none'">
+                {% endif %}
+                {{ org.Organization_Name|upper }}
+            </div>
+            {% endfor %}
+            <!-- Duplicated for seamless loop -->
+            {% for org in organizations %}
+            <div
+                class="text-3xl font-display font-black text-white/80 hover:text-accent-cyan transition-colors cursor-default whitespace-nowrap px-6 flex items-center gap-4">
+                {% if org.Organization_Photo %}
+                <img src="{{ org.Organization_Photo.url }}" alt="{{ org.Organization_Name }}"
+                    class="w-8 h-8 rounded border-b-2 border-accent-cyan object-cover mix-blend-luminosity hover:mix-blend-normal transition-all"
+                    onerror="this.style.display='none'">
+                {% endif %}
+                {{ org.Organization_Name|upper }}
+            </div>
+            {% endfor %}
+            <!-- Duplicating again to ensure a full screen loop with small dataset -->
+            {% for org in organizations %}
+            <div
+                class="text-3xl font-display font-black text-white/80 hover:text-accent-cyan transition-colors cursor-default whitespace-nowrap px-6 flex items-center gap-4">
+                {% if org.Organization_Photo %}
+                <img src="{{ org.Organization_Photo.url }}" alt="{{ org.Organization_Name }}"
+                    class="w-8 h-8 rounded border-b-2 border-accent-cyan object-cover mix-blend-luminosity hover:mix-blend-normal transition-all"
+                    onerror="this.style.display='none'">
+                {% endif %}
+                {{ org.Organization_Name|upper }}
+            </div>
+            {% endfor %}
+            <!-- Final duplication for extremely small dataset -->
+            {% for org in organizations %}
+            <div
+                class="text-3xl font-display font-black text-white/80 hover:text-accent-cyan transition-colors cursor-default whitespace-nowrap px-6 flex items-center gap-4">
+                {% if org.Organization_Photo %}
+                <img src="{{ org.Organization_Photo.url }}" alt="{{ org.Organization_Name }}"
+                    class="w-8 h-8 rounded border-b-2 border-accent-cyan object-cover mix-blend-luminosity hover:mix-blend-normal transition-all"
+                    onerror="this.style.display='none'">
+                {% endif %}
+                {{ org.Organization_Name|upper }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+
     <!-- BGMI Game Section -->
     <section id="featured-game" class="py-20 px-6 md:px-12 relative overflow-hidden bg-[#0F1115]">
         <!-- BGMI Gradient Background -->
@@ -316,6 +434,77 @@
         </div>
     </section>
 
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-16 md:py-24 px-6 md:px-12 relative overflow-hidden bg-brand-dark">
+        <div class="absolute inset-0 z-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
+        <div class="relative z-10 text-center mb-16 reveal-on-scroll">
+            <h2 class="text-3xl md:text-5xl font-display font-bold text-white mb-4 uppercase">
+                THE SCOUTING <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">PIPELINE</span>
+            </h2>
+            <p class="text-brand-light/60 max-w-2xl mx-auto font-light">
+                From amateur to pro in 4 straightforward steps.
+            </p>
+        </div>
+
+        <div class="relative max-w-6xl mx-auto z-10 reveal-on-scroll delay-100">
+            <!-- Connecting Line -->
+            <div class="hidden md:block absolute top-1/2 left-0 w-full h-[2px] bg-white/10 -translate-y-1/2 z-0">
+                <div class="absolute top-0 left-0 h-full bg-accent-cyan animate-scanline" style="width: 100%;"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Step 1 -->
+                <div
+                    class="relative group bg-brand-dark/80 backdrop-blur border border-white/10 flex flex-col items-center p-6 rounded-xl hover:border-accent-cyan/50 hover:-translate-y-2 transition-all duration-300 z-10">
+                    <div
+                        class="w-16 h-16 rounded-full bg-accent-cyan/10 border-2 border-accent-cyan/30 flex items-center justify-center text-accent-cyan text-2xl mb-4 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all shadow-[0_0_15px_rgba(102,252,241,0.2)]">
+                        1
+                    </div>
+                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2">Build Profile</h3>
+                    <p class="text-xs text-gray-400 text-center">Register and connect your game accounts to showcase
+                        your stats.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div
+                    class="relative group bg-brand-dark/80 backdrop-blur border border-white/10 flex flex-col items-center p-6 rounded-xl hover:border-accent-cyan/50 hover:-translate-y-2 transition-all duration-300 z-10">
+                    <div
+                        class="w-16 h-16 rounded-full bg-accent-cyan/10 border-2 border-accent-cyan/30 flex items-center justify-center text-accent-cyan text-2xl mb-4 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all shadow-[0_0_15px_rgba(102,252,241,0.2)]">
+                        2
+                    </div>
+                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2">Upload Data</h3>
+                    <p class="text-xs text-gray-400 text-center">Play in tournaments and use AI to parse your scorecards
+                        automatically.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div
+                    class="relative group bg-brand-dark/80 backdrop-blur border border-white/10 flex flex-col items-center p-6 rounded-xl hover:border-accent-cyan/50 hover:-translate-y-2 transition-all duration-300 z-10">
+                    <div
+                        class="w-16 h-16 rounded-full bg-accent-cyan/10 border-2 border-accent-cyan/30 flex items-center justify-center text-accent-cyan text-2xl mb-4 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all shadow-[0_0_15px_rgba(102,252,241,0.2)]">
+                        3
+                    </div>
+                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2">Get Scouted</h3>
+                    <p class="text-xs text-gray-400 text-center">Organizations analyze leaderboards and place secure
+                        digital bids.</p>
+                </div>
+
+                <!-- Step 4 -->
+                <div
+                    class="relative group bg-brand-dark/80 backdrop-blur border border-white/10 flex flex-col items-center p-6 rounded-xl hover:border-accent-cyan/50 hover:-translate-y-2 transition-all duration-300 z-10">
+                    <div
+                        class="w-16 h-16 rounded-full bg-accent-cyan/10 border-2 border-accent-cyan/30 flex items-center justify-center text-accent-cyan text-2xl mb-4 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all shadow-[0_0_15px_rgba(102,252,241,0.2)]">
+                        4
+                    </div>
+                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2">Sign Contract</h3>
+                    <p class="text-xs text-gray-400 text-center">Accept bids, receive instant payouts, and join your new
+                        pro roster.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Solution Section ("What We Offer") -->
     <section id="features" class="py-16 md:py-24 px-6 md:px-12 relative overflow-hidden">
         <!-- Background Tech Lines -->
@@ -345,7 +534,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10 max-w-7xl mx-auto">
             <!-- Feature 1: Player Profiles -->
             <div
-                class="group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-300 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.1)]">
+                class="group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-500 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.2)] transform-style-3d hover:-translate-y-2 hover:rotate-[1deg]">
                 <!-- Corner Markers -->
                 <div
                     class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors">
@@ -370,8 +559,8 @@
                         PRO.FILE // V1</div>
 
                     <div
-                        class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fa-solid fa-id-card-clip text-2xl"></i>
+                        class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all duration-300">
+                        <i class="fa-solid fa-id-card-clip text-2xl group-hover:animate-pulse"></i>
                     </div>
                     <h3
                         class="relative z-10 font-display font-bold text-2xl text-white mb-3 tracking-wide group-hover:text-accent-cyan transition-colors">
@@ -388,7 +577,7 @@
 
             <!-- Feature 2: Organization Access -->
             <div
-                class="group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-300 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.1)]">
+                class="group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-500 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.2)] transform-style-3d hover:-translate-y-2 hover:rotate-[1deg]">
                 <div
                     class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors">
                 </div>
@@ -412,8 +601,8 @@
                         ORG.NET // AUTH</div>
 
                     <div
-                        class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fa-solid fa-chart-line text-2xl"></i>
+                        class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all duration-300">
+                        <i class="fa-solid fa-chart-line text-2xl group-hover:animate-pulse"></i>
                     </div>
                     <h3
                         class="relative z-10 font-display font-bold text-2xl text-white mb-3 tracking-wide group-hover:text-accent-cyan transition-colors">
@@ -431,7 +620,7 @@
 
             <!-- Feature 3: Tournament & Contract -->
             <div
-                class="group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-300 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.1)]">
+                class="group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-500 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.2)] transform-style-3d hover:-translate-y-2 hover:rotate-[1deg]">
                 <div
                     class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors">
                 </div>
@@ -455,8 +644,8 @@
                         EXEC.CON // SEC</div>
 
                     <div
-                        class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 transition-transform duration-300">
-                        <i class="fa-solid fa-file-contract text-2xl"></i>
+                        class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all duration-300">
+                        <i class="fa-solid fa-file-contract text-2xl group-hover:animate-pulse"></i>
                     </div>
                     <h3
                         class="relative z-10 font-display font-bold text-2xl text-white mb-3 tracking-wide group-hover:text-accent-cyan transition-colors">
@@ -503,7 +692,7 @@
 
                     <div
                         class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.2)]">
-                        <i class="fa-solid fa-eye-slash text-2xl"></i>
+                        <i class="fa-solid fa-eye-slash text-2xl animate-pulse"></i>
                     </div>
                     <h3
                         class="text-white font-display font-bold text-xl mb-3 group-hover:text-red-400 transition-colors">
@@ -522,7 +711,8 @@
 
                     <div
                         class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.2)]">
-                        <i class="fa-solid fa-magnifying-glass-chart text-2xl"></i>
+                        <i class="fa-solid fa-magnifying-glass-chart text-2xl animate-pulse"
+                            style="animation-delay: 0.2s;"></i>
                     </div>
                     <h3
                         class="text-white font-display font-bold text-xl mb-3 group-hover:text-red-400 transition-colors">
@@ -541,7 +731,7 @@
 
                     <div
                         class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.2)]">
-                        <i class="fa-solid fa-gavel text-2xl"></i>
+                        <i class="fa-solid fa-gavel text-2xl animate-pulse" style="animation-delay: 0.4s;"></i>
                     </div>
                     <h3
                         class="text-white font-display font-bold text-xl mb-3 group-hover:text-red-400 transition-colors">
@@ -560,7 +750,7 @@
 
                     <div
                         class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.2)]">
-                        <i class="fa-solid fa-bridge-water text-2xl"></i>
+                        <i class="fa-solid fa-bridge-water text-2xl animate-pulse" style="animation-delay: 0.6s;"></i>
                     </div>
                     <h3
                         class="text-white font-display font-bold text-xl mb-3 group-hover:text-red-400 transition-colors">
@@ -568,6 +758,172 @@
                     <p class="text-gray-400 text-sm leading-relaxed border-l-2 border-red-900/50 pl-4">
                         The path to pro is broken. No clear progression system exists for rising stars.
                     </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI & Automation Spotlight -->
+    <section id="ai-automation"
+        class="py-16 md:py-24 px-6 md:px-12 relative overflow-hidden bg-[#050505] border-y border-white/5">
+        <div
+            class="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,_rgba(102,252,241,0.05)_0%,_transparent_50%)] z-0 pointer-events-none">
+        </div>
+
+        <div class="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+            <!-- Left Text -->
+            <div class="reveal-on-scroll">
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1 border border-accent-cyan/30 rounded-full bg-accent-cyan/5 mb-6">
+                    <i class="fa-solid fa-robot text-accent-cyan text-sm"></i>
+                    <span class="text-accent-cyan text-xs font-display tracking-widest uppercase">Powered by AI</span>
+                </div>
+
+                <h2 class="text-4xl md:text-5xl font-display font-black text-white mb-6 leading-tight uppercase">
+                    Automated <br>
+                    <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">Intelligence</span>
+                </h2>
+
+                <p class="text-gray-400 text-lg mb-8 leading-relaxed">
+                    E-Game Scout leverages advanced proprietary Vision AI to eliminate manual data entry. Upload a
+                    screenshot of your post-match scorecard, and our neural engine will instantly extract your kills,
+                    damage, and placement to update your verified profile.
+                </p>
+
+                <div class="flex items-center gap-6">
+                    <div class="flex flex-col">
+                        <span class="text-3xl font-display font-bold text-white mb-1"><i
+                                class="fa-solid fa-bolt text-yellow-400 mr-2"></i>0.5s</span>
+                        <span class="text-xs text-brand-light/50 font-display tracking-widest uppercase">Parse
+                            Time</span>
+                    </div>
+                    <div class="w-px h-12 bg-white/10"></div>
+                    <div class="flex flex-col">
+                        <span class="text-3xl font-display font-bold text-white mb-1"><i
+                                class="fa-solid fa-shield-halved text-green-400 mr-2"></i>99.9%</span>
+                        <span class="text-xs text-brand-light/50 font-display tracking-widest uppercase">Accuracy</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Visual / Game AI Scanner -->
+            <div class="reveal-on-scroll delay-200 perspective-1000">
+                <div
+                    class="relative w-full max-w-sm mx-auto aspect-[3/4] bg-brand-dark/90 rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_40px_rgba(102,252,241,0.15)] transform rotate-y-[-5deg] hover:rotate-y-[0deg] transition-transform duration-500 group">
+                    <!-- Target Image to Scan (Custom Built Dummy Scorecard) -->
+                    <div
+                        class="absolute inset-0 opacity-40 mix-blend-luminosity group-hover:scale-105 transition-transform duration-700 flex flex-col items-center justify-center p-6 bg-[#0a0a0c]">
+                        <!-- Top Text -->
+                        <div
+                            class="text-orange-500 font-display text-xl md:text-2xl font-black mb-1 tracking-widest uppercase transform -rotate-1">
+                            MATCH WON</div>
+                        <div
+                            class="text-white text-2xl md:text-3xl font-display font-black mb-8 tracking-wide uppercase transform rotate-1 drop-shadow-md">
+                            CHAMPION</div>
+
+                        <!-- Stats Grid -->
+                        <div class="grid grid-cols-2 gap-3 w-full">
+                            <div class="bg-white/5 border border-white/10 rounded pt-2 pb-3 px-2 text-center">
+                                <div class="text-gray-400 text-[10px] font-mono mb-1 uppercase">Kills</div>
+                                <div class="text-white text-xl font-bold font-mono">12</div>
+                            </div>
+                            <div class="bg-white/5 border border-white/10 rounded pt-2 pb-3 px-2 text-center">
+                                <div class="text-gray-400 text-[10px] font-mono mb-1 uppercase">Damage</div>
+                                <div class="text-white text-xl font-bold font-mono">1800</div>
+                            </div>
+                            <div class="bg-white/5 border border-white/10 rounded pt-2 pb-3 px-2 text-center">
+                                <div class="text-gray-400 text-[10px] font-mono mb-1 uppercase">Survive</div>
+                                <div class="text-white text-xl font-bold font-mono">28m</div>
+                            </div>
+                            <div class="bg-white/5 border border-white/10 rounded pt-2 pb-3 px-2 text-center">
+                                <div class="text-gray-400 text-[10px] font-mono mb-1 uppercase">Review</div>
+                                <div class="text-green-400 text-xl font-bold font-mono">S+</div>
+                            </div>
+                        </div>
+
+                        <!-- Player Info -->
+                        <div class="absolute top-4 left-4 flex items-center gap-2">
+                            <div
+                                class="w-8 h-8 opacity-80 rounded bg-gray-800 border border-white/20 flex items-center justify-center text-white font-bold text-sm">
+                                <i class="fa-solid fa-user-ninja"></i>
+                            </div>
+                            <div class="text-left leading-tight">
+                                <div class="text-white font-bold font-display text-[10px] tracking-wider">PLAYER_ONE
+                                </div>
+                                <div class="text-orange-400 text-[8px] font-mono tracking-widest mt-0.5">MVP</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent"></div>
+
+                    <!-- Scanner Laser -->
+                    <div class="absolute top-0 left-0 w-full h-[2px] bg-accent-cyan shadow-[0_0_15px_#66FCF1] z-10 pointer-events-none"
+                        style="animation: scan 3s ease-in-out infinite;"></div>
+
+                    <!-- Overlay HUD -->
+                    <div class="absolute inset-0 p-6 flex flex-col justify-between z-20">
+                        <!-- Top HUD -->
+                        <div class="flex justify-between items-start">
+                            <div class="relative">
+                                <div
+                                    class="w-10 h-10 border-2 border-accent-cyan/30 rounded-full flex items-center justify-center">
+                                    <span
+                                        class="absolute inset-0 rounded-full border border-accent-cyan animate-ping opacity-20"></span>
+                                    <i class="fa-solid fa-crosshairs text-accent-cyan text-sm"></i>
+                                </div>
+                            </div>
+                            <div
+                                class="bg-black/60 backdrop-blur border border-accent-cyan/20 px-3 py-1 flex items-center gap-2 rounded text-[10px] text-accent-cyan font-mono uppercase tracking-widest shadow-[0_0_15px_rgba(102,252,241,0.1)]">
+                                <span class="w-2 h-2 rounded-full bg-accent-cyan animate-pulse"></span>
+                                Target_Locked
+                            </div>
+                        </div>
+
+                        <!-- Bottom Stats Populating -->
+                        <div class="space-y-3">
+                            <div class="bg-black/80 backdrop-blur border border-white/10 p-3 rounded-lg transform translate-y-4 opacity-0 animate-fade-in-up"
+                                style="animation-duration: 0.5s; animation-fill-mode: forwards; animation-delay: 0.5s;">
+                                <div class="text-[10px] text-gray-400 font-mono uppercase tracking-widest mb-1">Entity
+                                    K/D Ratio</div>
+                                <div class="flex items-end gap-3">
+                                    <span class="text-3xl font-display font-bold text-white leading-none">4.82</span>
+                                    <span class="text-green-400 text-xs mb-1 font-mono tracking-wider"><i
+                                            class="fa-solid fa-arrow-trend-up"></i> +12% YoY</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-black/80 backdrop-blur border border-white/10 p-4 rounded-lg transform translate-y-4 opacity-0 animate-fade-in-up"
+                                style="animation-duration: 0.5s; animation-fill-mode: forwards; animation-delay: 1.0s;">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="text-[10px] text-gray-400 font-mono uppercase tracking-widest">Match
+                                        Impact</div>
+                                    <div class="text-[10px] text-accent-cyan font-mono font-bold">85%</div>
+                                </div>
+                                <div class="w-full bg-gray-800 rounded-full h-1 mt-1 overflow-hidden relative">
+                                    <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-accent-cyan h-full"
+                                        style="width: 85%"></div>
+                                    <div
+                                        class="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhYWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==')] opacity-50">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-accent-cyan/10 border border-accent-cyan/50 p-3 rounded-lg transform translate-y-4 opacity-0 animate-fade-in-up flex items-center gap-3 backdrop-blur"
+                                style="animation-duration: 0.5s; animation-fill-mode: forwards; animation-delay: 1.5s;">
+                                <div class="w-8 h-8 rounded-full bg-accent-cyan/20 flex items-center justify-center">
+                                    <i class="fa-solid fa-check text-accent-cyan text-sm"></i>
+                                </div>
+                                <div>
+                                    <div
+                                        class="text-accent-cyan font-bold font-display text-sm uppercase tracking-wide">
+                                        Profile Synced</div>
+                                    <div class="text-[9px] text-white/50 font-mono uppercase tracking-widest mt-0.5">
+                                        Blockchain Verified Data</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -685,7 +1041,8 @@
                     class="absolute -bottom-3 -left-3 w-20 h-20 border-b-2 border-l-2 border-accent-cyan/50 rounded-bl-xl">
                 </div>
 
-                <div class="w-[280px] md:w-[340px] h-[450px] bg-brand-dark/90 flex flex-col relative overflow-hidden">
+                <div
+                    class="w-full max-w-[280px] lg:max-w-[340px] h-[450px] bg-brand-dark/90 flex flex-col relative overflow-hidden">
 
                     <!-- Simulating a player card scan -->
                     <div
@@ -746,7 +1103,7 @@
         </h2>
 
         <div class="max-w-4xl mx-auto relative">
-            <div class="glass-card p-6 md:p-12 rounded-2xl relative mx-4">
+            <div class="glass-card p-6 md:p-12 rounded-2xl relative mx-4 animate-float-slow">
                 <div class="text-accent-cyan text-5xl absolute -top-8 left-8">
                     <i class="fa-solid fa-quote-left"></i>
                 </div>
@@ -785,6 +1142,17 @@
             <!-- Links Removed -->
 
             <!-- Email Contact -->
+            <div class="text-center md:text-right">
+                <h4 class="text-white font-display font-bold mb-3 uppercase tracking-wider text-sm">Need Support?</h4>
+                <a href="mailto:help.egamescout@gmail.com"
+                    class="inline-flex items-center justify-center md:justify-end gap-2 text-gray-400 hover:text-accent-cyan transition-colors group">
+                    <span
+                        class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-accent-cyan/10 transition-colors">
+                        <i class="fa-solid fa-envelope"></i>
+                    </span>
+                    <span class="text-sm font-medium">help.egamescout@gmail.com</span>
+                </a>
+            </div>
         </div>
     </footer>
 
@@ -818,6 +1186,17 @@
             </div>
         </a>
 
+        <a href="#how-it-works" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="how-it-works">
+            <div class="absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 bg-[#0B0C10]/80 backdrop-blur-xl border border-white/10 rounded-md text-[10px] md:text-sm font-display font-semibold tracking-widest text-white whitespace-nowrap group-hover/item:border-blue-500/50 group-hover/item:text-blue-500 shadow-[0_8_30px_rgba(0,0,0,0.5)]"
+                style="transition-delay: 75ms;">
+                PIPELINE
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-blue-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#3b82f6]">
+            </div>
+        </a>
+
         <a href="#features" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
             data-target="features">
             <div class="absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 bg-[#0B0C10]/80 backdrop-blur-xl border border-white/10 rounded-md text-[10px] md:text-sm font-display font-semibold tracking-widest text-white whitespace-nowrap group-hover/item:border-accent-cyan/50 group-hover/item:text-accent-cyan shadow-[0_8_30px_rgba(0,0,0,0.5)]"
@@ -837,6 +1216,17 @@
             </div>
             <div
                 class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-red-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#ef4444]">
+            </div>
+        </a>
+
+        <a href="#ai-automation" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="ai-automation">
+            <div class="absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 bg-[#0B0C10]/80 backdrop-blur-xl border border-white/10 rounded-md text-[10px] md:text-sm font-display font-semibold tracking-widest text-white whitespace-nowrap group-hover/item:border-purple-500/50 group-hover/item:text-purple-500 shadow-[0_8_30px_rgba(0,0,0,0.5)]"
+                style="transition-delay: 175ms;">
+                AI AGENTS
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-purple-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#a855f7]">
             </div>
         </a>
 
@@ -889,13 +1279,19 @@
                                 } else if (id === 'problems') {
                                     dot.classList.add('bg-red-500', 'scale-[2.5]', 'shadow-[0_0_15px_#ef4444]');
                                     dot.classList.remove('bg-gray-500/50');
+                                } else if (id === 'how-it-works') {
+                                    dot.classList.add('bg-blue-500', 'scale-[2.5]', 'shadow-[0_0_15px_#3b82f6]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                } else if (id === 'ai-automation') {
+                                    dot.classList.add('bg-purple-500', 'scale-[2.5]', 'shadow-[0_0_15px_#a855f7]');
+                                    dot.classList.remove('bg-gray-500/50');
                                 } else {
                                     dot.classList.add('bg-accent-cyan', 'scale-[2.5]', 'shadow-[0_0_15px_#66FCF1]');
                                     dot.classList.remove('bg-gray-500/50');
                                 }
                             } else {
                                 // Remove active classes
-                                dot.classList.remove('bg-orange-500', 'bg-red-500', 'bg-accent-cyan', 'scale-[2.5]', 'shadow-[0_0_15px_#f97316]', 'shadow-[0_0_15px_#ef4444]', 'shadow-[0_0_15px_#66FCF1]');
+                                dot.classList.remove('bg-orange-500', 'bg-red-500', 'bg-blue-500', 'bg-purple-500', 'bg-accent-cyan', 'scale-[2.5]', 'shadow-[0_0_15px_#f97316]', 'shadow-[0_0_15px_#ef4444]', 'shadow-[0_0_15px_#3b82f6]', 'shadow-[0_0_15px_#a855f7]', 'shadow-[0_0_15px_#66FCF1]');
                                 dot.classList.add('bg-gray-500/50');
                             }
                         });
