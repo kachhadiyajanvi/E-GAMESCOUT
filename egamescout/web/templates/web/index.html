@@ -76,7 +76,7 @@
 
 
     <!-- Hero Section -->
-    <section
+    <section id="hero"
         class="relative min-h-screen lg:h-screen pt-24 lg:pt-0 px-6 md:px-12 flex items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_60%_50%,_#1a2b4b_0%,_#0B0C10_70%)] perspective-2000">
 
         <!-- Decoration Glow -->
@@ -241,7 +241,7 @@
     </section>
 
     <!-- BGMI Game Section -->
-    <section class="py-20 px-6 md:px-12 relative overflow-hidden bg-[#0F1115]">
+    <section id="featured-game" class="py-20 px-6 md:px-12 relative overflow-hidden bg-[#0F1115]">
         <!-- BGMI Gradient Background -->
         <div
             class="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-transparent opacity-50 pointer-events-none">
@@ -475,7 +475,7 @@
     </section>
 
     <!-- Problems Section ("Why E-Game Scout?") -->
-    <section class="py-16 md:py-24 px-6 md:px-12 bg-black relative overflow-hidden">
+    <section id="problems" class="py-16 md:py-24 px-6 md:px-12 bg-black relative overflow-hidden">
         <!-- Background Glow -->
         <div
             class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-900/10 rounded-full blur-[100px] -z-10">
@@ -574,7 +574,7 @@
     </section>
 
     <!-- Global Reach Section -->
-    <section
+    <section id="global-reach"
         class="py-16 md:py-24 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between overflow-hidden relative border-y border-white/5 bg-[#0B0C10]">
 
         <!-- Animated Background Map Effect -->
@@ -736,7 +736,7 @@
     </section>
 
     <!-- Testimonials Section -->
-    <section class="py-20 px-6 md:px-12 bg-black/20 text-center relative">
+    <section id="testimonials" class="py-20 px-6 md:px-12 bg-black/20 text-center relative">
         <div
             class="inline-block px-3 py-1 bg-white/5 border border-white/10 text-white text-xs font-display font-bold uppercase tracking-wide mb-4 rounded-sm">
             Success Stories
@@ -787,6 +787,127 @@
             <!-- Email Contact -->
         </div>
     </footer>
+
+    <!-- Section Navigation Menu -->
+    <!-- Positioned flush to the right edge to act as the scrollbar -->
+    <div
+        class="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-8 group/scrollnav py-10 pr-[14px] pl-12 transition-all duration-500 w-12 hover:w-auto h-full justify-center">
+        <!-- Decorative Track -->
+        <div class="absolute right-[16px] top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-accent-cyan/30 to-transparent -z-10"
+            style="opacity: 0.8; box-shadow: 0 0 8px rgba(102,252,241,0.3);"></div>
+
+        <!-- Nav Items -->
+        <a href="#hero" class="relative flex items-center justify-end gap-6 group/item w-full py-2" data-target="hero">
+            <div
+                class="absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 bg-[#0B0C10]/80 backdrop-blur-xl border border-white/10 rounded-md text-[10px] md:text-sm font-display font-semibold tracking-widest text-white whitespace-nowrap group-hover/item:border-accent-cyan/50 group-hover/item:text-accent-cyan shadow-[0_8_30px_rgba(0,0,0,0.5)]">
+                DISCOVER
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-accent-cyan group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#66FCF1]">
+            </div>
+        </a>
+
+        <a href="#featured-game" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="featured-game">
+            <div class="absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 bg-[#0B0C10]/80 backdrop-blur-xl border border-white/10 rounded-md text-[10px] md:text-sm font-display font-semibold tracking-widest text-white whitespace-nowrap group-hover/item:border-orange-500/50 group-hover/item:text-orange-500 shadow-[0_8_30px_rgba(0,0,0,0.5)]"
+                style="transition-delay: 50ms;">
+                FEATURED
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-orange-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#f97316]">
+            </div>
+        </a>
+
+        <a href="#features" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="features">
+            <div class="absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 bg-[#0B0C10]/80 backdrop-blur-xl border border-white/10 rounded-md text-[10px] md:text-sm font-display font-semibold tracking-widest text-white whitespace-nowrap group-hover/item:border-accent-cyan/50 group-hover/item:text-accent-cyan shadow-[0_8_30px_rgba(0,0,0,0.5)]"
+                style="transition-delay: 100ms;">
+                PLATFORM
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-accent-cyan group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#66FCF1]">
+            </div>
+        </a>
+
+        <a href="#problems" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="problems">
+            <div class="absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 bg-[#0B0C10]/80 backdrop-blur-xl border border-white/10 rounded-md text-[10px] md:text-sm font-display font-semibold tracking-widest text-white whitespace-nowrap group-hover/item:border-red-500/50 group-hover/item:text-red-500 shadow-[0_8_30px_rgba(0,0,0,0.5)]"
+                style="transition-delay: 150ms;">
+                SYSTEM CRITICAL
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-red-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#ef4444]">
+            </div>
+        </a>
+
+        <a href="#global-reach" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="global-reach">
+            <div class="absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 bg-[#0B0C10]/80 backdrop-blur-xl border border-white/10 rounded-md text-[10px] md:text-sm font-display font-semibold tracking-widest text-white whitespace-nowrap group-hover/item:border-accent-cyan/50 group-hover/item:text-accent-cyan shadow-[0_8_30px_rgba(0,0,0,0.5)]"
+                style="transition-delay: 200ms;">
+                GLOBAL GRID
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-accent-cyan group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#66FCF1]">
+            </div>
+        </a>
+
+        <a href="#testimonials" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="testimonials">
+            <div class="absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 bg-[#0B0C10]/80 backdrop-blur-xl border border-white/10 rounded-md text-[10px] md:text-sm font-display font-semibold tracking-widest text-white whitespace-nowrap group-hover/item:border-accent-cyan/50 group-hover/item:text-accent-cyan shadow-[0_8_30px_rgba(0,0,0,0.5)]"
+                style="transition-delay: 250ms;">
+                TESTIMONIALS
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-accent-cyan group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#66FCF1]">
+            </div>
+        </a>
+    </div>
+
+    <!-- Active dot javascript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const navItems = document.querySelectorAll('.group\\/item');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-50% 0px -50% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        navItems.forEach(item => {
+                            const dot = item.querySelector('.nav-dot');
+                            if (item.getAttribute('href') === `#${id}`) {
+                                // Add active class according to section
+                                if (id === 'featured-game') {
+                                    dot.classList.add('bg-orange-500', 'scale-[2.5]', 'shadow-[0_0_15px_#f97316]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                } else if (id === 'problems') {
+                                    dot.classList.add('bg-red-500', 'scale-[2.5]', 'shadow-[0_0_15px_#ef4444]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                } else {
+                                    dot.classList.add('bg-accent-cyan', 'scale-[2.5]', 'shadow-[0_0_15px_#66FCF1]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                }
+                            } else {
+                                // Remove active classes
+                                dot.classList.remove('bg-orange-500', 'bg-red-500', 'bg-accent-cyan', 'scale-[2.5]', 'shadow-[0_0_15px_#f97316]', 'shadow-[0_0_15px_#ef4444]', 'shadow-[0_0_15px_#66FCF1]');
+                                dot.classList.add('bg-gray-500/50');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(sec => {
+                observer.observe(sec);
+            });
+        });
+    </script>
 
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>

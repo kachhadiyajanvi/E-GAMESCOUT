@@ -172,7 +172,8 @@
             <div class="flex items-center gap-6">
                 <!-- Notifications -->
                 <div class="relative cursor-pointer group">
-                    <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-brand-pink rounded-full border-2 border-black">
+                    <div class="absolute -top-2 -right-2 min-w-5 h-5 bg-brand-pink rounded-full border-2 border-black px-1 flex items-center justify-center hidden" id="notificationBadge">
+                        <span class="text-[10px] font-bold text-white leading-none" id="notificationCount">0</span>
                     </div>
                     <i class="fa-regular fa-bell text-xl text-white/60 group-hover:text-white transition-colors"></i>
                 </div>
@@ -539,10 +540,11 @@
                     const notifications = data.notifications;
 
                     // Update Bell Badge
-                    const bellBadge = document.querySelector('.fa-bell').previousElementSibling;
+                    const bellBadge = document.getElementById('notificationBadge');
+                    const countSpan = document.getElementById('notificationCount');
                     if (count > 0) {
                         bellBadge.classList.remove('hidden');
-                        bellBadge.innerText = count > 9 ? '9+' : count;
+                        countSpan.innerText = count > 9 ? '9+' : count;
                     } else {
                         bellBadge.classList.add('hidden');
                     }

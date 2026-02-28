@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, logout
 from .forms import OrganizationEmailForm, OTPForm, OrganizationDetailsForm, OrganizationLoginForm, OrganizationPhotoForm, TournamentForm
 from .models import Organization, Tournament
 from django.core.mail import EmailMultiAlternatives
@@ -16,6 +17,297 @@ from .models import Player, PlayerTask, Organization, Tournament, GlobalSettings
 from django.views.decorators.cache import cache_control
 from decimal import Decimal
 from .decorators import login_required_organization
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.http import JsonResponse
+
+from django.core.cache import cache
+
+@csrf_exempt
+def api_send_otp(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            role = data.get('role')
+            
+            if not email or not role:
+                return JsonResponse({'status': 'error', 'message': 'Email and role are required'}, status=400)
+                
+            player_exists = False
+            org_exists = False
+            
+            if role.lower() == 'player':
+                try:
+                    player = Player.objects.get(email__iexact=email)
+                    if player.status == 'SUSPENDED':
+                         return JsonResponse({'status': 'error', 'message': 'Account is suspended'}, status=403)
+                    player_exists = True
+                except Player.DoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': 'Player not found'}, status=404)
+            elif role.lower() == 'organization':
+                try:
+                    org = Organization.objects.get(Organization_Email__iexact=email)
+                    if org.status == 'Suspended':
+                         return JsonResponse({'status': 'error', 'message': 'Account is suspended'}, status=403)
+                    org_exists = True
+                except Organization.DoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': 'Organization not found'}, status=404)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Unsupported role'}, status=400)
+                
+            if player_exists or org_exists:
+                # Generate OTP
+                otp_code = str(random.randint(100000, 999999))
+                
+                # Store OTP in cache for 5 minutes (300 seconds)
+                cache_key = f"api_otp_{email}"
+                cache.set(cache_key, otp_code, timeout=300)
+                
+                # Send Email
+                html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code})
+                plain_message = strip_tags(html_message)
+                
+                send_mail(
+                    'Your E-Game Scout Code',
+                    plain_message,
+                    settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com',
+                    [email],
+                    fail_silently=False,
+                    html_message=html_message
+                )
+                
+                print(f"DEBUG: API Post OTP for {email}: {otp_code}")
+                return JsonResponse({'status': 'success', 'message': 'OTP sent successfully'})
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def api_verify_otp(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            otp_input = data.get('otp')
+            role = data.get('role')
+            
+            if not email or not otp_input or not role:
+                 return JsonResponse({'status': 'error', 'message': 'Email, OTP, and role are required'}, status=400)
+                 
+            # Retrieve OTP from cache
+            cache_key = f"api_otp_{email}"
+            stored_otp = cache.get(cache_key)
+            
+            if not stored_otp:
+                return JsonResponse({'status': 'error', 'message': 'OTP expired or invalid. Please request a new one.'}, status=400)
+                
+            if str(otp_input).strip() == str(stored_otp).strip():
+                # OTP is correct, clear it
+                cache.delete(cache_key)
+                
+                # Fetch user data to return
+                if role.lower() == 'player':
+                    try:
+                        player = Player.objects.get(email__iexact=email)
+                        return JsonResponse({'status': 'success', 'message': 'Login successful', 'data': {
+                            'id': player.id, 
+                            'name': player.full_name,
+                            'email': player.email,
+                            'aadhar_number': player.aadhar_number,
+                            'uid': player.uid,
+                            'mobile_no': player.mobile_no,
+                            'age': player.age,
+                            'role': 'player'
+                        }})
+                    except Player.DoesNotExist:
+                        return JsonResponse({'status': 'error', 'message': 'Player not found'}, status=404)
+                elif role.lower() == 'organization':
+                    try:
+                        org = Organization.objects.get(Organization_Email__iexact=email)
+                        return JsonResponse({'status': 'success', 'message': 'Login successful', 'data': {'id': org.id, 'name': org.Organization_Name}})
+                    except Organization.DoesNotExist:
+                        return JsonResponse({'status': 'error', 'message': 'Organization not found'}, status=404)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Invalid OTP'}, status=400)
+                
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def api_register_send_otp(request):
+    """Sends OTP for registration, ensuring player does NOT exist."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            role = data.get('role')
+            
+            if not email or not role:
+                 return JsonResponse({'status': 'error', 'message': 'Email and role are required'}, status=400)
+                 
+            if role.lower() == 'player':
+                if Player.objects.filter(email__iexact=email).exists():
+                     return JsonResponse({'status': 'error', 'message': 'Player already exists. Please login.'}, status=409)
+            elif role.lower() == 'organization':
+                 if Organization.objects.filter(Organization_Email__iexact=email).exists():
+                     return JsonResponse({'status': 'error', 'message': 'Organization already exists. Please login.'}, status=409)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Unsupported role'}, status=400)
+                
+            # Generate OTP
+            otp_code = str(random.randint(100000, 999999))
+            
+            # Store OTP in cache for 5 minutes (300 seconds)
+            cache_key = f"api_register_otp_{email}"
+            cache.set(cache_key, otp_code, timeout=300)
+            
+            # Send Email
+            html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code})
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                'Your E-Game Scout Code',
+                plain_message,
+                settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com',
+                [email],
+                fail_silently=False,
+                html_message=html_message
+            )
+            
+            print(f"DEBUG: API Post Register OTP for {email}: {otp_code}")
+            return JsonResponse({'status': 'success', 'message': 'OTP sent successfully'})
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def api_register_verify_otp(request):
+    """Verifies OTP for registration."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            otp_input = data.get('otp')
+            role = data.get('role')
+            
+            if not email or not otp_input or not role:
+                 return JsonResponse({'status': 'error', 'message': 'Email, OTP, and role are required'}, status=400)
+                 
+            # Retrieve OTP from cache
+            cache_key = f"api_register_otp_{email}"
+            stored_otp = cache.get(cache_key)
+            
+            if not stored_otp:
+                return JsonResponse({'status': 'error', 'message': 'OTP expired or invalid. Please request a new one.'}, status=400)
+                
+            if str(otp_input).strip() == str(stored_otp).strip():
+                # OTP is correct, clear it
+                cache.delete(cache_key)
+                # Registration step 1 verified (email is good), proceed to next steps
+                return JsonResponse({'status': 'success', 'message': 'OTP verified successfully'})
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Invalid OTP'}, status=400)
+                
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+from .helpers import extract_aadhar_details
+
+@csrf_exempt
+def api_register_step1(request):
+    """Handles Aadhar upload and AI extraction for the API."""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        aadhar_image = request.FILES.get('aadhar_card')
+        
+        if not email or not aadhar_image:
+            return JsonResponse({'status': 'error', 'message': 'Email and aadhar_card are required'}, status=400)
+            
+        verification = extract_aadhar_details(aadhar_image)
+        
+        if verification.get('success'):
+            data = verification.get('data', {})
+            age = data.get('age')
+            
+            # Check Age
+            if age is not None and age < 16:
+                 return JsonResponse({'status': 'error', 'message': f'Age Restriction: You are {age} years old. Minimum age is 16.'}, status=403)
+            
+            # Check Unique Aadhar
+            aadhar_num = data.get('aadhar_number')
+            if aadhar_num and Player.objects.filter(aadhar_number=aadhar_num).exists():
+                 return JsonResponse({'status': 'error', 'message': f'Identity Conflict: Aadhar number {aadhar_num} is already registered.'}, status=409)
+
+            return JsonResponse({
+                'status': 'success', 
+                'message': 'Identity Verified',
+                'data': data
+            })
+        else:
+            return JsonResponse({'status': 'error', 'message': verification.get('message', 'Failed to extract Aadhar details')}, status=400)
+            
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def api_register_step2(request):
+    """Handles final player registration details."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            full_name = data.get('full_name')
+            age = data.get('age')
+            aadhar_number = data.get('aadhar_number')
+            uid = data.get('uid')
+            mobile_no = data.get('mobile_no')
+            
+            if not all([email, full_name, age, aadhar_number, uid, mobile_no]):
+                return JsonResponse({'status': 'error', 'message': 'All fields are required'}, status=400)
+                
+            if Player.objects.filter(email=email).exists():
+                return JsonResponse({'status': 'error', 'message': 'Player with this email already exists'}, status=409)
+                
+            if Player.objects.filter(uid=uid).exists():
+                return JsonResponse({'status': 'error', 'message': 'Player with this UID already exists'}, status=409)
+                
+            if Player.objects.filter(aadhar_number=aadhar_number).exists():
+                return JsonResponse({'status': 'error', 'message': 'Player with this Aadhar already exists'}, status=409)
+                
+            # Create Player
+            player = Player.objects.create(
+                email=email,
+                full_name=full_name,
+                age=age,
+                aadhar_number=aadhar_number,
+                uid=uid,
+                mobile_no=mobile_no,
+                status='ACTIVE'
+            )
+            
+            # Send Welcome Email
+            try:
+                subject = 'Welcome to E-Game Scout - Journey Started'
+                html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name})
+                text_content = strip_tags(html_content)
+                
+                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()
+                print(f"DEBUG: Welcome email sent to {email}")
+            except Exception as e:
+                print(f"ERROR: Failed to send welcome email: {e}")
+
+            return JsonResponse({'status': 'success', 'message': 'Registration Complete'})
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
 def auth_login(request):
     # Check if a verification flow is already in progress and verified
@@ -371,8 +663,24 @@ def public_tournaments(request):
         Status__in=['Scheduled', 'Ongoing'],
         is_archived=False
     ).order_by('start_date')
-    
-    return render(request, 'web/tournaments.html', {'tournaments': tournaments})
+
+    # If a player is logged in, mark tournaments they've already joined (via PlayerBid)
+    joined_tournament_ids = []
+    player_id = request.session.get('player_id')
+    if player_id:
+        try:
+            from .models import PlayerBid, Player
+            player = Player.objects.get(id=player_id)
+            joined_tournament_ids = list(PlayerBid.objects.filter(player=player, tournament__isnull=False)
+                                         .values_list('tournament__Tournament_ID', flat=True))
+        except Exception:
+            joined_tournament_ids = []
+
+    return render(request, 'web/tournaments.html', {
+        'tournaments': tournaments,
+        'joined_tournament_ids': joined_tournament_ids,
+        'player_id': player_id,
+    })
 
 # --- Registration Flow ---
 
@@ -553,9 +861,9 @@ def org_login_otp(request):
                 org = Organization.objects.get(Organization_Email=email)
                 request.session['organizer_id'] = org.id
                 
-                # Cleanup OTP session
-                del request.session['login_email']
-                del request.session['login_otp']
+                # Cleanup OTP session (Safe deletion)
+                request.session.pop('login_email', None)
+                request.session.pop('login_otp', None)
                 
                 return redirect('organizer_dashboard')
             else:
@@ -632,15 +940,18 @@ def organizer_dashboard(request):
     
     six_months_ago = timezone.now() - datetime.timedelta(days=180)
     
-    # Get counts per month
-    growth_data = Player.objects.filter(
+    # Get counts per month (Do in Python to avoid SQLite timezone issues)
+    players = Player.objects.filter(
         organization=org, 
         created_at__gte=six_months_ago
-    ).annotate(
-        month=TruncMonth('created_at')
-    ).values('month').annotate(
-        count=Count('id')
-    ).order_by('month')
+    ).values_list('created_at', flat=True)
+
+    data_map = {}
+    for p_date in players:
+        # Convert to local time if needed, or just use UTC
+        # For simplicity and stability, use the datetime object directly
+        month_str = p_date.strftime('%Y-%m')
+        data_map[month_str] = data_map.get(month_str, 0) + 1
     
     # Format for Chart.js
     analytics_labels = []
@@ -649,9 +960,6 @@ def organizer_dashboard(request):
     # Pre-fill last 6 months to ensure continuous line even if 0
     current = six_months_ago
     end = timezone.now()
-    
-    # Create a dict for easy lookup
-    data_map = {item['month'].strftime('%Y-%m'): item['count'] for item in growth_data}
     
     while current <= end:
         month_str = current.strftime('%Y-%m')
@@ -675,6 +983,7 @@ def organizer_dashboard(request):
         'total_players': total_players,
         'active_tournaments': active_tournaments,
         'notifications': notifications,
+        'notifications_count': len(notifications),
         'analytics_labels': analytics_labels,
         'analytics_data': analytics_data,
         'recent_recruits': recent_recruits
@@ -748,10 +1057,18 @@ def scorecard_tool(request):
             Act as a professional esports journalist similar to Cricbuzz and analyze the provided standings image from the SkyeSports Skirmish Series Finals (BGMI). Write a detailed, narrative-style tournament report explaining how the leaderboard unfolded, highlighting the championship-winning team’s consistency, the close title race among the top teams, mid-table performances, and struggles of the lower-ranked teams, using only the visible data such as matches played, wins, placement points, eliminations, and total points. Maintain an analytical yet engaging tone, convert statistics into match-like insights, avoid inventing players or events, and conclude with an overall verdict on the competitiveness and quality of the tournament and its significance for upcoming BGMI events.
             """
             
-            # Providers Config
+            # Providers Config - Multiple Gemini keys with Groq fallback
             providers = []
-            if settings.GEMINI_API_KEY:
-                providers.append({"type": "gemini", "key": settings.GEMINI_API_KEY})
+            
+            # Add all Gemini API keys
+            if hasattr(settings, 'GEMINI_API_KEYS') and settings.GEMINI_API_KEYS:
+                for i, key in enumerate(settings.GEMINI_API_KEYS):
+                    providers.append({"type": "gemini", "key": key, "index": i+1})
+            elif settings.GEMINI_API_KEY:
+                # Fallback for single key
+                providers.append({"type": "gemini", "key": settings.GEMINI_API_KEY, "index": 1})
+            
+            # Add Groq as final fallback
             if settings.GROQ_API_KEY:
                 providers.append({"type": "groq", "key": settings.GROQ_API_KEY})
                 
@@ -768,10 +1085,12 @@ def scorecard_tool(request):
             # File path for AI reading
             file_path = analysis.image.path
 
-            # AI Logic Loop
+            # AI Logic Loop - Try each provider in order
             for provider in providers:
                 try:
                     if provider['type'] == 'gemini':
+                        key_index = provider.get('index', 1)
+                        print(f"DEBUG: Attempting Gemini API Key #{key_index}...")
                         client = genai.Client(api_key=provider['key'])
                         
                         # Upload file and generate content
@@ -782,7 +1101,8 @@ def scorecard_tool(request):
                             contents=[user_prompt, uploaded_file]
                         )
                         response_text = response.text
-                        used_provider = 'gemini'
+                        used_provider = f'gemini_key_{key_index}'
+                        print(f"SUCCESS: Gemini API Key #{key_index} worked!")
                         
                     elif provider['type'] == 'groq':
                         client = Groq(api_key=provider['key'])
@@ -825,7 +1145,10 @@ def scorecard_tool(request):
                         break
                         
                 except Exception as e:
-                    print(f"AI Provider {provider['type']} Error: {e}")
+                    provider_name = provider['type']
+                    if provider['type'] == 'gemini':
+                        provider_name = f"Gemini Key #{provider.get('index', 1)}"
+                    print(f"AI Provider {provider_name} Error: {e}")
                     continue
             
             if response_text:
@@ -925,18 +1248,22 @@ def tournament_list(request):
     
     from django.db.models import Q
     from django.utils import timezone
+    from datetime import timedelta
     
     # Get current local time
     now = timezone.now()
     
-    # Completed = (Status='Completed') OR (end_date <= now)
-    q_completed = Q(Status='Completed') | Q(end_date__lte=now)
+    # Only hide tournaments that are Completed AND ended more than 24 hours ago
+    # This allows users to see/fix tournaments they just created with wrong dates (auto-completed)
+    cutoff = now - timedelta(hours=24)
     
-    # Filter Active Tournaments (Exclude completed)
+    q_hidden = Q(Status='Completed', end_date__lt=cutoff)
+    
+    # Filter Active Tournaments (Exclude only old completed ones)
     tournaments = Tournament.objects.filter(
         Organization_Name=org, 
         is_archived=False
-    ).exclude(q_completed).order_by('start_date')
+    ).exclude(q_hidden).order_by('start_date').distinct()
     
     form = TournamentForm()
 
@@ -1047,7 +1374,13 @@ def tournament_detail(request, tournament_id):
         (Q(Organization_Name=org) | Q(bidders__organization=org) | Q(is_published=True))
     )
     
-    return render(request, 'web/Organization/org_tournament_detail.html', {'org': org, 'tournament': tournament})
+    return render(request, 'web/Organization/org_tournament_detail.html', {
+        'org': org, 
+        'tournament': tournament,
+        'is_owner': tournament.Organization_Name == org,
+        'is_participant': tournament.bidders.filter(organization=org).exists(),
+        'source': request.GET.get('source')
+    })
 
 @login_required_organization
 def cancel_tournament(request, tournament_id):
@@ -1131,8 +1464,13 @@ def tournament_delete(request, tournament_id):
 @login_required_organization
 def tournament_participants(request, tournament_id):
     """View to list participants (organizations) of a tournament"""
+    print(f"DEBUG: tournament_participants called for ID {tournament_id}")
+    print(f"DEBUG: Session keys: {request.session.keys()}")
+    print(f"DEBUG: organizer_id in session: {request.session.get('organizer_id')}")
+    
     org_id = request.session.get('organizer_id')
     if not org_id:
+        print("DEBUG: No org_id, redirecting to login")
         return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
@@ -1239,8 +1577,18 @@ def org_upcoming_tournaments(request):
         Status__in=['Scheduled', 'Ongoing'],
         is_published=True
     ).order_by('start_date')
+
+    # Get list of tournaments this org has joined
+    from .models import TournamentBidder
+    joined_tournament_ids = list(TournamentBidder.objects.filter(
+        organization=org
+    ).values_list('tournament_id', flat=True))
     
-    return render(request, 'web/Organization/org_upcoming_list.html', {'tournaments': tournaments, 'org': org})
+    return render(request, 'web/Organization/org_upcoming_list.html', {
+        'tournaments': tournaments, 
+        'org': org,
+        'joined_tournament_ids': joined_tournament_ids
+    })
 
 def player_upcoming_tournaments(request):
     """View for players to see all upcoming published tournaments"""
@@ -1391,6 +1739,67 @@ def handle_bidding_invite(request, notification_id, action):
         messages.info(request, "Invitation declined.")
         
     return redirect('organizer_dashboard')
+
+@login_required_organization
+def join_tournament(request, tournament_id):
+    """Handle organization joining a tournament directly"""
+    if request.method != 'POST':
+        return redirect('tournament_detail', tournament_id=tournament_id)
+        
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id)
+    
+    # Check if already joined
+    if tournament.bidders.filter(organization=org).exists():
+        messages.info(request, "You have already joined this tournament.")
+        return redirect('tournament_detail', tournament_id=tournament_id)
+        
+    # Check if owner
+    if tournament.Organization_Name == org:
+        messages.error(request, "You cannot join your own tournament.")
+        return redirect('tournament_detail', tournament_id=tournament_id)
+        
+    # Create Participant (Bidder)
+    from .models import TournamentBidder, Transaction, OrganizationNotification
+    from django.db import transaction as db_transaction
+    
+    try:
+        with db_transaction.atomic():
+            bidder = TournamentBidder.objects.create(
+                tournament=tournament,
+                organization=org
+            )
+            
+            # Credit Invite Fee to Organization (Participation Bonus)
+            invite_fee = tournament.bidding_invite_fee
+            if invite_fee > 0:
+                org.coins += invite_fee
+                org.save()
+                
+                Transaction.objects.create(
+                    recipient=org,
+                    amount=invite_fee,
+                    transaction_type='BIDDING_INCENTIVE',
+                    related_tournament=tournament,
+                    description=f"Received participation bonus for '{tournament.Name}'"
+                )
+                messages.success(request, f"Successfully joined! You received {invite_fee} coins.")
+            else:
+                messages.success(request, f"Successfully joined '{tournament.Name}'!")
+                
+            # Notify Tournament Owner
+            OrganizationNotification.objects.create(
+                recipient=tournament.Organization_Name,
+                message=f"{org.Organization_Name} has joined your tournament '{tournament.Name}'",
+                notification_type='INFO',
+                related_tournament=tournament
+            )
+                
+    except Exception as e:
+        messages.error(request, f"Error joining tournament: {e}")
+        
+    return redirect('tournament_detail', tournament_id=tournament_id)
 
 
 def transaction_history(request):
@@ -1826,17 +2235,45 @@ def handle_player_bid(request, bid_id, action):
     return redirect('player_bids')
 
 
-def mark_all_notifications_read(request):
+@login_required_organization
+def org_mark_all_notifications_read(request):
     """Mark all notifications as read"""
-    org_id = request.session.get('organizer_id')
-    if not org_id:
-        return redirect('org_login_start')
-        
+    org = request.org
+    
     # Mark as read instead of deleting
     from .models import OrganizationNotification
-    OrganizationNotification.objects.filter(recipient_id=org_id, is_read=False).update(is_read=True)
+    OrganizationNotification.objects.filter(recipient=org, is_read=False).update(is_read=True)
     
     messages.success(request, "All notifications marked as read.")
     # Redirect back to where the user came from
     return request.META.get('HTTP_REFERER') and redirect(request.META.get('HTTP_REFERER')) or redirect('organizer_dashboard')
 
+@login_required_organization
+def delete_notification(request, notification_id):
+    """Delete a single notification"""
+    org = request.org
+        
+    from .models import OrganizationNotification
+    from django.shortcuts import get_object_or_404
+    
+    notification = get_object_or_404(OrganizationNotification, id=notification_id, recipient=org)
+    
+    notification.delete()
+    messages.success(request, "Notification deleted.")
+    
+    # Redirect back to where the user came from
+    return request.META.get('HTTP_REFERER') and redirect(request.META.get('HTTP_REFERER')) or redirect('organizer_dashboard')
+
+@login_required_organization
+def org_notifications(request):
+    """View all notifications for the organization"""
+    org = request.org
+    from .models import OrganizationNotification
+    
+    notifications = OrganizationNotification.objects.filter(recipient=org).order_by('-created_at')
+    
+    context = {
+        'notifications': notifications,
+        'org': org
+    }
+    return render(request, 'web/Organization/org_notifications.html', context)
