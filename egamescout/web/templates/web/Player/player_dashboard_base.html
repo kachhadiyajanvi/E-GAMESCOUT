@@ -110,11 +110,24 @@
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
 
-                    <h2 class="text-white font-display font-bold text-lg hidden md:block">
-                        {% if request.resolver_match.url_name == 'player_dashboard' %}Dashboard
-                        {% elif request.resolver_match.url_name == 'player_profile' %}My Profile{% else %}Portal
-                        {% endif %}
-                    </h2>
+                    <nav class="hidden md:flex items-center gap-3 text-sm font-display tracking-wider">
+                        <a href="{% url 'player_dashboard' %}"
+                            class="text-white/50 hover:text-accent-cyan transition-colors">
+                            <i class="fa-solid fa-house"></i>
+                        </a>
+                        <span class="text-white/30">/</span>
+                        <a href="{% url 'player_dashboard' %}"
+                            class="text-white/50 hover:text-accent-cyan transition-colors">Player</a>
+                        <span class="text-white/30">/</span>
+                        <span class="text-accent-cyan font-bold drop-shadow-[0_0_10px_rgba(102,252,241,0.5)]">
+                            {% if request.resolver_match.url_name == 'player_dashboard' %}Dashboard
+                            {% elif request.resolver_match.url_name == 'player_profile' %}My Profile
+                            {% elif request.resolver_match.url_name == 'player_bids' %}My Bids
+                            {% elif 'upcoming' in request.resolver_match.url_name %}Upcoming Tournaments
+                            {% else %}Portal
+                            {% endif %}
+                        </span>
+                    </nav>
                 </div>
 
                 <!-- User Profile Info -->

@@ -85,8 +85,8 @@
 
                     <!-- Amount -->
                     <td class="p-4 text-right">
-                        <span class="font-display font-bold text-yellow-500 text-lg">{{
-                            bid.amount|floatformat:2|intcomma }}</span>
+                        <span class="font-display font-bold text-yellow-500 text-lg">
+                            {{bid.amount|floatformat:2|intcomma }}</span>
                         {% if bid.counter_amount %}
                         <div class="text-xs text-purple-400 mt-1" title="Counter Offer">
                             <i class="fa-solid fa-code-commit"></i> {{ bid.counter_amount|floatformat:2|intcomma }}

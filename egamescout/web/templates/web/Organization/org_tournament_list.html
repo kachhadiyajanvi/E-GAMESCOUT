@@ -4,6 +4,17 @@
 
 {% block content %}
 <div class="p-8">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm mb-6">
+        <a href="{% url 'organizer_dashboard' %}"
+            class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
+            <i class="fa-solid fa-home text-xs"></i>
+            <span>Home</span>
+        </a>
+        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
+        <span class="text-white font-semibold">Tournaments</span>
+    </nav>
+
     <!-- Header with enhanced styling -->
     <div class="flex justify-between items-center mb-10">
         <div class="flex items-center gap-4">
@@ -32,9 +43,33 @@
         </div>
     </div>
 
-    <!-- Tournaments Grid with wider cards -->
+    <!-- View Toggle & Toolbar -->
+    <div class="flex justify-between items-center mb-6">
+        <div class="flex gap-2">
+            <button onclick="switchView('grid')" id="btnGrid"
+                class="p-2 rounded-lg bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/30 hover:bg-accent-cyan hover:text-black transition-all"
+                title="Grid View">
+                <i class="fa-solid fa-border-all"></i>
+            </button>
+            <button onclick="switchView('table')" id="btnTable"
+                class="p-2 rounded-lg bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white transition-all"
+                title="Table View">
+                <i class="fa-solid fa-list"></i>
+            </button>
+        </div>
+
+        <!-- Search/Filter Placeholder (Future) -->
+        <!-- <div class="relative">
+            <input type="text" placeholder="Search tournaments..." class="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-accent-cyan/50 w-64">
+            <i class="fa-solid fa-search absolute right-3 top-2.5 text-gray-500"></i>
+        </div> -->
+    </div>
+
+    <!-- Tournaments Content -->
     {% if tournaments %}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+    <!-- GRID VIEW -->
+    <div id="tournamentGridView" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {% for tournament in tournaments %}
         <div
             class="relative bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:border-accent-cyan/60 transition-all duration-500 group hover:shadow-[0_8px_30px_rgba(102,252,241,0.15)] hover:scale-[1.02] overflow-hidden">
@@ -66,8 +101,8 @@
                             <span
                                 class="text-xs text-gray-400 flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-full">
                                 <i class="fa-regular fa-calendar text-accent-cyan/80 text-[10px]"></i>
-                                <span class="font-medium">{{ tournament.start_date|date:"M d, g:i A" }} - {{
-                                    tournament.end_date|date:"M d, Y g:i A" }}</span>
+                                <span class="font-medium">{{ tournament.start_date|date:"M d, g:i A" }} -
+                                    {{ tournament.end_date|date:"M d, Y g:i A" }}</span>
                             </span>
                         </div>
                     </div>
@@ -140,342 +175,631 @@
                 </div>
 
                 <!-- Action Buttons with enhanced styling -->
-                <div class="flex flex-wrap gap-2">
-                    <a href="{% url 'tournament_detail' tournament.Tournament_ID %}"
-                        class="flex-1 min-w-[100px] px-4 py-2.5 bg-accent-cyan/10 border border-accent-cyan/40 text-accent-cyan rounded-lg hover:bg-accent-cyan hover:text-black transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 hover:shadow-[0_0_15px_rgba(102,252,241,0.4)] group/btn">
-                        <i class="fa-solid fa-eye group-hover/btn:scale-110 transition-transform"></i> View
-                    </a>
-                    <a href="{% url 'tournament_update' tournament.Tournament_ID %}"
-                        class="flex-1 min-w-[100px] px-4 py-2.5 bg-white/5 border border-white/20 text-white rounded-lg hover:bg-white/15 hover:border-accent-cyan/60 transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                        <i class="fa-solid fa-edit group-hover/btn:rotate-12 transition-transform"></i> Edit
-                    </a>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-2">
-                    <a href="{% url 'tournament_participants' tournament.Tournament_ID %}"
-                        class="flex-1 min-w-[140px] px-4 py-2.5 bg-blue-500/10 border border-blue-500/40 text-blue-400 rounded-lg hover:bg-blue-500/20 hover:border-blue-500/60 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                        <i class="fa-solid fa-users group-hover/btn:scale-110 transition-transform"></i> Participants
-                    </a>
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{% url 'tournament_detail' tournament.Tournament_ID %}"
+                            class="flex-1 min-w-[100px] px-4 py-2.5 bg-accent-cyan/10 border border-accent-cyan/40 text-accent-cyan rounded-lg hover:bg-accent-cyan hover:text-black transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 hover:shadow-[0_0_15px_rgba(102,252,241,0.4)] group/btn">
+                            <i class="fa-solid fa-eye group-hover/btn:scale-110 transition-transform"></i> View
+                        </a>
+                        <a href="{% url 'tournament_update' tournament.Tournament_ID %}"
+                            class="flex-1 min-w-[100px] px-4 py-2.5 bg-white/5 border border-white/20 text-white rounded-lg hover:bg-white/15 hover:border-accent-cyan/60 transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
+                            <i class="fa-solid fa-edit group-hover/btn:rotate-12 transition-transform"></i> Edit
+                        </a>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{% url 'tournament_participants' tournament.Tournament_ID %}"
+                            class="flex-1 min-w-[140px] px-4 py-2.5 bg-blue-500/10 border border-blue-500/40 text-blue-400 rounded-lg hover:bg-blue-500/20 hover:border-blue-500/60 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
+                            <i class="fa-solid fa-users group-hover/btn:scale-110 transition-transform"></i>
+                            Participants
+                        </a>
 
-                    {% if tournament.Status != 'Cancelled' and tournament.Status != 'Completed' %}
-                    <!-- Cancel Button -->
-                    <button onclick="confirmCancel('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
-                        class="flex-1 min-w-[100px] px-4 py-2.5 bg-orange-500/10 border border-orange-500/40 text-orange-400 rounded-lg hover:bg-orange-500/20 hover:border-orange-500/60 hover:shadow-[0_0_15px_rgba(249,115,22,0.4)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                        <i class="fa-solid fa-ban group-hover/btn:scale-110 transition-transform"></i> Cancel
-                    </button>
-                    {% endif %}
+                        {% if tournament.Status != 'Cancelled' and tournament.Status != 'Completed' %}
+                        <!-- Cancel Button -->
+                        <button
+                            onclick="confirmCancel('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
+                            class="flex-1 min-w-[100px] px-4 py-2.5 bg-orange-500/10 border border-orange-500/40 text-orange-400 rounded-lg hover:bg-orange-500/20 hover:border-orange-500/60 hover:shadow-[0_0_15px_rgba(249,115,22,0.4)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
+                            <i class="fa-solid fa-ban group-hover/btn:scale-110 transition-transform"></i> Cancel
+                        </button>
+                        {% endif %}
 
-                    {% if not tournament.is_published %}
-                    <form action="{% url 'publish_tournament' tournament.Tournament_ID %}" method="POST"
-                        class="flex-1 min-w-[120px]">
-                        {% csrf_token %}
-                        <button type="submit"
-                            class="w-full px-4 py-2.5 bg-purple-500/10 border border-purple-500/40 text-purple-400 rounded-lg hover:bg-purple-500/20 hover:border-purple-500/60 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
+                        {% if not tournament.is_published %}
+                        <button
+                            onclick="confirmPublish('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
+                            class="flex-1 min-w-[120px] px-4 py-2.5 bg-purple-500/10 border border-purple-500/40 text-purple-400 rounded-lg hover:bg-purple-500/20 hover:border-purple-500/60 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
                             <i class="fa-solid fa-bullhorn group-hover/btn:scale-110 transition-transform"></i> Publish
                         </button>
-                    </form>
-                    {% else %}
-                    <!-- Open Bidding Button -->
-                    {% if not tournament.bidding_open %}
-                    <button
-                        onclick="openBiddingModal('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
-                        class="flex-1 min-w-[130px] px-4 py-2.5 bg-yellow-500/10 border border-yellow-500/40 text-yellow-400 rounded-lg hover:bg-yellow-500/20 hover:border-yellow-500/60 hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                        <i class="fa-solid fa-gavel group-hover/btn:rotate-12 transition-transform"></i> Open Bidding
-                    </button>
-                    {% else %}
-                    <div class="flex-1 min-w-[130px] px-4 py-2.5 bg-yellow-500/5 border border-yellow-500/20 text-yellow-500/60 rounded-lg text-center font-bold text-sm flex items-center justify-center gap-2 cursor-default"
-                        title="Fee: {{ tournament.bidding_invite_fee }} coins">
-                        <i class="fa-solid fa-check"></i> Bidding Open
+                        {% else %}
+                        <!-- Open Bidding Button -->
+                        {% if not tournament.bidding_open %}
+                        <button
+                            onclick="openBiddingModal('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
+                            class="flex-1 min-w-[130px] px-4 py-2.5 bg-yellow-500/10 border border-yellow-500/40 text-yellow-400 rounded-lg hover:bg-yellow-500/20 hover:border-yellow-500/60 hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
+                            <i class="fa-solid fa-gavel group-hover/btn:rotate-12 transition-transform"></i> Open
+                            Bidding
+                        </button>
+                        {% else %}
+                        <div class="flex-1 min-w-[130px] px-4 py-2.5 bg-yellow-500/5 border border-yellow-500/20 text-yellow-500/60 rounded-lg text-center font-bold text-sm flex items-center justify-center gap-2 cursor-default"
+                            title="Fee: {{ tournament.bidding_invite_fee }} coins">
+                            <i class="fa-solid fa-check"></i> Bidding Open
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                        <button
+                            onclick="confirmDelete('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
+                            class="flex-1 min-w-[100px] px-4 py-2.5 bg-red-500/10 border border-red-500/40 text-red-400 rounded-lg hover:bg-red-500/20 hover:border-red-500/60 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
+                            <i class="fa-solid fa-trash group-hover/btn:scale-110 transition-transform"></i> Delete
+                        </button>
                     </div>
-                    {% endif %}
-                    {% endif %}
-                    <button onclick="confirmDelete('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
-                        class="flex-1 min-w-[100px] px-4 py-2.5 bg-red-500/10 border border-red-500/40 text-red-400 rounded-lg hover:bg-red-500/20 hover:border-red-500/60 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                        <i class="fa-solid fa-trash group-hover/btn:scale-110 transition-transform"></i> Delete
-                    </button>
                 </div>
             </div>
-            {% endfor %}
         </div>
-        {% else %}
-        <!-- Empty State -->
-        <div class="text-center py-20">
-            <div class="w-24 h-24 mx-auto mb-6 bg-accent-cyan/10 rounded-full flex items-center justify-center">
-                <i class="fa-solid fa-trophy text-4xl text-accent-cyan/50"></i>
-            </div>
-            <h3 class="text-2xl font-display font-bold text-white mb-2">No Tournaments Yet</h3>
-            <p class="text-gray-400 mb-6">Create your first tournament to get started. Once created, it will appear
-                here.</p>
-            <a href="{% url 'tournament_create' %}"
-                class="inline-flex items-center gap-2 px-6 py-3 bg-accent-cyan text-brand-dark font-display font-bold rounded-lg hover:bg-white transition-all hover:scale-105">
-                <i class="fa-solid fa-plus"></i>
-                Create Your First Tournament
-            </a>
-        </div>
-        {% endif %}
+        {% endfor %}
+    </div>
 
-
-        <!-- Delete Confirmation Modal -->
-        <div id="deleteModal" class="hidden fixed inset-0 z-50">
-            <!-- Backdrop -->
-            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0"
-                id="deleteModalBackdrop">
-            </div>
-
-            <!-- Modal Content -->
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 transform transition-all scale-95 opacity-0"
-                id="deleteModalContent">
-                <div class="glass-panel rounded-xl border border-red-500/30 p-6 relative overflow-hidden">
-                    <div
-                        class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent">
-                    </div>
-
-                    <div class="text-center mb-6">
-                        <div
-                            class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4 border border-red-500/20">
-                            <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500"></i>
+    <!-- TABLE VIEW -->
+    <div id="tournamentTableView" class="hidden mb-8 overflow-x-auto rounded-2xl border border-white/10 shadow-xl">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-black/60 backdrop-blur-md text-xs uppercase text-gray-400 font-bold tracking-wider">
+                <tr>
+                    <th class="px-6 py-4 border-b border-white/10 w-16 text-center">#</th>
+                    <th class="px-6 py-4 border-b border-white/10">Tournament</th>
+                    <th class="px-6 py-4 border-b border-white/10">Date & Teams</th>
+                    <th class="px-6 py-4 border-b border-white/10">Prize & Format</th>
+                    <th class="px-6 py-4 border-b border-white/10">Status</th>
+                    <th class="px-6 py-4 border-b border-white/10 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 bg-black/40 backdrop-blur-md">
+                {% for tournament in tournaments %}
+                <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="px-6 py-4 text-center text-sm font-mono text-gray-500 border-b border-white/5">
+                        {{ forloop.counter }}
+                    </td>
+                    <td class="px-6 py-4 border-b border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 rounded-lg bg-accent-cyan/10 flex items-center justify-center border border-accent-cyan/20">
+                                <i class="fa-solid fa-trophy text-accent-cyan"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold group-hover:text-accent-cyan transition-colors">
+                                    {{tournament.Name }}</h4>
+                            </div>
                         </div>
-                        <h3 class="text-xl font-display font-bold text-white mb-2">Delete Tournament?</h3>
-                        <p class="text-gray-400 text-sm">Are you sure you want to delete <span id="deleteTournamentName"
-                                class="text-white font-bold"></span>? This action cannot
-                            be undone.</p>
-                    </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm">
+                            <p class="text-white mb-0.5">{{ tournament.start_date|date:"M d, Y" }}</p>
+                            <p class="text-gray-500 text-xs flex items-center gap-1.5">
+                                <i class="fa-solid fa-users text-[10px]"></i> {{ tournament.max_teams }} Teams
+                            </p>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm">
+                            <p class="text-accent-cyan font-bold mb-0.5">₹{{ tournament.PrizePool|floatformat:0 }}</p>
+                            <span
+                                class="text-[10px] px-1.5 py-0.5 rounded border {% if tournament.is_offline %}bg-purple-500/10 text-purple-400 border-purple-500/20{% else %}bg-green-500/10 text-green-400 border-green-500/20{% endif %}">
+                                {% if tournament.is_offline %}OFFLINE{% else %}ONLINE{% endif %}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col gap-1 items-start">
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border
+                                {% if tournament.Status == 'Ongoing' %}bg-green-500/10 text-green-400 border-green-500/30
+                                {% elif tournament.Status == 'Completed' %}bg-gray-500/10 text-gray-400 border-gray-500/30
+                                {% elif tournament.Status == 'Cancelled' %}bg-red-500/10 text-red-400 border-red-500/30
+                                {% else %}bg-blue-500/10 text-blue-400 border-blue-500/30{% endif %}">
+                                {{ tournament.Status }}
+                            </span>
+                            <span class="text-[10px] uppercase tracking-wider text-gray-400">
+                                {% if tournament.is_published %}Published{% else %}Draft{% endif %}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right border-b border-white/5">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{% url 'tournament_detail' tournament.Tournament_ID %}"
+                                class="px-3 py-1.5 bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan hover:bg-accent-cyan hover:text-brand-dark font-bold text-center rounded-lg transition-all text-xs flex items-center justify-center gap-1"
+                                title="View">
+                                <i class="fa-solid fa-eye"></i> View
+                            </a>
 
-                    <form id="deleteForm" method="POST" action="">
-                        {% csrf_token %}
-                        <div class="flex gap-3">
-                            <button type="button" onclick="closeDeleteModal()"
-                                class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
+                            <a href="{% url 'tournament_participants' tournament.Tournament_ID %}"
+                                class="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white font-bold text-center rounded-lg transition-all text-xs flex items-center justify-center gap-1"
+                                title="Teams">
+                                <i class="fa-solid fa-users"></i> Teams
+                            </a>
+
+                            {% if tournament.Status != 'Cancelled' and tournament.Status != 'Completed' %}
+                            <button
+                                onclick="confirmCancel('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
+                                class="px-3 py-1.5 bg-orange-500/10 border border-orange-500/40 text-orange-400 rounded-lg hover:bg-orange-500/20 hover:border-orange-500/60 transition-all text-xs flex items-center justify-center gap-1 font-bold"
+                                title="Cancel">
+                                <i class="fa-solid fa-ban"></i> Cancel
+                            </button>
+                            {% endif %}
+
+                            {% if not tournament.is_published %}
+                            <button
+                                onclick="confirmPublish('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
+                                class="px-3 py-1.5 bg-purple-500/10 border border-purple-500/40 text-purple-400 rounded-lg hover:bg-purple-500/20 hover:border-purple-500/60 transition-all text-xs flex items-center justify-center gap-1 font-bold"
+                                title="Publish">
+                                <i class="fa-solid fa-bullhorn"></i> Publish
+                            </button>
+                            {% else %}
+                            {% if not tournament.bidding_open %}
+                            <button
+                                onclick="openBiddingModal('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
+                                class="px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/40 text-yellow-400 rounded-lg hover:bg-yellow-500/20 hover:border-yellow-500/60 transition-all text-xs flex items-center justify-center gap-1 font-bold"
+                                title="Open Bidding">
+                                <i class="fa-solid fa-gavel"></i> Bid
+                            </button>
+                            {% endif %}
+                            {% endif %}
+
+                            <a href="{% url 'tournament_update' tournament.Tournament_ID %}"
+                                class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:bg-white hover:text-black transition-all"
+                                title="Edit">
+                                <i class="fa-solid fa-pencil"></i>
+                            </a>
+
+                            <button
+                                onclick="confirmDelete('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
+                                class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                                title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-20">
+        <div class="w-24 h-24 mx-auto mb-6 bg-accent-cyan/10 rounded-full flex items-center justify-center">
+            <i class="fa-solid fa-trophy text-4xl text-accent-cyan/50"></i>
+        </div>
+        <h3 class="text-2xl font-display font-bold text-white mb-2">No Tournaments Yet</h3>
+        <p class="text-gray-400 mb-6">Create your first tournament to get started. Once created, it will appear
+            here.</p>
+        <a href="{% url 'tournament_create' %}"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-accent-cyan text-brand-dark font-display font-bold rounded-lg hover:bg-white transition-all hover:scale-105">
+            <i class="fa-solid fa-plus"></i>
+            Create Your First Tournament
+        </a>
+    </div>
+    {% endif %}
+
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-50">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0"
+            id="deleteModalBackdrop">
+        </div>
+
+        <!-- Modal Content -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 transform transition-all scale-95 opacity-0"
+            id="deleteModalContent">
+            <div class="glass-panel rounded-xl border border-red-500/30 p-6 relative overflow-hidden">
+                <div
+                    class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent">
+                </div>
+
+                <div class="text-center mb-6">
+                    <div
+                        class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-bold text-white mb-2">Delete Tournament?</h3>
+                    <p class="text-gray-400 text-sm">Are you sure you want to delete <span id="deleteTournamentName"
+                            class="text-white font-bold"></span>? This action cannot
+                        be undone.</p>
+                </div>
+
+                <form id="deleteForm" method="POST" action="">
+                    {% csrf_token %}
+                    <div class="flex gap-3">
+                        <button type="button" onclick="closeDeleteModal()"
+                            class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
+                            CANCEL
+                        </button>
+                        <button type="submit"
+                            class="flex-1 px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-all font-bold text-sm shadow-[0_0_15px_rgba(239,68,68,0.4)]">
+                            DELETE
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Bidding Configuration Modal -->
+    <div id="biddingModal" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0"
+            id="biddingModalBackdrop">
+        </div>
+
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg p-6 transform transition-all scale-95 opacity-0"
+            id="biddingModalContent">
+            <div class="glass-panel rounded-xl border border-yellow-500/30 p-8 relative overflow-hidden">
+                <div
+                    class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent">
+                </div>
+
+                <h3 class="text-xl font-display font-bold text-white mb-6 flex items-center gap-3">
+                    <i class="fa-solid fa-gavel text-yellow-500"></i>
+                    Configure Bidding: <span id="biddingTournamentName" class="text-accent-cyan"></span>
+                </h3>
+
+                <form id="biddingForm" method="POST" action="">
+                    {% csrf_token %}
+
+                    <div class="space-y-6">
+                        <!-- Dates -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Start
+                                    Date</label>
+                                <input type="datetime-local" name="start_date" required
+                                    class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">End
+                                    Date</label>
+                                <input type="datetime-local" name="end_date" required
+                                    class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm">
+                            </div>
+                        </div>
+
+                        <!-- Incentive -->
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Incentive
+                                Amount (Coins)</label>
+                            <div class="relative">
+                                <i
+                                    class="fa-solid fa-coins absolute left-4 top-1/2 -translate-y-1/2 text-yellow-500"></i>
+                                <input type="number" name="coin_amount" id="coinAmount" min="0" step="0.01" value="0"
+                                    class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded pl-10 pr-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm font-bold text-yellow-500">
+                            </div>
+                            <p class="text-[10px] text-gray-500 mt-1">
+                                This amount will be sent to each invited organization.
+                            </p>
+                        </div>
+
+                        <!-- Cost Summary -->
+
+
+                        <!-- Actions -->
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" onclick="closeBiddingModal()"
+                                class="flex-1 px-4 py-3 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
                                 CANCEL
                             </button>
                             <button type="submit"
-                                class="flex-1 px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-all font-bold text-sm shadow-[0_0_15px_rgba(239,68,68,0.4)]">
-                                DELETE
+                                class="flex-1 px-4 py-3 rounded bg-yellow-500 text-black hover:bg-yellow-400 transition-all font-bold text-sm shadow-[0_0_15px_rgba(234,179,8,0.4)]">
+                                OPEN BIDDING
                             </button>
                         </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <!-- Bidding Configuration Modal -->
-        <div id="biddingModal" class="hidden fixed inset-0 z-50">
-            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0"
-                id="biddingModalBackdrop">
-            </div>
-
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg p-6 transform transition-all scale-95 opacity-0"
-                id="biddingModalContent">
-                <div class="glass-panel rounded-xl border border-yellow-500/30 p-8 relative overflow-hidden">
-                    <div
-                        class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent">
                     </div>
-
-                    <h3 class="text-xl font-display font-bold text-white mb-6 flex items-center gap-3">
-                        <i class="fa-solid fa-gavel text-yellow-500"></i>
-                        Configure Bidding: <span id="biddingTournamentName" class="text-accent-cyan"></span>
-                    </h3>
-
-                    <form id="biddingForm" method="POST" action="">
-                        {% csrf_token %}
-
-                        <div class="space-y-6">
-                            <!-- Dates -->
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label
-                                        class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Start
-                                        Date</label>
-                                    <input type="datetime-local" name="start_date" required
-                                        class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm">
-                                </div>
-                                <div>
-                                    <label
-                                        class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">End
-                                        Date</label>
-                                    <input type="datetime-local" name="end_date" required
-                                        class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm">
-                                </div>
-                            </div>
-
-                            <!-- Incentive -->
-                            <div>
-                                <label
-                                    class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Incentive
-                                    Amount (Coins)</label>
-                                <div class="relative">
-                                    <i
-                                        class="fa-solid fa-coins absolute left-4 top-1/2 -translate-y-1/2 text-yellow-500"></i>
-                                    <input type="number" name="coin_amount" id="coinAmount" min="0" step="0.01"
-                                        value="0"
-                                        class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded pl-10 pr-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm font-bold text-yellow-500">
-                                </div>
-                                <p class="text-[10px] text-gray-500 mt-1">
-                                    This amount will be sent to each invited organization.
-                                </p>
-                            </div>
-
-                            <!-- Cost Summary -->
-
-
-                            <!-- Actions -->
-                            <div class="flex gap-3 pt-2">
-                                <button type="button" onclick="closeBiddingModal()"
-                                    class="flex-1 px-4 py-3 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
-                                    CANCEL
-                                </button>
-                                <button type="submit"
-                                    class="flex-1 px-4 py-3 rounded bg-yellow-500 text-black hover:bg-yellow-400 transition-all font-bold text-sm shadow-[0_0_15px_rgba(234,179,8,0.4)]">
-                                    OPEN BIDDING
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                </form>
             </div>
         </div>
-        {% endblock %}
+    </div>
+    <!-- Cancel Confirmation Modal -->
+    <div id="cancelModal" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0" id="cancelBackdrop">
+        </div>
+
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 transform transition-all scale-95 opacity-0"
+            id="cancelModalContent">
+            <div class="glass-panel rounded-xl border border-orange-500/30 p-6 relative overflow-hidden">
+                <div
+                    class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent">
+                </div>
+
+                <div class="text-center mb-6">
+                    <div
+                        class="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto mb-4 border border-orange-500/20">
+                        <i class="fa-solid fa-ban text-2xl text-orange-500"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-bold text-white mb-2">Cancel Tournament?</h3>
+                    <p class="text-gray-400 text-sm">Are you sure you want to cancel <span id="cancelTournamentName"
+                            class="text-white font-bold"></span>? This action cannot be undone.</p>
+                </div>
+
+                <form id="cancelForm" method="POST" action="">
+                    {% csrf_token %}
+                    <div class="flex gap-3">
+                        <button type="button" onclick="closeCancelModal()"
+                            class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
+                            BACK
+                        </button>
+                        <button type="submit"
+                            class="flex-1 px-4 py-2 rounded bg-orange-500 text-white hover:bg-orange-600 transition-all font-bold text-sm shadow-[0_0_15px_rgba(249,115,22,0.4)]">
+                            CONFIRM CANCEL
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Publish Confirmation Modal -->
+    <div id="publishModal" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0" id="publishBackdrop">
+        </div>
+
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 transform transition-all scale-95 opacity-0"
+            id="publishModalContent">
+            <div class="glass-panel rounded-xl border border-purple-500/30 p-6 relative overflow-hidden">
+                <div
+                    class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent">
+                </div>
+
+                <div class="text-center mb-6">
+                    <div
+                        class="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mx-auto mb-4 border border-purple-500/20">
+                        <i class="fa-solid fa-bullhorn text-2xl text-purple-500"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-bold text-white mb-2">Publish Tournament?</h3>
+                    <p class="text-gray-400 text-sm">Are you sure you want to publish <span id="publishTournamentName"
+                            class="text-white font-bold"></span>? It will be visible to
+                        all players.</p>
+                </div>
+
+                <form id="publishForm" method="POST" action="">
+                    {% csrf_token %}
+                    <div class="flex gap-3">
+                        <button type="button" onclick="closePublishModal()"
+                            class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
+                            CANCEL
+                        </button>
+                        <button type="submit"
+                            class="flex-1 px-4 py-2 rounded bg-purple-500 text-white hover:bg-purple-600 transition-all font-bold text-sm shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                            PUBLISH NOW
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% endblock %}
 
 
 
-        {% block scripts %}
-        <script>
-            // Move modals to body
-            document.addEventListener('DOMContentLoaded', () => {
-                const deleteModal = document.getElementById('deleteModal');
-                if (deleteModal) document.body.appendChild(deleteModal);
+    {% block scripts %}
+    <script>
+        // View Switcher Logic
+        function switchView(view) {
+            const gridView = document.getElementById('tournamentGridView');
+            const tableView = document.getElementById('tournamentTableView');
+            const btnGrid = document.getElementById('btnGrid');
+            const btnTable = document.getElementById('btnTable');
 
-                const biddingModal = document.getElementById('biddingModal');
-                if (biddingModal) document.body.appendChild(biddingModal);
+            if (view === 'grid') {
+                gridView.classList.remove('hidden');
+                tableView.classList.add('hidden');
 
-                const cancelModal = document.getElementById('cancelModal');
-                if (cancelModal) document.body.appendChild(cancelModal);
-            });
+                // Active State
+                btnGrid.classList.add('bg-accent-cyan/10', 'text-accent-cyan', 'border-accent-cyan/30');
+                btnGrid.classList.remove('bg-white/5', 'text-gray-400', 'border-white/10');
 
-            // Bidding Modal Logic
-            const TOTAL_ORG_COUNT = parseInt("{{ total_org_count|default:'0' }}")
+                // Inactive State
+                btnTable.classList.remove('bg-accent-cyan/10', 'text-accent-cyan', 'border-accent-cyan/30');
+                btnTable.classList.add('bg-white/5', 'text-gray-400', 'border-white/10');
 
-            function openBiddingModal(tournamentId, tournamentName) {
-                const modal = document.getElementById('biddingModal');
-                const backdrop = document.getElementById('biddingModalBackdrop');
-                const content = document.getElementById('biddingModalContent');
-                const form = document.getElementById('biddingForm');
-                const nameSpan = document.getElementById('biddingTournamentName');
+                localStorage.setItem('tournamentView', 'grid');
+            } else {
+                gridView.classList.add('hidden');
+                tableView.classList.remove('hidden');
 
-                if (!modal) return;
+                // Active State
+                btnTable.classList.add('bg-accent-cyan/10', 'text-accent-cyan', 'border-accent-cyan/30');
+                btnTable.classList.remove('bg-white/5', 'text-gray-400', 'border-white/10');
 
-                form.action = `/organization/tournaments/bidding/open/${tournamentId}/`;
-                nameSpan.textContent = tournamentName;
+                // Inactive State
+                btnGrid.classList.remove('bg-accent-cyan/10', 'text-accent-cyan', 'border-accent-cyan/30');
+                btnGrid.classList.add('bg-white/5', 'text-gray-400', 'border-white/10');
 
-                modal.classList.remove('hidden');
-                // Ensure it's on top - handled by DOMContentLoaded move, but good to ensure
-
-                requestAnimationFrame(() => {
-                    backdrop.classList.remove('opacity-0');
-                    content.classList.remove('scale-95', 'opacity-0');
-                    content.classList.add('scale-100', 'opacity-100');
-                });
+                localStorage.setItem('tournamentView', 'table');
             }
+        }
 
-            function closeBiddingModal() {
-                const modal = document.getElementById('biddingModal');
-                const backdrop = document.getElementById('biddingModalBackdrop');
-                const content = document.getElementById('biddingModalContent');
+        // Initialize View
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedView = localStorage.getItem('tournamentView') || 'grid';
+            switchView(savedView);
 
-                if (!modal) return;
-
-                backdrop.classList.add('opacity-0');
-                content.classList.remove('scale-100', 'opacity-100');
-                content.classList.add('scale-95', 'opacity-0');
-
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                }, 300);
-            }
-
-            // --- Cancel Modal Logic ---
-            const cancelModal = document.getElementById('cancelModal');
-            const cancelBackdrop = document.getElementById('cancelBackdrop');
-            const cancelModalContent = document.getElementById('cancelModalContent');
-            const cancelForm = document.getElementById('cancelForm');
-            const cancelTournamentNameSpan = document.getElementById('cancelTournamentName');
-
-            function confirmCancel(tournamentId, tournamentName) {
-                cancelForm.action = `/organization/tournaments/${tournamentId}/cancel/`;
-                cancelTournamentNameSpan.textContent = tournamentName;
-
-                cancelModal.classList.remove('hidden');
-                // Trigger reflow
-                void cancelModal.offsetWidth;
-
-                // Animate in
-                cancelBackdrop.classList.remove('opacity-0');
-                cancelModalContent.classList.remove('scale-95', 'opacity-0');
-                cancelModalContent.classList.add('scale-100', 'opacity-100');
-            }
-
-            function closeCancelModal() {
-                // Animate out
-                cancelBackdrop.classList.add('opacity-0');
-                cancelModalContent.classList.remove('scale-100', 'opacity-100');
-                cancelModalContent.classList.add('scale-95', 'opacity-0');
-
-                setTimeout(() => {
-                    cancelModal.classList.add('hidden');
-                }, 300);
-            }
-
-            // Close on backdrop click
-            cancelModal.addEventListener('click', (e) => {
-                if (e.target === cancelBackdrop || e.target === cancelModal) {
-                    closeCancelModal();
-                }
-            });
-
-            // Make global
-            window.confirmCancel = confirmCancel;
-            window.closeCancelModal = closeCancelModal;
-
-            // --- Delete Modal Logic (Existing) ---
+            // Existing Modal Logic...
             const deleteModal = document.getElementById('deleteModal');
-            const deleteModalBackdrop = document.getElementById('deleteModalBackdrop');
-            const deleteModalContent = document.getElementById('deleteModalContent');
-            const deleteForm = document.getElementById('deleteForm');
-            const deleteTournamentNameSpan = document.getElementById('deleteTournamentName');
+            if (deleteModal) document.body.appendChild(deleteModal);
 
-            function confirmDelete(tournamentId, tournamentName) {
-                deleteForm.action = `/organization/tournaments/${tournamentId}/delete/`;
-                deleteTournamentNameSpan.textContent = `"${tournamentName}"`;
+            const biddingModal = document.getElementById('biddingModal');
+            if (biddingModal) document.body.appendChild(biddingModal);
 
-                deleteModal.classList.remove('hidden');
-                // Trigger reflow
-                void deleteModal.offsetWidth;
+            const cancelModal = document.getElementById('cancelModal');
+            if (cancelModal) document.body.appendChild(cancelModal);
 
-                // Animate in
-                deleteModalBackdrop.classList.remove('opacity-0');
-                deleteModalContent.classList.remove('scale-95', 'opacity-0');
-                deleteModalContent.classList.add('scale-100', 'opacity-100');
-            }
+            const publishModal = document.getElementById('publishModal');
+            if (publishModal) document.body.appendChild(publishModal);
+        });
 
-            function closeDeleteModal() {
-                // Animate out
-                deleteModalBackdrop.classList.add('opacity-0');
-                deleteModalContent.classList.remove('scale-100', 'opacity-100');
-                deleteModalContent.classList.add('scale-95', 'opacity-0');
+        // Bidding Modal Logic
+        const TOTAL_ORG_COUNT = parseInt("{{ total_org_count|default:'0' }}")
 
-                setTimeout(() => {
-                    deleteModal.classList.add('hidden');
-                }, 300);
-            }
+        function openBiddingModal(tournamentId, tournamentName) {
+            const modal = document.getElementById('biddingModal');
+            const backdrop = document.getElementById('biddingModalBackdrop');
+            const content = document.getElementById('biddingModalContent');
+            const form = document.getElementById('biddingForm');
+            const nameSpan = document.getElementById('biddingTournamentName');
 
-            // Close on backdrop click
-            deleteModal.addEventListener('click', (e) => {
-                if (e.target === deleteModalBackdrop || e.target === deleteModal) {
-                    closeDeleteModal();
-                }
+            if (!modal) return;
+
+            form.action = `/organization/tournaments/bidding/open/${tournamentId}/`;
+            nameSpan.textContent = tournamentName;
+
+            modal.classList.remove('hidden');
+            // Ensure it's on top - handled by DOMContentLoaded move, but good to ensure
+
+            requestAnimationFrame(() => {
+                backdrop.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
             });
+        }
 
-            // Make functions global just in case
-            window.confirmDelete = confirmDelete;
-            window.closeDeleteModal = closeDeleteModal;
+        function closeBiddingModal() {
+            const modal = document.getElementById('biddingModal');
+            const backdrop = document.getElementById('biddingModalBackdrop');
+            const content = document.getElementById('biddingModalContent');
 
-        </script>
-        {% endblock %}
+            if (!modal) return;
+
+            backdrop.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // --- Cancel Modal Logic ---
+        const cancelModal = document.getElementById('cancelModal');
+        const cancelBackdrop = document.getElementById('cancelBackdrop');
+        const cancelModalContent = document.getElementById('cancelModalContent');
+        const cancelForm = document.getElementById('cancelForm');
+        const cancelTournamentNameSpan = document.getElementById('cancelTournamentName');
+
+        function confirmCancel(tournamentId, tournamentName) {
+            cancelForm.action = `/organization/tournaments/${tournamentId}/cancel/`;
+            cancelTournamentNameSpan.textContent = tournamentName;
+
+            cancelModal.classList.remove('hidden');
+            // Trigger reflow
+            void cancelModal.offsetWidth;
+
+            // Animate in
+            cancelBackdrop.classList.remove('opacity-0');
+            cancelModalContent.classList.remove('scale-95', 'opacity-0');
+            cancelModalContent.classList.add('scale-100', 'opacity-100');
+        }
+
+        function closeCancelModal() {
+            // Animate out
+            cancelBackdrop.classList.add('opacity-0');
+            cancelModalContent.classList.remove('scale-100', 'opacity-100');
+            cancelModalContent.classList.add('scale-95', 'opacity-0');
+
+            setTimeout(() => {
+                cancelModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Close on backdrop click
+        cancelModal.addEventListener('click', (e) => {
+            if (e.target === cancelBackdrop || e.target === cancelModal) {
+                closeCancelModal();
+            }
+        });
+
+        // Make global
+        window.confirmCancel = confirmCancel;
+        window.closeCancelModal = closeCancelModal;
+
+        // --- Publish Modal Logic ---
+        const publishModal = document.getElementById('publishModal');
+        const publishBackdrop = document.getElementById('publishBackdrop');
+        const publishModalContent = document.getElementById('publishModalContent');
+        const publishForm = document.getElementById('publishForm');
+        const publishTournamentNameSpan = document.getElementById('publishTournamentName');
+
+        function confirmPublish(tournamentId, tournamentName) {
+            publishForm.action = `/organization/tournaments/${tournamentId}/publish/`;
+            publishTournamentNameSpan.textContent = tournamentName;
+
+            publishModal.classList.remove('hidden');
+            void publishModal.offsetWidth;
+
+            publishBackdrop.classList.remove('opacity-0');
+            publishModalContent.classList.remove('scale-95', 'opacity-0');
+            publishModalContent.classList.add('scale-100', 'opacity-100');
+        }
+
+        function closePublishModal() {
+            publishBackdrop.classList.add('opacity-0');
+            publishModalContent.classList.remove('scale-100', 'opacity-100');
+            publishModalContent.classList.add('scale-95', 'opacity-0');
+
+            setTimeout(() => {
+                publishModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Close on backdrop click
+        publishModal.addEventListener('click', (e) => {
+            if (e.target === publishBackdrop || e.target === publishModal) {
+                closePublishModal();
+            }
+        });
+
+        window.confirmPublish = confirmPublish;
+        window.closePublishModal = closePublishModal;
+
+
+        // --- Delete Modal Logic (Existing) ---
+        const deleteModal = document.getElementById('deleteModal');
+        const deleteModalBackdrop = document.getElementById('deleteModalBackdrop');
+        const deleteModalContent = document.getElementById('deleteModalContent');
+        const deleteForm = document.getElementById('deleteForm');
+        const deleteTournamentNameSpan = document.getElementById('deleteTournamentName');
+
+        function confirmDelete(tournamentId, tournamentName) {
+            deleteForm.action = `/organization/tournaments/${tournamentId}/delete/`;
+            deleteTournamentNameSpan.textContent = `"${tournamentName}"`;
+
+            deleteModal.classList.remove('hidden');
+            // Trigger reflow
+            void deleteModal.offsetWidth;
+
+            // Animate in
+            deleteModalBackdrop.classList.remove('opacity-0');
+            deleteModalContent.classList.remove('scale-95', 'opacity-0');
+            deleteModalContent.classList.add('scale-100', 'opacity-100');
+        }
+
+        function closeDeleteModal() {
+            // Animate out
+            deleteModalBackdrop.classList.add('opacity-0');
+            deleteModalContent.classList.remove('scale-100', 'opacity-100');
+            deleteModalContent.classList.add('scale-95', 'opacity-0');
+
+            setTimeout(() => {
+                deleteModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Close on backdrop click
+        deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModalBackdrop || e.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
+
+        // Make functions global just in case
+        window.confirmDelete = confirmDelete;
+        window.closeDeleteModal = closeDeleteModal;
+
+    </script>
+    {% endblock %}

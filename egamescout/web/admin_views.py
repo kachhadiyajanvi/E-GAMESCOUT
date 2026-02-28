@@ -6,7 +6,8 @@ from django.contrib.auth.models import User
 from .models import Organization, Player, Tournament, PlayerBid
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, time, timedelta
+from decimal import Decimal
 
 # Helper to check if user is superuser
 from django.core.paginator import Paginator
@@ -75,12 +76,16 @@ def admin_dashboard(request):
     org_trend = []
     
     for i in range(days):
-        day = timezone.now().date() - timedelta(days=6-i)
-        chart_labels.append(day.strftime('%a')) # Mon, Tue...
+        day_date = timezone.now().date() - timedelta(days=6-i)
+        chart_labels.append(day_date.strftime('%a')) # Mon, Tue...
+        
+        # Create aware start/end times
+        day_start = timezone.make_aware(datetime.combine(day_date, time.min))
+        day_end = timezone.make_aware(datetime.combine(day_date, time.max))
         
         # Count for specific day
-        p_count = player_qs.filter(created_at__date=day).count()
-        o_count = org_qs.filter(CreatedAt__date=day).count()
+        p_count = player_qs.filter(created_at__range=(day_start, day_end)).count()
+        o_count = org_qs.filter(CreatedAt__range=(day_start, day_end)).count()
         
         player_trend.append(p_count)
         org_trend.append(o_count)
@@ -346,24 +351,56 @@ def admin_analytics(request):
     now = timezone.now()
     week_start = now - timedelta(days=7)
     month_start = now - timedelta(days=30)
+    year_start = now - timedelta(days=365)
     
     # 1. Total Counts
     total_players = Player.objects.filter(is_archived=False).count()
     total_orgs = Organization.objects.filter(is_archived=False).count()
     total_tournaments = Tournament.objects.filter(is_archived=False).count()
     
-    # 2. Growth (Weekly)
+    # 2. Status Breakdown
+    active_players = Player.objects.filter(status='ACTIVE', is_archived=False).count()
+    pending_players = Player.objects.filter(status='PENDING', is_archived=False).count()
+    suspended_players = Player.objects.filter(status='SUSPENDED', is_archived=False).count()
+    
+    active_orgs = Organization.objects.filter(status='Active', is_archived=False).count()
+    pending_orgs = Organization.objects.filter(status='Pending', is_archived=False).count()
+    suspended_orgs = Organization.objects.filter(status='Suspended', is_archived=False).count()
+    
+    # 3. Growth (Weekly)
     new_players_week = Player.objects.filter(created_at__gte=week_start).count()
     new_orgs_week = Organization.objects.filter(CreatedAt__gte=week_start).count()
     new_tournaments_week = Tournament.objects.filter(CreatedAt__gte=week_start).count()
     
-    # 3. Growth (Monthly)
+    # 4. Growth (Monthly)
     new_players_month = Player.objects.filter(created_at__gte=month_start).count()
     new_orgs_month = Organization.objects.filter(CreatedAt__gte=month_start).count()
     new_tournaments_month = Tournament.objects.filter(CreatedAt__gte=month_start).count()
     
-    # 4. Financials (Prize Pool)
-    total_prize_pool = Tournament.objects.aggregate(Sum('PrizePool'))['PrizePool__sum'] or 0
+    # 5. Growth (Yearly)
+    new_players_year = Player.objects.filter(created_at__gte=year_start).count()
+    new_orgs_year = Organization.objects.filter(CreatedAt__gte=year_start).count()
+    new_tournaments_year = Tournament.objects.filter(CreatedAt__gte=year_start).count()
+    
+    # 6. Financials
+    total_prize_pool = Tournament.objects.aggregate(Sum('PrizePool'))['PrizePool__sum'] or Decimal('0')
+    total_coins = Organization.objects.aggregate(Sum('coins'))['coins__sum'] or Decimal('0')
+    
+    # 7. Bidding Metrics
+    pending_bids = PlayerBid.objects.filter(status='PENDING').count()
+    accepted_bids = PlayerBid.objects.filter(status='ACCEPTED').count()
+    rejected_bids = PlayerBid.objects.filter(status='REJECTED').count()
+    negotiating_bids = PlayerBid.objects.filter(status='NEGOTIATING').count()
+    
+    # 8. Tournament Status Breakdown
+    scheduled_tournaments = Tournament.objects.filter(Status='Scheduled', is_archived=False).count()
+    ongoing_tournaments = Tournament.objects.filter(Status='Ongoing', is_archived=False).count()
+    completed_tournaments = Tournament.objects.filter(Status='Completed', is_archived=False).count()
+    cancelled_tournaments = Tournament.objects.filter(Status='Cancelled', is_archived=False).count()
+    
+    # Calculate conversion rates
+    player_conversion = (active_players / total_players * 100) if total_players > 0 else 0
+    org_conversion = (active_orgs / total_orgs * 100) if total_orgs > 0 else 0
     
     # 5. Charts Logic
     # ---------------------------------------------------------
@@ -373,12 +410,19 @@ def admin_analytics(request):
     player_data_week = []
     org_data_week = []
     
+    # Helper for range queries
+    from datetime import datetime, time
+    
     for i in range(7):
-        day_start = now.date() - timedelta(days=6-i)
-        week_labels.append(day_start.strftime('%a')) # Mon, Tue
+        day_date = now.date() - timedelta(days=6-i)
+        week_labels.append(day_date.strftime('%a')) # Mon, Tue
         
-        p_count = Player.objects.filter(created_at__date=day_start).count()
-        o_count = Organization.objects.filter(CreatedAt__date=day_start).count()
+        # Create aware start/end times
+        day_start = timezone.make_aware(datetime.combine(day_date, time.min))
+        day_end = timezone.make_aware(datetime.combine(day_date, time.max))
+        
+        p_count = Player.objects.filter(created_at__range=(day_start, day_end)).count()
+        o_count = Organization.objects.filter(CreatedAt__range=(day_start, day_end)).count()
         
         player_data_week.append(p_count)
         org_data_week.append(o_count)
@@ -389,15 +433,19 @@ def admin_analytics(request):
     month_labels = []
     player_data_month = []
     org_data_month = []
-    tournament_data_month = [] # Keeping this for sparkline usage if needed
+    tournament_data_month = []
     
     for i in range(30):
-        day_start = now.date() - timedelta(days=29-i)
-        month_labels.append(day_start.strftime('%d %b')) # 10 Feb
+        day_date = now.date() - timedelta(days=29-i)
+        month_labels.append(day_date.strftime('%d %b')) # 10 Feb
         
-        p_count = Player.objects.filter(created_at__date=day_start).count()
-        o_count = Organization.objects.filter(CreatedAt__date=day_start).count()
-        t_count = Tournament.objects.filter(CreatedAt__date=day_start).count()
+        # Create aware start/end times
+        day_start = timezone.make_aware(datetime.combine(day_date, time.min))
+        day_end = timezone.make_aware(datetime.combine(day_date, time.max))
+        
+        p_count = Player.objects.filter(created_at__range=(day_start, day_end), is_archived=False).count()
+        o_count = Organization.objects.filter(CreatedAt__range=(day_start, day_end), is_archived=False).count()
+        t_count = Tournament.objects.filter(CreatedAt__range=(day_start, day_end), is_archived=False).count()
         
         player_data_month.append(p_count)
         org_data_month.append(o_count)
@@ -410,19 +458,8 @@ def admin_analytics(request):
     player_data_year = []
     org_data_year = []
     
-    # Iterate backwards 11 months + current month
     for i in range(12):
-        # Calculate month start and end
-        # We want to go back 11 months from now. 
-        # i=0 -> 11 months ago, i=11 -> current month
-        # Simplest way: start from 1st day of month
-        
-        # Current month start
         this_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        
-        # Move back (11 - i) months
-        # Logic: relative delta would be better but let's do manual calc to avoid extra deps if possible
-        # Using basic month arithmetic
         month_offset = 11 - i
         target_year = this_month_start.year
         target_month = this_month_start.month - month_offset
@@ -433,40 +470,72 @@ def admin_analytics(request):
             
         loop_month_start = this_month_start.replace(year=target_year, month=target_month)
         
-        # Next month for range end
         if target_month == 12:
             loop_month_end = loop_month_start.replace(year=target_year + 1, month=1)
         else:
             loop_month_end = loop_month_start.replace(month=target_month + 1)
             
-        year_labels.append(loop_month_start.strftime('%b %Y')) # Jan 2025
+        year_labels.append(loop_month_start.strftime('%b %Y'))
         
         p_count = Player.objects.filter(created_at__gte=loop_month_start, created_at__lt=loop_month_end).count()
         o_count = Organization.objects.filter(CreatedAt__gte=loop_month_start, CreatedAt__lt=loop_month_end).count()
         
         player_data_year.append(p_count)
         org_data_year.append(o_count)
+    
+    # Account Status
+    deactivated_players = Player.objects.filter(status='SUSPENDED', is_archived=False).count()
+    deleted_players = Player.objects.filter(is_archived=True).count()
+    deactivated_orgs = Organization.objects.filter(status='Suspended', is_archived=False).count()
+    deleted_orgs = Organization.objects.filter(is_archived=True).count()
         
     context = {
+        # Counts
         'total_players': total_players,
-        'active_players': Player.objects.filter(status='ACTIVE').count(),
+        'active_players': active_players,
+        'pending_players': pending_players,
+        'suspended_players': suspended_players,
+        'player_conversion': round(player_conversion, 1),
+        
         'total_orgs': total_orgs,
-        'active_orgs': Organization.objects.filter(status='Active').count(),
+        'active_orgs': active_orgs,
+        'pending_orgs': pending_orgs,
+        'suspended_orgs': suspended_orgs,
+        'org_conversion': round(org_conversion, 1),
+        
         'total_tournaments': total_tournaments,
+        'scheduled_tournaments': scheduled_tournaments,
+        'ongoing_tournaments': ongoing_tournaments,
+        'completed_tournaments': completed_tournaments,
+        'cancelled_tournaments': cancelled_tournaments,
+        
+        # Growth Metrics
         'new_players_week': new_players_week,
         'new_orgs_week': new_orgs_week,
         'new_tournaments_week': new_tournaments_week,
         'new_players_month': new_players_month,
         'new_orgs_month': new_orgs_month,
         'new_tournaments_month': new_tournaments_month,
+        'new_players_year': new_players_year,
+        'new_orgs_year': new_orgs_year,
+        'new_tournaments_year': new_tournaments_year,
         
-
+        # Bidding Metrics
+        'pending_bids': pending_bids,
+        'accepted_bids': accepted_bids,
+        'rejected_bids': rejected_bids,
+        'negotiating_bids': negotiating_bids,
+        'total_bids': pending_bids + accepted_bids + rejected_bids + negotiating_bids,
+        
+        # Financials
+        'total_prize_pool': total_prize_pool,
+        'total_coins': total_coins,
         
         # Account Status Metrics
-        'deactivated_players': Player.objects.filter(status='SUSPENDED', is_archived=False).count(),
-        'deleted_players': Player.objects.filter(is_archived=True).count(),
-        'deactivated_orgs': Organization.objects.filter(status='Suspended', is_archived=False).count(),
-        'deleted_orgs': Organization.objects.filter(is_archived=True).count(),
+        'deactivated_players': deactivated_players,
+        'deleted_players': deleted_players,
+        'deactivated_orgs': deactivated_orgs,
+        'deleted_orgs': deleted_orgs,
         
         # Charts - Multi-period
         'week_labels': week_labels,
@@ -481,11 +550,10 @@ def admin_analytics(request):
         'player_data_year': player_data_year,
         'org_data_year': org_data_year,
         
-        # Sparklines use month data for now or we can pass logic
-        'tournament_growth_data': tournament_data_month, 
+        'tournament_growth_data': tournament_data_month,
+        'tournament_data_month': tournament_data_month,
         
-        # Keep original keys if templates depend on them for sparklines
-        'chart_labels': month_labels, # Default for sparklines
+        'chart_labels': month_labels,
         'player_growth_data': player_data_month,
         'org_growth_data': org_data_month,
     }
