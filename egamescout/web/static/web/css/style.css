@@ -47,6 +47,34 @@
     text-shadow: 0 0 20px rgba(102, 252, 241, 0.5);
 }
 
+/* Neon gradient headings for Player */
+.neon-heading-blue {
+    background: linear-gradient(135deg, #00D4FF 0%, #7DF9FF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+}
+.neon-heading-pink {
+    background: linear-gradient(135deg, #FF2A6D 0%, #FF6B9D 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.neon-heading-orange {
+    background: linear-gradient(135deg, #FF6B35 0%, #FFA07A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.neon-heading-multi {
+    background: linear-gradient(90deg, #00D4FF, #7DF9FF, #FF2A6D, #FF6B35);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 .cyber-grid-floor {
     background-image:
         linear-gradient(to right, rgba(102, 252, 241, 0.1) 1px, transparent 1px),
@@ -60,6 +88,21 @@
 
 .animate-fade-in-up {
     animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-fade-in-left {

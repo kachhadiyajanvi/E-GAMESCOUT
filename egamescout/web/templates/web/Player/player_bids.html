@@ -5,139 +5,243 @@
 {% block title %}My Bids | E-Game Scout{% endblock %}
 
 {% block content %}
-<div class="relative min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+<div class="container mx-auto max-w-5xl animate-fade-in pb-12">
 
-    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-accent-cyan/10 rounded-full blur-3xl"></div>
+    <!-- Hero Header -->
+    <div
+        class="relative bg-gradient-to-r from-[#0a0a0e] via-[#111217] to-[#0a0a0e] rounded-3xl p-8 mb-8 border border-white/5 overflow-hidden shadow-xl">
+        <div
+            class="absolute inset-0 bg-grid-pattern opacity-10 mask-image:linear-gradient(to_bottom,white,transparent)">
+        </div>
+        <div class="absolute -top-32 -right-32 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan text-[10px] font-bold tracking-widest uppercase mb-3">
+                    <i class="fa-solid fa-gavel"></i> Contract Offers
+                </div>
+                <h1
+                    class="text-3xl font-display font-bold text-white tracking-tight mb-2">
+                    Incoming Bids
+                </h1>
+                <p class="text-brand-light/60 text-sm max-w-lg leading-relaxed">
+                    Review and negotiate tournament offers from organizations. Accept the best contracts to participate
+                    in premium events.
+                </p>
+            </div>
+
+            <div class="shrink-0">
+                <div
+                    class="bg-black/30 backdrop-blur-md rounded-2xl border border-white/5 p-5 flex items-center justify-center">
+                    <div class="text-center">
+                        <i
+                            class="fa-solid fa-envelope-open-text text-accent-cyan text-3xl mb-2"></i>
+                        <h4 class="text-2xl font-display font-black text-white leading-none mb-1">{{ bids|length }}</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Total Offers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="relative z-10 max-w-4xl mx-auto">
-        <!-- Header -->
-        <h1 class="text-3xl font-display font-bold text-white mb-2 tracking-tight">
-            Incoming <span class="text-accent-cyan">Bids</span>
-        </h1>
-        <p class="text-gray-400 mb-8">Review offers from organizations and negotiate your terms.</p>
+    <!-- Bids List -->
+    <div class="space-y-6">
+        {% for bid in bids %}
+        <div
+            class="bg-[#111217] border {% if bid.status == 'NEGOTIATING' %}border-purple-500/30 shadow-[0_4px_20px_rgba(168,85,247,0.1)]{% else %}border-white/5 hover:border-white/10 shadow-xl{% endif %} rounded-3xl p-6 md:p-8 relative overflow-hidden transition-all duration-300 group">
 
-        <div class="space-y-6">
-            {% for bid in bids %}
+            <!-- Background Glows -->
+            <div class="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none"></div>
+            {% if bid.status == 'NEGOTIATING' %}
             <div
-                class="bg-brand-dark/40 border {% if bid.status == 'NEGOTIATING' %}border-purple-500/30{% else %}border-white/10{% endif %} rounded-2xl p-6 relative overflow-hidden transition-all hover:border-accent-cyan/30">
-                <!-- Org Logo / Info -->
-                <div class="flex items-start justify-between mb-6">
-                    <div class="flex gap-4">
-                        <div
-                            class="w-16 h-16 rounded-xl bg-brand-gray border border-white/10 overflow-hidden flex items-center justify-center">
-                            {% if bid.organization.profile_photo %}
-                            <img src="{{ bid.organization.profile_photo.url }}" class="w-full h-full object-cover">
-                            {% else %}
-                            <i class="fa-solid fa-building text-2xl text-gray-500"></i>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-white font-display">
-                                {{ bid.organization.Organization_Name}}</h3>
-                            <p class="text-sm text-gray-400">Time: {{ bid.created_at|date:"M d, Y H:i" }}</p>
+                class="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-[60px] pointer-events-none transform translate-x-1/2 -translate-y-1/2">
+            </div>
+            {% endif %}
 
+            <!-- Org Logo & Main Info -->
+            <div
+                class="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6 mb-8 border-b border-white/5 pb-6">
+                <div class="flex items-center gap-5">
+                    <div
+                        class="w-16 h-16 rounded-2xl bg-[#0a0a0e] border border-white/10 overflow-hidden flex items-center justify-center shrink-0 shadow-lg transform group-hover:scale-105 transition-transform">
+                        {% if bid.organization.profile_photo %}
+                        <img src="{{ bid.organization.profile_photo.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <i class="fa-solid fa-building text-2xl text-accent-cyan/50"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-3 mb-1">
+                            <h3
+                                class="text-2xl font-bold text-white font-display tracking-tight hover:text-accent-cyan transition-colors cursor-pointer">
+                                {{ bid.organization.Organization_Name }}
+                            </h3>
                             {% if bid.status == 'NEGOTIATING' %}
                             <span
-                                class="inline-block mt-2 px-2 py-1 bg-purple-500/20 text-purple-400 text-[10px] font-bold rounded border border-purple-500/30 uppercase">
-                                Negotiation in Progress
+                                class="px-2 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[9px] font-bold rounded uppercase tracking-widest flex items-center gap-1.5 animate-pulse">
+                                <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span> Negotiating
+                            </span>
+                            {% elif bid.status == 'PENDING' %}
+                            <span
+                                class="px-2 py-0.5 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[9px] font-bold rounded uppercase tracking-widest flex items-center gap-1.5">
+                                <i class="fa-regular fa-clock"></i> Action Required
                             </span>
                             {% endif %}
                         </div>
-                    </div>
-
-                    <div class="text-right">
-                        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Offer Amount</p>
-                        <p class="text-3xl font-display font-bold text-yellow-500">
-                            {{ bid.amount|floatformat:2 }} <span class="text-sm font-sans text-gray-400">coins</span>
+                        <p class="text-xs text-gray-500 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-day text-gray-600"></i> Received: {{ bid.created_at|date:"M
+                            d, Y H:i" }}
                         </p>
                     </div>
                 </div>
 
-                <!-- Message -->
-                {% if bid.message %}
-                <div class="bg-black/30 rounded-lg p-4 mb-6 border border-white/5">
-                    <i class="fa-solid fa-quote-left text-gray-600 mb-2 block"></i>
-                    <p class="text-sm text-gray-300 italic">{{ bid.message }}</p>
+                <div
+                    class="text-left md:text-right bg-black/20 p-4 rounded-2xl border border-white/5 w-full md:w-auto flex md:block justify-between items-center">
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Offer Amount</p>
+                    <p
+                        class="text-3xl font-display font-black text-yellow-500 drop-shadow-[0_0_10px_rgba(234,179,8,0.3)]">
+                        {{ bid.amount|floatformat:0 }} <span
+                            class="text-sm font-sans text-yellow-600/50 uppercase tracking-widest font-bold">coins</span>
+                    </p>
                 </div>
-                {% endif %}
+            </div>
 
-                <!-- Actions -->
+            <!-- Message Block -->
+            {% if bid.message %}
+            <div
+                class="relative z-10 bg-black/40 rounded-2xl p-5 mb-8 border border-white/5 border-l-4 border-l-accent-cyan/50">
+                <i class="fa-solid fa-quote-left text-accent-cyan/30 text-xl mb-2 block"></i>
+                <p class="text-sm text-gray-300 italic leading-relaxed">"{{ bid.message }}"</p>
+            </div>
+            {% endif %}
+
+            <!-- Actions Area -->
+            <div class="relative z-10">
                 {% if bid.status == 'PENDING' %}
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <a href="{% url 'handle_player_bid' bid.id 'accept' %}"
-                        class="px-4 py-3 bg-green-500 hover:bg-green-400 text-black font-bold rounded-xl text-center transition-colors shadow-[0_0_15px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-check"></i> Accept Offer
+                        class="px-4 py-3.5 bg-green-500 hover:bg-green-400 text-black font-black uppercase tracking-wider text-sm rounded-xl text-center transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)] flex items-center justify-center gap-2 hover:-translate-y-0.5">
+                        <i class="fa-solid fa-handshake"></i> Accept Offer
                     </a>
 
                     <button onclick="toggleNegotiate('{{ bid.id }}')"
-                        class="px-4 py-3 bg-purple-500/10 hover:bg-purple-500 text-purple-400 hover:text-white border border-purple-500/30 font-bold rounded-xl text-center transition-colors flex items-center justify-center gap-2">
+                        class="px-4 py-3.5 bg-purple-500/10 hover:bg-purple-500 text-purple-400 hover:text-white border border-purple-500/30 hover:border-purple-500 font-bold uppercase tracking-wider text-sm rounded-xl text-center transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]">
                         <i class="fa-solid fa-comments-dollar"></i> Negotiate
                     </button>
 
                     <a href="{% url 'handle_player_bid' bid.id 'reject' %}"
-                        class="px-4 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 font-bold rounded-xl text-center transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-xmark"></i> Reject
+                        class="px-4 py-3.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 hover:border-red-500 font-bold uppercase tracking-wider text-sm rounded-xl text-center transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5">
+                        <i class="fa-solid fa-xmark text-lg"></i> Reject
                     </a>
                 </div>
 
-                <!-- Negotiation Form (Hidden) -->
+                <!-- Negotiation Form (Hidden by default) -->
                 <div id="negotiateForm-{{ bid.id }}"
-                    class="hidden mt-4 pt-4 border-t border-white/10 animate-in fade-in slide-in-from-top-2">
+                    class="hidden mt-6 pt-6 border-t border-white/5 animate-fade-in relative">
+                    <div class="absolute -left-8 top-1/2 w-1 h-12 bg-purple-500 rounded-r-lg"></div>
                     <form action="{% url 'handle_player_bid' bid.id 'negotiate' %}" method="POST"
-                        class="bg-purple-500/5 rounded-xl p-4 border border-purple-500/10">
+                        class="bg-purple-500/5 rounded-2xl p-6 border border-purple-500/10">
                         {% csrf_token %}
-                        <h4 class="text-sm font-bold text-purple-400 mb-3 uppercase tracking-wider">Counter Offer</h4>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Your Price (Coins)</label>
-                                <input type="number" name="counter_amount" required min="1" step="0.01"
-                                    value="{{ bid.amount }}"
-                                    class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-purple-500 outline-none">
+                        <div class="flex items-center gap-3 mb-5">
+                            <div
+                                class="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                                <i class="fa-solid fa-scale-balanced"></i>
                             </div>
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Message</label>
-                                <input type="text" name="counter_message" placeholder="Why this price?"
-                                    class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-purple-500 outline-none">
+                            <h4 class="text-sm font-bold text-white uppercase tracking-widest">Submit Counter Offer</h4>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="md:col-span-1">
+                                <label
+                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 pl-1">Your
+                                    Price</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <i class="fa-solid fa-coins text-yellow-500/50"></i>
+                                    </div>
+                                    <input type="number" name="counter_amount" required min="1" step="1"
+                                        value="{{ bid.amount|floatformat:0 }}"
+                                        class="w-full bg-black/40 border border-white/10 focus:border-purple-500 rounded-xl py-3 pl-10 pr-4 text-white text-lg font-bold font-display placeholder-gray-600 outline-none transition-colors shadow-inner">
+                                </div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label
+                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 pl-1">Message
+                                    to Org</label>
+                                <input type="text" name="counter_message"
+                                    placeholder="Explain your value or counter-offer reasoning..."
+                                    class="w-full bg-black/40 border border-white/10 focus:border-purple-500 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 outline-none transition-colors shadow-inner h-[52px]">
                             </div>
                         </div>
 
-                        <div class="flex justify-end gap-3">
+                        <div class="flex justify-end gap-3 items-center">
                             <button type="button" onclick="toggleNegotiate('{{ bid.id }}')"
-                                class="text-xs text-gray-500 hover:text-white transition-colors">Cancel</button>
+                                class="px-5 py-2.5 text-xs text-gray-400 font-bold uppercase tracking-wider hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                Cancel
+                            </button>
                             <button type="submit"
-                                class="px-4 py-2 bg-purple-500 hover:bg-purple-400 text-white text-xs font-bold rounded-lg transition-colors">
-                                Send Counter-Offer
+                                class="px-6 py-2.5 bg-purple-500 hover:bg-purple-400 text-white text-xs font-black uppercase tracking-wider rounded-lg transition-colors shadow-[0_0_15px_rgba(168,85,247,0.4)] flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> Send Counter
                             </button>
                         </div>
                     </form>
                 </div>
 
                 {% elif bid.status == 'NEGOTIATING' %}
-                <div class="bg-black/30 rounded-lg p-4 border border-dashed border-purple-500/30 text-center">
-                    <p class="text-sm text-purple-400 font-bold mb-1">Negotiation Sent</p>
-                    <p class="text-xs text-gray-500">You countered with <span class="text-white">{{ bid.counter_amount
-                            }} coins</span>. Waiting for organization response.</p>
+                <div
+                    class="bg-[#0a0a0e] rounded-2xl p-6 border border-purple-500/20 text-center relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-purple-500/5">
+                    </div>
+                    <div class="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-6">
+                        <div
+                            class="w-12 h-12 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+                            <i class="fa-solid fa-hourglass-half text-xl animate-pulse"></i>
+                        </div>
+                        <div class="text-center sm:text-left">
+                            <p class="text-sm text-purple-400 font-bold mb-1 uppercase tracking-widest">Counter Offer
+                                Pending</p>
+                            <p class="text-sm text-gray-400">You requested <span
+                                    class="text-yellow-400 font-bold font-display text-lg mx-1">{{
+                                    bid.counter_amount|floatformat:0 }}</span> coins. Awaiting response.</p>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
             </div>
-            {% empty %}
-            <div class="text-center py-16 bg-white/5 rounded-2xl border border-white/5">
-                <i class="fa-solid fa-inbox text-4xl text-gray-600 mb-3"></i>
-                <h3 class="text-xl font-bold text-white">No Bids Yet</h3>
-                <p class="text-gray-400">You haven't received any offers from organizations yet.</p>
-            </div>
-            {% endfor %}
         </div>
+        {% empty %}
+        <!-- Empty State -->
+        <div
+            class="flex flex-col items-center justify-center py-24 bg-[#111217] rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden">
+            <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
+            <div class="relative z-10 flex flex-col items-center">
+                <div
+                    class="w-24 h-24 bg-gradient-to-br from-white/5 to-transparent rounded-full flex items-center justify-center mb-6 border border-white/5 backdrop-blur-sm">
+                    <i class="fa-solid fa-inbox text-4xl text-gray-500"></i>
+                </div>
+                <h3 class="text-2xl font-display font-bold text-white mb-2 tracking-tight">No Bids Received</h3>
+                <p class="text-brand-light/50 text-sm max-w-sm text-center leading-relaxed">
+                    Organizations haven't sent you any contract offers yet. Stay active to get noticed!
+                </p>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
 <script>
     function toggleNegotiate(bidId) {
         const form = document.getElementById(`negotiateForm-${bidId}`);
-        form.classList.toggle('hidden');
+        if (form.classList.contains('hidden')) {
+            form.classList.remove('hidden');
+            // Animate in
+            form.style.animation = 'none';
+            form.offsetHeight;
+            form.style.animation = null;
+        } else {
+            form.classList.add('hidden');
+        }
     }
 </script>
 {% endblock %}

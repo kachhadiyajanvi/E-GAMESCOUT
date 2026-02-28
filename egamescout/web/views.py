@@ -618,6 +618,10 @@ def player_dashboard(request):
         Tournament_ID__in=accepted_tournament_ids,
         Status='Scheduled'
     )[:5] # limit to 5 for dashboard card
+    
+    # Calculate Stats
+    total_tournaments_joined = len(accepted_tournament_ids)
+    player_credits = player.coins
 
     return render(request, 'web/Player/dashboard.html', {
         'player': player,
@@ -626,6 +630,8 @@ def player_dashboard(request):
         'calendar_events_json': json.dumps(calendar_events, cls=DjangoJSONEncoder),
         'active_tournaments': active_tournaments,
         'upcoming_tournaments_list': upcoming_tournaments_list,
+        'total_tournaments_joined': total_tournaments_joined,
+        'player_credits': player_credits,
     })
 
 from .forms import PlayerProfileForm
