@@ -19,9 +19,6 @@
                     Organization Email
                 </label>
                 {{ form.organization_email }}
-                {% if form.organization_email.errors %}
-                <p class="text-red-500 text-xs mt-1">{{ form.organization_email.errors.0 }}</p>
-                {% endif %}
             </div>
 
             <button type="submit"

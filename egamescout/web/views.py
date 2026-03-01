@@ -672,6 +672,7 @@ def player_delete_account(request):
 
 def auth_logout(request):
     request.session.flush()
+    messages.success(request, 'You have been logged out successfully.')
     return redirect('index')
 
 def org_logout(request):
@@ -740,6 +741,10 @@ def org_register_start(request):
             messages.success(request, f'OTP sent to {email}')
             
             return redirect('org_register_otp')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
     else:
         form = OrganizationEmailForm()
     
@@ -924,10 +929,11 @@ def update_tournament_statuses(org):
     ).exclude(Status__in=['Completed', 'Cancelled']).update(Status='Completed')
     
     # 3. Optional: Revert to 'Scheduled' if dates pushed back? 
+    # Important: Do NOT revert if manually marked as Completed early.
     Tournament.objects.filter(
         Organization_Name=org,
         start_date__gt=now
-    ).exclude(Status__in=['Scheduled', 'Cancelled']).update(Status='Scheduled')
+    ).exclude(Status__in=['Scheduled', 'Completed', 'Cancelled']).update(Status='Scheduled')
 
 @login_required_organization
 def organizer_dashboard(request):
@@ -1288,11 +1294,8 @@ def tournament_list(request):
     # Get current local time
     now = timezone.now()
     
-    # Only hide tournaments that are Completed AND ended more than 24 hours ago
-    # This allows users to see/fix tournaments they just created with wrong dates (auto-completed)
-    cutoff = now - timedelta(hours=24)
-    
-    q_hidden = Q(Status='Completed', end_date__lt=cutoff)
+    # Completed = (Status='Completed') OR (end_date <= now)
+    q_hidden = Q(Status='Completed') | Q(end_date__lte=now)
     
     # Filter Active Tournaments (Exclude only old completed ones)
     tournaments = Tournament.objects.filter(
@@ -1323,6 +1326,9 @@ def tournament_history(request):
     from django.db.models import Q
     from django.utils import timezone
     
+    # Ensure statuses are accurate
+    update_tournament_statuses(org)
+    
     # Logic for Completed Tournaments (Same as above)
     now = timezone.now()
     
@@ -1342,7 +1348,7 @@ def tournament_history(request):
 
     return render(request, 'web/Organization/org_tournament_history.html', {
         'org': org, 
-        'completed_tournaments': completed_tournaments
+        'tournaments': completed_tournaments
     })
 
 @login_required_organization
@@ -1531,6 +1537,30 @@ def my_players(request):
     
     return render(request, 'web/Organization/org_my_players.html', {'org': org, 'players': players})
 
+
+@login_required_organization
+def org_view_player_profile(request, player_id):
+    """Organization views a player's profile"""
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    player = get_object_or_404(Player, id=player_id)
+    
+    return render(request, 'web/Organization/org_player_profile.html', {'org': org, 'player': player})
+
+@login_required_organization
+def org_remove_player(request, player_id):
+    """Remove a player from the organization's roster"""
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    player = get_object_or_404(Player, id=player_id, organization=org)
+    
+    if request.method == "POST":
+        player.organization = None
+        player.save()
+        messages.success(request, f"{player.full_name} has been removed from your roster.")
+        
+    return redirect('my_players')
+
 def custom_error_view(request, exception=None, status_code=500):
     """Generic error view for all HTTP status codes"""
     error_messages = {
@@ -1672,17 +1702,20 @@ def open_bidding(request, tournament_id):
         
         total_cost = coin_amount 
         
-        # REMOVED: Wallet Balance Check (Overdraft allowed)
-        # if org.coins < total_cost: ...
+        # Wallet Balance Check
+        if org.coins < total_cost:
+            messages.error(request, f"Insufficient coins. You need {total_cost} coins to invite {other_orgs.count()} organizations.")
+            return redirect('org_live_bidding')
             
         from django.db import transaction
         from .models import OrganizationNotification, Transaction
         
         try:
             with transaction.atomic():
-                # Deduct from Organizer (Flat Fee) - REMOVED as per user request
-                # org.coins -= total_cost
-                # org.save()
+                # Deduct from Organizer (Flat Fee or per invite? The math says total_cost = coin_amount, which means 1 flat fee)
+                # We will deduct exactly what the user inputs (total_cost) from their wallet.
+                org.coins -= total_cost
+                org.save()
                 
                 # RECORD TRANSACTION: Sender
                 Transaction.objects.create(
@@ -1950,47 +1983,58 @@ def org_live_bidding(request):
             
     # --- End Processing ---
     
-    # Check for LIVE tournaments
-    active_tournament = Tournament.objects.filter(
-        bidding_open=True, 
-        bidding_start_date__lte=now, 
+    # --- End Processing ---
+    
+    # Filter for tournaments involving this organization
+    org_tournaments_q = Q(Organization_Name=org) | Q(bidders__organization=org)
+    
+    all_open_biddings = Tournament.objects.filter(
+        org_tournaments_q,
+        bidding_open=True,
         bidding_end_date__gte=now
-    ).first()
+    ).distinct().order_by('bidding_start_date')
     
     status = 'NOT_CONFIGURED'
     start_time = None
     end_time = None
     tournament_name = None
+    other_biddings = []
     
+    # Find the main tournament (preferably LIVE, else nearest UPCOMING)
+    active_tournament = None
+    for t in all_open_biddings:
+        if t.bidding_start_date <= now <= t.bidding_end_date:
+            active_tournament = t
+            break
+            
+    if not active_tournament and all_open_biddings.exists():
+        active_tournament = all_open_biddings.first()
+        
     if active_tournament:
-        status = 'LIVE'
+        if active_tournament.bidding_start_date <= now <= active_tournament.bidding_end_date:
+            status = 'LIVE'
+        else:
+            status = 'UPCOMING'
+            
         start_time = active_tournament.bidding_start_date
         end_time = active_tournament.bidding_end_date
         tournament_name = active_tournament.Name
-    else:
-        # Check for UPCOMING
-        upcoming_tournament = Tournament.objects.filter(
-            bidding_open=True,
-            bidding_start_date__gt=now
-        ).order_by('bidding_start_date').first()
         
-        if upcoming_tournament:
-            status = 'UPCOMING'
-            start_time = upcoming_tournament.bidding_start_date
-            end_time = upcoming_tournament.bidding_end_date
-            tournament_name = upcoming_tournament.Name
-        else:
-            # Check for RECENTLY COMPLETED (Optional, but good for UX)
-            completed_tournament = Tournament.objects.filter(
-                bidding_open=True,
-                bidding_end_date__lt=now
-            ).order_by('-bidding_end_date').first()
-            
-            if completed_tournament:
-                status = 'COMPLETED'
-                start_time = completed_tournament.bidding_start_date
-                end_time = completed_tournament.bidding_end_date
-                tournament_name = completed_tournament.Name
+        # Gather remaining biddings for the sidebar/list
+        other_biddings = [t for t in all_open_biddings if t.Tournament_ID != active_tournament.Tournament_ID]
+    else:
+        # Check for RECENTLY COMPLETED
+        completed_tournament = Tournament.objects.filter(
+            org_tournaments_q,
+            bidding_open=True,
+            bidding_end_date__lt=now
+        ).distinct().order_by('-bidding_end_date').first()
+        
+        if completed_tournament:
+            status = 'COMPLETED'
+            start_time = completed_tournament.bidding_start_date
+            end_time = completed_tournament.bidding_end_date
+            tournament_name = completed_tournament.Name
 
     # Check if starting soon (within 30 mins)
     is_starting_soon = False
@@ -2010,7 +2054,8 @@ def org_live_bidding(request):
         'bidding_status': status,
         'start_time': start_time,
         'end_time': end_time,
-        'tournament_name': tournament_name
+        'tournament_name': tournament_name,
+        'other_biddings': other_biddings,
     })
 
 
