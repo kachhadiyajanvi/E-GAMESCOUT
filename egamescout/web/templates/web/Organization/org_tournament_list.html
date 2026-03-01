@@ -181,10 +181,12 @@
                             class="flex-1 min-w-[100px] px-4 py-2.5 bg-accent-cyan/10 border border-accent-cyan/40 text-accent-cyan rounded-lg hover:bg-accent-cyan hover:text-black transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 hover:shadow-[0_0_15px_rgba(102,252,241,0.4)] group/btn">
                             <i class="fa-solid fa-eye group-hover/btn:scale-110 transition-transform"></i> View
                         </a>
+                        {% if tournament.Status != 'Cancelled' and tournament.Status != 'Completed' %}
                         <a href="{% url 'tournament_update' tournament.Tournament_ID %}"
                             class="flex-1 min-w-[100px] px-4 py-2.5 bg-white/5 border border-white/20 text-white rounded-lg hover:bg-white/15 hover:border-accent-cyan/60 transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
                             <i class="fa-solid fa-edit group-hover/btn:rotate-12 transition-transform"></i> Edit
                         </a>
+                        {% endif %}
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <a href="{% url 'tournament_participants' tournament.Tournament_ID %}"
@@ -202,6 +204,7 @@
                         </button>
                         {% endif %}
 
+                        {% if tournament.Status != 'Cancelled' and tournament.Status != 'Completed' %}
                         {% if not tournament.is_published %}
                         <button
                             onclick="confirmPublish('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
@@ -222,6 +225,7 @@
                             title="Fee: {{ tournament.bidding_invite_fee }} coins">
                             <i class="fa-solid fa-check"></i> Bidding Open
                         </div>
+                        {% endif %}
                         {% endif %}
                         {% endif %}
                         <button
@@ -321,6 +325,7 @@
                             </button>
                             {% endif %}
 
+                            {% if tournament.Status != 'Cancelled' and tournament.Status != 'Completed' %}
                             {% if not tournament.is_published %}
                             <button
                                 onclick="confirmPublish('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
@@ -344,6 +349,7 @@
                                 title="Edit">
                                 <i class="fa-solid fa-pencil"></i>
                             </a>
+                            {% endif %}
 
                             <button
                                 onclick="confirmDelete('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
