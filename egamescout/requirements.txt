@@ -152,3 +152,4 @@ webencodings==0.5.1
 websocket-client==1.9.0
 websockets==14.2
 Werkzeug==3.1.5
+whitenoise==6.6.0
