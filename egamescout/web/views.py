@@ -399,8 +399,8 @@ def auth_verify_otp(request):
             session_otp = request.session.get('auth_otp')
             created_at = request.session.get('auth_otp_created_at')
             
-            # Check Expiry (5 minutes = 300 seconds)
-            if created_at and (time.time() - float(created_at) > 300):
+            # Check Expiry (2 minutes = 120 seconds)
+            if created_at and (time.time() - float(created_at) > 120):
                 messages.error(request, 'OTP Expired. Please login again.')
                 if 'auth_otp' in request.session: del request.session['auth_otp']
                 return redirect('auth_login')
@@ -737,6 +737,8 @@ def org_register_start(request):
             
             print(f"DEBUG: Registration OTP for {email}: {otp}") # Keep for dev backup
             
+            messages.success(request, f'OTP sent to {email}')
+            
             return redirect('org_register_otp')
     else:
         form = OrganizationEmailForm()
@@ -852,6 +854,8 @@ def org_login_start(request):
                 msg.send()
                 
                 print(f"DEBUG: Login OTP for {email}: {otp}") # Keep for dev backup
+                
+                messages.success(request, f'OTP sent to {email}')
                 
                 return redirect('org_login_otp')
             except Organization.DoesNotExist:
@@ -1020,7 +1024,8 @@ from django.http import JsonResponse
 
 def resend_otp(request):
     if request.method == 'POST':
-        email = request.session.get('reg_email') or request.session.get('login_email')
+        # Check for Org Reg, Org Login, or Player Login
+        email = request.session.get('reg_email') or request.session.get('login_email') or request.session.get('auth_email')
         
         if not email:
             return JsonResponse({'success': False, 'message': 'Session expired. Please restart.'})
@@ -1032,9 +1037,12 @@ def resend_otp(request):
         if request.session.get('reg_email'):
             request.session['reg_otp'] = otp
             request.session['reg_otp_created_at'] = time.time()
-        else:
+        elif request.session.get('login_email'):
             request.session['login_otp'] = otp
             request.session['login_otp_created_at'] = time.time()
+        elif request.session.get('auth_email'):
+            request.session['auth_otp'] = otp
+            request.session['auth_otp_created_at'] = time.time()
             
         # Send OTP via Email
         subject = 'E-Game Scout OTP Resend'

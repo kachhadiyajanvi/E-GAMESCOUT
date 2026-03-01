@@ -66,9 +66,9 @@
             <a href="{% url 'index' %}"
                 class="text-sm font-bold text-gray-400 hover:text-white mr-4 transition-colors">HOME</a>
             <a href="{% url 'org_login_start' %}"
-                class="text-sm font-bold text-gray-400 hover:text-white mr-4 transition-colors">LOGIN</a>
+                class="text-sm font-bold mr-4 transition-colors {% if 'login' in request.path %}text-white{% else %}text-gray-400 hover:text-white{% endif %}">LOGIN</a>
             <a href="{% url 'org_register_start' %}"
-                class="px-4 py-2 border border-accent-cyan text-accent-cyan font-bold text-xs rounded hover:bg-accent-cyan hover:text-black transition-all">REGISTER</a>
+                class="px-4 py-2 border border-accent-cyan font-bold text-xs rounded transition-all {% if 'register' in request.path %}bg-accent-cyan text-black{% else %}text-accent-cyan hover:bg-accent-cyan hover:text-black{% endif %}">REGISTER</a>
         </div>
     </nav>
 
@@ -97,14 +97,13 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
 
-    <!-- Django Messages Data -->
     {% if messages %}
     <script id="django-messages" type="application/json">
         [
             {% for message in messages %}
             {
                 "message": "{{ message|escapejs }}",
-                "tags": "{{ message.tags }}"
+                "tags": "{{ message.tags|escapejs }}"
             }{% if not forloop.last %},{% endif %}
             {% endfor %}
         ]

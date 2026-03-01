@@ -150,22 +150,61 @@
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
 
-                    <div>
-                        <h2 class="text-xl font-display font-bold tracking-wider">
-                            PLAYER <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-dark-cyan">
-                            {% if request.resolver_match.url_name == 'player_dashboard' %}DASHBOARD
-                            {% elif request.resolver_match.url_name == 'player_profile' %}PROFILE
-                            {% elif request.resolver_match.url_name == 'player_bids' %}BIDS
-                            {% elif 'upcoming' in request.resolver_match.url_name %}TOURNAMENTS
-                            {% elif request.resolver_match.url_name == 'player_delete_account' %}SETTINGS
-                            {% else %}PORTAL
+                    <div class="flex flex-col justify-center">
+                        <nav class="flex text-xs font-mono text-gray-500 mb-1" aria-label="Breadcrumb">
+                            <ol class="inline-flex items-center space-x-1">
+                                <li class="inline-flex items-center">
+                                    <a href="{% url 'player_dashboard' %}"
+                                        class="hover:text-accent-cyan transition-colors flex items-center gap-1.5 focus:outline-none focus:text-accent-cyan">
+                                        <i class="fa-solid fa-house text-[10px]"></i>
+                                        Player Portal
+                                    </a>
+                                </li>
+                                {% if request.resolver_match.url_name != 'player_dashboard' %}
+                                <li>
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-chevron-right text-[8px] text-gray-600 mx-1.5"></i>
+                                        <span class="text-white font-medium font-display tracking-wider">
+                                            {% if request.resolver_match.url_name == 'player_profile' %}My Profile
+                                            {% elif request.resolver_match.url_name == 'player_bids' %}My Bids
+                                            {% elif 'upcoming' in request.resolver_match.url_name %}Upcoming Tournaments
+                                            {% elif request.resolver_match.url_name == 'player_delete_account'%}Settings
+                                            {% else %}Current Page
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </li>
+                                {% else %}
+                                <li>
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-chevron-right text-[8px] text-gray-600 mx-1.5"></i>
+                                        <span
+                                            class="text-accent-cyan font-medium font-display tracking-wider font-bold">Dashboard
+                                            Overview</span>
+                                    </div>
+                                </li>
+                                {% endif %}
+                            </ol>
+                        </nav>
+
+                        <!-- Page Title Header -->
+                        <h2 class="text-xl font-display font-bold text-white tracking-wider flex items-center gap-3">
+                            {% if request.resolver_match.url_name == 'player_dashboard' %}
+                            <i class="fa-solid fa-border-all text-accent-cyan opacity-80"></i> DASHBOARD
+                            {% elif request.resolver_match.url_name == 'player_profile' %}
+                            <i class="fa-solid fa-user text-accent-cyan opacity-80"></i> PROFILE
+                            {% elif request.resolver_match.url_name == 'player_bids' %}
+                            <i class="fa-solid fa-gavel text-accent-cyan opacity-80"></i> MY BIDS
+                            {% elif 'upcoming' in request.resolver_match.url_name %}
+                            <i class="fa-solid fa-trophy text-accent-cyan opacity-80"></i> UPCOMING TOURNAMENTS
+                            {% elif request.resolver_match.url_name == 'player_delete_account' %}
+                            <i class="fa-solid fa-gear text-accent-cyan opacity-80"></i> SETTINGS
+                            {% else %}
+                            <i class="fa-solid fa-cube text-accent-cyan opacity-80"></i> PORTAL
                             {% endif %}
-                            </span>
                         </h2>
-                        <p class="text-xs text-gray-500 font-mono hidden md:block">{{ player.full_name|default:"Player" }} • {{ player.uid }}</p>
                     </div>
                 </div>
-
                 <!-- User Profile Info -->
                 <div class="flex items-center gap-6">
                     <!-- Coin Balance -->
@@ -196,7 +235,11 @@
                             {% if player_notifications_count > 0 %}
                             <span
                                 class="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-accent-cyan text-brand-dark text-[10px] font-bold rounded-full">
-                                {% if player_notifications_count > 4 %}4+{% else %}{{ player_notifications_count }}{% endif %}
+                                {% if player_notifications_count > 4 %}
+                                4+
+                                {% else %}
+                                {{ player_notifications_count }}
+                                {% endif %}
                             </span>
                             {% endif %}
                         </button>
@@ -215,14 +258,15 @@
                                     class="p-3 border-b border-white/5 hover:bg-white/5 transition-colors group relative">
                                     <a href="{{ notification.link|default:'#' }}" class="flex gap-3 pr-6">
                                         <div
-                                            class="w-2 h-2 rounded-full {% if notification.notification_type == 'BID' %}bg-accent-cyan shadow-[0_0_5px_#66FCF1]{% else %}bg-green-500 shadow-[0_0_5px_#22c55e]{% endif %} mt-1.5 shrink-0">
+                                            class="w-2 h-2 rounded-full mt-1.5 shrink-0 {% if notification.notification_type == 'BID' %}bg-accent-cyan shadow-[0_0_5px_#66FCF1]{% else %}bg-green-500 shadow-[0_0_5px_#22c55e]{% endif %}">
                                         </div>
                                         <div class="flex-1">
                                             <p
                                                 class="text-xs text-white leading-relaxed group-hover:text-accent-cyan transition-colors">
-                                                {{ notification.message }}</p>
-                                            <p class="text-[10px] text-gray-500 mt-1">{{
-                                                notification.created_at|timesince }} ago
+                                                {{ notification.message }}
+                                            </p>
+                                            <p class="text-[10px] text-gray-500 mt-1">
+                                                {{ notification.created_at|timesince }} ago
                                             </p>
                                         </div>
                                     </a>
@@ -269,28 +313,6 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
 
-    <!-- Breadcrumb Toast (shows when navigating away from dashboard) -->
-    {% if request.resolver_match.url_name != 'player_dashboard' %}
-    <div id="breadcrumb-toast"
-        class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] pointer-events-auto opacity-0 translate-y-8 transition-all duration-500 ease-out">
-        <div
-            class="flex items-center gap-3 px-6 py-3.5 rounded-2xl backdrop-blur-2xl bg-[rgba(31,40,51,0.7)] border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] min-w-[280px] justify-center">
-            <i class="fa-solid fa-location-dot text-accent-cyan text-sm"></i>
-            <span class="text-sm text-white font-medium">You're viewing</span>
-            <span class="text-accent-cyan font-bold font-display tracking-wider">
-                {% if request.resolver_match.url_name == 'player_profile' %}My Profile
-                {% elif request.resolver_match.url_name == 'player_bids' %}My Bids
-                {% elif 'upcoming' in request.resolver_match.url_name %}Upcoming Tournaments
-                {% elif request.resolver_match.url_name == 'player_delete_account' %}Delete Account
-                {% else %}Portal
-                {% endif %}
-            </span>
-            <button onclick="dismissBreadcrumbToast()" class="text-white/40 hover:text-white transition-colors ml-1">
-                <i class="fa-solid fa-xmark text-xs"></i>
-            </button>
-        </div>
-    </div>
-    {% endif %}
 
     <!-- Django Messages Data -->
     {% if messages %}
@@ -416,29 +438,7 @@
                     console.error('Error parsing messages:', e);
                 }
             }
-            // Show breadcrumb toast from bottom (slides up with glassy effect)
-            const bcToast = document.getElementById('breadcrumb-toast');
-            if (bcToast) {
-                requestAnimationFrame(() => {
-                    bcToast.classList.remove('opacity-0', 'translate-y-8');
-                    bcToast.classList.add('opacity-100', 'translate-y-0');
-                });
-                setTimeout(() => {
-                    if (bcToast.parentElement) {
-                        bcToast.classList.add('opacity-0', 'translate-y-8');
-                        setTimeout(() => bcToast.remove(), 500);
-                    }
-                }, 4000);
-            }
         });
-        function dismissBreadcrumbToast() {
-            const bc = document.getElementById('breadcrumb-toast');
-            if (bc) {
-                bc.classList.add('opacity-0', 'translate-y-8');
-                setTimeout(() => bc.remove(), 500);
-            }
-        }
-
         function togglePlayerNotifications() {
             const dropdown = document.getElementById('player-notification-dropdown');
             if (dropdown.classList.contains('hidden')) {

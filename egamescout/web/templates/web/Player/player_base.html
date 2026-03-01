@@ -67,10 +67,11 @@
             <a href="{% url 'index' %}"
                 class="text-sm font-bold text-gray-400 hover:text-white transition-colors">HOME</a>
             {% if not request.session.player_id %}
-            <a href="{% url 'auth_login' %}"
-                class="text-sm font-bold text-gray-400 hover:text-white mr-2 transition-colors">LOGIN</a>
-            <a href="{% url 'auth_login' %}?action=register"
-                class="px-4 py-2 border border-accent-cyan text-accent-cyan font-bold text-xs rounded hover:bg-accent-cyan hover:text-black transition-all">REGISTER</a>
+            {% url 'auth_login' as login_url %}
+            <a href="{{ login_url }}"
+                class="text-sm font-bold mr-2 transition-colors {% if request.path == login_url and request.GET.action != 'register' %}text-white{% else %}text-gray-400 hover:text-white{% endif %}">LOGIN</a>
+            <a href="{{ login_url }}?action=register"
+                class="px-4 py-2 border border-accent-cyan text-xs rounded transition-all font-bold {% if request.GET.action == 'register' or 'register' in request.path %}bg-accent-cyan text-black{% else %}text-accent-cyan hover:bg-accent-cyan hover:text-black{% endif %}">REGISTER</a>
             {% endif %}
         </div>
     </nav>
