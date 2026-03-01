@@ -10,7 +10,9 @@
         <div
             class="absolute inset-0 bg-grid-pattern opacity-10 mask-image:linear-gradient(to_bottom,white,transparent)">
         </div>
-        <div class="absolute -top-32 -right-32 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div
+            class="absolute -top-32 -right-32 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px] pointer-events-none">
+        </div>
 
         <div class="relative z-10 flex flex-col md:flex-row justify-between items-end gap-6">
             <div>
@@ -18,8 +20,7 @@
                     class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan text-[10px] font-bold tracking-widest uppercase mb-3">
                     <i class="fa-solid fa-gamepad"></i> Player Headquarters
                 </div>
-                <h1
-                    class="text-3xl md:text-4xl font-display font-bold text-white mb-2 tracking-tight">
+                <h1 class="text-3xl md:text-4xl font-display font-bold text-white mb-2 tracking-tight">
                     Dashboard Overview
                 </h1>
                 <p class="text-brand-light/50 text-sm max-w-lg leading-relaxed">
@@ -104,8 +105,7 @@
                         <i class="fa-solid fa-coins"></i>
                     </div>
                     <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Available Credits</p>
-                    <h3
-                        class="text-3xl font-display font-bold text-yellow-500">
+                    <h3 class="text-3xl font-display font-bold text-yellow-500">
                         {{ player_credits|floatformat:2 }}</h3>
                 </div>
             </div>
@@ -254,10 +254,10 @@
                             class="bg-black/40 border border-white/5 rounded-2xl p-4 flex gap-4 items-center hover:bg-white/5 transition-all border-l-2 border-l-purple-500/50 hover:border-l-purple-400 group">
                             <div
                                 class="w-14 h-14 rounded-xl bg-purple-500/10 flex flex-col items-center justify-center shrink-0 border border-purple-500/20 shadow-inner group-hover:bg-purple-500/20 transition-colors">
-                                <span class="text-[10px] text-purple-400 font-bold uppercase tracking-widest">{{
-                                    event.due_date|date:"M" }}</span>
-                                <span class="text-lg font-display font-black text-white leading-none mt-0.5">{{
-                                    event.due_date|date:"d" }}</span>
+                                <span class="text-[10px] text-purple-400 font-bold uppercase tracking-widest">
+                                    {{event.due_date|date:"M" }}</span>
+                                <span class="text-lg font-display font-black text-white leading-none mt-0.5">
+                                    {{event.due_date|date:"d" }}</span>
                             </div>
                             <div class="overflow-hidden">
                                 <h4 class="text-sm font-bold text-white font-display truncate group-hover:text-purple-300 transition-colors"

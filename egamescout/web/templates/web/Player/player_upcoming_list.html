@@ -18,8 +18,7 @@
                     class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan text-xs font-bold tracking-widest mb-4">
                     <i class="fa-solid fa-fire"></i> DISCOVER EVENTS
                 </div>
-                <h1
-                    class="text-3xl md:text-4xl font-display font-bold text-white mb-3 tracking-tight">
+                <h1 class="text-3xl md:text-4xl font-display font-bold text-white mb-3 tracking-tight">
                     Upcoming Tournaments
                 </h1>
                 <p class="text-brand-light/60 text-sm md:text-base max-w-xl leading-relaxed">
@@ -107,12 +106,19 @@
                 </div>
 
                 {% if tournament.description %}
-                <p class="text-xs text-brand-light/50 line-clamp-2 leading-relaxed mb-4 flex-1">
+                <p
+                    class="text-[11px] text-brand-light/50 line-clamp-2 leading-relaxed mb-3 flex-1 italic relative before:content-['\201C'] before:font-serif before:absolute before:-top-1 before:-left-2 before:text-accent-cyan/20 before:text-2xl after:content-['\201D'] after:font-serif after:absolute after:-bottom-3 after:-right-1 after:text-accent-cyan/20 after:text-2xl px-2">
                     {{ tournament.description }}
                 </p>
                 {% else %}
-                <div class="flex-1 mb-4"></div>
+                <div class="flex-1 mb-3"></div>
                 {% endif %}
+
+                <p
+                    class="text-[9px] text-gray-500 uppercase tracking-widest font-bold mb-4 flex items-center gap-1.5 border-t border-white/5 pt-3">
+                    <i class="fa-solid fa-bullhorn text-accent-cyan/70"></i> Published: <span class="text-white">{{
+                        tournament.created_at|timesince }} ago</span>
+                </p>
 
                 <!-- Metrics Grid -->
                 <div class="grid grid-cols-2 gap-2 mb-4 shrink-0">
@@ -135,21 +141,27 @@
                 <div class="mt-auto pt-4 border-t border-white/5 shrink-0 flex flex-col gap-3">
                     <div class="flex items-center justify-between">
                         <div class="flex flex-col">
-                            <span class="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Registration</span>
-                        <span class="text-xs text-white flex items-center gap-1.5">
-                            <i class="fa-solid fa-gavel text-accent-cyan/80 text-[10px]"></i> Bidding System
+                            <span
+                                class="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Registration</span>
+                            <span class="text-xs text-white flex items-center gap-1.5">
+                                <i class="fa-solid fa-gavel text-accent-cyan/80 text-[10px]"></i> Bidding System
                             </span>
                         </div>
                         <button type="button" onclick="toggleCardDetails(this)"
                             class="w-10 h-10 rounded-full bg-accent-cyan/10 text-accent-cyan hover:bg-accent-cyan hover:text-black transition-colors flex items-center justify-center"
                             aria-label="More Info">
-                            <i class="fa-solid fa-chevron-down transition-transform duration-300 detail-icon rotate-0"></i>
+                            <i
+                                class="fa-solid fa-chevron-down transition-transform duration-300 detail-icon rotate-0"></i>
                         </button>
                     </div>
                     <div class="card-details hidden text-left border-t border-white/5 pt-3 space-y-2">
-                        <p class="text-[10px] text-gray-500"><i class="fa-solid fa-calendar-days mr-1.5 text-accent-cyan/50"></i> Ends: {{ tournament.end_date|date:"j M Y"|default:"TBA" }}</p>
-                        {% if tournament.bidding_open %}<p class="text-[10px] text-green-400"><i class="fa-solid fa-circle-check mr-1.5"></i> Bidding Open</p>{% endif %}
-                        <p class="text-[10px] text-brand-light/60 leading-relaxed">{{ tournament.description|default:"No description."|truncatewords:20 }}</p>
+                        <p class="text-[10px] text-gray-500"><i
+                                class="fa-solid fa-calendar-days mr-1.5 text-accent-cyan/50"></i> Ends: {{
+                            tournament.end_date|date:"j M Y"|default:"TBA" }}</p>
+                        {% if tournament.bidding_open %}<p class="text-[10px] text-green-400"><i
+                                class="fa-solid fa-circle-check mr-1.5"></i> Bidding Open</p>{% endif %}
+                        <p class="text-[10px] text-brand-light/60 leading-relaxed">{{ tournament.description|default:"No
+                            description."|truncatewords:20 }}</p>
                     </div>
                 </div>
             </div>

@@ -33,8 +33,8 @@ class OTPForm(forms.Form):
         label='OTP',
         max_length=6,
         widget=forms.TextInput(attrs={
-            'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors text-center tracking-[1em] font-display font-bold text-xl',
-            'placeholder': 'XXXXXX'
+            'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors text-center tracking-[0.5em] font-display font-bold text-xl',
+            'placeholder': '0 0 0 0 0 0'
         })
     )
 
@@ -124,8 +124,8 @@ class OTPVerifyForm(forms.Form):
     otp_code = forms.CharField(
         max_length=6,
         widget=forms.TextInput(attrs={
-            'class': 'cyber-input w-full rounded-lg p-3 placeholder-white/30 text-center tracking-[0.5em] text-xl font-mono',
-            'placeholder': '000000'
+            'class': 'cyber-input w-full rounded-lg p-3 placeholder-white/30 text-center tracking-[0.5em] text-xl font-mono text-white',
+            'placeholder': '0 0 0 0 0 0'
         }),
         label="Enter Authentication Code"
     )
