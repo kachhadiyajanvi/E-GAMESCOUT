@@ -208,6 +208,37 @@
                 {% endif %}
             </div>
             {% endif %}
+
+            <!-- Other Active Biddings List -->
+            {% if other_biddings %}
+            <div class="max-w-2xl mx-auto w-full mt-6 space-y-3">
+                <h3
+                    class="text-xs font-bold text-gray-400 uppercase tracking-widest pl-3 border-l-2 border-accent-cyan/50 mb-3">
+                    Other Enrolled Biddings</h3>
+                {% for other in other_biddings %}
+                <div
+                    class="bg-black/30 backdrop-blur-sm border border-white/10 rounded-xl p-4 flex items-center justify-between hover:bg-white/5 hover:border-purple-500/30 transition-all">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-10 h-10 rounded-lg bg-accent-cyan/10 flex items-center justify-center border border-accent-cyan/20">
+                            <i class="fa-solid fa-gavel text-accent-cyan pt-0.5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-white font-bold text-sm">{{ other.Name }}</h4>
+                            <p class="text-[10px] text-gray-400 mt-1 flex gap-2 items-center">
+                                <span>Starts: <span class="text-gray-300 font-mono ml-0.5">{{
+                                        other.bidding_start_date|date:"M d, g:i a" }}</span></span>
+                                <span class="text-white/20">|</span>
+                                <span>Ends: <span
+                                        class="bg-purple-500/10 border border-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded font-mono ml-0.5">{{
+                                        other.bidding_end_date|date:"M d, g:i a" }}</span></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
 
         <!-- Players Grid (Hidden Initially) -->

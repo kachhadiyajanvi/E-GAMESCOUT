@@ -116,8 +116,8 @@
 
                 <p
                     class="text-[9px] text-gray-500 uppercase tracking-widest font-bold mb-4 flex items-center gap-1.5 border-t border-white/5 pt-3">
-                    <i class="fa-solid fa-bullhorn text-accent-cyan/70"></i> Published: <span class="text-white">{{
-                        tournament.created_at|timesince }} ago</span>
+                    <i class="fa-solid fa-bullhorn text-accent-cyan/70"></i> Published: <span class="text-white">
+                        {{ tournament.created_at|timesince }} ago</span>
                 </p>
 
                 <!-- Metrics Grid -->
@@ -156,12 +156,12 @@
                     </div>
                     <div class="card-details hidden text-left border-t border-white/5 pt-3 space-y-2">
                         <p class="text-[10px] text-gray-500"><i
-                                class="fa-solid fa-calendar-days mr-1.5 text-accent-cyan/50"></i> Ends: {{
-                            tournament.end_date|date:"j M Y"|default:"TBA" }}</p>
+                                class="fa-solid fa-calendar-days mr-1.5 text-accent-cyan/50"></i> Ends:
+                            {{ tournament.end_date|date:"j M Y"|default:"TBA" }}</p>
                         {% if tournament.bidding_open %}<p class="text-[10px] text-green-400"><i
                                 class="fa-solid fa-circle-check mr-1.5"></i> Bidding Open</p>{% endif %}
-                        <p class="text-[10px] text-brand-light/60 leading-relaxed">{{ tournament.description|default:"No
-                            description."|truncatewords:20 }}</p>
+                        <p class="text-[10px] text-brand-light/60 leading-relaxed">
+                            {{ tournament.description|default:"No description."|truncatewords:20 }}</p>
                     </div>
                 </div>
             </div>
