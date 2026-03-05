@@ -51,7 +51,7 @@ class Tournament(models.Model):
     CreatedAt = models.DateTimeField(auto_now_add=True, null=False)
     UpdatedAt = models.DateTimeField(auto_now=True, null=False)
     is_published = models.BooleanField(default=False)
-    bidding_open = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=False)
     
     # New Fields
     description = models.TextField(default='')
@@ -66,11 +66,7 @@ class Tournament(models.Model):
     prize_distribution = models.JSONField(default=list, blank=True)
     is_archived = models.BooleanField(default=False)
     
-    # Bidding Fields
-    bidding_start_date = models.DateTimeField(null=True, blank=True)
-    bidding_end_date = models.DateTimeField(null=True, blank=True)
-    bidding_invite_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    bidding_notifications_sent = models.BooleanField(default=False)
+    # Removed Bidding Fields
     
     def __str__(self):
         return f"{self.Name} - {self.Organization_Name.Organization_Name}"
@@ -78,15 +74,11 @@ class Tournament(models.Model):
 class OrganizationNotification(models.Model):
     recipient = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()
-    notification_type = models.CharField(max_length=50, default='INFO')  # BIDDING_INVITE, INFO
+    notification_type = models.CharField(max_length=50, default='INFO')  # INFO
     related_tournament = models.ForeignKey(Tournament, on_delete=models.SET_NULL, null=True, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    @property
-    def is_invite(self):
-        return self.notification_type == 'BIDDING_INVITE'
-        
     @property
     def link(self):
         if self.related_tournament:
@@ -96,16 +88,6 @@ class OrganizationNotification(models.Model):
     def __str__(self):
         return f"To {self.recipient.Organization_Name}: {self.message[:30]}"
 
-class TournamentBidder(models.Model):
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='bidders')
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='bids')
-    joined_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('tournament', 'organization')
-
-    def __str__(self):
-        return f"{self.organization.Organization_Name} -> {self.tournament.Name}"
 
 class Player(models.Model):
     STATUS_CHOICES = [
@@ -160,7 +142,6 @@ class PlayerTask(models.Model):
         return f"{self.title} ({self.player.username})"
 class Transaction(models.Model):
     TRANSACTION_TYPES = [
-        ('BIDDING_INCENTIVE', 'Bidding Incentive'),
         ('DEPOSIT', 'Deposit'),
         ('WITHDRAWAL', 'Withdrawal'),
         ('OTHER', 'Other'),
@@ -183,72 +164,9 @@ class PlayerNotification(models.Model):
     link = models.CharField(max_length=255, null=True, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    notification_type = models.CharField(max_length=50, default='INFO')  # BID, INFO
+    notification_type = models.CharField(max_length=50, default='INFO')  # INFO
 
     def __str__(self):
         return f"To {self.recipient.username}: {self.message[:30]}"
 
-class PlayerBid(models.Model):
-    STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
-        ('NEGOTIATING', 'Negotiating'),
-        ('ACCEPTED', 'Accepted'),
-        ('REJECTED', 'Rejected'),
-    ]
 
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='player_bids')
-    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='bids_received')
-    tournament = models.ForeignKey(Tournament, on_delete=models.SET_NULL, null=True, blank=True) # Optional context
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
-    message = models.TextField(blank=True, null=True)
-    
-    # Negotiation
-    counter_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    counter_message = models.TextField(blank=True, null=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Bid: {self.organization.Organization_Name} -> {self.player.username} ({self.amount})"
-
-class GlobalSettings(models.Model):
-    bidding_start_time = models.DateTimeField(null=True, blank=True)
-    bidding_end_time = models.DateTimeField(null=True, blank=True)
-    
-    def save(self, *args, **kwargs):
-        if not self.pk and GlobalSettings.objects.exists():
-            # If you want to ensure only one instance, you can do this, 
-            # but usually it's handled by raising generic error or just manually managing.
-            # For simplicity, we just allow saving, assuming admin manages the single instance.
-            return super(GlobalSettings, self).save(*args, **kwargs)
-        return super(GlobalSettings, self).save(*args, **kwargs)
-
-    @classmethod
-    def load(cls):
-        obj, created = cls.objects.get_or_create(pk=1)
-        return obj
-
-    @property
-    def is_bidding_active(self):
-        now = timezone.now()
-        if self.bidding_start_time and self.bidding_end_time:
-            return self.bidding_start_time <= now <= self.bidding_end_time
-        return False
-        
-    @property
-    def bidding_status(self):
-        now = timezone.now()
-        if not self.bidding_start_time or not self.bidding_end_time:
-            return 'NOT_CONFIGURED'
-        
-        if now < self.bidding_start_time:
-            return 'UPCOMING'
-        elif now > self.bidding_end_time:
-            return 'COMPLETED'
-        else:
-            return 'LIVE'
-
-    def __str__(self):
-        return "Global System Settings"

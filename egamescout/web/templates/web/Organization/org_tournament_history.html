@@ -317,81 +317,7 @@
             </div>
         </div>
     </div>
-    <!-- Bidding Configuration Modal -->
-    <div id="biddingModal" class="hidden fixed inset-0 z-50">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0"
-            id="biddingModalBackdrop">
-        </div>
 
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg p-6 transform transition-all scale-95 opacity-0"
-            id="biddingModalContent">
-            <div class="glass-panel rounded-xl border border-yellow-500/30 p-8 relative overflow-hidden">
-                <div
-                    class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent">
-                </div>
-
-                <h3 class="text-xl font-display font-bold text-white mb-6 flex items-center gap-3">
-                    <i class="fa-solid fa-gavel text-yellow-500"></i>
-                    Configure Bidding: <span id="biddingTournamentName" class="text-accent-cyan"></span>
-                </h3>
-
-                <form id="biddingForm" method="POST" action="">
-                    {% csrf_token %}
-
-                    <div class="space-y-6">
-                        <!-- Dates -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                    class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Start
-                                    Date</label>
-                                <input type="datetime-local" name="start_date" required
-                                    class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm">
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">End
-                                    Date</label>
-                                <input type="datetime-local" name="end_date" required
-                                    class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm">
-                            </div>
-                        </div>
-
-                        <!-- Incentive -->
-                        <div>
-                            <label
-                                class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Incentive
-                                Amount (Coins)</label>
-                            <div class="relative">
-                                <i
-                                    class="fa-solid fa-coins absolute left-4 top-1/2 -translate-y-1/2 text-yellow-500"></i>
-                                <input type="number" name="coin_amount" id="coinAmount" min="0" step="0.01" value="0"
-                                    class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded pl-10 pr-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm font-bold text-yellow-500">
-                            </div>
-                            <p class="text-[10px] text-gray-500 mt-1">
-                                This amount will be sent to each invited organization.
-                            </p>
-                        </div>
-
-                        <!-- Cost Summary -->
-
-
-                        <!-- Actions -->
-                        <div class="flex gap-3 pt-2">
-                            <button type="button" onclick="closeBiddingModal()"
-                                class="flex-1 px-4 py-3 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
-                                CANCEL
-                            </button>
-                            <button type="submit"
-                                class="flex-1 px-4 py-3 rounded bg-yellow-500 text-black hover:bg-yellow-400 transition-all font-bold text-sm shadow-[0_0_15px_rgba(234,179,8,0.4)]">
-                                OPEN BIDDING
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
     {% endblock %}
 
 
@@ -442,50 +368,9 @@
             const deleteModal = document.getElementById('deleteModal');
             if (deleteModal) document.body.appendChild(deleteModal);
 
-            const biddingModal = document.getElementById('biddingModal');
-            if (biddingModal) document.body.appendChild(biddingModal);
         });
 
-        // Bidding Modal Logic
-        const TOTAL_ORG_COUNT = parseInt("{{ total_org_count|default:'0' }}")
 
-        function openBiddingModal(tournamentId, tournamentName) {
-            const modal = document.getElementById('biddingModal');
-            const backdrop = document.getElementById('biddingModalBackdrop');
-            const content = document.getElementById('biddingModalContent');
-            const form = document.getElementById('biddingForm');
-            const nameSpan = document.getElementById('biddingTournamentName');
-
-            if (!modal) return;
-
-            form.action = `/organization/tournaments/bidding/open/${tournamentId}/`;
-            nameSpan.textContent = tournamentName;
-
-            modal.classList.remove('hidden');
-            // Ensure it's on top - handled by DOMContentLoaded move, but good to ensure
-
-            requestAnimationFrame(() => {
-                backdrop.classList.remove('opacity-0');
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            });
-        }
-
-        function closeBiddingModal() {
-            const modal = document.getElementById('biddingModal');
-            const backdrop = document.getElementById('biddingModalBackdrop');
-            const content = document.getElementById('biddingModalContent');
-
-            if (!modal) return;
-
-            backdrop.classList.add('opacity-0');
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
 
         // Modal Functions
         function confirmDelete(tournamentId, tournamentName) {

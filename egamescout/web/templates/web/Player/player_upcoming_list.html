@@ -22,8 +22,8 @@
                     Upcoming Tournaments
                 </h1>
                 <p class="text-brand-light/60 text-sm md:text-base max-w-xl leading-relaxed">
-                    Browse the latest esports competitions. Find the perfect tournament for your team and register
-                    through our secure bidding system.
+                    Browse our schedule of verified esports tournaments. Prepare yourself, join the competition, and get
+                    noticed by top organizations.
                 </p>
             </div>
 
@@ -143,9 +143,7 @@
                         <div class="flex flex-col">
                             <span
                                 class="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Registration</span>
-                            <span class="text-xs text-white flex items-center gap-1.5">
-                                <i class="fa-solid fa-gavel text-accent-cyan/80 text-[10px]"></i> Bidding System
-                            </span>
+
                         </div>
                         <button type="button" onclick="toggleCardDetails(this)"
                             class="w-10 h-10 rounded-full bg-accent-cyan/10 text-accent-cyan hover:bg-accent-cyan hover:text-black transition-colors flex items-center justify-center"
@@ -158,8 +156,7 @@
                         <p class="text-[10px] text-gray-500"><i
                                 class="fa-solid fa-calendar-days mr-1.5 text-accent-cyan/50"></i> Ends:
                             {{ tournament.end_date|date:"j M Y"|default:"TBA" }}</p>
-                        {% if tournament.bidding_open %}<p class="text-[10px] text-green-400"><i
-                                class="fa-solid fa-circle-check mr-1.5"></i> Bidding Open</p>{% endif %}
+
                         <p class="text-[10px] text-brand-light/60 leading-relaxed">
                             {{ tournament.description|default:"No description."|truncatewords:20 }}</p>
                     </div>

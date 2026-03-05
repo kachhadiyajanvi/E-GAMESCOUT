@@ -104,18 +104,9 @@
                 <span class="font-medium group-hover:text-white transition-colors">My Players</span>
             </a>
 
-            <a href="{% url 'org_live_bidding' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if 'bidding' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i class="fa-solid fa-gavel text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Live Bidding</span>
-            </a>
 
-            <a href="{% url 'transaction_history' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'transaction_history' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i
-                    class="fa-solid fa-receipt text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Transactions</span>
-            </a>
+
+
 
 
 
@@ -202,91 +193,84 @@
                             <!-- Notification Item -->
                             <div class="p-3 border-b border-white/5 hover:bg-white/5 transition-colors group relative">
                                 <a href="{{ notification.link }}" class="flex gap-3 pr-6">
-                                    <div
-                                        class="w-2 h-2 rounded-full {% if notification.type == 'tournament' %}bg-accent-cyan shadow-[0_0_5px_#66FCF1]{% elif notification.is_invite %}bg-yellow-500 shadow-[0_0_5px_#eab308]{% else %}bg-green-500 shadow-[0_0_5px_#22c55e]{% endif %} mt-1.5 shrink-0">
-                                    </div>
-                                    <div class="flex-1">
-                                        <p
-                                            class="text-xs text-white leading-relaxed group-hover:text-accent-cyan transition-colors">
-                                            {{ notification.message }}</p>
-                                        <p class="text-[10px] text-gray-500 mt-1">{{ notification.time|timesince }} ago
-                                        </p>
-                                    </div>
-                                </a>
-
-                                <!-- Delete Button -->
-                                <a href="{% url 'delete_notification' notification.id %}"
-                                    class="absolute top-3 right-3 text-gray-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1"
-                                    title="Delete Notification">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </a>
-
-                                <!-- Actions for Bidding Invites -->
-                                {% if notification.is_invite %}
-                                <div class="flex gap-2 mt-2 ml-5">
-                                    <a href="{% url 'tournament_detail' notification.related_tournament_id %}"
-                                        class="text-[10px] px-2 py-1 bg-orange-500/10 text-orange-500 border border-orange-500/30 rounded hover:bg-orange-500 hover:text-white transition-all">
-                                        <i class="fa-solid fa-gamepad mr-1"></i> Participate
-                                    </a>
-                                </div>
-                                {% endif %}
+                                    class="w-2 h-2 rounded-full {% if notification.type == 'tournament' %}bg-accent-cyan
+                                    shadow-[0_0_5px_#66FCF1]{% else %}bg-green-500 shadow-[0_0_5px_#22c55e]{% endif %}
+                                    mt-1.5 shrink-0">
                             </div>
-                            {% endfor %}
-                            {% else %}
-                            <div class="p-8 text-center">
-                                <i class="fa-regular fa-bell-slash text-gray-600 text-2xl mb-2"></i>
-                                <p class="text-xs text-gray-500">No new notifications</p>
+                            <div class="flex-1">
+                                <p
+                                    class="text-xs text-white leading-relaxed group-hover:text-accent-cyan transition-colors">
+                                    {{ notification.message }}</p>
+                                <p class="text-[10px] text-gray-500 mt-1">{{ notification.time|timesince }} ago
+                                </p>
                             </div>
-                            {% endif %}
+                            </a>
+
+                            <!-- Delete Button -->
+                            <a href="{% url 'delete_notification' notification.id %}"
+                                class="absolute top-3 right-3 text-gray-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1"
+                                title="Delete Notification">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </a>
+
+
                         </div>
-                        <a href="{% url 'org_notifications' %}"
-                            class="block p-2 text-center bg-white/5 hover:bg-white/10 transition-colors cursor-pointer border-t border-white/5 text-[10px] font-bold text-accent-cyan uppercase tracking-wider">
-                            View All
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Profile Management -->
-                <a href="{% url 'manage_profile' %}"
-                    class="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group"
-                    title="Manage Profile">
-
-                    <!-- Org Details -->
-                    <div class="hidden md:flex flex-col items-end">
-                        <span
-                            class="text-sm font-bold text-white group-hover:text-accent-cyan transition-colors font-display tracking-wide">
-                            {{ org.Organization_Name }}</span>
-                        <span class="text-[10px] text-gray-500 group-hover:text-gray-300 transition-colors">
-                            {{ org.Organization_Email }}</span>
-                    </div>
-
-                    <div
-                        class="w-9 h-9 rounded-full bg-brand-gray flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-accent-cyan/50 transition-colors shadow-lg">
-                        {% if org.profile_photo %}
-                        <img src="{{ org.profile_photo.url }}" class="w-full h-full object-cover">
+                        {% endfor %}
                         {% else %}
-                        <i class="fa-solid fa-user text-sm"></i>
+                        <div class="p-8 text-center">
+                            <i class="fa-regular fa-bell-slash text-gray-600 text-2xl mb-2"></i>
+                            <p class="text-xs text-gray-500">No new notifications</p>
+                        </div>
                         {% endif %}
                     </div>
-                </a>
-            </div>
-        </header>
-
-        <!-- Content Scroll Area -->
-        <main class="flex-1 overflow-y-auto p-6 md:p-8 relative">
-            <!-- Decoration Orbs -->
-            <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-                <div class="absolute top-10 right-10 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px]"></div>
-                <!-- Pink Ambient Glow -->
-                <div class="absolute bottom-10 left-10 w-64 h-64 bg-accent-pink/5 rounded-full blur-[80px]"></div>
-                <div
-                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent-pink/5 rounded-full blur-[120px] opacity-30">
+                    <a href="{% url 'org_notifications' %}"
+                        class="block p-2 text-center bg-white/5 hover:bg-white/10 transition-colors cursor-pointer border-t border-white/5 text-[10px] font-bold text-accent-cyan uppercase tracking-wider">
+                        View All
+                    </a>
                 </div>
             </div>
 
-            <!-- Messages -->
-            {% block content %}{% endblock %}
-        </main>
+            <!-- Profile Management -->
+            <a href="{% url 'manage_profile' %}"
+                class="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group"
+                title="Manage Profile">
+
+                <!-- Org Details -->
+                <div class="hidden md:flex flex-col items-end">
+                    <span
+                        class="text-sm font-bold text-white group-hover:text-accent-cyan transition-colors font-display tracking-wide">
+                        {{ org.Organization_Name }}</span>
+                    <span class="text-[10px] text-gray-500 group-hover:text-gray-300 transition-colors">
+                        {{ org.Organization_Email }}</span>
+                </div>
+
+                <div
+                    class="w-9 h-9 rounded-full bg-brand-gray flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-accent-cyan/50 transition-colors shadow-lg">
+                    {% if org.profile_photo %}
+                    <img src="{{ org.profile_photo.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <i class="fa-solid fa-user text-sm"></i>
+                    {% endif %}
+                </div>
+            </a>
+    </div>
+    </header>
+
+    <!-- Content Scroll Area -->
+    <main class="flex-1 overflow-y-auto p-6 md:p-8 relative">
+        <!-- Decoration Orbs -->
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+            <div class="absolute top-10 right-10 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px]"></div>
+            <!-- Pink Ambient Glow -->
+            <div class="absolute bottom-10 left-10 w-64 h-64 bg-accent-pink/5 rounded-full blur-[80px]"></div>
+            <div
+                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent-pink/5 rounded-full blur-[120px] opacity-30">
+            </div>
+        </div>
+
+        <!-- Messages -->
+        {% block content %}{% endblock %}
+    </main>
     </div>
 
     <!-- Mobile Sidebar Overlay -->

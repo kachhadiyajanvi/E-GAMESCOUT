@@ -72,10 +72,6 @@
                     class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if request.resolver_match.url_name == 'player_dashboard' %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
                     <i class="fa-solid fa-border-all text-lg group-hover:text-accent-cyan"></i> Dashboard
                 </a>
-                <a href="{% url 'player_bids' %}"
-                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'bids' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
-                    <i class="fa-solid fa-gavel text-lg group-hover:text-accent-cyan"></i> My Bids
-                </a>
                 <a href="{% url 'player_upcoming_tournaments' %}"
                     class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'upcoming' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
                     <i class="fa-solid fa-trophy text-lg group-hover:text-accent-cyan"></i> Upcoming Tournaments
@@ -110,12 +106,6 @@
                     class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if request.resolver_match.url_name == 'player_dashboard' %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
                     <i class="fa-solid fa-border-all text-lg"></i>
                     Dashboard
-                </a>
-
-                <a href="{% url 'player_bids' %}"
-                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'bids' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
-                    <i class="fa-solid fa-gavel text-lg"></i>
-                    My Bids
                 </a>
 
                 <a href="{% url 'player_upcoming_tournaments' %}"
@@ -166,7 +156,6 @@
                                         <i class="fa-solid fa-chevron-right text-[8px] text-gray-600 mx-1.5"></i>
                                         <span class="text-white font-medium font-display tracking-wider">
                                             {% if request.resolver_match.url_name == 'player_profile' %}My Profile
-                                            {% elif request.resolver_match.url_name == 'player_bids' %}My Bids
                                             {% elif 'upcoming' in request.resolver_match.url_name %}Upcoming Tournaments
                                             {% elif request.resolver_match.url_name == 'player_delete_account'%}Settings
                                             {% else %}Current Page
@@ -193,8 +182,6 @@
                             <i class="fa-solid fa-border-all text-accent-cyan opacity-80"></i> DASHBOARD
                             {% elif request.resolver_match.url_name == 'player_profile' %}
                             <i class="fa-solid fa-user text-accent-cyan opacity-80"></i> PROFILE
-                            {% elif request.resolver_match.url_name == 'player_bids' %}
-                            <i class="fa-solid fa-gavel text-accent-cyan opacity-80"></i> MY BIDS
                             {% elif 'upcoming' in request.resolver_match.url_name %}
                             <i class="fa-solid fa-trophy text-accent-cyan opacity-80"></i> UPCOMING TOURNAMENTS
                             {% elif request.resolver_match.url_name == 'player_delete_account' %}
@@ -258,7 +245,7 @@
                                     class="p-3 border-b border-white/5 hover:bg-white/5 transition-colors group relative">
                                     <a href="{{ notification.link|default:'#' }}" class="flex gap-3 pr-6">
                                         <div
-                                            class="w-2 h-2 rounded-full mt-1.5 shrink-0 {% if notification.notification_type == 'BID' %}bg-accent-cyan shadow-[0_0_5px_#66FCF1]{% else %}bg-green-500 shadow-[0_0_5px_#22c55e]{% endif %}">
+                                            class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-green-500 shadow-[0_0_5px_#22c55e]">
                                         </div>
                                         <div class="flex-1">
                                             <p
