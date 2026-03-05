@@ -287,5 +287,86 @@
         <p class="text-gray-400 mb-6">There are no upcoming tournaments available at the moment.</p>
     </div>
     {% endif %}
+
+    <!-- Coming Soon Section -->
+    {% if coming_soon %}
+    <div class="mt-12">
+        <div class="flex items-center gap-3 mb-6">
+            <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+            <h2 class="text-lg font-display font-bold text-yellow-400 uppercase tracking-widest">Coming Soon</h2>
+            <span
+                class="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 text-xs font-bold border border-yellow-500/20">{{
+                coming_soon|length }}</span>
+            <span class="text-xs text-gray-500 font-display uppercase tracking-wider ml-2">Unpublished — not visible to
+                players yet</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for t in coming_soon %}
+            <div class="relative rounded-xl p-4 overflow-hidden border border-yellow-500/20"
+                style="background: linear-gradient(135deg, #0F1115 0%, #12141a 100%);">
+                <div class="absolute top-0 left-0 right-0 h-0.5"
+                    style="background: linear-gradient(90deg, transparent, #f59e0b, transparent);"></div>
+
+                <div class="flex items-start justify-between mb-3">
+                    <h3 class="text-base font-display font-bold text-yellow-300 line-clamp-1">{{ t.Name }}</h3>
+                    <span
+                        class="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-yellow-300 border border-yellow-500/30 bg-yellow-900/30 flex-shrink-0 ml-2">
+                        <i class="fa-solid fa-lock text-[9px]"></i> Draft
+                    </span>
+                </div>
+
+                <p class="text-xs text-gray-500 mb-3 flex items-center gap-1.5">
+                    <i class="fa-solid fa-building text-[10px]"></i>
+                    {{ t.Organization_Name.Organization_Name }}
+                </p>
+
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="p-2.5 bg-yellow-500/5 border border-yellow-500/15 rounded-lg">
+                        <p class="text-yellow-400 font-bold text-base">{{ t.max_teams }}</p>
+                        <p class="text-[10px] text-gray-500">Teams</p>
+                    </div>
+                    <div class="p-2.5 bg-yellow-500/5 border border-yellow-500/15 rounded-lg">
+                        <p class="text-yellow-400 font-bold text-sm">{% if t.start_date %}{{ t.start_date|date:"M d, Y"
+                            }}{% else %}TBD{% endif %}</p>
+                        <p class="text-[10px] text-gray-500">Start Date</p>
+                    </div>
+                </div>
+
+                <div class="p-2.5 bg-yellow-500/5 border border-yellow-500/15 rounded-lg mb-3">
+                    <p class="text-[10px] text-yellow-500/70 uppercase tracking-wider mb-0.5">Prize Pool</p>
+                    <p class="text-yellow-400 font-bold">&#8377;{{ t.PrizePool|floatformat:0 }}</p>
+                </div>
+
+                {% if t.start_date %}
+                <div class="flex items-center gap-2 mb-3 text-xs font-mono text-yellow-600">
+                    <i class="fa-solid fa-clock animate-pulse"></i>
+                    <span id="org-d-{{ t.Tournament_ID }}">--</span>d
+                    <span id="org-h-{{ t.Tournament_ID }}">--</span>h
+                    <span id="org-m-{{ t.Tournament_ID }}">--</span>m until start
+                </div>
+                <script>(function () {
+                        var target = new Date("{{ t.start_date|date:'Y-m-d' }}T00:00:00"), id = "{{ t.Tournament_ID }}";
+                        function tick() { var diff = target - new Date(); if (diff <= 0) return; document.getElementById('org-d-' + id).textContent = Math.floor(diff / 86400000); document.getElementById('org-h-' + id).textContent = Math.floor((diff % 86400000) / 3600000); document.getElementById('org-m-' + id).textContent = Math.floor((diff % 3600000) / 60000); }
+                        tick(); setInterval(tick, 60000);
+                    })();</script>
+                {% endif %}
+
+                {% if t.Organization_Name.id == org.id %}
+                <a href="{% url 'tournament_detail' t.Tournament_ID %}"
+                    class="block w-full py-2.5 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500 hover:text-black font-bold text-center rounded-lg transition-all text-sm">
+                    <i class="fa-solid fa-pen mr-1"></i> Edit &amp; Publish
+                </a>
+                {% else %}
+                <div
+                    class="w-full py-2.5 bg-white/5 border border-white/10 text-gray-600 font-bold text-center rounded-lg text-sm cursor-not-allowed">
+                    <i class="fa-solid fa-eye-slash mr-1"></i> Hidden from Players
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}

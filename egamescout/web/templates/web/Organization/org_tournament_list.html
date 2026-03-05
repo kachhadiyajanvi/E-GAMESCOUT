@@ -212,20 +212,7 @@
                             <i class="fa-solid fa-bullhorn group-hover/btn:scale-110 transition-transform"></i> Publish
                         </button>
                         {% else %}
-                        <!-- Open Bidding Button -->
-                        {% if not tournament.bidding_open %}
-                        <button
-                            onclick="openBiddingModal('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
-                            class="flex-1 min-w-[130px] px-4 py-2.5 bg-yellow-500/10 border border-yellow-500/40 text-yellow-400 rounded-lg hover:bg-yellow-500/20 hover:border-yellow-500/60 hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
-                            <i class="fa-solid fa-gavel group-hover/btn:rotate-12 transition-transform"></i> Open
-                            Bidding
-                        </button>
-                        {% else %}
-                        <div class="flex-1 min-w-[130px] px-4 py-2.5 bg-yellow-500/5 border border-yellow-500/20 text-yellow-500/60 rounded-lg text-center font-bold text-sm flex items-center justify-center gap-2 cursor-default"
-                            title="Fee: {{ tournament.bidding_invite_fee }} coins">
-                            <i class="fa-solid fa-check"></i> Bidding Open
-                        </div>
-                        {% endif %}
+
                         {% endif %}
                         {% endif %}
                         <button
@@ -334,14 +321,7 @@
                                 <i class="fa-solid fa-bullhorn"></i> Publish
                             </button>
                             {% else %}
-                            {% if not tournament.bidding_open %}
-                            <button
-                                onclick="openBiddingModal('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
-                                class="px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/40 text-yellow-400 rounded-lg hover:bg-yellow-500/20 hover:border-yellow-500/60 transition-all text-xs flex items-center justify-center gap-1 font-bold"
-                                title="Open Bidding">
-                                <i class="fa-solid fa-gavel"></i> Bid
-                            </button>
-                            {% endif %}
+
                             {% endif %}
 
                             <a href="{% url 'tournament_update' tournament.Tournament_ID %}"
@@ -425,81 +405,7 @@
             </div>
         </div>
     </div>
-    <!-- Bidding Configuration Modal -->
-    <div id="biddingModal" class="hidden fixed inset-0 z-50">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0"
-            id="biddingModalBackdrop">
-        </div>
 
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg p-6 transform transition-all scale-95 opacity-0"
-            id="biddingModalContent">
-            <div class="glass-panel rounded-xl border border-yellow-500/30 p-8 relative overflow-hidden">
-                <div
-                    class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent">
-                </div>
-
-                <h3 class="text-xl font-display font-bold text-white mb-6 flex items-center gap-3">
-                    <i class="fa-solid fa-gavel text-yellow-500"></i>
-                    Configure Bidding: <span id="biddingTournamentName" class="text-accent-cyan"></span>
-                </h3>
-
-                <form id="biddingForm" method="POST" action="">
-                    {% csrf_token %}
-
-                    <div class="space-y-6">
-                        <!-- Dates -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                    class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Start
-                                    Date</label>
-                                <input type="datetime-local" name="start_date" required
-                                    class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm">
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">End
-                                    Date</label>
-                                <input type="datetime-local" name="end_date" required
-                                    class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm">
-                            </div>
-                        </div>
-
-                        <!-- Incentive -->
-                        <div>
-                            <label
-                                class="block text-xs font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Incentive
-                                Amount (Coins)</label>
-                            <div class="relative">
-                                <i
-                                    class="fa-solid fa-coins absolute left-4 top-1/2 -translate-y-1/2 text-yellow-500"></i>
-                                <input type="number" name="coin_amount" id="coinAmount" min="0" step="0.01" value="0"
-                                    class="w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded pl-10 pr-4 py-3 text-white focus:outline-none focus:border-[#66FCF1] transition-all text-sm font-bold text-yellow-500">
-                            </div>
-                            <p class="text-[10px] text-gray-500 mt-1">
-                                This amount will be sent to each invited organization.
-                            </p>
-                        </div>
-
-                        <!-- Cost Summary -->
-
-
-                        <!-- Actions -->
-                        <div class="flex gap-3 pt-2">
-                            <button type="button" onclick="closeBiddingModal()"
-                                class="flex-1 px-4 py-3 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
-                                CANCEL
-                            </button>
-                            <button type="submit"
-                                class="flex-1 px-4 py-3 rounded bg-yellow-500 text-black hover:bg-yellow-400 transition-all font-bold text-sm shadow-[0_0_15px_rgba(234,179,8,0.4)]">
-                                OPEN BIDDING
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
     <!-- Cancel Confirmation Modal -->
     <div id="cancelModal" class="hidden fixed inset-0 z-50">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0" id="cancelBackdrop">
@@ -630,8 +536,7 @@
             const deleteModal = document.getElementById('deleteModal');
             if (deleteModal) document.body.appendChild(deleteModal);
 
-            const biddingModal = document.getElementById('biddingModal');
-            if (biddingModal) document.body.appendChild(biddingModal);
+
 
             const cancelModal = document.getElementById('cancelModal');
             if (cancelModal) document.body.appendChild(cancelModal);
@@ -640,46 +545,7 @@
             if (publishModal) document.body.appendChild(publishModal);
         });
 
-        // Bidding Modal Logic
-        const TOTAL_ORG_COUNT = parseInt("{{ total_org_count|default:'0' }}")
 
-        function openBiddingModal(tournamentId, tournamentName) {
-            const modal = document.getElementById('biddingModal');
-            const backdrop = document.getElementById('biddingModalBackdrop');
-            const content = document.getElementById('biddingModalContent');
-            const form = document.getElementById('biddingForm');
-            const nameSpan = document.getElementById('biddingTournamentName');
-
-            if (!modal) return;
-
-            form.action = `/organization/tournaments/bidding/open/${tournamentId}/`;
-            nameSpan.textContent = tournamentName;
-
-            modal.classList.remove('hidden');
-            // Ensure it's on top - handled by DOMContentLoaded move, but good to ensure
-
-            requestAnimationFrame(() => {
-                backdrop.classList.remove('opacity-0');
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            });
-        }
-
-        function closeBiddingModal() {
-            const modal = document.getElementById('biddingModal');
-            const backdrop = document.getElementById('biddingModalBackdrop');
-            const content = document.getElementById('biddingModalContent');
-
-            if (!modal) return;
-
-            backdrop.classList.add('opacity-0');
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
 
         // --- Cancel Modal Logic ---
         const cancelModal = document.getElementById('cancelModal');

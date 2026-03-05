@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Organization, ScorecardAnalysis, Tournament, Player, Transaction, PlayerBid, PlayerNotification, TournamentBidder, AdminNotification, PlayerTask, OrganizationNotification, GlobalSettings 
+from .models import Organization, ScorecardAnalysis, Tournament, Player, Transaction, PlayerNotification, AdminNotification, PlayerTask, OrganizationNotification 
 
 class ArchivedFilter(admin.SimpleListFilter):
     title = 'Archived Status'
@@ -70,10 +70,7 @@ class PlayerAdmin(SoftDeleteAdmin):
 
 admin.site.register(ScorecardAnalysis)
 admin.site.register(Transaction)
-admin.site.register(PlayerBid)
 admin.site.register(PlayerNotification)
-admin.site.register(TournamentBidder)
 admin.site.register(AdminNotification)
 admin.site.register(PlayerTask)
 admin.site.register(OrganizationNotification)
-admin.site.register(GlobalSettings)

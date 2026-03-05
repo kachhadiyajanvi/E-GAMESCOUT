@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-from .models import Organization, Player, Tournament, PlayerBid
+from .models import Organization, Player, Tournament
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import datetime, time, timedelta
@@ -196,26 +196,6 @@ def admin_tournaments_detail(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'web/Admin/admin_tournaments_detail.html', {'tournaments': page_obj, 'page_obj': page_obj})
 
-@user_passes_test(is_superuser, login_url='admin_login')
-def admin_bids_detail(request):
-    search_query = request.GET.get('q', '')
-    if search_query:
-        bids_list = PlayerBid.objects.filter(
-            Q(organization__Organization_Name__icontains=search_query) | 
-            Q(player__username__icontains=search_query) |
-            Q(message__icontains=search_query)
-        ).order_by('-created_at')
-    else:
-        bids_list = PlayerBid.objects.all().order_by('-created_at')
-        
-    paginator = Paginator(bids_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    return render(request, 'web/Admin/admin_bids_detail.html', {
-        'page_obj': page_obj,
-        'search_query': search_query
-    })
 
 
 @user_passes_test(is_superuser, login_url='admin_login')
@@ -386,12 +366,7 @@ def admin_analytics(request):
     total_prize_pool = Tournament.objects.aggregate(Sum('PrizePool'))['PrizePool__sum'] or Decimal('0')
     total_coins = Organization.objects.aggregate(Sum('coins'))['coins__sum'] or Decimal('0')
     
-    # 7. Bidding Metrics
-    pending_bids = PlayerBid.objects.filter(status='PENDING').count()
-    accepted_bids = PlayerBid.objects.filter(status='ACCEPTED').count()
-    rejected_bids = PlayerBid.objects.filter(status='REJECTED').count()
-    negotiating_bids = PlayerBid.objects.filter(status='NEGOTIATING').count()
-    
+
     # 8. Tournament Status Breakdown
     scheduled_tournaments = Tournament.objects.filter(Status='Scheduled', is_archived=False).count()
     ongoing_tournaments = Tournament.objects.filter(Status='Ongoing', is_archived=False).count()
@@ -520,13 +495,7 @@ def admin_analytics(request):
         'new_orgs_year': new_orgs_year,
         'new_tournaments_year': new_tournaments_year,
         
-        # Bidding Metrics
-        'pending_bids': pending_bids,
-        'accepted_bids': accepted_bids,
-        'rejected_bids': rejected_bids,
-        'negotiating_bids': negotiating_bids,
-        'total_bids': pending_bids + accepted_bids + rejected_bids + negotiating_bids,
-        
+
         # Financials
         'total_prize_pool': total_prize_pool,
         'total_coins': total_coins,

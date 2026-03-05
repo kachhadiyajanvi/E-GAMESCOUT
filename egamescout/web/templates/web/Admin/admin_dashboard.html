@@ -135,13 +135,7 @@
                 <span class="font-bold tracking-wider text-sm">Tournaments</span>
             </a>
 
-            <!-- Bids Link -->
-            <a href="{% url 'admin_bids_detail' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_bids_detail' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
-                <i
-                    class="fa-solid fa-gavel w-5 text-center {% if request.resolver_match.url_name != 'admin_bids_detail' %}group-hover:text-yellow-500{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Bids</span>
-            </a>
+
 
             <a href="{% url 'admin_analytics' %}"
                 class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_analytics' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
@@ -172,7 +166,8 @@
             <div class="flex items-center gap-6">
                 <!-- Notifications -->
                 <div class="relative cursor-pointer group">
-                    <div class="absolute -top-2 -right-2 min-w-5 h-5 bg-brand-pink rounded-full border-2 border-black px-1 flex items-center justify-center hidden" id="notificationBadge">
+                    <div class="absolute -top-2 -right-2 min-w-5 h-5 bg-brand-pink rounded-full border-2 border-black px-1 flex items-center justify-center hidden"
+                        id="notificationBadge">
                         <span class="text-[10px] font-bold text-white leading-none" id="notificationCount">0</span>
                     </div>
                     <i class="fa-regular fa-bell text-xl text-white/60 group-hover:text-white transition-colors"></i>

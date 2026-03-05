@@ -12,7 +12,8 @@
         <div
             class="absolute inset-0 bg-grid-pattern opacity-10 mask-image:linear-gradient(to_bottom,white,transparent)">
         </div>
-        <div class="absolute -top-32 -left-32 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div class="absolute -top-32 -left-32 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px] pointer-events-none">
+        </div>
 
         <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
             <!-- Profile Photo -->
@@ -42,8 +43,7 @@
                     class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan text-[10px] font-bold tracking-widest uppercase mb-3">
                     <i class="fa-solid fa-id-card"></i> Player Profile
                 </div>
-                <h1
-                    class="text-3xl font-display font-bold text-white tracking-tight mb-1">
+                <h1 class="text-3xl font-display font-bold text-white tracking-tight mb-1">
                     {{ player.full_name|default:"Gamer Identity" }}
                 </h1>
                 <p class="text-brand-light/50 text-sm flex items-center justify-center md:justify-start gap-2">
@@ -100,8 +100,8 @@
                     <!-- Email Status -->
                     <div class="p-4 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                                <div
-                                    class="w-10 h-10 rounded-xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan border border-accent-cyan/20">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan border border-accent-cyan/20">
                                 <i class="fa-solid fa-envelope-circle-check"></i>
                             </div>
                             <div>
@@ -168,8 +168,7 @@
                             <p class="text-red-400 text-xs mt-2 flex items-center gap-1"><i
                                     class="fa-solid fa-circle-exclamation"></i> {{ form.username.errors.0 }}</p>
                             {% endif %}
-                            <p class="text-[11px] text-gray-500 mt-2">This is your unique identity shown in tournaments
-                                and bids.</p>
+                            and bids.</p>
                         </div>
 
                         <!-- Read-only Fields Grid -->
