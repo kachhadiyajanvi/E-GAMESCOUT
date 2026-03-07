@@ -3,11 +3,12 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-from .models import Organization, Player, Tournament
-from django.db.models import Count, Sum, Q
+from .models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession
+from django.db.models import Count, Sum, Q, Max
 from django.utils import timezone
 from datetime import datetime, time, timedelta
 from decimal import Decimal
+from .auth_services import handle_secure_login, handle_secure_logout
 
 # Helper to check if user is superuser
 from django.core.paginator import Paginator
@@ -27,11 +28,16 @@ def admin_login(request):
         
         if user is not None:
             if user.is_superuser:
-                # Clear conflicting sessions
+                # Clear conflicting custom sessions
                 if 'organizer_id' in request.session: del request.session['organizer_id']
                 if 'player_id' in request.session: del request.session['player_id']
                 
+                # Standard Django Login
                 login(request, user)
+                
+                # Secure Tracking Login
+                handle_secure_login(request, user_id=user.id, user_type='ADMIN')
+                
                 return redirect('admin_dashboard')
             else:
                 messages.error(request, "Access Denied: You are not an admin.")
@@ -42,10 +48,19 @@ def admin_login(request):
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_logout(request):
+    # Call secure tracking cleanup first
+    from .auth_services import handle_secure_logout
+    handle_secure_logout(request)
+    
+    # Call native logout to cleanly remove user from request bindings
     logout(request)
+    
     messages.success(request, "You have been logged out successfully.")
     return redirect('admin_login')
 
+from django.views.decorators.cache import cache_control
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_dashboard(request):
     # --- Real-time Counters ---
@@ -527,3 +542,331 @@ def admin_analytics(request):
         'org_growth_data': org_data_month,
     }
     return render(request, 'web/Admin/admin_analytics.html', context)
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_bidding_dashboard(request):
+    # 1. Active Bidding Season
+    active_season = BiddingSeason.objects.filter(is_active=True).first()
+    
+    # 2. Total Players Registered for Auction
+    # We will assume all active players or players with bids are in auction
+    total_players_in_auction = Player.objects.filter(is_archived=False).count()
+    
+    bids = Bid.objects.filter(season=active_season) if active_season else Bid.objects.none()
+    
+    total_bids = bids.count()
+    accepted_bids = bids.filter(status='Accepted')
+    players_sold = accepted_bids.count()
+    total_coins_spent = accepted_bids.aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+    
+    # 3. MVP
+    mvp_bid = accepted_bids.order_by('-amount').first()
+    
+    # 4. Top Organizations by Spending
+    top_orgs = (
+        accepted_bids
+        .values('organization__Organization_Name')
+        .annotate(
+            spent=Sum('amount'), 
+            players_acquired=Count('id')
+        )
+        .order_by('-spent')
+    )
+    
+    top_organizations = []
+    for rank, org_data in enumerate(top_orgs, start=1):
+        top_organizations.append({
+            'rank': rank,
+            'name': org_data['organization__Organization_Name'],
+            'players_acquired': org_data['players_acquired'],
+            'total_spent': org_data['spent'],
+            'average_bid': round(org_data['spent'] / org_data['players_acquired'], 2) if org_data['players_acquired'] > 0 else 0
+        })
+        
+    # 5. Live Bid Activity Feed
+    live_bids = bids.order_by('-created_at')[:10]
+    
+    # 6. Player Auction Status Summary
+    negotiation_bids_count = bids.filter(status='Negotiation').values('player').distinct().count()
+    sold_player_ids = set(accepted_bids.values_list('player_id', flat=True).distinct())
+    available_players = total_players_in_auction - len(sold_player_ids)
+    
+    # 7. Auction Heatmap (Top 5 Most Wanted)
+    heatmap = (
+        bids
+        .values('player__full_name')
+        .annotate(total_bids=Count('id'), highest_bid=Max('amount'))
+        .order_by('-total_bids')[:5]
+    )
+    
+    context = {
+        'active_season': active_season,
+        'all_seasons': BiddingSeason.objects.all().order_by('start_date'),
+        'season_logs': BiddingSeasonLog.objects.filter(season=active_season).order_by('-timestamp')[:5] if active_season else [],
+        'total_players_in_auction': total_players_in_auction,
+        'total_bids': total_bids,
+        'players_sold': players_sold,
+        'total_coins_spent': total_coins_spent,
+        'mvp_bid': mvp_bid,
+        'top_organizations': top_organizations,
+        'live_bids': live_bids,
+        'auction_status': {
+            'available': available_players if available_players > 0 else 0,
+            'negotiation': negotiation_bids_count,
+            'sold': players_sold,
+            'unsold': available_players - negotiation_bids_count if available_players > 0 else 0
+        },
+        'heatmap': heatmap,
+    }
+    
+    return render(request, 'web/Admin/bidding_dashboard.html', context)
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_bidding_details(request):
+    active_season = BiddingSeason.objects.filter(is_active=True).first()
+    bids = Bid.objects.filter(season=active_season) if active_season else Bid.objects.none()
+    
+    # 1. All Bids
+    all_bids = bids.select_related('player', 'organization').order_by('-created_at')
+    
+    # 2. Top Organizations by Spending
+    top_orgs = (
+        bids.filter(status='Accepted')
+        .values('organization__Organization_Name')
+        .annotate(
+            spent=Sum('amount'), 
+            players_acquired=Count('id')
+        )
+        .order_by('-spent')
+    )
+    
+    context = {
+        'active_season': active_season,
+        'all_bids': all_bids,
+        'top_orgs': top_orgs,
+    }
+    return render(request, 'web/Admin/admin_bidding_details.html', context)
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_bidding_export(request, report_type):
+    import csv
+    from django.http import HttpResponse
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{report_type}_report.csv"'
+    writer = csv.writer(response)
+    
+    if report_type == 'bidding_activity':
+        writer.writerow(['Player Name', 'Organization Name', 'Bid Amount', 'Bid Status', 'Bid Date', 'Season'])
+        for bid in Bid.objects.select_related('player', 'organization', 'season').all():
+            writer.writerow([
+                bid.player.full_name if bid.player else 'N/A',
+                bid.organization.Organization_Name if bid.organization else 'N/A',
+                bid.amount,
+                bid.status,
+                bid.created_at.strftime('%Y-%m-%d %H:%M'),
+                bid.season.name if bid.season else 'N/A'
+            ])
+            
+    elif report_type == 'transaction':
+        writer.writerow(['Organization', 'Transaction Type', 'Coins', 'Date', 'Description'])
+        for txn in Transaction.objects.select_related('sender').all():
+            writer.writerow([
+                txn.sender.Organization_Name if txn.sender else 'System',
+                txn.transaction_type,
+                txn.amount,
+                txn.timestamp.strftime('%Y-%m-%d %H:%M'),
+                txn.description
+            ])
+            
+    elif report_type == 'organization_spending':
+        writer.writerow(['Rank', 'Organization', 'Players Acquired', 'Total Coins Spent', 'Average Bid'])
+        top_orgs = Bid.objects.filter(status='Accepted').values('organization__Organization_Name').annotate(spent=Sum('amount'), players=Count('id')).order_by('-spent')
+        for rank, org in enumerate(top_orgs, 1):
+            writer.writerow([
+                rank,
+                org['organization__Organization_Name'],
+                org['players'],
+                org['spent'],
+                round(org['spent'] / org['players'], 2) if org['players'] > 0 else 0
+            ])
+            
+    elif report_type == 'heatmap':
+        writer.writerow(['Player', 'Total Bids', 'Highest Bid'])
+        heatmap = Bid.objects.values('player__full_name').annotate(total_bids=Count('id'), highest_bid=Max('amount')).order_by('-total_bids')
+        for row in heatmap:
+            writer.writerow([
+                row['player__full_name'],
+                row['total_bids'],
+                row['highest_bid']
+            ])
+            
+    return response
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_update_bid_status(request, bid_id):
+    """Update bid status and handle wallet refunds on rejection (Issue #5)."""
+    if request.method != 'POST':
+        return redirect('admin_bidding_dashboard')
+    
+    bid = get_object_or_404(Bid, id=bid_id)
+    old_status = bid.status
+    new_status = request.POST.get('status')
+    
+    valid_statuses = [s[0] for s in Bid.STATUS_CHOICES]
+    if new_status not in valid_statuses:
+        messages.error(request, 'Invalid bid status.')
+        return redirect('admin_bidding_dashboard')
+    
+    # Handle Rejected → refund coins to organization wallet
+    if new_status == 'Rejected' and old_status == 'Pending':
+        org = bid.organization
+        org.coins += bid.amount
+        org.save()
+        # Log the refund transaction
+        Transaction.objects.create(
+            sender=None,
+            recipient=org,
+            amount=bid.amount,
+            transaction_type='BID_REFUND',
+            description=f'Refund for rejected bid on {bid.player.full_name}'
+        )
+        messages.success(request, f'Bid rejected and ₹{bid.amount:,} refunded to {org.Organization_Name}.')
+    elif new_status == 'Accepted':
+        messages.success(request, f'Bid for {bid.player.full_name} accepted successfully.')
+    else:
+        messages.success(request, f'Bid status updated to {new_status}.')
+    
+    bid.status = new_status
+    # Use update() to skip model's full_clean season.is_active check
+    Bid.objects.filter(id=bid.id).update(status=new_status)
+    
+    return redirect('admin_bidding_dashboard')
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_start_bidding_season(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', f"Manual Season {timezone.now().strftime('%Y-%m-%d')}")
+        start_date_str = request.POST.get('start_date')
+        end_date_str = request.POST.get('end_date')
+        
+        # Ensure no other active seasons
+        BiddingSeason.objects.filter(is_active=True).update(is_active=False)
+        
+        start_dt = timezone.now()
+        if start_date_str:
+            try:
+                naive_dt = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M')
+                start_dt = timezone.make_aware(naive_dt)
+            except ValueError:
+                pass
+
+        season = BiddingSeason.objects.create(
+            name=name,
+            auto_start=False,
+            is_active=True,
+            start_date=start_dt
+        )
+        
+        if end_date_str:
+            try:
+                naive_dt = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M')
+                season.end_date = timezone.make_aware(naive_dt)
+                season.save()
+            except ValueError:
+                pass
+                
+        BiddingSeasonLog.objects.create(season=season, action='START', message="Bidding Manually Started by Admin")
+        messages.success(request, f"Bidding Season '{season.name}' started successfully.")
+    return redirect('admin_bidding_dashboard')
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_pause_bidding_season(request):
+    if request.method == 'POST':
+        active_season = BiddingSeason.objects.filter(is_active=True).first()
+        if active_season:
+            active_season.is_active = False
+            active_season.save()
+            BiddingSeasonLog.objects.create(season=active_season, action='PAUSE', message="Bidding Paused by Admin")
+            messages.success(request, f"Bidding Season '{active_season.name}' paused successfully.")
+        else:
+            messages.error(request, "No active bidding season to pause.")
+    return redirect('admin_bidding_dashboard')
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_end_bidding_season(request):
+    if request.method == 'POST':
+        season_id = request.POST.get('season_id')
+        if season_id:
+            season = get_object_or_404(BiddingSeason, id=season_id)
+        else:
+            season = BiddingSeason.objects.filter(is_active=True).first()
+        if season:
+            season.is_active = False
+            season.save()
+            BiddingSeasonLog.objects.create(season=season, action='END', message="Bidding Ended by Admin")
+            messages.success(request, f"Bidding Season '{season.name}' ended successfully.")
+    return redirect('admin_bidding_dashboard')
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_update_bidding_season(request):
+    if request.method == 'POST':
+        season_id = request.POST.get('season_id')
+        name = request.POST.get('name')
+        start_date_str = request.POST.get('start_date')
+        end_date_str = request.POST.get('end_date')
+        auto_start = request.POST.get('auto_start') == 'on'
+
+        if season_id:
+            season = get_object_or_404(BiddingSeason, id=season_id)
+        else:
+            season = BiddingSeason()
+
+        season.name = name
+        season.auto_start = auto_start
+        
+        if start_date_str:
+            naive_dt = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M')
+            season.start_date = timezone.make_aware(naive_dt)
+        if end_date_str:
+            naive_dt = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M')
+            season.end_date = timezone.make_aware(naive_dt)
+            
+        season.save()
+        messages.success(request, f"Bidding Season '{season.name}' updated successfully.")
+    return redirect('admin_bidding_dashboard')
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_settings(request):
+    from .models import SystemSettings
+    settings = SystemSettings.get_settings()
+    
+    if request.method == 'POST':
+        # Maintenance
+        settings.is_maintenance_mode = request.POST.get('is_maintenance_mode') == 'on'
+        settings.maintenance_message = request.POST.get('maintenance_message', '')
+
+        # Site Identity
+        settings.site_name = request.POST.get('site_name', 'EGAMESCOUT')
+        settings.contact_email = request.POST.get('contact_email', '')
+
+        # Registration Controls
+        settings.allow_player_registration = request.POST.get('allow_player_registration') == 'on'
+        settings.allow_org_registration = request.POST.get('allow_org_registration') == 'on'
+
+        # Coin / Economy
+        try:
+            settings.default_org_coins = float(request.POST.get('default_org_coins', 1000))
+            settings.default_player_coins = float(request.POST.get('default_player_coins', 0))
+        except (ValueError, TypeError):
+            pass
+
+        # Announcement Banner
+        settings.show_announcement = request.POST.get('show_announcement') == 'on'
+        settings.announcement_text = request.POST.get('announcement_text', '')
+
+        settings.save()
+        messages.success(request, 'System settings saved successfully.')
+        return redirect('admin_settings')
+        
+    return render(request, 'web/Admin/admin_settings.html', {'settings': settings})

@@ -1,24 +1,22 @@
 {% extends 'web/Organization/dashboard_base.html' %}
 
 {% block content %}
-<div class="dashboard-container rounded-2xl p-8 min-h-[calc(100vh-80px)]">
+<div class="p-6 md:p-8 space-y-6">
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm mb-6">
+    <nav class="flex items-center gap-2 text-sm">
         <span class="text-white font-semibold flex items-center gap-1.5">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </span>
     </nav>
 
-
-
     <!-- Top Section: Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Total Players -->
         <div
-            class="glass-panel p-5 rounded-xl relative overflow-hidden group hover:border-accent-cyan/50 transition-all duration-300 backdrop-blur-md">
+            class="glass-panel p-5 rounded-xl relative overflow-hidden group hover:border-accent-cyan/50 transition-all duration-300">
             <div
-                class="absolute inset-0 bg-gradient-to-br from-accent-cyan/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                class="absolute inset-0 bg-gradient-to-br from-accent-cyan/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
             </div>
             <div class="relative z-10 flex justify-between items-start">
                 <div>
@@ -27,19 +25,17 @@
                         <i
                             class="fa-solid fa-users text-brand-light/50 group-hover:text-accent-cyan transition-colors text-lg"></i>
                     </div>
-                    <span class="text-brand-light/40 text-[10px] uppercase tracking-widest font-bold">Total
+                    <span class="text-brand-light/40 text-[10px] uppercase tracking-widest font-bold block">Total
                         Players</span>
                     <h3
                         class="text-2xl font-display font-bold text-white mt-1 group-hover:text-accent-cyan transition-colors">
                         {{ total_players }}</h3>
                 </div>
-                <!-- Growth Badge -->
                 <div
-                    class="badge-pulse bg-accent-green-dim border border-green-500/20 text-accent-green text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1">
+                    class="badge-pulse bg-accent-green-dim border border-green-500/20 text-accent-green text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1 shrink-0">
                     <i class="fa-solid fa-arrow-trend-up"></i> +12%
                 </div>
             </div>
-            <!-- Glow Accent -->
             <div class="absolute bottom-0 left-0 w-full h-1 bg-[#0B0C10]">
                 <div class="absolute inset-0 bg-accent-cyan/50 blur-[2px] opacity-50"></div>
             </div>
@@ -49,7 +45,7 @@
         <div
             class="bg-black/40 border border-white/10 p-5 rounded-xl relative overflow-hidden group hover:border-purple-500/50 transition-all duration-300 backdrop-blur-md shadow-2xl">
             <div
-                class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
             </div>
             <div class="relative z-10 flex justify-between items-start">
                 <div>
@@ -58,14 +54,14 @@
                         <i
                             class="fa-solid fa-trophy text-brand-light/50 group-hover:text-purple-400 transition-colors text-lg"></i>
                     </div>
-                    <span class="text-brand-light/40 text-[10px] uppercase tracking-widest font-bold">Active
+                    <span class="text-brand-light/40 text-[10px] uppercase tracking-widest font-bold block">Active
                         Tournaments</span>
                     <h3
                         class="text-2xl font-display font-bold text-white mt-1 group-hover:text-purple-400 transition-colors">
                         {{ active_tournaments }}</h3>
                 </div>
                 <div
-                    class="bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1 animate-pulse shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                    class="bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1 animate-pulse shrink-0">
                     <i class="fa-solid fa-circle-play"></i> LIVE
                 </div>
             </div>
@@ -74,19 +70,16 @@
             </div>
         </div>
 
-        <!-- Scorecard AI (Replacing Pending Offers) -->
-        <a href="{% url 'scorecard_tool' %}" class="block group h-full">
+        <!-- Scorecard AI -->
+        <a href="{% url 'scorecard_tool' %}" class="block group">
             <div
-                class="glass-panel p-5 rounded-xl relative overflow-hidden group hover:border-accent-cyan/50 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between border border-accent-cyan/20">
+                class="glass-panel p-5 rounded-xl relative overflow-hidden hover:border-accent-cyan/50 transition-all duration-300 h-full flex flex-col justify-between border border-accent-cyan/20">
                 <div
-                    class="absolute inset-0 bg-gradient-to-br from-accent-cyan/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    class="absolute inset-0 bg-gradient-to-br from-accent-cyan/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                 </div>
-
-                <!-- Magical Glow -->
                 <div
-                    class="absolute top-0 right-0 w-24 h-24 bg-accent-cyan/20 blur-[40px] rounded-full -mr-8 -mt-8 group-hover:bg-accent-cyan/30 transition-colors">
+                    class="absolute top-0 right-0 w-24 h-24 bg-accent-cyan/20 blur-[40px] rounded-full -mr-8 -mt-8 group-hover:bg-accent-cyan/30 transition-colors pointer-events-none">
                 </div>
-
                 <div class="relative z-10 flex justify-between items-start">
                     <div>
                         <div
@@ -94,79 +87,99 @@
                             <i
                                 class="fa-solid fa-wand-magic-sparkles text-brand-light/50 group-hover:text-accent-cyan transition-colors text-lg"></i>
                         </div>
-                        <span class="text-accent-cyan text-[10px] uppercase tracking-widest font-bold">Featured
+                        <span class="text-accent-cyan text-[10px] uppercase tracking-widest font-bold block">Featured
                             Tool</span>
                         <h3
                             class="text-xl font-display font-bold text-white mt-1 group-hover:text-accent-cyan transition-colors">
                             Scorecard AI</h3>
                     </div>
                     <div
-                        class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-accent-cyan group-hover:text-black transition-all duration-300">
+                        class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-accent-cyan group-hover:text-black transition-all duration-300 shrink-0">
                         <i
                             class="fa-solid fa-arrow-right -rotate-45 group-hover:rotate-0 transition-transform duration-300 text-xs"></i>
                     </div>
                 </div>
-
-                <!-- Bottom Decorative Line -->
                 <div class="absolute bottom-0 left-0 w-full h-1 bg-[#0B0C10]">
                     <div class="absolute inset-0 bg-accent-cyan/50 blur-[2px] opacity-50"></div>
                 </div>
             </div>
         </a>
 
-        <!-- Quick Actions (Moved Here) -->
+        <!-- Quick Actions -->
         <div
-            class="glass-panel p-5 rounded-xl relative overflow-hidden group hover:border-accent-orange/50 transition-all duration-300 backdrop-blur-md h-full flex flex-col justify-between border border-white/5">
+            class="glass-panel p-5 rounded-xl relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300 border border-white/5 flex flex-col justify-between">
             <div
-                class="absolute inset-0 bg-gradient-to-br from-accent-orange/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
             </div>
-
             <div class="relative z-10">
-                <h3 class="font-display font-bold text-sm text-white mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-bolt text-accent-orange"></i> QUICK ACTIONS
+                <h3 class="font-display font-bold text-sm text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-orange-400"></i> QUICK ACTIONS
                 </h3>
                 <div class="space-y-2">
                     <a href="{% url 'tournament_list' %}"
                         class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-accent-cyan/30 transition-all group/btn">
                         <div
-                            class="w-8 h-8 rounded bg-accent-cyan/10 flex items-center justify-center text-accent-cyan group-hover/btn:scale-110 transition-transform">
+                            class="w-8 h-8 rounded bg-accent-cyan/10 flex items-center justify-center text-accent-cyan group-hover/btn:scale-110 transition-transform shrink-0">
                             <i class="fa-solid fa-plus text-xs"></i>
                         </div>
-                        <div>
-                            <span
-                                class="block text-xs font-bold text-white group-hover/btn:text-accent-cyan transition-colors">Create
-                                Tournament</span>
-                        </div>
+                        <span
+                            class="text-xs font-bold text-white group-hover/btn:text-accent-cyan transition-colors">Create
+                            Tournament</span>
                     </a>
                     <a href="{% url 'my_players' %}"
-                        class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-accent-green/30 transition-all group/btn">
+                        class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-green-500/30 transition-all group/btn">
                         <div
-                            class="w-8 h-8 rounded bg-green-500/10 flex items-center justify-center text-accent-green group-hover/btn:scale-110 transition-transform">
+                            class="w-8 h-8 rounded bg-green-500/10 flex items-center justify-center text-accent-green group-hover/btn:scale-110 transition-transform shrink-0">
                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
                         </div>
-                        <div>
-                            <span
-                                class="block text-xs font-bold text-white group-hover/btn:text-accent-green transition-colors">Scout
-                                Players</span>
-                        </div>
+                        <span
+                            class="text-xs font-bold text-white group-hover/btn:text-accent-green transition-colors">Scout
+                            Players</span>
                     </a>
                 </div>
             </div>
-
-            <!-- Glow Accent -->
             <div class="absolute bottom-0 left-0 w-full h-1 bg-[#0B0C10]">
-                <div class="absolute inset-0 bg-accent-orange/50 blur-[2px] opacity-50"></div>
+                <div class="absolute inset-0 bg-orange-500/50 blur-[2px] opacity-50"></div>
             </div>
         </div>
     </div>
 
-    <!-- Main Content Grid: Analytics & Recruits -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+    <!-- Bidding Season Widget (Issue #9) -->
+    {% if active_season %}
+    <a href="{% url 'org_bidding_dashboard' %}"
+        class="flex items-center gap-4 p-5 rounded-xl border backdrop-blur-md hover:bg-white/5 transition-all group relative overflow-hidden
+        {% if active_season.is_active %}border-green-500/30 bg-green-500/5 hover:border-green-500/50{% else %}border-yellow-500/20 bg-yellow-500/5 hover:border-yellow-500/40{% endif %}">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0
+            {% if active_season.is_active %}bg-green-500/10 border border-green-500/30{% else %}bg-yellow-500/10 border border-yellow-500/30{% endif %}">
+            <i class="fa-solid fa-gavel text-xl {% if active_season.is_active %}text-green-400{% else %}text-yellow-400{% endif %}"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-[10px] font-bold uppercase tracking-widest mb-0.5 flex items-center gap-1.5
+                {% if active_season.is_active %}text-green-400{% else %}text-yellow-400{% endif %}">
+                <span class="w-1.5 h-1.5 rounded-full {% if active_season.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
+                {% if active_season.is_active %}Bidding Live — Place Your Bids!{% else %}Bidding Season Scheduled{% endif %}
+            </p>
+            <p class="text-white font-bold font-display tracking-wide truncate">{{ active_season.name }}</p>
+            {% if active_season.end_date %}
+            <p class="text-white/40 text-[11px] font-mono">Ends: {{ active_season.end_date|date:"d M Y" }}</p>
+            {% elif active_season.start_date %}
+            <p class="text-white/40 text-[11px] font-mono">Starts: {{ active_season.start_date|date:"d M Y" }}</p>
+            {% endif %}
+        </div>
+        <div class="flex flex-col items-end gap-1 shrink-0">
+            <span class="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg
+                {% if active_season.is_active %}bg-green-500/10 border border-green-500/30 text-green-400{% else %}bg-yellow-500/10 border border-yellow-500/30 text-yellow-400{% endif %}">
+                <i class="fa-solid fa-arrow-right"></i> Go to Hub
+            </span>
+        </div>
+    </a>
+    {% endif %}
 
+    <!-- Main Content Grid: Analytics & Recruits -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <!-- Left Column: Activity Analytics (Span 2) -->
         <div class="lg:col-span-2">
-            <div
-                class="glass-panel p-5 rounded-xl relative overflow-hidden backdrop-blur-md border border-white/5 flex flex-col h-full">
+            <div class="glass-panel p-5 rounded-xl border border-white/5 flex flex-col h-full">
                 <div class="flex items-center justify-between mb-6">
                     <div>
                         <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
@@ -174,32 +187,26 @@
                             ACTIVITY ANALYTICS
                         </h3>
                         <p class="text-[10px] text-brand-light/40 uppercase tracking-wider ml-3 mt-1">Player Growth
-                            (Last 6
-                            Months)</p>
+                            (Last 6 Months)</p>
                     </div>
                     <div class="flex bg-[#0B0C10] p-1 rounded-lg border border-white/5">
                         <button
                             class="px-4 py-1.5 text-[10px] uppercase font-bold text-brand-dark bg-accent-cyan rounded shadow-lg hover:bg-white transition-colors">Growth</button>
                     </div>
                 </div>
-
-                <!-- Chart.js Canvas -->
-                <div
-                    class="h-64 w-full rounded-xl bg-[#0B0C10]/50 border border-white/5 p-3 relative overflow-hidden group">
+                <div class="h-64 w-full rounded-xl bg-[#0B0C10]/50 border border-white/5 p-3 relative overflow-hidden">
                     <canvas id="growthChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Right Column: Recent Recruits (Span 1) -->
+        <!-- Right Column: Recent Recruits -->
         <div class="lg:col-span-1">
-            <div
-                class="glass-panel p-5 rounded-xl relative overflow-hidden backdrop-blur-md border border-white/5 h-full">
+            <div class="glass-panel p-5 rounded-xl border border-white/5 h-full">
                 <h3 class="font-display font-bold text-lg text-white mb-4 flex items-center gap-2">
                     <span class="w-1 h-5 bg-accent-green rounded-full"></span>
                     RECENT RECRUITS
                 </h3>
-
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -213,14 +220,15 @@
                             <tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
                                 <td
                                     class="py-3 px-2 text-white font-bold group-hover:text-accent-cyan transition-colors truncate max-w-[120px]">
-                                    {{recruit.full_name }}</td>
+                                    {{ recruit.full_name }}</td>
                                 <td
                                     class="py-3 px-2 text-right text-brand-light/50 font-mono text-xs whitespace-nowrap">
-                                    {{recruit.created_at|date:"M d" }}</td>
+                                    {{ recruit.created_at|date:"M d" }}</td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="2" class="py-8 text-center text-brand-light/30">No recent recruits</td>
+                                <td colspan="2" class="py-8 text-center text-brand-light/30 text-sm">No recent recruits
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -229,18 +237,17 @@
             </div>
         </div>
     </div>
-
 </div>
 
-<!-- Data passed from Django View safely -->
+<!-- Data for Chart (safe to be outside block content since it's still inside block) -->
 {{ analytics_labels|json_script:"analytics-labels-data" }}
 {{ analytics_data|json_script:"analytics-data-data" }}
+{% endblock %}
 
+{% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const ctx = document.getElementById('growthChart').getContext('2d');
-
-        // Parse data from JSON script tags
         const labels = JSON.parse(document.getElementById('analytics-labels-data').textContent);
         const data = JSON.parse(document.getElementById('analytics-data-data').textContent);
 
@@ -273,9 +280,7 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
                         backgroundColor: 'rgba(11, 12, 16, 0.9)',
                         titleColor: '#fff',
@@ -290,25 +295,12 @@
                 },
                 scales: {
                     x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.05)',
-                            borderColor: 'transparent'
-                        },
-                        ticks: {
-                            color: 'rgba(197, 198, 199, 0.5)',
-                            font: { family: 'Rajdhani', size: 12 }
-                        }
+                        grid: { color: 'rgba(255, 255, 255, 0.05)', borderColor: 'transparent' },
+                        ticks: { color: 'rgba(197, 198, 199, 0.5)', font: { family: 'Rajdhani', size: 12 } }
                     },
                     y: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.05)',
-                            borderColor: 'transparent'
-                        },
-                        ticks: {
-                            color: 'rgba(197, 198, 199, 0.5)',
-                            font: { family: 'Rajdhani', size: 12 },
-                            stepSize: 1
-                        },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)', borderColor: 'transparent' },
+                        ticks: { color: 'rgba(197, 198, 199, 0.5)', font: { family: 'Rajdhani', size: 12 }, stepSize: 1 },
                         beginAtZero: true
                     }
                 }

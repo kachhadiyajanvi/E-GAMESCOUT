@@ -24,11 +24,3 @@ urlpatterns = [
     path('', include('web.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# Custom Error Handlers
-from web.views import custom_error_view
-
-handler404 = 'web.views.handler404'
-handler500 = 'web.views.handler500'
-handler403 = 'web.views.handler403'
-handler400 = 'web.views.handler400'
-

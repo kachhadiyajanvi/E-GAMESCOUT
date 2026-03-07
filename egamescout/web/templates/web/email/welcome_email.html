@@ -1,61 +1,124 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <title>Welcome to E-Game Scout</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Game Scout | Welcome Aboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Rajdhani:wght@400;500;600&display=swap');
+        * { box-sizing: border-box; }
+        body { background-color: #05060A; font-family: 'Rajdhani', Arial, sans-serif; }
+    </style>
 </head>
 
-<body style="margin: 0; padding: 0; background-color: #0B0C10; font-family: 'Arial', sans-serif;">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+<body style="margin:0;padding:0;background-color:#05060A;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#05060A;padding:40px 0;">
         <tr>
-            <td align="center" style="padding: 40px 0;">
-                <table border="0" cellpadding="0" cellspacing="0" width="600"
-                    style="border-collapse: collapse; background-color: #1F2833; border: 1px solid #333; border-radius: 8px; overflow: hidden; box-shadow: 0 0 20px rgba(102, 252, 241, 0.1);">
+            <td align="center">
+                <table width="600" border="0" cellspacing="0" cellpadding="0"
+                    style="background-color:#0F1117;border:1px solid rgba(102,252,241,0.15);border-radius:16px;overflow:hidden;box-shadow:0 0 50px rgba(102,252,241,0.08);">
 
                     <!-- Header -->
                     <tr>
-                        <td align="center"
-                            style="padding: 30px; background-color: #0B0C10; border-bottom: 2px solid #66FCF1;">
-                            <h1
-                                style="color: #FFFFFF; font-family: 'Arial Black', sans-serif; font-size: 24px; margin: 0; letter-spacing: 2px;">
-                                E-GAME <span style="color: #66FCF1;">SCOUT</span>
-                            </h1>
+                        <td align="center" style="padding:0;background:linear-gradient(135deg,#0B0C10,#0F1A1A);border-bottom:1px solid rgba(102,252,241,0.2);">
+                            <div style="height:3px;background:linear-gradient(to right,transparent,#66FCF1,#FF2A6D,transparent);"></div>
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td align="center" style="padding:28px 40px;">
+                                        <table border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                                <td style="padding-right:14px;vertical-align:middle;">
+                                                    <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(102,252,241,0.15),rgba(255,42,109,0.1));border:1px solid rgba(102,252,241,0.4);text-align:center;box-shadow:0 0 20px rgba(102,252,241,0.2);">
+                                                        <img src="{{ logo_url }}" alt="Logo" width="30" height="30" style="display:block;margin:9px auto;object-fit:contain;">
+                                                    </div>
+                                                </td>
+                                                <td style="vertical-align:middle;">
+                                                    <div style="font-family:'Orbitron',Arial,sans-serif;font-size:20px;font-weight:900;color:#FFFFFF;letter-spacing:0.2em;">
+                                                        EGAME<span style="color:#66FCF1;">SCOUT</span>
+                                                    </div>
+                                                    <div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.3em;text-transform:uppercase;margin-top:2px;">
+                                                        Player Portal
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
 
-                    <!-- Content -->
+                    <!-- Hero Banner -->
                     <tr>
-                        <td align="center" style="padding: 40px 30px;">
-                            <h2
-                                style="color: #FFFFFF; font-size: 24px; margin-bottom: 20px; text-transform: uppercase;">
-                                GAME ON, {{ full_name }}!</h2>
-                            <p style="color: #C5C6C7; font-size: 16px; line-height: 24px; margin-bottom: 30px;">
-                                Welcome to the elite circle. Your profile has been successfully activated. You are now
-                                ready to tackle tournaments, join teams, and showcase your skills.
+                        <td align="center" style="padding:50px 50px 30px;background:linear-gradient(180deg,rgba(102,252,241,0.05) 0%,transparent 100%);">
+                            <span style="font-size:52px;display:block;margin-bottom:20px;">🏆</span>
+                            <h1 style="font-family:'Orbitron',Arial,sans-serif;font-size:26px;font-weight:900;color:#FFFFFF;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 10px;">
+                                GAME ON, <span style="color:#66FCF1;">{{ full_name }}</span>!
+                            </h1>
+                            <p style="color:rgba(197,198,199,0.7);font-size:16px;line-height:1.7;margin:0;">
+                                You're officially part of the elite esports scouting network.
                             </p>
+                        </td>
+                    </tr>
 
-                            <!-- CTA Box -->
-                            <div
-                                style="background-color: #0B0C10; border: 1px solid #66FCF1; padding: 25px; text-align: center; border-radius: 4px; display: inline-block; margin-bottom: 30px;">
-                                <p
-                                    style="color: #66FCF1; font-size: 18px; font-weight: bold; margin: 0; letter-spacing: 1px;">
-                                    YOUR JOURNEY STARTS NOW
+                    <!-- Glow Divider -->
+                    <tr>
+                        <td align="center" style="padding:0 50px;">
+                            <div style="height:1px;background:linear-gradient(to right,transparent,rgba(102,252,241,0.3),transparent);"></div>
+                        </td>
+                    </tr>
+
+                    <!-- CTA Box -->
+                    <tr>
+                        <td align="center" style="padding:36px 50px;">
+                            <div style="background:linear-gradient(135deg,rgba(102,252,241,0.07),rgba(255,42,109,0.04));border:1px solid rgba(102,252,241,0.2);border-radius:12px;padding:28px 30px;text-align:center;">
+                                <p style="color:#66FCF1;font-family:'Orbitron',Arial,sans-serif;font-size:15px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 12px;">
+                                    Your Journey Starts Now
+                                </p>
+                                <p style="color:rgba(197,198,199,0.75);font-size:15px;line-height:1.7;margin:0;font-family:'Rajdhani',Arial,sans-serif;">
+                                    Complete your player bio, showcase your stats, and get discovered by professional esports organizations.
                                 </p>
                             </div>
+                        </td>
+                    </tr>
 
-                            <p style="color: #C5C6C7; font-size: 16px; line-height: 24px;">
-                                Login to your dashboard to complete your bio and start scouting.
-                            </p>
+                    <!-- Quick Wins List -->
+                    <tr>
+                        <td style="padding:0 50px 40px;">
+                            <p style="color:#FFFFFF;font-size:14px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 16px;font-family:'Orbitron',Arial,sans-serif;">Next Steps</p>
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                                        <span style="color:#66FCF1;font-size:16px;margin-right:12px;">✓</span>
+                                        <span style="color:rgba(197,198,199,0.8);font-size:15px;font-family:'Rajdhani',Arial,sans-serif;">Complete your player profile & bio</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                                        <span style="color:#66FCF1;font-size:16px;margin-right:12px;">✓</span>
+                                        <span style="color:rgba(197,198,199,0.8);font-size:15px;font-family:'Rajdhani',Arial,sans-serif;">Browse and register for upcoming tournaments</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;">
+                                        <span style="color:#66FCF1;font-size:16px;margin-right:12px;">✓</span>
+                                        <span style="color:rgba(197,198,199,0.8);font-size:15px;font-family:'Rajdhani',Arial,sans-serif;">Get scouted & sign with top esports orgs</span>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
 
                     <!-- Footer -->
                     <tr>
-                        <td align="center"
-                            style="padding: 20px; background-color: #0B0C10; border-top: 1px solid #333;">
-                            <p style="color: #555; font-size: 12px; margin: 0;">
-                                &copy; 2026 E-Game Scout. GG WP.
+                        <td align="center" style="padding:20px 40px 28px;background-color:#080A0E;border-top:1px solid rgba(255,255,255,0.05);">
+                            <p style="color:rgba(102,252,241,0.4);font-size:11px;letter-spacing:0.15em;margin:0 0 6px;text-transform:uppercase;font-family:'Rajdhani',Arial,sans-serif;">
+                                © 2026 E-Game Scout · GG WP
+                            </p>
+                            <p style="color:rgba(255,255,255,0.15);font-size:11px;margin:0;font-family:'Rajdhani',Arial,sans-serif;">
+                                Need help? Reach us at <a href="mailto:help.egamescout@gmail.com" style="color:rgba(102,252,241,0.4);text-decoration:none;">help.egamescout@gmail.com</a>
                             </p>
                         </td>
                     </tr>

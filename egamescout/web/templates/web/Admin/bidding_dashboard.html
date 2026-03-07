@@ -1,0 +1,465 @@
+{% extends 'web/Admin/admin_base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h1 class="font-display font-bold text-3xl text-white mb-1">BIDDING SEASON MANAGEMENT</h1>
+            <p class="text-white/40 text-sm">Control the organization bidding system manually or automatically.</p>
+        </div>
+        <!-- We use the configure button inside the active season card now -->
+    </div>
+
+    <!-- Feedback Messages -->
+    {% if messages %}
+    <div class="space-y-2 mb-6">
+        {% for message in messages %}
+        <div
+            class="p-4 rounded-lg text-sm font-bold {% if message.tags == 'error' %}bg-red-500/20 text-red-400 border border-red-500/30{% else %}bg-green-500/20 text-green-400 border border-green-500/30{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Global Controls & Status -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Status Card -->
+        <div
+            class="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm relative overflow-hidden">
+            <!-- Glow background -->
+            {% if active_season.is_active %}
+            <div
+                class="absolute -top-20 -right-20 w-64 h-64 bg-green-500/10 blur-[80px] rounded-full pointer-events-none">
+            </div>
+            {% else %}
+            <div
+                class="absolute -top-20 -right-20 w-64 h-64 bg-red-500/10 blur-[80px] rounded-full pointer-events-none">
+            </div>
+            {% endif %}
+
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                <div>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Current Season Status
+                    </h3>
+                    <div class="flex items-center gap-4">
+                        {% if active_season.is_active %}
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-green-400 animate-pulse"></span>
+                            <span class="text-3xl font-display font-bold text-green-400">ACTIVE</span>
+                            {% if active_season.auto_start %}
+                                <span class="px-2 py-1 bg-brand-blue/20 text-brand-blue border border-brand-blue/30 text-[10px] font-bold uppercase tracking-wider rounded ml-2 shadow-[0_0_10px_rgba(0,243,255,0.2)]">System Auto</span>
+                            {% else %}
+                                <span class="px-2 py-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[10px] font-bold uppercase tracking-wider rounded ml-2 shadow-[0_0_10px_rgba(249,115,22,0.2)]">Manual Override</span>
+                            {% endif %}
+                        </div>
+                        <span class="text-white text-xl font-bold">"{{ active_season.name }}"</span>
+                        {% else %}
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                            <span class="text-3xl font-display font-bold text-red-500">INACTIVE</span>
+                        </div>
+                        <span class="text-white/40 text-sm">No season currently active.</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3">
+                    {% if not active_season.is_active %}
+                    <button type="button" onclick="openStartSeasonModal()"
+                        class="px-6 py-3 rounded-lg bg-green-500 text-black font-bold uppercase shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-play"></i> Start Manual Season
+                    </button>
+                    {% else %}
+                    <!-- Configure the current active season (manual only) -->
+                    {% if not active_season.auto_start %}
+                    <button type="button" onclick="openSeasonModal()"
+                        class="px-4 py-3 rounded-lg bg-brand-blue/20 text-brand-blue border border-brand-blue/30 font-bold uppercase hover:bg-brand-blue hover:text-black transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-gear"></i> Configure
+                    </button>
+                    {% endif %}
+                    <form method="POST" action="{% url 'admin_end_bidding_season' %}" id="endSeasonForm">
+                        {% csrf_token %}
+                        {% if active_season %}<input type="hidden" name="season_id" value="{{ active_season.id }}">{% endif %}
+                        <button type="button"
+                            class="px-6 py-3 rounded-lg bg-red-500 text-white font-bold uppercase shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_30px_rgba(239,68,68,0.5)] transition-all flex items-center gap-2"
+                            onclick="openEndSeasonModal()">
+                            <i class="fa-solid fa-stop"></i> End Season
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Predefined Scheduled Seasons -->
+            <div class="mt-8">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Strict Auto-Bidding Schedule</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Winter Season -->
+                    <div class="p-6 bg-black/20 rounded-xl border {% if bidding_status.season_name == 'Winter Season '|add:request.resolver_match.kwargs.year|default:'' or 'Winter Season' in bidding_status.season_name %}border-brand-blue/50 shadow-[0_0_15px_rgba(102,252,241,0.2)]{% else %}border-white/5{% endif %} relative">
+                        {% if 'Winter Season' in bidding_status.season_name and bidding_status.is_active %}
+                        <div class="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 bg-green-500/10 rounded border border-green-500/20 text-[9px] font-bold text-green-400 uppercase tracking-widest">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Active Now
+                        </div>
+                        {% endif %}
+                        <h4 class="font-display font-bold text-lg mb-1 pr-16 text-orange-500 drop-shadow-[0_0_10px_rgba(249,115,22,0.8)] tracking-wider">WINTER SEASON</h4>
+                        
+                        <div class="flex flex-col gap-2 my-4 bg-white/5 p-3 rounded-lg border border-white/5">
+                            <div class="flex items-center justify-between">
+                                <p class="text-[10px] text-white/40 uppercase font-bold tracking-widest flex items-center gap-1.5"><i class="fa-regular fa-calendar-check text-green-400"></i> Start Date</p>
+                                <p class="text-xs text-white font-mono font-bold">Jan 1, 00:00</p>
+                            </div>
+                            <div class="h-px w-full bg-white/5 my-0.5"></div>
+                            <div class="flex items-center justify-between">
+                                <p class="text-[10px] text-white/40 uppercase font-bold tracking-widest flex items-center gap-1.5"><i class="fa-regular fa-calendar-xmark text-red-400"></i> End Date</p>
+                                <p class="text-xs text-white font-mono font-bold">Jan 31, 23:59</p>
+                            </div>
+                        </div>
+                        
+                        <p class="text-xs text-white/50 bg-brand-blue/5 p-2 rounded border border-brand-blue/10">Activates automatically every year on January 1st.</p>
+                    </div>
+
+                    <!-- Summer Season -->
+                    <div class="p-6 bg-black/20 rounded-xl border {% if bidding_status.season_name == 'Summer Season '|add:request.resolver_match.kwargs.year|default:'' or 'Summer Season' in bidding_status.season_name %}border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.2)]{% else %}border-white/5{% endif %} relative">
+                        {% if 'Summer Season' in bidding_status.season_name and bidding_status.is_active %}
+                        <div class="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 bg-green-500/10 rounded border border-green-500/20 text-[9px] font-bold text-green-400 uppercase tracking-widest">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Active Now
+                        </div>
+                        {% endif %}
+                        <h4 class="font-display font-bold text-lg mb-1 pr-16 text-orange-500 drop-shadow-[0_0_10px_rgba(249,115,22,0.8)] tracking-wider">SUMMER SEASON</h4>
+                        
+                        <div class="flex flex-col gap-2 my-4 bg-white/5 p-3 rounded-lg border border-white/5">
+                            <div class="flex items-center justify-between">
+                                <p class="text-[10px] text-white/40 uppercase font-bold tracking-widest flex items-center gap-1.5"><i class="fa-regular fa-calendar-check text-green-400"></i> Start Date</p>
+                                <p class="text-xs text-white font-mono font-bold">Jul 1, 00:00</p>
+                            </div>
+                            <div class="h-px w-full bg-white/5 my-0.5"></div>
+                            <div class="flex items-center justify-between">
+                                <p class="text-[10px] text-white/40 uppercase font-bold tracking-widest flex items-center gap-1.5"><i class="fa-regular fa-calendar-xmark text-red-400"></i> End Date</p>
+                                <p class="text-xs text-white font-mono font-bold">Jul 31, 23:59</p>
+                            </div>
+                        </div>
+                        
+                        <p class="text-xs text-white/50 bg-yellow-500/5 p-2 rounded border border-yellow-500/10">Activates automatically every year on July 1st.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Logs -->
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col">
+            <h3 class="font-display font-bold text-lg text-white mb-4">SYSTEM LOGS</h3>
+            <div class="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2 h-48">
+                {% for log in season_logs %}
+                <div class="p-3 bg-black/30 rounded-lg border border-white/5 text-xs">
+                    <div class="flex justify-between items-center mb-1">
+                        <span
+                            class="font-bold {% if log.action == 'START' %}text-green-400{% elif log.action == 'PAUSE' %}text-yellow-400{% elif log.action == 'END' %}text-red-400{% else %}text-cyan-400{% endif %}">{{
+                            log.action }}</span>
+                        <span class="text-white/40 font-mono">{{ log.timestamp|date:"M d, H:i:s" }}</span>
+                    </div>
+                    <p class="text-white/70">{{ log.message }}</p>
+                </div>
+                {% empty %}
+                <p class="text-center text-white/30 text-xs py-4">No recent logs.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Auction Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div onclick="window.location.href='{% url 'admin_bidding_details' %}'" class="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-cyan-500/30 rounded-xl p-6 cursor-pointer hover:border-cyan-400 group transition-all relative overflow-hidden">
+            <p class="text-cyan-300/80 text-xs font-bold tracking-widest uppercase mb-1">Total Bids</p>
+            <h3 class="text-3xl font-display font-bold text-cyan-300">{{ total_bids }}</h3>
+            <div class="absolute inset-0 bg-cyan-400/0 group-hover:bg-cyan-400/5 transition-colors"></div>
+        </div>
+        <div onclick="window.location.href='{% url 'admin_bidding_details' %}'" class="bg-gradient-to-br from-green-600/20 to-emerald-600/20 border border-emerald-500/30 rounded-xl p-6 cursor-pointer hover:border-emerald-400 group transition-all relative overflow-hidden">
+            <p class="text-emerald-300/80 text-xs font-bold tracking-widest uppercase mb-1">Players Sold</p>
+            <h3 class="text-3xl font-display font-bold text-emerald-300">{{ players_sold }}</h3>
+            <div class="absolute inset-0 bg-emerald-400/0 group-hover:bg-emerald-400/5 transition-colors"></div>
+        </div>
+        <div onclick="window.location.href='{% url 'admin_bidding_details' %}'" class="bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border border-amber-500/30 rounded-xl p-6 cursor-pointer hover:border-amber-400 group transition-all relative overflow-hidden">
+            <p class="text-amber-300/80 text-xs font-bold tracking-widest uppercase mb-1">Total Coins Spent</p>
+            <h3 class="text-3xl font-display font-bold text-amber-300">₹{{ total_coins_spent|intcomma|default:"0" }}</h3>
+            <div class="absolute inset-0 bg-amber-400/0 group-hover:bg-amber-400/5 transition-colors"></div>
+        </div>
+        <div onclick="window.location.href='{% url 'admin_bidding_details' %}'" class="bg-gradient-to-br from-purple-600/20 to-violet-600/20 border border-purple-500/30 rounded-xl p-6 cursor-pointer hover:border-purple-400 group transition-all relative overflow-hidden">
+            <p class="text-purple-300/80 text-xs font-bold tracking-widest uppercase mb-1">Top Bid (MVP)</p>
+            {% if mvp_bid %}
+            <h3 class="text-xl font-display font-bold text-purple-300">₹{{ mvp_bid.amount|intcomma }}</h3>
+            <p class="text-xs text-purple-200 mt-1">{{ mvp_bid.player.username }}</p>
+            {% else %}
+            <h3 class="text-3xl font-display font-bold text-purple-300">---</h3>
+            {% endif %}
+            <div class="absolute inset-0 bg-purple-400/0 group-hover:bg-purple-400/5 transition-colors"></div>
+        </div>
+    </div>
+
+    <!-- Configure Season Modal (Only for editing Active Season) -->
+    <div id="seasonModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div
+            class="bg-[#0f0f0f] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative overflow-hidden flex flex-col">
+            <div class="p-6 border-b border-white/10 bg-black/20 flex items-center justify-between">
+                <h3 class="font-display font-bold text-xl text-white flex items-center gap-2">
+                    <i class="fa-solid fa-gear text-brand-blue"></i> Configure Active Season
+                </h3>
+                <button type="button" onclick="closeSeasonModal()"
+                    class="text-white/40 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <form method="POST" action="{% url 'admin_update_bidding_season' %}" class="p-6 space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="season_id" value="{{ active_season.id|default:'' }}">
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Season
+                        Name</label>
+                    <input type="text" name="name" value="{{ active_season.name|default:'' }}"
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:ring-brand-blue"
+                        required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Start Date
+                            &amp; Time</label>
+                        <input type="datetime-local" name="start_date" id="startDateInput"
+                            value="{{ active_season.start_date|date:'Y-m-d\TH:i'|default:'' }}"
+                            class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:ring-brand-blue [color-scheme:dark]" disabled>
+                            <p class="text-[9px] text-gray-500 mt-1">Start date cannot be changed once active.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">End Date
+                            &amp; Time</label>
+                        <input type="datetime-local" name="end_date" id="endDateInput"
+                            value="{{ active_season.end_date|date:'Y-m-d\TH:i'|default:'' }}"
+                            class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:ring-brand-blue [color-scheme:dark]">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex justify-end gap-3 border-t border-white/10">
+                    <button type="button" onclick="closeSeasonModal()"
+                        class="px-4 py-2 text-white/50 hover:text-white font-bold text-sm uppercase">Cancel</button>
+                    <button type="submit"
+                        class="px-6 py-2 bg-brand-blue text-black rounded-lg font-bold text-sm uppercase shadow-[0_0_15px_rgba(0,243,255,0.3)]">Save
+                        Configuration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function openSeasonModal() {
+        document.getElementById('seasonModal').classList.remove('hidden');
+        document.getElementById('seasonModal').classList.add('flex');
+    }
+
+    function closeSeasonModal() {
+        document.getElementById('seasonModal').classList.add('hidden');
+        document.getElementById('seasonModal').classList.remove('flex');
+    }
+
+    // Removed toggleStartConfirmButton's old autostart event listener as it's no longer present
+
+    // Live Timers Logic (Multiple Timers Support)
+    const timerElements = document.querySelectorAll('.countdown-timer');
+    if (timerElements.length > 0) {
+        function updateTimers() {
+            const now = new Date();
+            
+            timerElements.forEach(timerElement => {
+                const startStr = timerElement.getAttribute('data-start');
+                const endStr = timerElement.getAttribute('data-end');
+                const isActive = timerElement.getAttribute('data-active') === 'true';
+
+                if (!startStr) return;
+
+                const start = new Date(startStr);
+                const end = endStr ? new Date(endStr) : null;
+
+                if (!isActive && now < start) {
+                    const diff = start - now;
+                    displayDiff(diff, "Starts in: ", timerElement);
+                    if (diff <= 1000) {
+                        timerElement.innerText = "Starting now... Refreshing!";
+                        setTimeout(() => location.reload(), 2000);
+                    }
+                } else if (isActive && end && now < end) {
+                    const diff = end - now;
+                    displayDiff(diff, "Ends in: ", timerElement);
+                    if (diff <= 1000) {
+                        timerElement.innerText = "Season Ending... Refreshing!";
+                        setTimeout(() => location.reload(), 2000);
+                    }
+                } else if (end && now >= end) {
+                    timerElement.innerText = "Season Time Expired";
+                    timerElement.className = "countdown-timer text-[11px] text-red-500 font-bold font-mono tracking-wider";
+                } else {
+                    timerElement.innerText = "Scheduled";
+                }
+            });
+        }
+
+        function displayDiff(diff, prefix, element) {
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+            element.innerText = `${prefix} ${d}d ${h}h ${m}m ${s}s`;
+        }
+
+        setInterval(updateTimers, 1000);
+        updateTimers();
+    }
+</script>
+
+<!-- End Season Confirmation Modal (Issue #12) -->
+<div id="endSeasonModal" class="fixed inset-0 z-[200] hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeEndSeasonModal()"></div>
+    <div class="relative bg-[#0f0f0f] border border-red-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl z-10">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-triangle-exclamation text-red-400 text-xl"></i>
+            </div>
+            <div>
+                <h3 class="text-white font-display font-bold text-lg tracking-wider">End Bidding Season?</h3>
+                <p class="text-white/40 text-xs mt-0.5">This action cannot be undone.</p>
+            </div>
+        </div>
+        <p class="text-white/60 text-sm leading-relaxed mb-8">
+            Ending the season will mark it as <span class="text-red-400 font-bold">INACTIVE</span>. All pending bids will remain in the system but no new bids can be placed. Are you absolutely sure?
+        </p>
+        <div class="flex gap-3">
+            <button onclick="closeEndSeasonModal()"
+                class="flex-1 py-3 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-all font-bold text-sm">
+                Cancel
+            </button>
+            <button onclick="document.getElementById('endSeasonForm').submit()"
+                class="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold text-sm uppercase tracking-wider hover:bg-red-600 transition-all shadow-[0_0_20px_rgba(239,68,68,0.3)]">
+                <i class="fa-solid fa-stop mr-2"></i> Yes, End Season
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Start Season Confirmation Modal -->
+<div id="startSeasonModal" class="fixed inset-0 z-[200] hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeStartSeasonModal()"></div>
+    <div class="relative bg-[#0f0f0f] border border-green-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl z-10 flex flex-col">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-play text-green-400 text-xl"></i>
+            </div>
+            <div>
+                <h3 class="text-white font-display font-bold text-lg tracking-wider">Start Manual Season</h3>
+                <p class="text-white/40 text-xs mt-0.5">Override automatic schedule.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'admin_start_bidding_season' %}" id="startSeasonForm">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Manual Season Name</label>
+                <input type="text" name="name" placeholder="E.g., Special Draft 2026" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Start Date & Time <span class="text-[10px] text-gray-500 normal-case">(Optional, now)</span></label>
+                <input type="datetime-local" name="start_date" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
+            </div>
+            <div class="mb-6">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Auto-End Date & Time <span class="text-[10px] text-gray-500 normal-case">(Optional)</span></label>
+                <input type="datetime-local" name="end_date" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
+            </div>
+
+            <div class="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
+                <p class="text-orange-400 font-bold text-sm mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Confirmation Required</p>
+                <p class="text-white/60 text-xs leading-relaxed">
+                    Starting this season will immediately allow organizations to place live bids and bypasses the strict Jan/Jul calendar.
+                </p>
+                
+                <label class="flex items-center gap-3 mt-4 cursor-pointer group">
+                    <input type="checkbox" id="confirmStartCheckbox" onchange="toggleStartConfirmButton()" class="w-4 h-4 rounded bg-black border border-orange-500/50 text-orange-500 focus:ring-0">
+                    <span class="text-xs font-bold text-white/80 group-hover:text-white transition-colors">I confirm I want to start bidding now.</span>
+                </label>
+            </div>
+            
+            <div class="flex gap-3">
+                <button type="button" onclick="closeStartSeasonModal()"
+                    class="flex-1 py-3 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-all font-bold text-sm">
+                    Cancel
+                </button>
+                <button type="submit" id="confirmStartSeasonBtn" disabled
+                    class="flex-1 py-3 rounded-xl bg-green-500/30 text-white/50 font-bold text-sm uppercase tracking-wider transition-all cursor-not-allowed">
+                    Start Season
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    function openEndSeasonModal() {
+        const m = document.getElementById('endSeasonModal');
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+    }
+
+    // Modified End Modal logic for specific seasons
+    let endSeasonFormIdToSubmit = 'endSeasonForm'; // default to global button
+    
+    function closeEndSeasonModal() {
+        const m = document.getElementById('endSeasonModal');
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+    }
+
+    function openStartSeasonModal() {
+        document.getElementById('startSeasonModal').classList.remove('hidden');
+        document.getElementById('startSeasonModal').classList.add('flex');
+        document.getElementById('confirmStartCheckbox').checked = false;
+        toggleStartConfirmButton();
+    }
+
+    function closeStartSeasonModal() {
+        document.getElementById('startSeasonModal').classList.add('hidden');
+        document.getElementById('startSeasonModal').classList.remove('flex');
+    }
+
+    function toggleStartConfirmButton() {
+        const checkbox = document.getElementById('confirmStartCheckbox');
+        const btn = document.getElementById('confirmStartSeasonBtn');
+        if (checkbox.checked) {
+            btn.disabled = false;
+            btn.className = "flex-1 py-3 rounded-xl bg-green-500 text-black font-bold text-sm uppercase tracking-wider hover:bg-green-400 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]";
+        } else {
+            btn.disabled = true;
+            btn.className = "flex-1 py-3 rounded-xl bg-green-500/30 text-white/50 font-bold text-sm uppercase tracking-wider transition-all cursor-not-allowed";
+        }
+    }
+
+    // Override the hardcoded global submit from the previous task
+    const oldEndSubmitBtn = document.querySelector('#endSeasonModal button.bg-red-500:not(#confirmStartSeasonBtn)');
+    if (oldEndSubmitBtn) {
+        oldEndSubmitBtn.onclick = function() {
+            document.getElementById(endSeasonFormIdToSubmit).submit();
+        };
+    }
+
+    document.addEventListener('keydown', e => { 
+        if (e.key === 'Escape') {
+            closeEndSeasonModal();
+            closeStartSeasonModal();
+            closeSeasonModal();
+        }
+    });
+</script>
+{% endblock %}

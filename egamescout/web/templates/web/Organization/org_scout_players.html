@@ -1,0 +1,233 @@
+{% extends 'web/Organization/dashboard_base.html' %}
+
+{% block content %}
+<div class="dashboard-container rounded-2xl p-8 min-h-[calc(100vh-80px)]">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm mb-6">
+        <a href="{% url 'organizer_dashboard' %}"
+            class="text-white/60 hover:text-white transition-colors flex items-center gap-1.5 font-bold">
+            <i class="fa-solid fa-home text-xs"></i>
+            <span>Home</span>
+        </a>
+        <span class="text-white/30">/</span>
+        <span class="text-accent-cyan font-bold tracking-wider">Scout Players</span>
+    </nav>
+
+    <!-- Header Area -->
+    <div class="flex flex-col md:flex-row items-end justify-between mb-8 gap-6">
+        <div>
+            <h1 class="text-3xl font-display font-bold text-white mb-2 uppercase tracking-widest flex items-center gap-3">
+                <i class="fa-solid fa-users-viewfinder text-accent-cyan"></i>
+                PLAYER <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">DATABASE</span>
+            </h1>
+            <p class="text-brand-light/60 text-sm font-mono">
+                Browse and scout from {{ available_players|length }} active players on the platform.
+            </p>
+        </div>
+
+        <!-- Pill-Shaped View Toggle matching user screenshot -->
+        <div class="flex items-center bg-[#1F2833] rounded-2xl p-1.5 border border-white/5 shadow-inner">
+            <button onclick="setPlayerView('grid')" id="btnViewGrid" class="w-10 h-10 rounded-xl flex items-center justify-center text-accent-cyan bg-[#2C3847] shadow transition-all duration-300" title="Grid View">
+                <i class="fa-solid fa-border-all text-lg"></i>
+            </button>
+            <button onclick="setPlayerView('table')" id="btnViewTable" class="w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:text-gray-300 transition-all duration-300" title="Table View">
+                <i class="fa-solid fa-list text-lg"></i>
+            </button>
+        </div>
+    </div>
+
+
+    <div class="glass-panel rounded-2xl p-6 border border-white/5 relative overflow-hidden min-h-[400px]">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-accent-cyan/5 rounded-full blur-[80px] pointer-events-none z-0"></div>
+
+        {% if available_players %}
+        <div class="relative z-10 space-y-6">
+
+            <!-- Search and Filter Bar -->
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                    <input type="text" id="playerSearch" placeholder="Search by name or IGN..." class="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/30 transition-all">
+                </div>
+            </div>
+
+            <!-- GRID VIEW (Default) -->
+            <div id="playersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 transition-opacity duration-300">
+                {% for player in available_players %}
+                <div class="player-card bg-black/40 border border-white/10 rounded-2xl p-5 hover:border-accent-cyan/40 transition-all group flex flex-col items-center text-center">
+                    
+                    <div class="w-20 h-20 rounded-full bg-brand-gray overflow-hidden border-2 border-white/10 group-hover:border-accent-cyan transition-colors mb-4 relative shadow-lg">
+                        {% if player.profile_photo %}
+                        <img src="{{ player.profile_photo.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-black/50 text-white/40 text-3xl font-bold font-display">
+                            {{ player.full_name|make_list|first }}
+                        </div>
+                        {% endif %}
+                        <!-- Status indicator -->
+                        <span class="absolute bottom-1 right-1 w-3.5 h-3.5 bg-green-500 border-2 border-brand-gray rounded-full"></span>
+                    </div>
+
+                    <h4 class="font-bold text-white text-base group-hover:text-accent-cyan transition-colors w-full truncate player-name" title="{{ player.full_name }}">{{ player.full_name }}</h4>
+                    <p class="text-[11px] text-accent-cyan/70 font-mono mb-4 w-full truncate player-ign">@{{ player.username|default:"No IGN" }}</p>
+
+                    <div class="w-full flex justify-between text-[11px] font-mono text-gray-400 mb-4 px-2">
+                        <div class="flex flex-col items-center">
+                            <span class="text-white/30 uppercase tracking-widest text-[9px] mb-0.5">Joined</span>
+                            <span>{{ player.created_at|date:"M Y" }}</span>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'org_view_player_profile' player.id %}" class="w-full py-2 bg-white/5 hover:bg-accent-cyan hover:text-black border border-white/10 hover:border-accent-cyan rounded-lg text-xs font-bold transition-all uppercase tracking-wider">
+                        View Profile
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- TABLE VIEW (Hidden by default) -->
+            <div id="playersTable" class="hidden overflow-hidden transition-opacity duration-300 border border-white/10 rounded-2xl bg-black/40">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="text-xs text-brand-light/50 uppercase bg-black hover:bg-black/80 font-display border-b border-white/10">
+                            <tr>
+                                <th class="px-6 py-4 font-bold">Player</th>
+                                <th class="px-6 py-4 font-bold">IGN / Username</th>
+                                <th class="px-6 py-4 font-bold">Joined Date</th>
+                                <th class="px-6 py-4 font-bold">Status</th>
+                                <th class="px-6 py-4 font-bold text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5" id="playerTableBody">
+                            {% for player in available_players %}
+                            <tr class="player-row hover:bg-white/5 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-brand-gray overflow-hidden border border-white/10 shrink-0">
+                                            {% if player.profile_photo %}
+                                            <img src="{{ player.profile_photo.url }}" class="w-full h-full object-cover">
+                                            {% else %}
+                                            <div class="w-full h-full flex items-center justify-center bg-black/50 text-white/30 text-sm font-bold">{{ player.full_name|make_list|first }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <span class="font-bold text-white text-sm group-hover:text-accent-cyan transition-colors player-name-cell">{{ player.full_name }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-mono text-sm text-brand-light/70 player-ign-cell">@{{ player.username|default:"-" }}</td>
+                                <td class="px-6 py-4 font-mono text-xs text-brand-light/50">{{ player.created_at|date:"M d, Y" }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-widest bg-green-500/10 text-green-400 border border-green-500/20">Active</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <a href="{% url 'org_view_player_profile' player.id %}" class="inline-block py-1.5 px-4 bg-white/5 hover:bg-accent-cyan hover:text-black border border-white/10 hover:border-accent-cyan rounded text-[10px] font-bold transition-all uppercase tracking-wider">
+                                        Profile
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Empty Search State -->
+            <div id="noResultsMsg" class="hidden p-12 text-center bg-black/20 rounded-2xl border border-white/5 border-dashed">
+                <i class="fa-solid fa-search text-3xl text-white/10 mb-4"></i>
+                <p class="text-white/40 font-mono text-sm">No players found matching your search.</p>
+            </div>
+
+        </div>
+        {% else %}
+        <!-- Entirely Empty State -->
+        <div class="flex flex-col items-center justify-center h-full p-12 text-center z-10 relative">
+            <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                <i class="fa-solid fa-ghost text-4xl text-white/20"></i>
+            </div>
+            <h3 class="text-xl font-display font-bold text-white mb-2">DB is Empty</h3>
+            <p class="text-white/40 text-sm max-w-sm">There are no active players registered on the platform yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // --- Grid / Table View Toggler matches User Screenshot exactly ---
+    function setPlayerView(viewType) {
+        const gridView = document.getElementById('playersGrid');
+        const tableView = document.getElementById('playersTable');
+        const btnGrid = document.getElementById('btnViewGrid');
+        const btnTable = document.getElementById('btnViewTable');
+
+        // Dark inactive style matching screenshot / bright active style
+        const activeStyle = 'w-10 h-10 rounded-xl flex items-center justify-center text-accent-cyan bg-[#2C3847] shadow transition-all duration-300';
+        const inactiveStyle = 'w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:text-gray-300 transition-all duration-300';
+
+        if (viewType === 'grid') {
+            gridView.classList.remove('hidden');
+            tableView.classList.add('hidden');
+            
+            btnGrid.className = activeStyle;
+            btnTable.className = inactiveStyle;
+        } else {
+            gridView.classList.add('hidden');
+            tableView.classList.remove('hidden');
+            
+            btnTable.className = activeStyle;
+            btnGrid.className = inactiveStyle;
+        }
+    }
+
+    // --- Search Logic ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('playerSearch');
+        if (!searchInput) return;
+
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase().trim();
+            const gridCards = document.querySelectorAll('.player-card');
+            const tableRows = document.querySelectorAll('.player-row');
+            let visibleCount = 0;
+
+            // Filter Grid
+            gridCards.forEach(card => {
+                const name = card.querySelector('.player-name').textContent.toLowerCase();
+                const ign = card.querySelector('.player-ign').textContent.toLowerCase();
+                if (name.includes(term) || ign.includes(term)) {
+                    card.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            // Filter Table
+            tableRows.forEach(row => {
+                const name = row.querySelector('.player-name-cell').textContent.toLowerCase();
+                const ign = row.querySelector('.player-ign-cell').textContent.toLowerCase();
+                if (name.includes(term) || ign.includes(term)) {
+                    row.classList.remove('hidden');
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            // Show empty state if nothing found
+            const noResults = document.getElementById('noResultsMsg');
+            if (visibleCount === 0) {
+                noResults.classList.remove('hidden');
+                document.getElementById('playersGrid').classList.add('hidden');
+                document.getElementById('playersTable').classList.add('hidden');
+            } else {
+                noResults.classList.add('hidden');
+                // Don't unhide both, restore the currently selected view
+                const btnGrid = document.getElementById('btnViewGrid');
+                if (btnGrid.classList.contains('text-accent-cyan')) {
+                    document.getElementById('playersGrid').classList.remove('hidden');
+                } else {
+                    document.getElementById('playersTable').classList.remove('hidden');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -49,7 +49,7 @@ GEMINI_API_KEY = GEMINI_API_KEYS[0] if GEMINI_API_KEYS else ''
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -80,6 +80,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'web.middleware.SecureSessionValidationMiddleware',
 ]
 
 ROOT_URLCONF = 'egamescout.urls'

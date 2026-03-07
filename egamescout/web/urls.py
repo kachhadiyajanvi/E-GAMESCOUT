@@ -32,6 +32,7 @@ urlpatterns = [
 
     path('organization/tournaments/history/', views.tournament_history, name='tournament_history'),
     path('organization/players/', views.my_players, name='my_players'),
+    path('organization/scout/', views.org_scout_players, name='org_scout_players'),
     path('organization/players/<int:player_id>/profile/', views.org_view_player_profile, name='org_view_player_profile'),
     path('organization/players/<int:player_id>/remove/', views.org_remove_player, name='org_remove_player'),
     path('organization/tournaments/create/', views.tournament_create, name='tournament_create'),
@@ -79,14 +80,30 @@ urlpatterns = [
     path('admin/tournaments/edit/<int:tournament_id>/', admin_views.admin_edit_tournament, name='admin_edit_tournament'),
     path('admin/profile/', admin_views.admin_profile, name='admin_profile'),
     path('admin/analytics/', admin_views.admin_analytics, name='admin_analytics'),
+    path('admin/settings/', admin_views.admin_settings, name='admin_settings'),
+    
+    # Bidding Analytics
+    path('admin/bidding/dashboard/', admin_views.admin_bidding_dashboard, name='admin_bidding_dashboard'),
+    path('admin/bidding/details/', admin_views.admin_bidding_details, name='admin_bidding_details'),
+    path('admin/bidding/export/<str:report_type>/', admin_views.admin_bidding_export, name='admin_bidding_export'),
+    path('admin/bidding/season/start/', admin_views.admin_start_bidding_season, name='admin_start_bidding_season'),
+    path('admin/bidding/season/pause/', admin_views.admin_pause_bidding_season, name='admin_pause_bidding_season'),
+    path('admin/bidding/season/end/', admin_views.admin_end_bidding_season, name='admin_end_bidding_season'),
+    path('admin/bidding/season/update/', admin_views.admin_update_bidding_season, name='admin_update_bidding_season'),
+    path('admin/bidding/bid/<int:bid_id>/status/', admin_views.admin_update_bid_status, name='admin_update_bid_status'),
 
+    # Organization & Player Bidding
+    path('organization/bidding/', views.org_bidding_dashboard, name='org_bidding_dashboard'),
+    path('organization/bidding/place/<int:player_id>/', views.place_bid, name='place_bid'),
+    path('organization/transactions/', views.org_transaction_history, name='org_transaction_history'),
+    path('player/bidding/', views.player_bidding_dashboard, name='player_bidding_dashboard'),
 
     # Tournament Publishing
     path('organization/tournaments/<int:tournament_id>/publish/', views.publish_tournament, name='publish_tournament'),
     path('organization/tournaments/upcoming/', views.org_upcoming_tournaments, name='org_upcoming_tournaments'),
     path('player/tournaments/upcoming/', views.player_upcoming_tournaments, name='player_upcoming_tournaments'),
     
-    # Bidding
+    # Notifications
     path('organization/notifications/mark-all-read/', views.org_mark_all_notifications_read, name='org_mark_all_notifications_read'),
     path('organization/notifications/delete/<int:notification_id>/', views.delete_notification, name='delete_notification'),
     path('organization/notifications/', views.org_notifications, name='org_notifications'),
@@ -95,4 +112,7 @@ urlpatterns = [
     path('admin/api/notifications/', admin_views.get_notifications, name='get_notifications'),
     path('admin/api/notifications/read/<int:notif_id>/', admin_views.mark_notification_read, name='mark_notification_read'),
     path('admin/api/notifications/read-all/', admin_views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    
+    # Generic Pages
+    path('terms/', views.terms_and_conditions, name='terms'),
 ]

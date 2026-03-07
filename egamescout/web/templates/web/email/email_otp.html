@@ -1,61 +1,98 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Game Scout | Authentication Code</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Rajdhani:wght@400;500;600&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #05060A; font-family: 'Rajdhani', Arial, sans-serif; }
     </style>
 </head>
 
-<body style="margin: 0; padding: 0; background-color: #0B0C10; font-family: 'Rajdhani', Arial, sans-serif;">
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0B0C10;">
+<body style="margin:0;padding:0;background-color:#05060A;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#05060A;padding:40px 0;">
         <tr>
-            <td align="center" style="padding: 40px 0;">
+            <td align="center">
                 <table width="600" border="0" cellspacing="0" cellpadding="0"
-                    style="background-color: #1F2833; border: 1px solid #333; border-radius: 8px; overflow: hidden; box-shadow: 0 0 20px rgba(102, 252, 241, 0.1);">
-                    <!-- Header -->
+                    style="background-color:#0F1117;border:1px solid rgba(102,252,241,0.15);border-radius:16px;overflow:hidden;box-shadow:0 0 50px rgba(102,252,241,0.08);">
+
+                    <!-- Header Banner with Gradient -->
                     <tr>
-                        <td align="center"
-                            style="padding: 30px; background-color: #0B0C10; border-bottom: 2px solid #66FCF1;">
-                            <h1
-                                style="margin: 0; color: #ffffff; font-family: 'Orbitron', Arial, sans-serif; font-size: 24px; letter-spacing: 2px;">
-                                E-GAME <span style="color: #66FCF1;">SCOUT</span>
-                            </h1>
+                        <td align="center" style="padding:0;background:linear-gradient(135deg,#0B0C10 0%,#0F1A1A 100%);border-bottom:1px solid rgba(102,252,241,0.2);">
+                            <!-- Top Glow Bar -->
+                            <div style="height:3px;background:linear-gradient(to right,transparent,#66FCF1,#FF2A6D,transparent);"></div>
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td align="center" style="padding:30px 40px;">
+                                        <!-- Logo Row -->
+                                        <table border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                                <td style="padding-right:14px;vertical-align:middle;">
+                                                    <!-- Logo Box -->
+                                                    <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(102,252,241,0.15),rgba(255,42,109,0.1));border:1px solid rgba(102,252,241,0.4);display:inline-flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(102,252,241,0.2);">
+                                                        <img src="{{ logo_url }}" alt="E-Game Scout Logo" width="32" height="32" style="display:block;object-fit:contain;">
+                                                    </div>
+                                                </td>
+                                                <td style="vertical-align:middle;">
+                                                    <div style="font-family:'Orbitron',Arial,sans-serif;font-size:20px;font-weight:900;color:#FFFFFF;letter-spacing:0.2em;">
+                                                        EGAME<span style="color:#66FCF1;">SCOUT</span>
+                                                    </div>
+                                                    <div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.3em;font-weight:600;text-transform:uppercase;margin-top:2px;">
+                                                        Pro Scouting Platform
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
 
-                    <!-- Content -->
+                    <!-- Main Content -->
                     <tr>
-                        <td align="center" style="padding: 40px 30px;">
-                            <h2
-                                style="margin: 0 0 20px 0; color: #C5C6C7; font-size: 20px; text-transform: uppercase; letter-spacing: 1px;">
-                                Authentication Request</h2>
-                            <p style="margin: 0 0 30px 0; color: #8892b0; font-size: 16px; line-height: 1.5;">
-                                Use the following One-Time Password (OTP) to complete your login or registration. Do not
-                                share this code with anyone.
+                        <td align="center" style="padding:50px 50px 40px 50px;background-color:#0F1117;">
+                            <!-- Lock Icon -->
+                            <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,rgba(102,252,241,0.1),rgba(255,42,109,0.05));border:1px solid rgba(102,252,241,0.25);display:inline-block;text-align:center;line-height:72px;margin-bottom:24px;box-shadow:0 0 30px rgba(102,252,241,0.15);">
+                                <span style="font-size:28px;line-height:72px;display:block;">🔐</span>
+                            </div>
+
+                            <h2 style="font-family:'Orbitron',Arial,sans-serif;color:#FFFFFF;font-size:18px;letter-spacing:0.15em;text-transform:uppercase;margin:0 0 12px 0;">
+                                Authentication Required
+                            </h2>
+                            <p style="color:rgba(197,198,199,0.7);font-size:15px;line-height:1.7;margin:0 0 36px 0;font-family:'Rajdhani',Arial,sans-serif;">
+                                Use the One-Time Password below to verify your identity.<br>
+                                <strong style="color:#66FCF1;">This code expires in 10 minutes.</strong>
                             </p>
 
                             <!-- OTP Box -->
-                            <div
-                                style="background-color: #0B0C10; border: 1px solid #45A29E; border-radius: 4px; padding: 15px 30px; display: inline-block; margin-bottom: 30px;">
-                                <span
-                                    style="color: #66FCF1; font-family: 'Orbitron', monospace; font-size: 32px; letter-spacing: 8px; font-weight: bold;">
-                                    {{ otp }}
-                                </span>
+                            <div style="background:linear-gradient(135deg,#0B0C10,#0F1A1A);border:1px solid rgba(102,252,241,0.4);border-radius:12px;padding:28px 50px;display:inline-block;margin-bottom:36px;box-shadow:0 0 30px rgba(102,252,241,0.1),inset 0 0 30px rgba(102,252,241,0.03);">
+                                <div style="font-size:11px;color:rgba(102,252,241,0.5);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:10px;font-family:'Rajdhani',Arial,sans-serif;">Your Secure Code</div>
+                                <span style="color:#66FCF1;font-family:'Orbitron',monospace;font-size:38px;letter-spacing:0.25em;font-weight:700;display:block;">{{ otp }}</span>
                             </div>
 
-                            <p style="margin: 0; color: #666; font-size: 12px;">
-                                If you did not request this code, please ignore this email.
-                            </p>
+                            <!-- Warning -->
+                            <div style="background:rgba(255,42,109,0.06);border:1px solid rgba(255,42,109,0.15);border-radius:8px;padding:14px 20px;">
+                                <p style="color:rgba(255,130,130,0.8);font-size:13px;margin:0;font-family:'Rajdhani',Arial,sans-serif;line-height:1.6;">
+                                    ⚠️ &nbsp;Never share this code. E-Game Scout will never ask for it via email, phone, or chat. Treat it like a password.
+                                </p>
+                            </div>
                         </td>
                     </tr>
 
                     <!-- Footer -->
                     <tr>
-                        <td align="center"
-                            style="padding: 20px; background-color: #050608; border-top: 1px solid #333;">
-                            <p style="margin: 0; color: #45A29E; font-size: 12px;">© 2026 E-Game Scout. Secure
-                                Transmission.</p>
+                        <td align="center" style="padding:20px 40px 30px;background-color:#080A0E;border-top:1px solid rgba(255,255,255,0.05);">
+                            <p style="color:rgba(102,252,241,0.4);font-size:11px;letter-spacing:0.15em;margin:0 0 8px 0;font-family:'Rajdhani',Arial,sans-serif;text-transform:uppercase;">
+                                © 2026 E-Game Scout · Secure Transmission
+                            </p>
+                            <p style="color:rgba(255,255,255,0.15);font-size:11px;margin:0;font-family:'Rajdhani',Arial,sans-serif;">
+                                If you didn't request this code, please disregard this email.
+                            </p>
                         </td>
                     </tr>
                 </table>

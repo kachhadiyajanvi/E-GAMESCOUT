@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 import datetime
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 
@@ -51,7 +52,6 @@ class Tournament(models.Model):
     CreatedAt = models.DateTimeField(auto_now_add=True, null=False)
     UpdatedAt = models.DateTimeField(auto_now=True, null=False)
     is_published = models.BooleanField(default=False)
-    is_published = models.BooleanField(default=False)
     
     # New Fields
     description = models.TextField(default='')
@@ -61,7 +61,6 @@ class Tournament(models.Model):
     is_offline = models.BooleanField(default=False)
     venue = models.CharField(max_length=255, null=True, blank=True)
     show_roadmap = models.BooleanField(default=False)
-    roadmap_content = models.TextField(null=True, blank=True)
     roadmap_content = models.TextField(null=True, blank=True)
     prize_distribution = models.JSONField(default=list, blank=True)
     is_archived = models.BooleanField(default=False)
@@ -145,6 +144,9 @@ class Transaction(models.Model):
         ('DEPOSIT', 'Deposit'),
         ('WITHDRAWAL', 'Withdrawal'),
         ('OTHER', 'Other'),
+        ('BID_LOCKED', 'Bid Locked'),
+        ('BID_ACCEPTED', 'Bid Accepted'),
+        ('BID_REFUND', 'Bid Refund'),
     ]
 
     sender = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, related_name='sent_transactions')
@@ -169,4 +171,137 @@ class PlayerNotification(models.Model):
     def __str__(self):
         return f"To {self.recipient.username}: {self.message[:30]}"
 
+class BiddingSeason(models.Model):
+    name = models.CharField(max_length=100)
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    auto_start = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        if self.start_date and self.end_date and self.start_date >= self.end_date:
+            raise ValidationError("End date must be after start date.")
+        if self.is_active:
+            active_seasons = BiddingSeason.objects.filter(is_active=True).exclude(pk=self.pk)
+            if active_seasons.exists():
+                raise ValidationError("Only one bidding season can be active at a time.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+class BiddingSeasonLog(models.Model):
+    season = models.ForeignKey(BiddingSeason, on_delete=models.CASCADE, related_name='logs')
+    action = models.CharField(max_length=50) # 'START', 'PAUSE', 'END', 'AUTO_START', 'AUTO_END'
+    message = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.season.name} - {self.action} at {self.timestamp}"
+
+class Bid(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Accepted', 'Accepted'),
+        ('Rejected', 'Rejected'),
+        ('Negotiation', 'Negotiation'),
+    ]
+    season = models.ForeignKey(BiddingSeason, on_delete=models.CASCADE, related_name='bids')
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='bids')
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='bids')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        if not self.season.is_active:
+            raise ValidationError("Bids can only be placed during an active bidding season.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.organization.Organization_Name} bid {self.amount} for {self.player.username}"
+
+class Negotiation(models.Model):
+    bid = models.ForeignKey(Bid, on_delete=models.CASCADE, related_name='negotiations')
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    counter_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    message = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Negotiation for Bid {self.bid.id}"
+
+class SystemSettings(models.Model):
+    # --- Maintenance ---
+    is_maintenance_mode = models.BooleanField(default=False)
+    maintenance_message = models.TextField(
+        default="We are currently performing scheduled maintenance. Please check back soon!"
+    )
+
+    # --- Site Identity ---
+    site_name = models.CharField(max_length=100, default="EGAMESCOUT")
+    contact_email = models.EmailField(default="admin@egamescout.com", blank=True)
+
+    # --- Registration Controls ---
+    allow_player_registration = models.BooleanField(default=True)
+    allow_org_registration = models.BooleanField(default=True)
+
+    # --- Coin / Economy ---
+    default_org_coins = models.DecimalField(max_digits=10, decimal_places=2, default=1000.00)
+    default_player_coins = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    # --- Announcement Banner ---
+    show_announcement = models.BooleanField(default=False)
+    announcement_text = models.TextField(blank=True, default="")
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "System Settings"
+
+    @classmethod
+    def get_settings(cls):
+        settings, created = cls.objects.get_or_create(id=1)
+        return settings
+    # ... (Add UserSession to models.py)
+from django.contrib.sessions.models import Session
+
+class UserSession(models.Model):
+    user_type = models.CharField(max_length=20, choices=[('ADMIN', 'Admin'), ('ORG', 'Organization'), ('PLAYER', 'Player')])
+    user_id = models.IntegerField()
+    
+    session = models.OneToOneField(Session, on_delete=models.CASCADE)
+    session_key = models.CharField(max_length=40, unique=True)
+    
+    login_time = models.DateTimeField(auto_now_add=True)
+    last_activity = models.DateTimeField(auto_now=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    device_info = models.CharField(max_length=255, null=True, blank=True)
+    
+    is_active = models.BooleanField(default=True)
+    is_remember_me = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'secure_user_sessions'
+        indexes = [
+            models.Index(fields=['user_type', 'user_id', 'is_active']),
+        ]
+
+    def expire_session(self):
+        self.is_active = False
+        self.save()
+        try:
+            self.session.delete()
+        except:
+            pass
+        
+    def __str__(self):
+        return f"{self.user_type} session ({self.user_id})"

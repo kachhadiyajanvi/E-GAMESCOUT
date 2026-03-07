@@ -2,26 +2,42 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
-from .forms import OrganizationEmailForm, OTPForm, OrganizationDetailsForm, OrganizationLoginForm, OrganizationPhotoForm, TournamentForm
-from .models import Organization, Tournament
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.utils import timezone
 from django.conf import settings
+from django.views.decorators.cache import cache_control
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.core.cache import cache
+from django.db import models
+from django.db.models import Count, Q
+from django.db.models.functions import TruncMonth
+from django.core.serializers.json import DjangoJSONEncoder
+from decimal import Decimal
 import random
 import time
-from django.core.mail import send_mail
-from .forms import EmailLoginForm, OTPVerifyForm, PlayerRegistrationForm
-from .models import Player, PlayerTask, Organization, Tournament
-from django.views.decorators.cache import cache_control
-from decimal import Decimal
-from .decorators import login_required_organization
-from django.views.decorators.csrf import csrf_exempt
 import json
-from django.http import JsonResponse
 
-from django.core.cache import cache
+from .forms import (
+    OrganizationEmailForm, OTPForm, OrganizationDetailsForm,
+    OrganizationLoginForm, OrganizationPhotoForm, TournamentForm,
+    EmailLoginForm, OTPVerifyForm, PlayerRegistrationForm,
+    AadharUploadForm, PlayerProfileForm,
+)
+from .models import (
+    Organization, Tournament, Player, PlayerTask,
+    OrganizationNotification, PlayerNotification,
+    BiddingSeason, Bid, Transaction,
+    SystemSettings, ScorecardAnalysis,
+)
+from .decorators import login_required_organization
+from .auth_services import handle_secure_login, handle_secure_logout
+
+
+def terms_and_conditions(request):
+    return render(request, 'web/terms.html')
 
 @csrf_exempt
 def api_send_otp(request):
@@ -65,7 +81,7 @@ def api_send_otp(request):
                 cache.set(cache_key, otp_code, timeout=300)
                 
                 # Send Email
-                html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code})
+                html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 plain_message = strip_tags(html_message)
                 
                 send_mail(
@@ -164,7 +180,7 @@ def api_register_send_otp(request):
             cache.set(cache_key, otp_code, timeout=300)
             
             # Send Email
-            html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code})
+            html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
             plain_message = strip_tags(html_message)
             
             send_mail(
@@ -214,7 +230,6 @@ def api_register_verify_otp(request):
             return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
-from .helpers import extract_aadhar_details
 
 @csrf_exempt
 def api_register_step1(request):
@@ -290,7 +305,7 @@ def api_register_step2(request):
             # Send Welcome Email
             try:
                 subject = 'Welcome to E-Game Scout - Journey Started'
-                html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name})
+                html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 text_content = strip_tags(html_content)
                 
                 msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -310,6 +325,10 @@ def api_register_step2(request):
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
 def auth_login(request):
+    if SystemSettings.get_settings().is_maintenance_mode:
+        messages.error(request, SystemSettings.get_settings().maintenance_message)
+        return redirect('index')
+
     # Check if a verification flow is already in progress and verified
     if request.session.get('auth_email') and request.session.get('otp_verified'):
         # If verified, redirect based on player existence
@@ -360,10 +379,8 @@ def auth_login(request):
             request.session['otp_verified'] = False # Reset verification status
             
             # Send Email
-            from django.template.loader import render_to_string
-            from django.utils.html import strip_tags
-            
-            html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code})
+                            
+            html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
             plain_message = strip_tags(html_message)
             
             send_mail(
@@ -420,7 +437,15 @@ def auth_verify_otp(request):
                     if request.user.is_authenticated: logout(request)
                     if 'organizer_id' in request.session: del request.session['organizer_id']
                     
+                    # Set generic session ID for Django to recognize
+                    if not request.session.session_key:
+                        request.session.create()
+                    
                     request.session['player_id'] = player.id
+                    
+                    # Secure Tracking Login
+                    handle_secure_login(request, user_id=player.id, user_type='PLAYER')
+                    
                     return redirect('player_dashboard')
                 except Player.DoesNotExist:
                     # New User -> Register Step 1 (Aadhar Upload)
@@ -432,8 +457,6 @@ def auth_verify_otp(request):
         
     return render(request, 'web/Player/verify_otp.html', {'form': form, 'email': email})
 
-from .helpers import extract_aadhar_details
-from .forms import AadharUploadForm
 
 def auth_register_upload(request):
     """Step 1: Upload Aadhar Card"""
@@ -506,7 +529,7 @@ def auth_register_details(request):
             # Send Welcome Email
             try:
                 subject = 'Welcome to E-Game Scout - Journey Started'
-                html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name})
+                html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 text_content = strip_tags(html_content)
                 
                 msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -544,10 +567,7 @@ def player_dashboard(request):
     player = Player.objects.get(id=player_id)
     
     # Fetch Tasks & Events
-    from django.utils import timezone
     import json
-    from django.core.serializers.json import DjangoJSONEncoder
-    from .models import Tournament
     
     now = timezone.now()
     
@@ -619,7 +639,6 @@ def player_dashboard(request):
         'player_credits': player_credits,
     })
 
-from .forms import PlayerProfileForm
 
 def player_profile(request):
     player_id = request.session.get('player_id')
@@ -656,19 +675,27 @@ def player_delete_account(request):
     return render(request, 'web/Player/delete_account_confirm.html')
 
 def auth_logout(request):
-    request.session.flush()
+    handle_secure_logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('index')
 
 def org_logout(request):
     """Logout organization and clear session"""
-    request.session.flush()
+    handle_secure_logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('index')
 
 def index(request):
     organizations = Organization.objects.filter(status='Active')[:10]
-    return render(request, 'web/index.html', {'organizations': organizations})
+    # Check if bidding season is currently active - drives the LIVE SCOUTING badge
+    try:
+            live_scouting = BiddingSeason.objects.filter(is_active=True).exists()
+    except Exception:
+        live_scouting = False
+    return render(request, 'web/index.html', {
+        'organizations': organizations,
+        'live_scouting': live_scouting,
+    })
 
 def public_tournaments(request):
     """Public view for upcoming tournaments"""
@@ -715,7 +742,7 @@ def org_register_start(request):
             # Send OTP via Email
             # Send OTP via Email (HTML + Text)
             subject = 'E-Game Scout Registration OTP'
-            html_content = render_to_string('web/email/email_otp.html', {'otp': otp})
+            html_content = render_to_string('web/email/email_otp.html', {'otp': otp, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
             text_content = strip_tags(html_content)
             
             msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -785,7 +812,8 @@ def org_register_details(request):
                 html_content = render_to_string('web/email/registration_success.html', {
                     'org_name': org.Organization_Name,
                     'org_email': email,
-                    'login_url': request.build_absolute_uri('/organization/login/')
+                    'login_url': request.build_absolute_uri('/organization/login/'),
+                    'logo_url': request.build_absolute_uri('/static/web/images/logo.png')
                 })
                 text_content = strip_tags(html_content)
                 
@@ -814,6 +842,10 @@ def org_register_details(request):
 # --- Login Flow ---
 
 def org_login_start(request):
+    if SystemSettings.get_settings().is_maintenance_mode:
+        messages.error(request, SystemSettings.get_settings().maintenance_message)
+        return redirect('index')
+
     if request.session.get('organizer_id'):
         return redirect('organizer_dashboard')
 
@@ -837,7 +869,7 @@ def org_login_start(request):
                 # Send OTP via Email
                 # Send OTP via Email (HTML + Text)
                 subject = 'E-Game Scout Login OTP'
-                html_content = render_to_string('web/email/email_otp.html', {'otp': otp})
+                html_content = render_to_string('web/email/email_otp.html', {'otp': otp, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 text_content = strip_tags(html_content)
                 
                 msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -881,7 +913,15 @@ def org_login_otp(request):
                 if 'player_id' in request.session: del request.session['player_id']
 
                 org = Organization.objects.get(Organization_Email=email)
+                
+                # Set generic session ID for Django to recognize
+                if not request.session.session_key:
+                    request.session.create()
+                    
                 request.session['organizer_id'] = org.id
+                
+                # Secure Tracking Login
+                handle_secure_login(request, user_id=org.id, user_type='ORG')
                 
                 # Cleanup OTP session (Safe deletion)
                 request.session.pop('login_email', None)
@@ -898,7 +938,6 @@ def org_login_otp(request):
 
 def update_tournament_statuses(org):
     """Refreshes tournament statuses based on current time."""
-    from django.utils import timezone
     now = timezone.now()
     
     # 1. Update to 'Ongoing': Start Date passed AND End Date in future/now
@@ -921,6 +960,7 @@ def update_tournament_statuses(org):
         start_date__gt=now
     ).exclude(Status__in=['Scheduled', 'Completed', 'Cancelled']).update(Status='Scheduled')
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @login_required_organization
 def organizer_dashboard(request):
     org_id = request.session.get('organizer_id')
@@ -935,7 +975,6 @@ def organizer_dashboard(request):
     active_tournaments = Tournament.objects.filter(Organization_Name=org, Status='Ongoing').count()
     
     # --- Notifications Logic ---
-    from .models import OrganizationNotification
     
     # Fetch real notifications
     db_notifications = OrganizationNotification.objects.filter(recipient=org).order_by('-created_at')[:10]
@@ -956,9 +995,6 @@ def organizer_dashboard(request):
         })
     
     # --- Analytics: Player Growth (Last 6 Months) ---
-    from django.db.models.functions import TruncMonth
-    from django.db.models import Count
-    from django.utils import timezone
     import datetime
     
     six_months_ago = timezone.now() - datetime.timedelta(days=180)
@@ -1012,7 +1048,6 @@ def organizer_dashboard(request):
         'recent_recruits': recent_recruits
     })
 
-from django.http import JsonResponse
 
 def resend_otp(request):
     if request.method == 'POST':
@@ -1038,7 +1073,7 @@ def resend_otp(request):
             
         # Send OTP via Email
         subject = 'E-Game Scout OTP Resend'
-        html_content = render_to_string('web/email/email_otp.html', {'otp': otp})
+        html_content = render_to_string('web/email/email_otp.html', {'otp': otp, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
         text_content = strip_tags(html_content)
         
         msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -1275,8 +1310,6 @@ def tournament_list(request):
     # Active: now < end_date
     # Completed: now >= end_date
     
-    from django.db.models import Q
-    from django.utils import timezone
     from datetime import timedelta
     
     # Get current local time
@@ -1311,8 +1344,6 @@ def tournament_history(request):
     
     org = get_object_or_404(Organization, id=org_id)
     
-    from django.db.models import Q
-    from django.utils import timezone
     
     # Ensure statuses are accurate
     update_tournament_statuses(org)
@@ -1337,6 +1368,25 @@ def tournament_history(request):
     return render(request, 'web/Organization/org_tournament_history.html', {
         'org': org, 
         'tournaments': completed_tournaments
+    })
+
+from django.db import models
+
+@login_required_organization
+def org_transaction_history(request):
+    """Display coin transaction history for the organization."""
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+
+    transactions = Transaction.objects.filter(
+        models.Q(sender=org) | models.Q(recipient=org)
+    ).select_related('related_tournament').order_by('-timestamp')
+
+    return render(request, 'web/Organization/org_transaction_history.html', {
+        'org': org,
+        'transactions': transactions,
+        'notifications': [],
+        'notifications_count': 0,
     })
 
 @login_required_organization
@@ -1397,7 +1447,6 @@ def tournament_detail(request, tournament_id):
     org = get_object_or_404(Organization, id=org_id)
     
     # Allow access if: Owner OR Bidder OR Published
-    from django.db.models import Q
     tournament = get_object_or_404(Tournament, 
         Q(Tournament_ID=tournament_id) & 
         (Q(Organization_Name=org) | Q(bidders__organization=org) | Q(is_published=True))
@@ -1431,7 +1480,6 @@ def cancel_tournament(request, tournament_id):
     tournament.save()
     
     # Create Notification
-    from .models import OrganizationNotification
     message = f"Tournament '{tournament.Name}' has been cancelled."
     OrganizationNotification.objects.create(
         recipient=org,
@@ -1441,8 +1489,6 @@ def cancel_tournament(request, tournament_id):
     )
     
     # Send Email
-    from django.core.mail import send_mail
-    from django.conf import settings
     
     subject = f"Tournament Cancelled: {tournament.Name}"
     email_message = f"""
@@ -1589,7 +1635,6 @@ def publish_tournament(request, tournament_id):
     if not org_id:
         return redirect('org_login_start')
         
-    from .models import Organization, OrganizationNotification
     tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name_id=org_id)
     org = get_object_or_404(Organization, id=org_id)
     
@@ -1672,7 +1717,6 @@ def org_mark_all_notifications_read(request):
     org = request.org
     
     # Mark as read instead of deleting
-    from .models import OrganizationNotification
     OrganizationNotification.objects.filter(recipient=org, is_read=False).update(is_read=True)
     
     messages.success(request, "All notifications marked as read.")
@@ -1684,8 +1728,6 @@ def delete_notification(request, notification_id):
     """Delete a single notification"""
     org = request.org
         
-    from .models import OrganizationNotification
-    from django.shortcuts import get_object_or_404
     
     notification = get_object_or_404(OrganizationNotification, id=notification_id, recipient=org)
     
@@ -1699,7 +1741,6 @@ def delete_notification(request, notification_id):
 def org_notifications(request):
     """View all notifications for the organization"""
     org = request.org
-    from .models import OrganizationNotification
     
     notifications = OrganizationNotification.objects.filter(recipient=org).order_by('-created_at')
     
@@ -1708,3 +1749,137 @@ def org_notifications(request):
         'org': org
     }
     return render(request, 'web/Organization/org_notifications.html', context)
+
+@login_required_organization
+def org_bidding_dashboard(request):
+    """View for organizations to see available players, their roster, and bidding wallet."""
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    
+    active_season = BiddingSeason.objects.filter(is_active=True).first()
+    
+    # 1. Available Players (Not Sold yet)
+    sold_player_ids = Bid.objects.filter(status='Accepted').values_list('player_id', flat=True)
+    available_players = Player.objects.filter(is_archived=False, status='ACTIVE').exclude(id__in=sold_player_ids)
+    
+    # 2. My Bids
+    my_bids = Bid.objects.filter(organization=org).order_by('-created_at')
+    
+    # 3. My Roster
+    my_roster = Player.objects.filter(id__in=my_bids.filter(status='Accepted').values_list('player_id', flat=True))
+    
+    context = {
+        'org': org,
+        'active_season': active_season,
+        'wallet_balance': org.coins,
+        'available_players': available_players,
+        'my_bids': my_bids,
+        'my_roster': my_roster
+    }
+    return render(request, 'web/Organization/org_bidding.html', context)
+
+def player_bidding_dashboard(request):
+    """View for players to see their bidding and auction status."""
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    player = get_object_or_404(Player, id=player_id)
+    active_season = BiddingSeason.objects.filter(is_active=True).first()
+    
+    # Get all bids for this player
+    bids = Bid.objects.filter(player=player).order_by('-created_at')
+    
+    # Determine Status
+    highest_accepted = bids.filter(status='Accepted').order_by('-amount').first()
+    in_negotiation = bids.filter(status='Negotiation').exists()
+    
+    auction_status = "Available"
+    if highest_accepted:
+        auction_status = f"Sold to {highest_accepted.organization.Organization_Name} for ₹{highest_accepted.amount}"
+    elif in_negotiation:
+        auction_status = "In Negotiation"
+        
+    context = {
+        'player': player,
+        'active_season': active_season,
+        'bids': bids,
+        'auction_status': auction_status
+    }
+    return render(request, 'web/Player/player_bidding.html', context)
+
+@login_required_organization
+def org_scout_players(request):
+    """View for organizations to browse all players on the platform"""
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    
+    # Fetch all active non-archived players
+    available_players = Player.objects.filter(is_archived=False, status='ACTIVE').order_by('-created_at')
+    
+    context = {
+        'org': org,
+        'available_players': available_players
+    }
+    return render(request, 'web/Organization/org_scout_players.html', context)
+
+@login_required_organization
+def place_bid(request, player_id):
+    """Handle bid placement by an organization on a player"""
+    if request.method != 'POST':
+        return redirect('org_bidding_dashboard')
+    
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    player = get_object_or_404(Player, id=player_id, is_archived=False, status='ACTIVE')
+    
+    # Check active season
+    active_season = BiddingSeason.objects.filter(is_active=True).first()
+    if not active_season:
+        messages.error(request, 'No active bidding season. Bids cannot be placed right now.')
+        return redirect('org_bidding_dashboard')
+    
+    # Check player isn't already sold
+    already_sold = Bid.objects.filter(player=player, status='Accepted').exists()
+    if already_sold:
+        messages.error(request, f'{player.full_name} has already been sold.')
+        return redirect('org_bidding_dashboard')
+    
+    # Get and validate amount
+    MIN_BID = 100  # Minimum bid amount in coins
+    try:
+        amount = int(request.POST.get('amount', 0))
+        if amount < MIN_BID:
+            raise ValueError()
+    except (ValueError, TypeError):
+        messages.error(request, f'Please enter a valid bid amount (minimum ₹{MIN_BID:,}).')
+        return redirect('org_bidding_dashboard')
+    
+    # Check wallet balance
+    if org.coins < amount:
+        messages.error(request, f'Insufficient balance. You only have ₹{org.coins:,} available.')
+        return redirect('org_bidding_dashboard')
+    
+    # Create the bid
+    bid = Bid.objects.create(
+        season=active_season,
+        player=player,
+        organization=org,
+        amount=amount,
+        status='Pending'
+    )
+    
+    # Deduct from wallet
+    org.coins -= amount
+    org.save()
+    
+    # Notify the player about the bid (Issue #7)
+    PlayerNotification.objects.create(
+        recipient=player,
+        message=f'{org.Organization_Name} has placed a bid of ₹{amount:,} on you! Check your Bidding Hub.',
+        link='/player/bidding/',
+        notification_type='BID'
+    )
+    
+    messages.success(request, f'Bid of ₹{amount:,} placed on {player.full_name} successfully!')
+    return redirect('org_bidding_dashboard')

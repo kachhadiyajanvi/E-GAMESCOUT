@@ -4,12 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EGAME SCOUT | ADMIN LOGIN</title>
+    <title>EGAME SCOUT | SECURE ADMIN LOGIN</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glass-panel {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(0, 243, 255, 0.15);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 243, 255, 0.05);
+        }
+
+        .input-glow:focus-within {
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
+            border-color: rgba(0, 243, 255, 0.4);
+        }
+
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(0, 243, 255, 0.06) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 243, 255, 0.06) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 10%, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at center, black 10%, transparent 80%);
+        }
+
+        /* Override Browser Autofill Styles */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px #050505 inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+    </style>
     <script>
         tailwind.config = {
             theme: {
@@ -20,17 +53,7 @@
                     },
                     colors: {
                         'brand-blue': '#00f3ff',     /* Neon Cyan */
-                        'brand-pink': '#ec4899',     /* Hot Pink */
-                        'brand-dark': '#050505',     /* Almost Black */
-                    },
-                    keyframes: {
-                        pulse: {
-                            '0%, 100%': { opacity: '1' },
-                            '50%': { opacity: '0.6' },
-                        }
-                    },
-                    animation: {
-                        'pulse': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'brand-dark': '#050505',     /* Pitch Black */
                     }
                 }
             }
@@ -39,198 +62,165 @@
     {% load static %}
 </head>
 
-<body class="bg-black w-full h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden">
+<body class="bg-brand-dark min-h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden">
 
-    <!-- Deep Background (Solid Black + Noise) -->
+    <!-- Glowing Cyber Grid Background -->
+    <div class="fixed inset-0 z-0 bg-grid pointer-events-none"></div>
+
+    <!-- Soft central cyan glow -->
     <div
-        class="fixed inset-0 z-0 overflow-hidden pointer-events-none opacity-[0.07] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay">
+        class="fixed top-1/2 left-1/2 w-[700px] h-[700px] bg-brand-blue/5 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2">
     </div>
 
-    <!-- Ambient Glows (Blue & Pink) -->
-    <div
-        class="fixed top-0 left-0 w-[500px] h-[500px] bg-brand-blue/10 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2 animate-pulse">
-    </div>
-    <div class="fixed bottom-0 right-0 w-[500px] h-[500px] bg-brand-pink/10 rounded-full blur-[120px] pointer-events-none translate-x-1/2 translate-y-1/2 animate-pulse"
-        style="animation-delay: 1.5s;"></div>
+    <!-- Main Card Container -->
+    <div class="relative z-10 w-full max-w-[400px] glass-panel rounded-2xl p-10 flex flex-col items-center">
 
-    <!-- Main Container: COMPACT CENTERED GLASS CARD -->
-    <div
-        class="relative z-10 w-full max-w-[420px] backdrop-blur-md bg-white/5 border border-white/10 rounded-3xl shadow-[0_0_60px_-15px_rgba(0,0,0,1)] p-8 md:p-10 flex flex-col items-center ring-1 ring-white/5 overflow-hidden group">
-
-        <!-- Glass Shine -->
-        <div
-            class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
-        </div>
-
-        <!-- Header: Horizontal Layout (Logo + Name) -->
-        <div class="mb-6 w-full flex items-center justify-center gap-3">
-            <!-- Logo Icon with Blue/Pink Gradient Border -->
+        <!-- Logo/Header -->
+        <div class="w-full flex flex-col items-center justify-center mb-8">
             <div
-                class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-black/60 border border-white/20 shadow-[0_0_20px_rgba(0,243,255,0.4)] relative overflow-hidden">
-                <!-- Inner Gradient -->
-                <div class="absolute inset-0 bg-gradient-to-br from-brand-blue/30 to-brand-pink/30 opacity-60"></div>
+                class="w-16 h-16 rounded-xl bg-black flex items-center justify-center shadow-[0_0_15px_rgba(0,243,255,0.1)] relative z-10 border border-brand-blue/20 mb-4">
                 <img src="{% static 'web/images/logo.png' %}" alt="Logo"
-                    class="w-10 h-10 object-contain relative z-10 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">
+                    class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(0,243,255,0.6)]">
             </div>
 
-            <!-- Site Name -->
-            <div class="flex flex-col justify-center translate-y-0.5">
-                <h1
-                    class="font-display font-black text-2xl text-white tracking-widest leading-none drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
-                    E-GAME</h1>
-                <span
-                    class="font-display font-black text-2xl text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-pink tracking-widest leading-none drop-shadow-[0_0_8px_rgba(0,243,255,0.4)]">SCOUT</span>
+            <div class="text-center w-full">
+                <h1 class="font-display font-black text-2xl tracking-[0.15em] mb-1">
+                    <span class="text-white">EGAME</span><span class="text-brand-blue">SCOUT</span>
+                </h1>
+                <h2 class="font-display font-medium text-[10px] text-white/50 tracking-[0.4em] uppercase">Administrator
+                </h2>
             </div>
-        </div>
-
-        <div class="w-full text-center mb-8">
-            <h2 class="text-white text-xl font-display font-bold tracking-[0.25em] drop-shadow-md">ADMIN LOGIN</h2>
         </div>
 
         <!-- Form -->
-        <form method="post" class="space-y-5 w-full">
+        <form method="post" class="space-y-5 w-full relative z-20">
             {% csrf_token %}
 
-            <div class="relative group">
-                <input type="text" name="username"
-                    class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/30 font-semibold focus:ring-1 focus:ring-brand-blue focus:border-brand-blue transition-all outline-none text-sm peer"
-                    placeholder=" " required>
-                <label
-                    class="absolute left-3 top-3.5 text-white/30 text-sm font-medium transition-all peer-focus:-translate-y-[22px] peer-focus:text-xs peer-focus:text-brand-blue peer-[:not(:placeholder-shown)]:-translate-y-[22px] peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-gray-400 pointer-events-none bg-black px-1">Username</label>
-                <i
-                    class="fa-regular fa-envelope absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-brand-blue transition-colors text-xs"></i>
-            </div>
-
-            <div class="relative group">
-                <input type="password" name="password" id="passwordInput"
-                    class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/30 font-semibold focus:ring-1 focus:ring-brand-pink focus:border-brand-pink transition-all outline-none text-sm peer"
-                    placeholder=" " required>
-                <label
-                    class="absolute left-3 top-3.5 text-white/30 text-sm font-medium transition-all peer-focus:-translate-y-[22px] peer-focus:text-xs peer-focus:text-brand-pink peer-[:not(:placeholder-shown)]:-translate-y-[22px] peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-gray-400 pointer-events-none bg-black px-1">Password</label>
-                <i id="togglePassword"
-                    class="fa-solid fa-eye-slash absolute right-4 top-1/2 -translate-y-1/2 text-white/20 cursor-pointer hover:text-brand-pink transition-colors z-20 text-xs"></i>
-            </div>
-
-            <button type="submit"
-                class="w-full mt-4 bg-white text-black font-display font-black py-4 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(236,72,153,0.4)] hover:scale-[1.02] transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 relative overflow-hidden group">
-                <div
-                    class="absolute inset-0 bg-gradient-to-r from-brand-blue via-purple-500 to-brand-pink opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <!-- Username Input -->
+            <div class="relative group input-glow rounded-lg transition-all duration-300">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i
+                        class="fa-regular fa-user text-white/30 group-focus-within:text-brand-blue transition-colors text-sm"></i>
                 </div>
-                <span
-                    class="relative z-10 group-hover:text-white transition-colors duration-300 flex items-center gap-2">SIGN
-                    IN <i class="fa-solid fa-arrow-right"></i></span>
+                <input type="text" name="username"
+                    class="w-full bg-black/60 border border-white/10 rounded-lg pl-11 pr-4 py-3.5 text-white font-semibold focus:outline-none placeholder-transparent peer text-sm tracking-wide"
+                    placeholder="Username" required>
+                <label
+                    class="absolute left-11 top-3.5 text-white/40 text-[13px] font-medium transition-all peer-focus:-translate-y-6 peer-focus:-translate-x-8 peer-focus:text-[10px] peer-focus:text-brand-blue peer-focus:tracking-widest peer-focus:bg-brand-dark peer-focus:px-2 peer-focus:rounded peer-[:not(:placeholder-shown)]:-translate-y-6 peer-[:not(:placeholder-shown)]:-translate-x-8 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:text-gray-400 peer-[:not(:placeholder-shown)]:bg-brand-dark peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:tracking-widest pointer-events-none uppercase">
+                    Admin ID
+                </label>
+            </div>
+
+            <!-- Password Input -->
+            <div class="relative group input-glow rounded-lg transition-all duration-300">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i
+                        class="fa-solid fa-lock text-white/30 group-focus-within:text-brand-blue transition-colors text-sm"></i>
+                </div>
+                <input type="password" name="password" id="passwordInput"
+                    class="w-full bg-black/60 border border-white/10 rounded-lg pl-11 pr-11 py-3.5 text-white font-semibold focus:outline-none placeholder-transparent peer text-sm tracking-wide"
+                    placeholder="Password" required>
+                <label
+                    class="absolute left-11 top-3.5 text-white/40 text-[13px] font-medium transition-all peer-focus:-translate-y-6 peer-focus:-translate-x-8 peer-focus:text-[10px] peer-focus:text-brand-blue peer-focus:tracking-widest peer-focus:bg-brand-dark peer-focus:px-2 peer-focus:rounded peer-[:not(:placeholder-shown)]:-translate-y-6 peer-[:not(:placeholder-shown)]:-translate-x-8 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:text-gray-400 peer-[:not(:placeholder-shown)]:bg-brand-dark peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:tracking-widest pointer-events-none uppercase">
+                    Passcode
+                </label>
+                <button type="button" id="togglePassword"
+                    class="absolute inset-y-0 right-0 pr-4 flex items-center text-white/20 hover:text-brand-blue transition-colors focus:outline-none">
+                    <i class="fa-solid fa-eye-slash text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+                class="w-full mt-8 relative overflow-hidden rounded-lg bg-brand-blue/10 border border-brand-blue/30 group/btn transition-all duration-300 hover:bg-brand-blue/20 hover:border-brand-blue hover:shadow-[0_0_20px_rgba(0,243,255,0.2)]">
+                <div class="py-3.5 px-6 flex items-center justify-center gap-3">
+                    <span
+                        class="font-display font-semibold uppercase tracking-[0.15em] text-sm text-brand-blue transition-colors">AUTHORIZE</span>
+                    <i
+                        class="fa-solid fa-arrow-right-to-bracket text-brand-blue text-sm transition-transform group-hover/btn:translate-x-1"></i>
+                </div>
             </button>
         </form>
 
-        <!-- Footer -->
-        <div class="mt-8 pt-6 border-t border-white/5 w-full text-center">
-            <p class="text-[10px] text-white/20 uppercase tracking-widest">E-Game Scout &copy; 2026</p>
-        </div>
     </div>
 
-    <!-- Toast Notification Container -->
-    <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
+    <!-- Toast Notification System -->
+    <div id="toast-container" class="fixed top-8 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
 
     <script>
+        // Password Toggle
+        const toggleBtn = document.getElementById('togglePassword');
+        const passInput = document.getElementById('passwordInput');
+
+        toggleBtn.addEventListener('click', () => {
+            const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passInput.setAttribute('type', type);
+            const icon = toggleBtn.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+
+        // Toast Notifications
         function showToast(message, tags) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
 
-            // Style based on tags
             let iconClass = 'fa-info-circle';
-            let iconColorClass = 'text-blue-500 bg-blue-500/10';
-            let title = 'Notification';
+            let iconColorClass = 'text-brand-blue bg-brand-blue/10 border-brand-blue/30';
 
-            if (tags.includes('success')) {
-                iconClass = 'fa-check';
-                iconColorClass = 'text-green-500 bg-green-500/10';
-                title = 'Success';
-            } else if (tags.includes('error') || tags.includes('warning')) {
+            if (tags.includes('error') || tags.includes('warning')) {
                 iconClass = 'fa-triangle-exclamation';
-                iconColorClass = 'text-red-500 bg-red-500/10';
-                title = 'System Alert';
+                iconColorClass = 'text-red-500 bg-red-500/10 border-red-500/30';
+            } else if (tags.includes('success')) {
+                iconClass = 'fa-check';
+                iconColorClass = 'text-green-400 bg-green-400/10 border-green-400/30';
             }
 
-            toast.className = `
-                pointer-events-auto
-                bg-[#0a0a0a] border border-white/10 
-                rounded-xl p-4 pr-12
-                shadow-[0_8px_30px_rgb(0,0,0,0.5)]
-                flex items-center gap-4
-                transform transition-all duration-500 ease-out translate-x-20 opacity-0
-                min-w-[300px]
-            `;
+            toast.className = `pointer-events-auto bg-[#0a0a0a]/95 backdrop-blur-md border rounded-lg p-4 pr-10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex items-center gap-4 transform transition-all duration-300 ease-out translate-x-32 opacity-0 min-w-[300px] ${iconColorClass.split(' ')[2]}`;
 
             toast.innerHTML = `
-                <div class="w-10 h-10 rounded-full ${iconColorClass} flex items-center justify-center shrink-0">
-                    <i class="fa-solid ${iconClass} text-lg"></i>
+                <div class="w-8 h-8 rounded bg-black/50 flex items-center justify-center shrink-0 border border-current/20 ${iconColorClass.split(' ').slice(0, 1).join('')}">
+                    <i class="fa-solid ${iconClass} text-[10px]"></i>
                 </div>
                 <div class="flex-1">
-                    <h4 class="font-bold text-white text-sm font-display tracking-wide">${title}</h4>
-                    <p class="text-xs text-gray-400 mt-0.5">${message}</p>
+                    <p class="text-[13px] text-white/90 font-medium tracking-wide">${message}</p>
                 </div>
-                <button onclick="this.parentElement.remove()" 
-                    class="absolute top-4 right-4 text-white/20 hover:text-white transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
+                <button onclick="this.parentElement.remove()" class="absolute top-1/2 -translate-y-1/2 right-3 text-white/30 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             `;
 
             container.appendChild(toast);
 
-            // Animate In
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-x-20', 'opacity-0');
-            });
+            requestAnimationFrame(() => toast.classList.remove('translate-x-32', 'opacity-0'));
 
-            // Auto Dismiss
             setTimeout(() => {
-                toast.classList.add('translate-x-20', 'opacity-0');
-                setTimeout(() => toast.remove(), 500);
+                toast.classList.add('translate-x-32', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
             }, 5000);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const togglePassword = document.querySelector('#togglePassword');
-            const password = document.querySelector('#passwordInput');
-
-            if (togglePassword && password) {
-                togglePassword.addEventListener('click', function (e) {
-                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                    password.setAttribute('type', type);
-                    this.classList.toggle('fa-eye');
-                    this.classList.toggle('fa-eye-slash');
-                });
-            }
-
-            // Initialize Django Messages
             const messagesJson = document.getElementById('django-messages');
             if (messagesJson) {
                 try {
                     const messages = JSON.parse(messagesJson.textContent);
-                    messages.forEach(item => {
-                        showToast(item.message, item.tags);
-                    });
-                } catch (e) {
-                    console.error('Error parsing messages:', e);
-                }
+                    messages.forEach(item => showToast(item.message, item.tags));
+                } catch (e) { }
             }
         });
     </script>
 
-    <!-- Django Messages Data -->
     {% if messages %}
     <script id="django-messages" type="application/json">
         [
             {% for message in messages %}
-            {
-                "message": "{{ message|escapejs }}",
-                "tags": "{{ message.tags }}"
-            }{% if not forloop.last %},{% endif %}
+            {"message": "{{ message|escapejs }}", "tags": "{{ message.tags }}"}{% if not forloop.last %},{% endif %}
             {% endfor %}
         ]
     </script>
     {% endif %}
+
 </body>
 
 </html>
