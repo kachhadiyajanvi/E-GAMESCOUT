@@ -167,8 +167,8 @@
                 <h2 class="text-lg font-display font-bold text-accent-cyan uppercase tracking-widest">Active &amp;
                     Scheduled</h2>
                 <span
-                    class="ml-2 px-2 py-0.5 rounded-full bg-accent-cyan/10 text-accent-cyan text-xs font-bold border border-accent-cyan/20">{{
-                    tournaments|length }}</span>
+                    class="ml-2 px-2 py-0.5 rounded-full bg-accent-cyan/10 text-accent-cyan text-xs font-bold border border-accent-cyan/20">
+                    {{tournaments|length }}</span>
             </div>
 
             <div class="grid grid-cols-1 gap-5 mb-16">
@@ -179,11 +179,12 @@
                         <div
                             class="w-full md:w-44 bg-black/30 p-6 flex flex-col justify-center items-center text-center border-b md:border-b-0 md:border-r border-white/5 flex-shrink-0">
                             {% if tournament.start_date %}
-                            <span class="text-3xl font-display font-bold text-white mb-1">{{
-                                tournament.start_date|date:"d" }}</span>
+                            <span class="text-3xl font-display font-bold text-white mb-1">
+                                {{ tournament.start_date|date:"d" }}
+                            </span>
                             <span
-                                class="text-sm font-display font-bold text-accent-cyan uppercase tracking-widest mb-3">{{
-                                tournament.start_date|date:"M Y" }}</span>
+                                class="text-sm font-display font-bold text-accent-cyan uppercase tracking-widest mb-3">
+                                {{tournament.start_date|date:"M Y" }}</span>
                             {% else %}
                             <span class="text-sm font-display text-gray-500 mb-3">TBD</span>
                             {% endif %}
@@ -228,8 +229,9 @@
                                 {% endif %}
                                 <div class="flex items-center gap-2">
                                     <i class="fa-solid fa-building text-purple-400"></i>
-                                    <span class="text-white font-bold">{{ tournament.Organization_Name.Organization_Name
-                                        }}</span>
+                                    <span class="text-white font-bold">
+                                        {{ tournament.Organization_Name.Organization_Name}}
+                                    </span>
                                 </div>
                             </div>
                         </div>

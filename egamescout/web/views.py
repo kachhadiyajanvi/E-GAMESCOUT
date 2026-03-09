@@ -34,6 +34,7 @@ from .models import (
 )
 from .decorators import login_required_organization
 from .auth_services import handle_secure_login, handle_secure_logout
+from .helpers import extract_aadhar_details
 
 
 def terms_and_conditions(request):

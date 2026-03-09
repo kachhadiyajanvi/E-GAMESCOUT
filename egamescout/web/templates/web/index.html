@@ -411,8 +411,8 @@
                     onerror="this.style.display='none'">
                 {% endif %}
                 <span
-                    class="text-transparent bg-clip-text {% cycle 'bg-gradient-to-r from-accent-cyan to-blue-500 hover:from-blue-400 hover:to-accent-cyan' 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-rose-400 hover:to-pink-400' 'bg-gradient-to-r from-green-400 to-emerald-600 hover:from-emerald-400 hover:to-green-400' 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-indigo-400 hover:to-purple-400' 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-orange-400 hover:to-yellow-400' %} transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">{{org.Organization_Name|upper
-                    }}</span>
+                    class="text-transparent bg-clip-text {% cycle 'bg-gradient-to-r from-accent-cyan to-blue-500 hover:from-blue-400 hover:to-accent-cyan' 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-rose-400 hover:to-pink-400' 'bg-gradient-to-r from-green-400 to-emerald-600 hover:from-emerald-400 hover:to-green-400' 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-indigo-400 hover:to-purple-400' 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-orange-400 hover:to-yellow-400' %} transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
+                    {{ org.Organization_Name|upper }}</span>
             </div>
             {% endfor %}
             <!-- Duplicated for seamless loop -->
@@ -425,8 +425,8 @@
                     onerror="this.style.display='none'">
                 {% endif %}
                 <span
-                    class="text-transparent bg-clip-text {% cycle 'bg-gradient-to-r from-accent-cyan to-blue-500 hover:from-blue-400 hover:to-accent-cyan' 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-rose-400 hover:to-pink-400' 'bg-gradient-to-r from-green-400 to-emerald-600 hover:from-emerald-400 hover:to-green-400' 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-indigo-400 hover:to-purple-400' 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-orange-400 hover:to-yellow-400' %} transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">{{
-                    org.Organization_Name|upper }}</span>
+                    class="text-transparent bg-clip-text {% cycle 'bg-gradient-to-r from-accent-cyan to-blue-500 hover:from-blue-400 hover:to-accent-cyan' 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-rose-400 hover:to-pink-400' 'bg-gradient-to-r from-green-400 to-emerald-600 hover:from-emerald-400 hover:to-green-400' 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-indigo-400 hover:to-purple-400' 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-orange-400 hover:to-yellow-400' %} transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
+                    {{ org.Organization_Name|upper }}</span>
             </div>
             {% endfor %}
             <!-- Duplicating again to ensure a full screen loop with small dataset -->
@@ -439,8 +439,9 @@
                     onerror="this.style.display='none'">
                 {% endif %}
                 <span
-                    class="text-transparent bg-clip-text {% cycle 'bg-gradient-to-r from-accent-cyan to-blue-500 hover:from-blue-400 hover:to-accent-cyan' 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-rose-400 hover:to-pink-400' 'bg-gradient-to-r from-green-400 to-emerald-600 hover:from-emerald-400 hover:to-green-400' 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-indigo-400 hover:to-purple-400' 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-orange-400 hover:to-yellow-400' %} transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">{{
-                    org.Organization_Name|upper }}</span>
+                    class="text-transparent bg-clip-text {% cycle 'bg-gradient-to-r from-accent-cyan to-blue-500 hover:from-blue-400 hover:to-accent-cyan' 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-rose-400 hover:to-pink-400' 'bg-gradient-to-r from-green-400 to-emerald-600 hover:from-emerald-400 hover:to-green-400' 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-indigo-400 hover:to-purple-400' 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-orange-400 hover:to-yellow-400' %} transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
+                    {{org.Organization_Name|upper }}
+                </span>
             </div>
             {% endfor %}
             <!-- Final duplication for extremely small dataset -->
@@ -453,8 +454,9 @@
                     onerror="this.style.display='none'">
                 {% endif %}
                 <span
-                    class="text-transparent bg-clip-text {% cycle 'bg-gradient-to-r from-accent-cyan to-blue-500 hover:from-blue-400 hover:to-accent-cyan' 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-rose-400 hover:to-pink-400' 'bg-gradient-to-r from-green-400 to-emerald-600 hover:from-emerald-400 hover:to-green-400' 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-indigo-400 hover:to-purple-400' 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-orange-400 hover:to-yellow-400' %} transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">{{
-                    org.Organization_Name|upper }}</span>
+                    class="text-transparent bg-clip-text {% cycle 'bg-gradient-to-r from-accent-cyan to-blue-500 hover:from-blue-400 hover:to-accent-cyan' 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-rose-400 hover:to-pink-400' 'bg-gradient-to-r from-green-400 to-emerald-600 hover:from-emerald-400 hover:to-green-400' 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-indigo-400 hover:to-purple-400' 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-orange-400 hover:to-yellow-400' %} transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
+                    {{ org.Organization_Name|upper }}
+                </span>
             </div>
             {% endfor %}
         </div>
