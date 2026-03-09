@@ -21,6 +21,9 @@ class Organization(models.Model):
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Active')
     is_archived = models.BooleanField(default=False)
+    has_seen_player_setup_popup = models.BooleanField(default=False)
+    last_player_reminder_date = models.DateField(null=True, blank=True)
+    is_verified = models.BooleanField(default=False)
     CreatedAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -53,6 +56,15 @@ class Tournament(models.Model):
     UpdatedAt = models.DateTimeField(auto_now=True, null=False)
     is_published = models.BooleanField(default=False)
     
+    APPROVAL_CHOICES = [
+        ('DRAFT', 'Draft'),
+        ('PENDING', 'Pending Approval'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    ]
+    approval_status = models.CharField(max_length=15, choices=APPROVAL_CHOICES, default='DRAFT')
+    admin_rejection_reason = models.TextField(null=True, blank=True)
+    
     # New Fields
     description = models.TextField(default='')
     max_teams = models.IntegerField(default=16)
@@ -69,6 +81,17 @@ class Tournament(models.Model):
     
     def __str__(self):
         return f"{self.Name} - {self.Organization_Name.Organization_Name}"
+
+class TournamentBidder(models.Model):
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='bidders')
+    organization = models.ForeignKey('Organization', on_delete=models.CASCADE, related_name='participating_tournaments')
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('tournament', 'organization')
+
+    def __str__(self):
+        return f"{self.organization.Organization_Name} - {self.tournament.Name}"
 
 class OrganizationNotification(models.Model):
     recipient = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='notifications')
@@ -107,10 +130,55 @@ class Player(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='players')
     is_archived = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.full_name} ({self.uid})"
+
+class OrganizationPlayer(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='roster_players')
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='org_affiliations', null=True, blank=True)
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    game_id = models.CharField(max_length=50)
+    status_label = models.CharField(max_length=50, default='Added Manually') # e.g., 'Added Manually', 'Purchased via Bidding', 'External (Verified)'
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.organization.Organization_Name}"
+
+import uuid
+import datetime as dt
+
+class ExternalPlayerInvite(models.Model):
+    """Pending invitation for a player not registered in the system.
+    They must verify their email before being added to the organization's roster."""
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('ACCEPTED', 'Accepted'),
+        ('EXPIRED', 'Expired'),
+    ]
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='external_invites')
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    game_id = models.CharField(max_length=100)
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.expires_at = timezone.now() + datetime.timedelta(days=3)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    def __str__(self):
+        return f"Invite: {self.email} → {self.organization.Organization_Name}"
 
 class AdminNotification(models.Model):
     message = models.TextField()

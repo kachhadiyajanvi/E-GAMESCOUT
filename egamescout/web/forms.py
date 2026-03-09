@@ -1,6 +1,6 @@
 from django import forms
-from .models import Organization, Tournament
-from .models import Player
+from web.models import Organization, Tournament
+from web.models import Player
 
 class OrganizationEmailForm(forms.Form):
     organization_email = forms.EmailField(
@@ -276,3 +276,32 @@ class TournamentForm(forms.ModelForm):
             except json.JSONDecodeError:
                 raise forms.ValidationError("Invalid Prize Distribution Format")
         return data
+
+class AddPlayerForm(forms.Form):
+    name = forms.CharField(
+        label='Player Full Name',
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+            'placeholder': 'Full name (required only for external players)',
+        })
+    )
+    email = forms.EmailField(
+        label='Player Email',
+        max_length=100,
+        widget=forms.EmailInput(attrs={
+            'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+            'placeholder': 'Enter player email address',
+            'required': 'required'
+        })
+    )
+    game_id = forms.CharField(
+        label='Game ID (UID)',
+        max_length=50,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+            'placeholder': 'Enter player Game ID',
+            'required': 'required'
+        })
+    )

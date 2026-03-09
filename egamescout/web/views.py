@@ -20,21 +20,21 @@ import random
 import time
 import json
 
-from .forms import (
+from web.forms import (
     OrganizationEmailForm, OTPForm, OrganizationDetailsForm,
     OrganizationLoginForm, OrganizationPhotoForm, TournamentForm,
     EmailLoginForm, OTPVerifyForm, PlayerRegistrationForm,
     AadharUploadForm, PlayerProfileForm,
 )
-from .models import (
+from web.models import (
     Organization, Tournament, Player, PlayerTask,
     OrganizationNotification, PlayerNotification,
     BiddingSeason, Bid, Transaction,
     SystemSettings, ScorecardAnalysis,
 )
-from .decorators import login_required_organization
-from .auth_services import handle_secure_login, handle_secure_logout
-from .helpers import extract_aadhar_details
+from web.decorators import login_required_organization
+from web.auth_services import handle_secure_login, handle_secure_logout
+from web.helpers import extract_aadhar_details
 
 
 def terms_and_conditions(request):
@@ -181,7 +181,7 @@ def api_register_send_otp(request):
             cache.set(cache_key, otp_code, timeout=300)
             
             # Send Email
-            html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+            html_message = render_to_string('web/emails/otp_verification.html', {'otp_code': otp_code, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
             plain_message = strip_tags(html_message)
             
             send_mail(
@@ -743,7 +743,7 @@ def org_register_start(request):
             # Send OTP via Email
             # Send OTP via Email (HTML + Text)
             subject = 'E-Game Scout Registration OTP'
-            html_content = render_to_string('web/email/email_otp.html', {'otp': otp, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+            html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
             text_content = strip_tags(html_content)
             
             msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -810,9 +810,8 @@ def org_register_details(request):
             # Send congratulatory email
             try:
                 subject = 'Welcome to E-Game Scout - Registration Successful!'
-                html_content = render_to_string('web/email/registration_success.html', {
-                    'org_name': org.Organization_Name,
-                    'org_email': email,
+                html_content = render_to_string('web/emails/welcome.html', {
+                    'user': {'username': org.Organization_Name},
                     'login_url': request.build_absolute_uri('/organization/login/'),
                     'logo_url': request.build_absolute_uri('/static/web/images/logo.png')
                 })
@@ -971,8 +970,26 @@ def organizer_dashboard(request):
     # Verify/Update tournament statuses first
     update_tournament_statuses(org)
     
+    # --- Player Setup Popup Logic ---
+    from .models import OrganizationPlayer
+    import datetime
+    
+    show_player_setup_popup = False
+    
+    # Check if they have ever seen the initial popup
+    if not org.has_seen_player_setup_popup:
+        show_player_setup_popup = True
+    else:
+        # If they've seen it, check if they actually have players
+        org_player_count = OrganizationPlayer.objects.filter(organization=org).count()
+        if org_player_count == 0:
+            # Check weekly reminder
+            now_date = timezone.now().date()
+            if not org.last_player_reminder_date or (now_date - org.last_player_reminder_date).days >= 7:
+                show_player_setup_popup = True
+                
     # --- Stats ---
-    total_players = Player.objects.filter(organization=org).count()
+    total_players = OrganizationPlayer.objects.filter(organization=org).count()
     active_tournaments = Tournament.objects.filter(Organization_Name=org, Status='Ongoing').count()
     
     # --- Notifications Logic ---
@@ -1041,6 +1058,7 @@ def organizer_dashboard(request):
     return render(request, 'web/Organization/organizer_dashboard.html', {
         'org': org,
         'total_players': total_players,
+        'show_player_setup_popup': show_player_setup_popup,
         'active_tournaments': active_tournaments,
         'notifications': notifications,
         'notifications_count': len(notifications),
@@ -1049,6 +1067,22 @@ def organizer_dashboard(request):
         'recent_recruits': recent_recruits
     })
 
+@csrf_exempt
+@login_required_organization
+def dismiss_player_setup_popup(request):
+    """AJAX endpoint to record that the org has dismissed the player setup popup"""
+    if request.method == 'POST':
+        org_id = request.session.get('organizer_id')
+        if org_id:
+            try:
+                org = Organization.objects.get(id=org_id)
+                org.has_seen_player_setup_popup = True
+                org.last_player_reminder_date = timezone.now().date()
+                org.save()
+                return JsonResponse({"status": "success"})
+            except Organization.DoesNotExist:
+                return JsonResponse({"status": "error", "message": "Organization not found"}, status=404)
+    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
 
 def resend_otp(request):
     if request.method == 'POST':
@@ -1090,7 +1124,7 @@ def resend_otp(request):
 # --- Scorecard AI Tool ---
 import base64
 import requests as _requests_module
-from .models import ScorecardAnalysis
+from web.models import ScorecardAnalysis
 
 @login_required_organization
 def scorecard_tool(request):
@@ -1568,9 +1602,170 @@ def my_players(request):
     org_id = request.session.get('organizer_id')
     
     org = get_object_or_404(Organization, id=org_id)
-    players = Player.objects.filter(organization=org).order_by('-created_at')
+    from .models import OrganizationPlayer, ExternalPlayerInvite
+    from django.utils import timezone
+    org_players = OrganizationPlayer.objects.filter(organization=org).order_by('-created_at')
+    # Pending invites (not yet accepted and not expired)
+    pending_invites = ExternalPlayerInvite.objects.filter(
+        organization=org, status='PENDING', expires_at__gt=timezone.now()
+    ).order_by('-created_at')
     
-    return render(request, 'web/Organization/org_my_players.html', {'org': org, 'players': players})
+    return render(request, 'web/Organization/org_my_players.html', {
+        'org': org, 'players': org_players, 'pending_invites': pending_invites
+    })
+
+
+@login_required_organization
+def org_add_player(request):
+    """View to handle adding a player to the organization's roster.
+    - If player is REGISTERED in our system → error, they can only be added via Bidding.
+    - If player is NOT registered → send an email invite to verify and add to organization's external roster.
+    """
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    from .forms import AddPlayerForm
+    from .models import OrganizationPlayer, ExternalPlayerInvite
+    
+    if request.method == 'POST':
+        form = AddPlayerForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            game_id = form.cleaned_data['game_id']
+            name = form.cleaned_data.get('name', '').strip()
+            
+            # Check if player is registered in the system
+            registered_player = Player.objects.filter(email__iexact=email).first()
+            
+            if registered_player:
+                # Registered players can ONLY be added via Bidding
+                messages.error(
+                    request,
+                    f'"{registered_player.full_name}" is a registered player on E-GameScout. '
+                    f'To add registered players to your team, please use the Bidding System.'
+                )
+            else:
+                # Player not in our system — proceed with email verification invite
+                if not name:
+                    messages.warning(request, 'Please enter the player\'s full name to send them an invitation.')
+                else:
+                    # Check if there's already a pending invite for this org+email
+                    existing = ExternalPlayerInvite.objects.filter(
+                        organization=org, email__iexact=email, status='PENDING'
+                    ).first()
+                    
+                    if existing and not existing.is_expired:
+                        messages.warning(request, f'An invitation has already been sent to {email}. Please ask the player to check their inbox.')
+                    else:
+                        # Mark old expired invites as expired
+                        ExternalPlayerInvite.objects.filter(
+                            organization=org, email__iexact=email
+                        ).update(status='EXPIRED')
+                        
+                        # Create new invite
+                        invite = ExternalPlayerInvite.objects.create(
+                            organization=org,
+                            name=name,
+                            email=email,
+                            game_id=game_id
+                        )
+                        
+                        # Build verification link
+                        invite_url = request.build_absolute_uri(f'/organization/player/accept-invite/{invite.token}/')
+                        
+                        # Send verification email
+                        try:
+                            from django.core.mail import send_mail
+                            from django.template.loader import render_to_string
+                            html_message = render_to_string('web/emails/player_invite.html', {
+                                'org': org,
+                                'invite': invite,
+                                'invite_url': invite_url,
+                            })
+                            send_mail(
+                                subject=f'[E-GameScout] {org.Organization_Name} wants you on their team!',
+                                message=f'You have been invited to join {org.Organization_Name} on E-GameScout. Click here to accept: {invite_url}',
+                                from_email=None,
+                                recipient_list=[email],
+                                html_message=html_message,
+                                fail_silently=False
+                            )
+                            messages.success(request, f'Invitation sent to {email}! The player must accept within 3 days.')
+                        except Exception as e:
+                            invite.delete()
+                            messages.error(request, f'Failed to send invite email: {str(e)}')
+                        return redirect('my_players')
+    else:
+        form = AddPlayerForm()
+        
+    return render(request, 'web/Organization/org_add_player.html', {'org': org, 'form': form})
+
+
+def accept_player_invite(request, token):
+    """Public view — player clicks invite link from email to join the organization's external roster."""
+    from .models import ExternalPlayerInvite, OrganizationPlayer
+    
+    try:
+        invite = ExternalPlayerInvite.objects.get(token=token)
+    except ExternalPlayerInvite.DoesNotExist:
+        return render(request, 'web/Organization/invite_result.html', {
+            'success': False, 'message': 'Invalid invitation link. It may have already been used or does not exist.'
+        })
+    
+    if invite.status == 'ACCEPTED':
+        return render(request, 'web/Organization/invite_result.html', {
+            'success': False, 'message': 'This invitation has already been accepted.',
+            'org': invite.organization
+        })
+    
+    if invite.is_expired or invite.status == 'EXPIRED':
+        invite.status = 'EXPIRED'
+        invite.save()
+        return render(request, 'web/Organization/invite_result.html', {
+            'success': False, 'message': 'This invitation has expired. Please ask the organization to send a new invite.'
+        })
+    
+    # Accept: create OrganizationPlayer as external verified
+    OrganizationPlayer.objects.get_or_create(
+        organization=invite.organization,
+        email=invite.email,
+        game_id=invite.game_id,
+        defaults={
+            'player': None,
+            'name': invite.name,
+            'status_label': 'External (Verified)'
+        }
+    )
+    
+    invite.status = 'ACCEPTED'
+    invite.save()
+    
+    # Send registration prompt email to the player
+    try:
+        from django.core.mail import send_mail
+        from django.template.loader import render_to_string
+        register_url = request.build_absolute_uri('/player/register/')
+        reg_html = render_to_string('web/emails/player_registration_prompt.html', {
+            'org': invite.organization,
+            'invite': invite,
+            'register_url': register_url,
+        })
+        send_mail(
+            subject=f'You joined {invite.organization.Organization_Name} — Complete your E-GameScout registration',
+            message=f'Welcome! Register at {register_url} to unlock full platform features.',
+            from_email=None,
+            recipient_list=[invite.email],
+            html_message=reg_html,
+            fail_silently=True  # Don't block the success page if this fails
+        )
+    except Exception:
+        pass  # Registration email is best-effort only
+    
+    return render(request, 'web/Organization/invite_result.html', {
+        'success': True,
+        'message': f'You have successfully joined {invite.organization.Organization_Name} as an External Player!',
+        'org': invite.organization
+    })
+
 
 
 @login_required_organization
@@ -1578,21 +1773,25 @@ def org_view_player_profile(request, player_id):
     """Organization views a player's profile"""
     org_id = request.session.get('organizer_id')
     org = get_object_or_404(Organization, id=org_id)
-    player = get_object_or_404(Player, id=player_id)
+    from .models import OrganizationPlayer
+    # player_id passed from URL corresponds to OrganizationPlayer ID now for orgs or Player ID?
+    # Context suggests we want to look at the link or the actual player info
+    org_player_link = get_object_or_404(OrganizationPlayer, id=player_id, organization=org)
+    player = org_player_link.player
     
-    return render(request, 'web/Organization/org_player_profile.html', {'org': org, 'player': player})
+    return render(request, 'web/Organization/org_player_profile.html', {'org': org, 'player': player, 'org_player_link': org_player_link})
 
 @login_required_organization
 def org_remove_player(request, player_id):
     """Remove a player from the organization's roster"""
     org_id = request.session.get('organizer_id')
     org = get_object_or_404(Organization, id=org_id)
-    player = get_object_or_404(Player, id=player_id, organization=org)
+    from .models import OrganizationPlayer
+    org_player_link = get_object_or_404(OrganizationPlayer, id=player_id, organization=org)
     
     if request.method == "POST":
-        player.organization = None
-        player.save()
-        messages.success(request, f"{player.full_name} has been removed from your roster.")
+        org_player_link.delete()
+        messages.success(request, f"{org_player_link.name} has been removed from your roster.")
         
     return redirect('my_players')
 
@@ -1631,7 +1830,7 @@ def handler400(request, exception):
 # --- Tournament Management ---
 
 def publish_tournament(request, tournament_id):
-    """Publish a tournament to make it visible to players"""
+    """Publish a tournament (or submit for admin approval first)"""
     org_id = request.session.get('organizer_id')
     if not org_id:
         return redirect('org_login_start')
@@ -1640,24 +1839,54 @@ def publish_tournament(request, tournament_id):
     org = get_object_or_404(Organization, id=org_id)
     
     if request.method == 'POST':
-        tournament.is_published = True
-        tournament.save()
+        # 1. Block unverified orgs from publishing
+        if not org.is_verified:
+            messages.error(request, "Only verified organizations can publish tournaments to the platform.")
+            return redirect('org_tournament_details', tournament_id=tournament.Tournament_ID)
+
+        # 2. If DRAFT or REJECTED -> Submit for Approval
+        if tournament.approval_status in ['DRAFT', 'REJECTED']:
+            tournament.approval_status = 'PENDING'
+            tournament.save()
+            messages.success(request, f"Tournament '{tournament.Name}' has been submitted for admin approval.")
+            return redirect('org_tournament_details', tournament_id=tournament.Tournament_ID)
+
+        # 3. If APPROVED -> Actually publish -> send notifications
+        if tournament.approval_status == 'APPROVED' and not tournament.is_published:
+            tournament.is_published = True
+            tournament.save()
+            
+            # Send Invites to all Active Organizations
+            other_orgs = Organization.objects.filter(status='Active').exclude(id=org_id)
+            
+            org_notifications = []
+            for other in other_orgs:
+                org_notifications.append(OrganizationNotification(
+                    recipient=other,
+                    message=f"{org.Organization_Name} invites you to participate in '{tournament.Name}'",
+                    notification_type='GENERAL',
+                    related_tournament=tournament,
+                    link=f"/organization/tournaments/upcoming/"
+                ))
         
-        # Send Invites to all Active Organizations
-        other_orgs = Organization.objects.filter(status='Active').exclude(id=org_id)
-        
-        notifications = []
-        for other in other_orgs:
-            notifications.append(OrganizationNotification(
-                recipient=other,
-                message=f"{org.Organization_Name} invites you to bid for '{tournament.Name}'",
-                notification_type='BIDDING_INVITE',
-                related_tournament=tournament
+            if org_notifications:
+                OrganizationNotification.objects.bulk_create(org_notifications)
+                
+            # Send Notifications to all Active Players
+            active_players = Player.objects.filter(status='ACTIVE', is_archived=False)
+            player_notifications = []
+            for p in active_players:
+                player_notifications.append(PlayerNotification(
+                    recipient=p,
+                    message=f"New Tournament '{tournament.Name}' has been published by {org.Organization_Name}!",
+                notification_type='GENERAL',
+                link=f"/player/tournaments/upcoming/"
             ))
+            
+        if player_notifications:
+            PlayerNotification.objects.bulk_create(player_notifications)
         
-        OrganizationNotification.objects.bulk_create(notifications)
-        
-        messages.success(request, f"Tournament published! Sent invites to {len(notifications)} organizations.")
+        messages.success(request, f"Tournament published! Sent invites to {len(org_notifications)} organizations and {len(player_notifications)} players.")
         return redirect('tournament_list')
         
     return redirect('tournament_list')
@@ -1684,13 +1913,62 @@ def org_upcoming_tournaments(request):
     ).order_by('start_date')
 
     # Bidding system removed - no joined_tournament_ids
-    joined_tournament_ids = []
+    # Actual implementation: Get participated tournaments from TournamentBidder (this model maps Org/Player to Tournament)
+    from .models import TournamentBidder
+    joined_tournament_ids = list(TournamentBidder.objects.filter(organization=org).values_list('tournament_id', flat=True))
     
     return render(request, 'web/Organization/org_upcoming_list.html', {
         'tournaments': tournaments,
         'coming_soon': coming_soon,
         'org': org,
         'joined_tournament_ids': joined_tournament_ids
+    })
+
+@login_required_organization
+def org_join_tournament(request, tournament_id):
+    """View indicating intent to participate in a tournament"""
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id)
+    
+    # Check if they have at least 5 players in the roster
+    from .models import OrganizationPlayer, TournamentBidder
+    players = OrganizationPlayer.objects.filter(organization=org)
+    if players.count() < 5:
+        messages.error(request, f'You need at least 5 players in your roster to participate in {tournament.Name}. Please add players first.')
+        return redirect('org_add_player')
+    
+    if request.method == 'POST':
+        # Form submitted with selected players
+        selected_player_ids = request.POST.getlist('players')
+        
+        if len(selected_player_ids) < 5:
+            messages.error(request, 'You must select exactly 5 players to participate.')
+            return redirect('org_join_tournament', tournament_id=tournament.Tournament_ID)
+            
+        if len(selected_player_ids) > 5:
+            messages.error(request, 'You can only select exactly 5 players to participate.')
+            return redirect('org_join_tournament', tournament_id=tournament.Tournament_ID)
+            
+        # Verify all selected players belong to the org
+        selected_players = OrganizationPlayer.objects.filter(id__in=selected_player_ids, organization=org)
+        if selected_players.count() != 5:
+            messages.error(request, 'Invalid players selected.')
+            return redirect('org_join_tournament', tournament_id=tournament.Tournament_ID)
+        
+        # Add them to the tournament participation list
+        bidder, created = TournamentBidder.objects.get_or_create(
+            tournament=tournament,
+            organization=org
+        )
+        
+        messages.success(request, f'Your organization {org.Organization_Name} has successfully joined {tournament.Name} with 5 players!')
+        return redirect('org_upcoming_tournaments')
+        
+    return render(request, 'web/Organization/org_participate_confirm.html', {
+        'org': org,
+        'tournament': tournament,
+        'players': players
     })
 
 def player_upcoming_tournaments(request):
@@ -1862,7 +2140,7 @@ def place_bid(request, player_id):
         return redirect('org_bidding_dashboard')
     
     # Create the bid
-    bid = Bid.objects.create(
+    Bid.objects.create(
         season=active_season,
         player=player,
         organization=org,

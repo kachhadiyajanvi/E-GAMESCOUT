@@ -62,8 +62,11 @@
                                 {% endif %}
                             </div>
                             <div>
-                                <h4 class="font-bold text-white group-hover:text-brand-pink transition-colors">
+                                <h4 class="font-bold text-white group-hover:text-brand-pink transition-colors flex items-center gap-2">
                                     {{ org.Organization_Name }}
+                                    {% if org.is_verified %}
+                                    <i class="fa-solid fa-circle-check text-yellow-400 text-xs" title="Verified Organization"></i>
+                                    {% endif %}
                                 </h4>
                                 <p class="text-xs text-white/40">{{ org.Organization_Email }}</p>
                             </div>
@@ -94,6 +97,19 @@
                     <td class="p-4 text-white/80 font-mono text-xs">{{ org.Organization_Contact }}</td>
                     <td class="p-4 text-white/40">{{ org.CreatedAt|date:"M d, Y" }}</td>
                     <td class="p-4 text-right">
+                        {% if not org.is_verified %}
+                        <form method="POST" action="{% url 'admin_grant_verification' 'organization' org.id %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-white/40 hover:text-yellow-400 transition-colors px-2" title="Grant Verification">
+                                <i class="fa-regular fa-star"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <button class="text-yellow-400/50 cursor-not-allowed px-2" title="Already Verified" disabled>
+                            <i class="fa-solid fa-star"></i>
+                        </button>
+                        {% endif %}
+
                         <button onclick="openOrgViewModal(this)" data-name="{{ org.Organization_Name }}"
                             data-username="{{ org.Organization_UserName|default:'' }}"
                             data-email="{{ org.Organization_Email }}" data-contact="{{ org.Organization_Contact }}"

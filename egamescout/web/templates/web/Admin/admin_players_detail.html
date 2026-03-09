@@ -63,7 +63,12 @@
                             <div class="flex-1">
                                 <!-- Full Name & Email -->
                                 <div class="mb-2">
-                                    <h4 class="font-bold text-white text-base">{{ player.full_name }}</h4>
+                                    <h4 class="font-bold text-white text-base flex items-center gap-2">
+                                        {{ player.full_name }}
+                                        {% if player.is_verified %}
+                                        <i class="fa-solid fa-circle-check text-blue-400 text-xs" title="Verified Player"></i>
+                                        {% endif %}
+                                    </h4>
                                     <p class="text-xs text-brand-blue">{{ player.email }}</p>
                                 </div>
                             </div>
@@ -92,6 +97,18 @@
                     </td>
                     <td class="p-4 text-white/40">{{ player.created_at|date:"M d, Y" }}</td>
                     <td class="p-4 text-right">
+                        {% if not player.is_verified %}
+                        <form method="POST" action="{% url 'admin_grant_verification' 'player' player.id %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-white/40 hover:text-blue-400 transition-colors px-2" title="Grant Verification">
+                                <i class="fa-regular fa-star"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <button class="text-blue-400/50 cursor-not-allowed px-2" title="Already Verified" disabled>
+                            <i class="fa-solid fa-star"></i>
+                        </button>
+                        {% endif %}
                         <button onclick="openViewModal(this)" data-username="{{ player.username|default:'' }}"
                             data-fullname="{{ player.full_name }}" data-email="{{ player.email }}"
                             data-mobile="{{ player.mobile_no }}" data-uid="{{ player.uid }}" data-age="{{ player.age }}"

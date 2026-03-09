@@ -3,12 +3,12 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-from .models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession
+from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession
 from django.db.models import Count, Sum, Q, Max
 from django.utils import timezone
 from datetime import datetime, time, timedelta
 from decimal import Decimal
-from .auth_services import handle_secure_login, handle_secure_logout
+from web.auth_services import handle_secure_login, handle_secure_logout
 
 # Helper to check if user is superuser
 from django.core.paginator import Paginator
@@ -257,9 +257,9 @@ def admin_delete_player(request, player_id):
     if request.method == 'POST':
         player_name = player.full_name
         player.is_archived = True
-        player.save()
-        messages.success(request, f'Player {player_name} has been deleted.')
-        return redirect('admin_players_detail')
+        player.delete()
+    messages.success(request, "Player and associated bids/negotiations deleted permanently.")
+    return redirect('admin_players_detail')
     
     # Render confirmation page for GET request
     return render(request, 'web/Admin/admin_player_confirm_delete.html', {'player': player})
@@ -277,7 +277,7 @@ def admin_edit_player(request, player_id):
 
 # --- Notification APIs ---
 from django.http import JsonResponse
-from .models import AdminNotification
+from web.models import AdminNotification
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def get_notifications(request):
@@ -619,7 +619,7 @@ def admin_bidding_dashboard(request):
         'heatmap': heatmap,
     }
     
-    return render(request, 'web/Admin/bidding_dashboard.html', context)
+    return render(request, 'web/Admin/admin_bidding_dashboard.html', context)
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_bidding_details(request):
@@ -732,8 +732,28 @@ def admin_update_bid_status(request, bid_id):
             description=f'Refund for rejected bid on {bid.player.full_name}'
         )
         messages.success(request, f'Bid rejected and ₹{bid.amount:,} refunded to {org.Organization_Name}.')
-    elif new_status == 'Accepted':
-        messages.success(request, f'Bid for {bid.player.full_name} accepted successfully.')
+    elif new_status == 'Accepted' and old_status != 'Accepted':
+        # Assign player to org
+        from .models import OrganizationPlayer
+        
+        # 1. Update the player's direct organization reference (legacy)
+        bid.player.organization = bid.organization
+        bid.player.save()
+        
+        # 2. Create the unified OrganizationPlayer record
+        # Note: We use get_or_create to prevent duplicate entries if the action is somehow re-run
+        OrganizationPlayer.objects.get_or_create(
+            organization=bid.organization,
+            player=bid.player,
+            defaults={
+                'name': bid.player.full_name,
+                'email': bid.player.email,
+                'game_id': bid.player.uid,
+                'status_label': 'Purchased via Bidding'
+            }
+        )
+        
+        messages.success(request, f'Bid for {bid.player.full_name} accepted successfully. Player added to {bid.organization.Organization_Name}.')
     else:
         messages.success(request, f'Bid status updated to {new_status}.')
     
@@ -870,3 +890,86 @@ def admin_settings(request):
         return redirect('admin_settings')
         
     return render(request, 'web/Admin/admin_settings.html', {'settings': settings})
+
+
+# --- Verification & Approvals ---
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_grant_verification(request, entity_type, entity_id):
+    if request.method == 'POST':
+        if entity_type == 'organization':
+            org = get_object_or_404(Organization, id=entity_id)
+            org.is_verified = True
+            org.save()
+            messages.success(request, f"{org.Organization_Name} has been verified.")
+            
+            # Send Email
+            html_message = render_to_string('web/emails/org_verified.html', {'org': org})
+            plain_message = strip_tags(html_message)
+            send_mail(
+                'Verification Successful - E-GameScout',
+                plain_message,
+                None,
+                [org.Email],
+                html_message=html_message
+            )
+            return redirect('admin_organization_detail')
+            
+        elif entity_type == 'player':
+            player = get_object_or_404(Player, id=entity_id)
+            player.is_verified = True
+            player.save()
+            messages.success(request, f"{player.full_name} has been verified.")
+            
+            # Send Email
+            html_message = render_to_string('web/emails/player_verified.html', {'player': player})
+            plain_message = strip_tags(html_message)
+            send_mail(
+                'Verification Successful - E-GameScout',
+                plain_message,
+                None,
+                [player.email],
+                html_message=html_message
+            )
+            return redirect('admin_players_detail')
+
+    return redirect('admin_dashboard')
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_tournament_approvals(request):
+    pending_tournaments = Tournament.objects.filter(approval_status='PENDING_APPROVAL').order_by('-CreatedAt')
+    
+    paginator = Paginator(pending_tournaments, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'tournaments': page_obj,
+    }
+    return render(request, 'web/Admin/admin_tournament_approvals.html', context)
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_approve_tournament(request, tournament_id):
+    if request.method == 'POST':
+        tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id)
+        tournament.approval_status = 'APPROVED'
+        tournament.save()
+        messages.success(request, f"Tournament {tournament.Name} has been approved.")
+        
+    return redirect('admin_tournament_approvals')
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_reject_tournament(request, tournament_id):
+    if request.method == 'POST':
+        tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id)
+        reason = request.POST.get('rejection_reason', '')
+        tournament.approval_status = 'REJECTED'
+        tournament.admin_rejection_reason = reason
+        tournament.is_published = False
+        tournament.save()
+        messages.warning(request, f"Tournament {tournament.Name} has been rejected.")
+        
+    return redirect('admin_tournament_approvals')

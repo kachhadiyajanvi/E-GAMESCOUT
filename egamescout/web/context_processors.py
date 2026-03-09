@@ -1,5 +1,5 @@
 from django.utils import timezone
-from .models import Organization, OrganizationNotification, Player, PlayerNotification, BiddingSeason, BiddingSeasonLog
+from web.models import Organization, OrganizationNotification, Player, PlayerNotification, BiddingSeason, BiddingSeasonLog
 from django.utils.formats import date_format
 
 def notifications(request):

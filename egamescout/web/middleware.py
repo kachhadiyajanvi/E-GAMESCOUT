@@ -1,6 +1,6 @@
 from django.shortcuts import redirect
 from django.utils import timezone
-from .models import UserSession
+from web.models import UserSession
 
 class SecureSessionValidationMiddleware:
     def __init__(self, get_response):

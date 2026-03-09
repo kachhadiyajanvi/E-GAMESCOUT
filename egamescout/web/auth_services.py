@@ -1,6 +1,6 @@
 from django.contrib.sessions.models import Session
 from user_agents import parse
-from .models import UserSession
+from web.models import UserSession
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')

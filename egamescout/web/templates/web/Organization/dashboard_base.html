@@ -307,9 +307,12 @@
 
                     <!-- Org Details -->
                     <div class="hidden md:flex flex-col items-end">
-                        <span
-                            class="text-sm font-bold text-white group-hover:text-accent-cyan transition-colors font-display tracking-wide">
-                            {{ org.Organization_Name }}</span>
+                        <span class="text-white font-bold text-sm leading-tight flex items-center">
+                            {{ org.Organization_Name }}
+                            {% if org.is_verified %}
+                            <i class="fa-solid fa-circle-check text-yellow-500 text-sm ml-1" title="Verified Organization"></i>
+                            {% endif %}
+                        </span>
                         <span class="text-[10px] text-gray-500 group-hover:text-gray-300 transition-colors">
                             {{ org.Organization_Email }}</span>
                     </div>

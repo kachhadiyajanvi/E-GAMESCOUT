@@ -255,7 +255,11 @@
                         </div>
                     </div>
                     <div class="text-right hidden md:block">
-                        <h4 class="text-white font-bold text-sm leading-tight">{{ player.full_name|default:"Player" }}
+                        <h4 class="text-white font-bold text-sm leading-tight flex items-center">
+                            {{ player.full_name|default:"Player" }}
+                            {% if player.is_verified %}
+                            <i class="fa-solid fa-circle-check text-blue-500 text-sm ml-1" title="Verified Player"></i>
+                            {% endif %}
                         </h4>
                         <p class="text-xs text-brand-light/40">{{ player.email|default:"" }}</p>
                     </div>

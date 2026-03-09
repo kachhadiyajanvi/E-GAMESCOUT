@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, admin_views
+from web import views, admin_views
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -52,11 +52,22 @@ urlpatterns = [
     path('api/login/verify-otp', views.api_verify_otp, name='api_verify_otp'),
     path('api/register/send-otp', views.api_register_send_otp, name='api_register_send_otp'),
     path('api/register/verify-otp', views.api_register_verify_otp, name='api_register_verify_otp'),
-    path('api/register/step1', views.api_register_step1, name='api_register_step1'),
-    path('api/register/step2', views.api_register_step2, name='api_register_step2'),
+    path('api/register/step1/', views.api_register_step1, name='api_register_step1'),
+    path('api/register/step2/', views.api_register_step2, name='api_register_step2'),
+    
+    # Organization API
+    path('api/organization/dismiss_player_setup/', views.dismiss_player_setup_popup, name='dismiss_player_setup_popup'),
+    
+    # --- Profile & Common ---
     path('auth/verify/', views.auth_verify_otp, name='auth_verify_otp'),
     path('auth/register/upload/', views.auth_register_upload, name='auth_register_upload'),
     path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
+    # Organization Player Management Routing
+    path('organization/my-players/', views.my_players, name='my_players'),
+    path('organization/add-player/', views.org_add_player, name='org_add_player'),
+    path('organization/player/<int:player_id>/', views.org_view_player_profile, name='org_view_player_profile'),
+    path('organization/player/<int:player_id>/remove/', views.org_remove_player, name='org_remove_player'),
+    
     path('player/dashboard/', views.player_dashboard, name='player_dashboard'),
     path('player/profile/', views.player_profile, name='player_profile'),
     
@@ -98,9 +109,11 @@ urlpatterns = [
     path('organization/transactions/', views.org_transaction_history, name='org_transaction_history'),
     path('player/bidding/', views.player_bidding_dashboard, name='player_bidding_dashboard'),
 
-    # Tournament Publishing
+    # Tournament Publishing & Participation
     path('organization/tournaments/<int:tournament_id>/publish/', views.publish_tournament, name='publish_tournament'),
     path('organization/tournaments/upcoming/', views.org_upcoming_tournaments, name='org_upcoming_tournaments'),
+    path('organization/tournaments/<int:tournament_id>/join/', views.org_join_tournament, name='org_join_tournament'),
+    path('organization/player/accept-invite/<uuid:token>/', views.accept_player_invite, name='accept_player_invite'),
     path('player/tournaments/upcoming/', views.player_upcoming_tournaments, name='player_upcoming_tournaments'),
     
     # Notifications
@@ -115,4 +128,12 @@ urlpatterns = [
     
     # Generic Pages
     path('terms/', views.terms_and_conditions, name='terms'),
+    
+    # Admin Verification
+    path('admin/verify/<str:entity_type>/<int:entity_id>/', admin_views.admin_grant_verification, name='admin_grant_verification'),
+    
+    # Admin Tournament Approvals
+    path('admin/tournament/approvals/', admin_views.admin_tournament_approvals, name='admin_tournament_approvals'),
+    path('admin/tournament/approvals/approve/<int:tournament_id>/', admin_views.admin_approve_tournament, name='admin_approve_tournament'),
+    path('admin/tournament/approvals/reject/<int:tournament_id>/', admin_views.admin_reject_tournament, name='admin_reject_tournament'),
 ]

@@ -206,6 +206,11 @@
                                     class="hidden md:inline-flex items-center gap-1 text-xs font-mono text-gray-500 border border-white/5 px-2 py-1 rounded bg-black/20 ml-4 flex-shrink-0">
                                     {% if tournament.is_offline %}LAN EVENT{% else %}ONLINE{% endif %}
                                 </span>
+                                {% if tournament.approval_status == 'APPROVED' %}
+                                <span class="hidden md:inline-flex items-center gap-1 text-xs font-mono font-bold text-black border border-accent-cyan px-2 py-1 rounded bg-accent-cyan ml-2 flex-shrink-0 drop-shadow-[0_0_8px_rgba(102,252,241,0.5)]" title="Verified by E-GameScout Officials">
+                                    <i class="fa-solid fa-check-double"></i> VERIFIED
+                                </span>
+                                {% endif %}
                             </div>
                             <p class="text-gray-400 text-sm mb-5 line-clamp-2">{{ tournament.description|striptags }}
                             </p>
@@ -229,8 +234,11 @@
                                 {% endif %}
                                 <div class="flex items-center gap-2">
                                     <i class="fa-solid fa-building text-purple-400"></i>
-                                    <span class="text-white font-bold">
+                                    <span class="text-white font-bold flex items-center">
                                         {{ tournament.Organization_Name.Organization_Name}}
+                                        {% if tournament.Organization_Name.is_verified %}
+                                        <i class="fa-solid fa-circle-check text-yellow-500 text-sm ml-1" title="Verified Organization"></i>
+                                        {% endif %}
                                     </span>
                                 </div>
                             </div>
@@ -334,8 +342,12 @@
                                 {% endif %}
                                 <div class="flex items-center gap-2">
                                     <i class="fa-solid fa-building text-yellow-700"></i>
-                                    <span class="text-yellow-600 font-bold">{{ t.Organization_Name.Organization_Name
-                                        }}</span>
+                                    <span class="text-yellow-600 font-bold flex items-center">
+                                        {{ t.Organization_Name.Organization_Name }}
+                                        {% if t.Organization_Name.is_verified %}
+                                        <i class="fa-solid fa-circle-check text-yellow-500 text-sm ml-1" title="Verified Organization"></i>
+                                        {% endif %}
+                                    </span>
                                 </div>
                             </div>
                         </div>
