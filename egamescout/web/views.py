@@ -1565,8 +1565,21 @@ def tournament_create(request):
         if form.is_valid():
             tournament = form.save(commit=False)
             tournament.Organization_Name = org
+            
+            # Start New Logic: Automatically submit for approval on creation
+            tournament.approval_status = 'PENDING'
             tournament.save()
-            messages.success(request, f'Tournament "{tournament.Name}" created successfully!')
+            
+            # Notify Admin
+            from .models import AdminNotification
+            AdminNotification.objects.create(
+                message=f"New tournament '{tournament.Name}' created and submitted for approval by {org.Organization_Name}.",
+                notification_type='TOURNAMENT',
+                link='/admin/tournament/approvals/'
+            )
+            # End New Logic
+            
+            messages.success(request, f'Tournament "{tournament.Name}" created and submitted for admin approval!')
             return redirect('tournament_list')
         else:
             messages.error(request, "Please correct the errors below.")
@@ -1968,10 +1981,8 @@ def publish_tournament(request, tournament_id):
     org = get_object_or_404(Organization, id=org_id)
     
     if request.method == 'POST':
-        # 1. Block unverified orgs from publishing
-        if not org.is_verified:
-            messages.error(request, "Only verified organizations can publish tournaments to the platform.")
-            return redirect('tournament_detail', tournament_id=tournament.Tournament_ID)
+        # 1. Organization verification is no longer required to submit a tournament for admin approval
+        # (This is handled by the admin approval process itself)
 
         # 2. If DRAFT or REJECTED -> Submit for Approval
         if tournament.approval_status in ['DRAFT', 'REJECTED']:
@@ -2004,7 +2015,6 @@ def publish_tournament(request, tournament_id):
                     message=f"{org.Organization_Name} invites you to participate in '{tournament.Name}'",
                     notification_type='GENERAL',
                     related_tournament=tournament,
-                    link=f"/organization/tournaments/upcoming/"
                 ))
         
             if org_notifications:
@@ -2017,15 +2027,14 @@ def publish_tournament(request, tournament_id):
                 player_notifications.append(PlayerNotification(
                     recipient=p,
                     message=f"New Tournament '{tournament.Name}' has been published by {org.Organization_Name}!",
-                notification_type='GENERAL',
-                link=f"/player/tournaments/upcoming/"
-            ))
+                    notification_type='GENERAL',
+                ))
             
-        if player_notifications:
-            PlayerNotification.objects.bulk_create(player_notifications)
-        
-        messages.success(request, f"Tournament published! Sent invites to {len(org_notifications)} organizations and {len(player_notifications)} players.")
-        return redirect('tournament_list')
+            if player_notifications:
+                PlayerNotification.objects.bulk_create(player_notifications)
+            
+            messages.success(request, f"Tournament published! Sent invites to {len(org_notifications)} organizations and {len(player_notifications)} players.")
+            return redirect('tournament_list')
         
     return redirect('tournament_list')
 

@@ -83,15 +83,8 @@
                     <td class="p-4 text-white/80 font-mono text-xs">{{ org.Organization_Contact }}</td>
                     <td class="p-4 text-white/40">{{ org.CreatedAt|date:"M d, Y" }}</td>
                     <td class="p-4 text-right">
-                        {% if not org.is_verified %}
-                        <form method="POST" action="{% url 'admin_grant_verification' 'organization' org.id %}" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="text-white/40 hover:text-yellow-400 transition-colors px-2" title="Grant Verification">
-                                <i class="fa-regular fa-star"></i>
-                            </button>
-                        </form>
-                        {% else %}
-                        <button class="text-yellow-400/50 cursor-not-allowed px-2" title="Already Verified" disabled>
+                        {% if org.is_verified %}
+                        <button class="text-yellow-400/50 cursor-not-allowed px-2 text-xs" title="Verified Organization" disabled>
                             <i class="fa-solid fa-star"></i>
                         </button>
                         {% endif %}
@@ -106,7 +99,7 @@
                             <i class="fa-solid fa-eye"></i>
                         </button>
 
-                        <button onclick="openOrgStatusModal('{{ org.id }}', '{{ org.status }}')"
+                        <button onclick="openOrgStatusModal('{{ org.id }}', '{{ org.status }}', '{{ org.is_verified }}')"
                             class="text-white/40 hover:text-brand-blue transition-colors px-2" title="Edit Status">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
@@ -270,6 +263,16 @@
                         </label>
                     </div>
                 </div>
+                
+                <div id="verificationSection" class="mb-6 p-4 rounded-lg border border-yellow-500/20 bg-yellow-500/5 hidden">
+                    <p id="orgVerifyTitle" class="font-bold text-sm mb-2"></p>
+                    <p id="orgVerifyDesc" class="text-white/60 text-xs mb-3"></p>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="verifyCheckbox" class="rounded bg-black/50 border-white/20">
+                        <span id="orgVerifyLabel" class="text-sm text-white"></span>
+                    </label>
+                </div>
+                
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="closeOrgModal('statusOrgModal')"
                         class="px-4 py-2 text-gray-400 hover:text-white text-sm font-bold uppercase">Cancel</button>
@@ -347,15 +350,57 @@
         modal.classList.add('flex');
     }
 
-    function openOrgStatusModal(orgId, currentStatus) {
+    function openOrgStatusModal(orgId, currentStatus, isVerified) {
         const modal = document.getElementById('statusOrgModal');
         const form = document.getElementById('statusOrgForm');
+        const verifySection = document.getElementById('verificationSection');
+        const verifyCheckbox = document.getElementById('verifyCheckbox');
+        const orgVerifyTitle = document.getElementById('orgVerifyTitle');
+        const orgVerifyDesc = document.getElementById('orgVerifyDesc');
+        const orgVerifyLabel = document.getElementById('orgVerifyLabel');
 
         // Ensure this maps to your actual update URL
         form.action = `/admin/organizations/edit/${orgId}/`;
 
         const radio = form.querySelector(`input[value="${currentStatus}"]`);
         if (radio) radio.checked = true;
+
+        verifyCheckbox.checked = false;
+        verifySection.classList.remove('hidden');
+
+        if (isVerified === 'True') {
+            verifySection.className = 'mb-6 p-4 rounded-lg border border-red-500/20 bg-red-500/5';
+            orgVerifyTitle.className = 'font-bold text-sm mb-2 text-red-400';
+            orgVerifyTitle.textContent = '⚠ Revoke Verification';
+            orgVerifyDesc.textContent = 'This will remove the verified badge and trusted status from this organization.';
+            orgVerifyLabel.textContent = 'Yes, revoke verification from this organization.';
+        } else {
+            verifySection.className = 'mb-6 p-4 rounded-lg border border-yellow-500/20 bg-yellow-500/5';
+            orgVerifyTitle.className = 'font-bold text-sm mb-2 text-yellow-400';
+            orgVerifyTitle.textContent = '★ Grant Verification';
+            orgVerifyDesc.textContent = 'Verifying this organization grants them trusted status on the platform.';
+            orgVerifyLabel.textContent = 'Yes, I confirm this organization is legitimate and should be verified.';
+        }
+
+        // Add verification logic on submit
+        form.onsubmit = function(e) {
+            if (verifyCheckbox.checked) {
+                const action = isVerified === 'True' ? 'REVOKE VERIFICATION from' : 'GRANT VERIFICATION to';
+                const isConfirmed = confirm(`Are you absolutely sure you want to ${action} this organization?`);
+                if (!isConfirmed) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                form.querySelectorAll('input[name="grant_verification"], input[name="revoke_verification"]').forEach(el => el.remove());
+                const verifyInput = document.createElement('input');
+                verifyInput.type = 'hidden';
+                verifyInput.name = isVerified === 'True' ? 'revoke_verification' : 'grant_verification';
+                verifyInput.value = 'true';
+                form.appendChild(verifyInput);
+            }
+            return true;
+        };
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');

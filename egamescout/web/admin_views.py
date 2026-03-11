@@ -231,7 +231,35 @@ def admin_edit_organization(request, org_id):
         # Basic update logic
         # Only allow Status Update
         org.status = request.POST.get('status', 'Active')
+        
+        # Handle verification grant
+        if request.POST.get('grant_verification') == 'true' and not org.is_verified:
+            org.is_verified = True
+            messages.success(request, f"{org.Organization_Name} has been verified.")
             
+            # Send Email
+            from django.core.mail import send_mail
+            from django.template.loader import render_to_string
+            from django.utils.html import strip_tags
+            
+            html_message = render_to_string('web/emails/org_verified.html', {'org': org})
+            plain_message = strip_tags(html_message)
+            try:
+                send_mail(
+                    'Verification Successful - E-GameScout',
+                    plain_message,
+                    None,
+                    [org.Organization_Email],
+                    html_message=html_message
+                )
+            except Exception as e:
+                pass
+        
+        # Handle verification revoke
+        if request.POST.get('revoke_verification') == 'true' and org.is_verified:
+            org.is_verified = False
+            messages.warning(request, f"Verification has been revoked for {org.Organization_Name}.")
+                
         org.save()
         messages.success(request, f'Organization "{org.Organization_Name}" has been updated.')
         return redirect('admin_organization_detail')
@@ -245,10 +273,19 @@ def admin_update_player_status(request, player_id):
         new_status = request.POST.get('status')
         if new_status in dict(Player.STATUS_CHOICES):
             player.status = new_status
-            player.save()
-            messages.success(request, f'Status for {player.full_name} updated to {new_status}.')
-        else:
-            messages.error(request, 'Invalid status selected.')
+        
+        # Handle verification grant
+        if request.POST.get('grant_verification') == 'true' and not player.is_verified:
+            player.is_verified = True
+            messages.success(request, f'{player.full_name} has been granted verification.')
+        
+        # Handle verification revoke
+        if request.POST.get('revoke_verification') == 'true' and player.is_verified:
+            player.is_verified = False
+            messages.warning(request, f'Verification has been revoked for {player.full_name}.')
+        
+        player.save()
+        messages.success(request, f'Player {player.full_name} updated successfully.')
     return redirect('admin_players_detail')
 
 @user_passes_test(is_superuser, login_url='admin_login')
@@ -913,7 +950,7 @@ def admin_grant_verification(request, entity_type, entity_id):
                 'Verification Successful - E-GameScout',
                 plain_message,
                 None,
-                [org.Email],
+                [org.Organization_Email],
                 html_message=html_message
             )
             return redirect('admin_organization_detail')

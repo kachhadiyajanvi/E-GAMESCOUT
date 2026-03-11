@@ -81,15 +81,8 @@
                     </td>
                     <td class="p-4 text-white/40">{{ player.created_at|date:"M d, Y" }}</td>
                     <td class="p-4 text-right">
-                        {% if not player.is_verified %}
-                        <form method="POST" action="{% url 'admin_grant_verification' 'player' player.id %}" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="text-white/40 hover:text-blue-400 transition-colors px-2" title="Grant Verification">
-                                <i class="fa-regular fa-star"></i>
-                            </button>
-                        </form>
-                        {% else %}
-                        <button class="text-blue-400/50 cursor-not-allowed px-2" title="Already Verified" disabled>
+                        {% if player.is_verified %}
+                        <button class="text-blue-400/50 cursor-not-allowed px-2 text-xs" title="Verified Player" disabled>
                             <i class="fa-solid fa-star"></i>
                         </button>
                         {% endif %}
@@ -103,7 +96,7 @@
                             title="View Full Details">
                             <i class="fa-solid fa-eye"></i>
                         </button>
-                        <button onclick="openStatusModal('{{ player.id }}', '{{ player.status }}')"
+                        <button onclick="openStatusModal('{{ player.id }}', '{{ player.status }}', '{{ player.is_verified }}')"
                             class="text-white/40 hover:text-brand-blue transition-colors px-2" title="Edit Status">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
@@ -277,6 +270,14 @@
                         </label>
                     </div>
                 </div>
+                <div id="playerVerificationSection" class="mb-4 p-4 rounded-lg border hidden">
+                    <p id="verifyTitle" class="font-bold text-sm mb-1"></p>
+                    <p id="verifyDesc" class="text-white/50 text-xs mb-3"></p>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="playerVerifyCheckbox" class="rounded bg-black/50 border-white/20">
+                        <span id="verifyLabel" class="text-sm text-white"></span>
+                    </label>
+                </div>
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="closePlayerModal('statusModal')"
                         class="px-4 py-2 text-gray-400 hover:text-white text-sm font-bold uppercase">Cancel</button>
@@ -358,15 +359,51 @@
         modal.classList.add('flex');
     }
 
-    function openStatusModal(playerId, currentStatus) {
+    function openStatusModal(playerId, currentStatus, isVerified) {
         const modal = document.getElementById('statusModal');
         const form = document.getElementById('statusForm');
+        const verifySection = document.getElementById('playerVerificationSection');
+        const checkbox = document.getElementById('playerVerifyCheckbox');
+        const title = document.getElementById('verifyTitle');
+        const desc = document.getElementById('verifyDesc');
+        const label = document.getElementById('verifyLabel');
 
         form.action = `/admin/players/update-status/${playerId}/`;
+        checkbox.checked = false;
 
-        // Select current status
         const radio = form.querySelector(`input[value="${currentStatus}"]`);
         if (radio) radio.checked = true;
+
+        if (isVerified === 'True') {
+            verifySection.className = 'mb-4 p-4 rounded-lg border border-red-500/20 bg-red-500/5';
+            title.className = 'font-bold text-sm mb-1 text-red-400';
+            title.textContent = '⚠ Revoke Verification';
+            desc.textContent = 'This will remove the verified badge from this player.';
+            label.textContent = 'Yes, revoke verification from this player.';
+        } else {
+            verifySection.className = 'mb-4 p-4 rounded-lg border border-blue-500/20 bg-blue-500/5';
+            title.className = 'font-bold text-sm mb-1 text-blue-400';
+            title.textContent = '★ Grant Verification';
+            desc.textContent = 'Verifying this player grants them a verified badge on the platform.';
+            label.textContent = 'Yes, I confirm this player should be verified.';
+        }
+
+        form.onsubmit = function(e) {
+            if (checkbox.checked) {
+                const action = isVerified === 'True' ? 'REVOKE VERIFICATION from' : 'GRANT VERIFICATION to';
+                if (!confirm(`Are you absolutely sure you want to ${action} this player?`)) {
+                    e.preventDefault(); return false;
+                }
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = isVerified === 'True' ? 'revoke_verification' : 'grant_verification';
+                inp.value = 'true';
+                // remove any previous hidden inputs to avoid duplicates
+                form.querySelectorAll('input[name="grant_verification"], input[name="revoke_verification"]').forEach(el => el.remove());
+                form.appendChild(inp);
+            }
+            return true;
+        };
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
