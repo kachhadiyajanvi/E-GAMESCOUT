@@ -68,9 +68,34 @@
                 {% endif %}
             </div>
 
+            <!-- Terms & Conditions -->
+            <div class="md:col-span-2">
+                <label class="flex items-start gap-3 cursor-pointer group select-none">
+                    <div class="relative mt-0.5 shrink-0">
+                        <input id="terms-check-player" type="checkbox" required
+                            class="peer sr-only">
+                        <div class="w-5 h-5 rounded border-2 border-white/20 bg-white/5 peer-checked:bg-accent-cyan peer-checked:border-accent-cyan transition-all flex items-center justify-center">
+                            <i class="fa-solid fa-check text-[10px] text-black opacity-0 peer-checked:opacity-100 transition-opacity" id="terms-icon-player"></i>
+                        </div>
+                    </div>
+                    <span class="text-gray-400 text-xs leading-relaxed group-hover:text-gray-300 transition-colors">
+                        I have read and agree to the
+                        <a href="{% url 'terms' %}" target="_blank"
+                            class="text-accent-cyan hover:text-white underline underline-offset-2 font-semibold transition-colors">
+                            Terms &amp; Conditions
+                        </a>
+                        of E-Game Scout. I confirm that all information provided is accurate.
+                    </span>
+                </label>
+                <p id="terms-error-player" class="text-red-500 text-xs mt-2 font-bold hidden">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> You must accept the Terms &amp; Conditions to register.
+                </p>
+            </div>
+
             <div class="md:col-span-2 mt-4">
-                <button type="submit"
-                    class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded-xl transition-colors group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)]">
+                <button id="submit-btn-player" type="submit"
+                    class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded-xl transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent-cyan"
+                    disabled>
                     Activate Profile <i class="fa-solid fa-rocket ml-2"></i>
                 </button>
             </div>
@@ -90,6 +115,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const nameError = document.getElementById('fullname-error');
     const uidError = document.getElementById('uid-error');
     const mobileError = document.getElementById('mobile-error');
+
+    // T&C checkbox
+    const termsCheck = document.getElementById('terms-check-player');
+    const termsError = document.getElementById('terms-error-player');
+    const submitBtn = document.getElementById('submit-btn-player');
+    const termsIcon = document.getElementById('terms-icon-player');
+
+    if (termsCheck && submitBtn) {
+        termsCheck.addEventListener('change', function () {
+            submitBtn.disabled = !this.checked;
+            if (termsIcon) termsIcon.style.opacity = this.checked ? '1' : '0';
+            if (termsError && this.checked) termsError.classList.add('hidden');
+        });
+
+        // Show error on submit attempt if unchecked
+        submitBtn.closest('form').addEventListener('submit', function (e) {
+            if (!termsCheck.checked) {
+                e.preventDefault();
+                if (termsError) termsError.classList.remove('hidden');
+                termsCheck.parentElement.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    }
 
     if (nameInput && nameError) {
         nameInput.addEventListener('input', function () {
