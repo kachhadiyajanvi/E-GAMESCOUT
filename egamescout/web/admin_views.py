@@ -940,7 +940,7 @@ def admin_grant_verification(request, entity_type, entity_id):
 
 @user_passes_test(is_superuser, login_url='/admin/login/')
 def admin_tournament_approvals(request):
-    pending_tournaments = Tournament.objects.filter(approval_status='PENDING_APPROVAL').order_by('-CreatedAt')
+    pending_tournaments = Tournament.objects.filter(approval_status='PENDING').order_by('-CreatedAt')
     
     paginator = Paginator(pending_tournaments, 10)
     page_number = request.GET.get('page')

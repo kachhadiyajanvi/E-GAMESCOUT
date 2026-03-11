@@ -1971,14 +1971,23 @@ def publish_tournament(request, tournament_id):
         # 1. Block unverified orgs from publishing
         if not org.is_verified:
             messages.error(request, "Only verified organizations can publish tournaments to the platform.")
-            return redirect('org_tournament_details', tournament_id=tournament.Tournament_ID)
+            return redirect('tournament_detail', tournament_id=tournament.Tournament_ID)
 
         # 2. If DRAFT or REJECTED -> Submit for Approval
         if tournament.approval_status in ['DRAFT', 'REJECTED']:
             tournament.approval_status = 'PENDING'
             tournament.save()
+            
+            # Notify Admin
+            from .models import AdminNotification
+            AdminNotification.objects.create(
+                message=f"New tournament '{tournament.Name}' submitted for approval by {org.Organization_Name}.",
+                notification_type='TOURNAMENT',
+                link='/admin/tournament/approvals/'
+            )
+            
             messages.success(request, f"Tournament '{tournament.Name}' has been submitted for admin approval.")
-            return redirect('org_tournament_details', tournament_id=tournament.Tournament_ID)
+            return redirect('tournament_detail', tournament_id=tournament.Tournament_ID)
 
         # 3. If APPROVED -> Actually publish -> send notifications
         if tournament.approval_status == 'APPROVED' and not tournament.is_published:
