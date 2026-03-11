@@ -1,0 +1,272 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block content %}
+<main class="min-h-screen pt-24 pb-16 px-4 md:px-8 bg-black relative">
+    <!-- Grid Background -->
+    <div class="absolute inset-0 z-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
+    <div class="absolute top-0 right-1/4 w-96 h-96 bg-accent-cyan/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-accent-pink/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10 space-y-12">
+        <!-- 1. Tournament Overview Header -->
+        <div class="glass-card rounded-2xl overflow-hidden border border-white/10 relative">
+            <!-- Animated neon border background -->
+            <div class="absolute -inset-0.5 bg-gradient-to-r from-accent-cyan via-accent-pink to-accent-cyan rounded-2xl blur opacity-20"></div>
+            
+            <div class="relative bg-brand-dark p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center border border-white/10 rounded-2xl">
+                <div class="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-accent-pink/5 mix-blend-screen group-hover:bg-accent-pink/20 transition-colors"></div>
+                    <i class="fa-solid fa-trophy text-6xl md:text-8xl text-accent-pink/40 group-hover:text-accent-pink group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(255,0,128,0.3)]"></i>
+                </div>
+                
+                <div class="flex-1 text-center md:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-black/60 border border-white/10 text-[10px] font-mono text-accent-cyan tracking-widest uppercase mb-4 shadow-lg">
+                        <i class="fa-solid fa-calendar-alt"></i> {{ tournament.date|date:"F d, Y" }}
+                    </div>
+                    <h1 class="text-3xl md:text-5xl font-display font-bold text-white mb-4 tracking-wide uppercase">
+                        {{ tournament.tournament_name }}
+                    </h1>
+                    {% if tournament.description %}
+                    <p class="text-gray-400 max-w-2xl leading-relaxed mb-6">
+                        {{ tournament.description }}
+                    </p>
+                    {% endif %}
+                    
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
+                        <div class="bg-black/50 border border-yellow-500/30 rounded-lg p-4 flex-1 min-w-[200px] hover:border-yellow-500/60 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)] transition-all">
+                            <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Champion</div>
+                            <div class="font-bold text-white text-lg flex items-center">
+                                <i class="fa-solid fa-crown text-yellow-500 mr-2 drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]"></i>
+                                {{ tournament.winner_team|default:"TBD" }}
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black/50 border border-gray-400/30 rounded-lg p-4 flex-1 min-w-[200px] hover:border-gray-400/60 hover:shadow-[0_0_20px_rgba(156,163,175,0.15)] transition-all">
+                            <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Runner Up</div>
+                            <div class="font-bold text-gray-300 text-lg flex items-center">
+                                <i class="fa-solid fa-medal text-gray-400 mr-2 drop-shadow-[0_0_5px_rgba(156,163,175,0.8)]"></i>
+                                {{ tournament.runner_up_team|default:"TBD" }}
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black/50 border border-accent-cyan/30 rounded-lg p-4 flex-1 min-w-[150px]">
+                            <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Total Teams</div>
+                            <div class="font-bold text-accent-cyan text-lg flex items-center">
+                                <i class="fa-solid fa-users mr-2"></i>
+                                {{ teams|length }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content Area -->
+            <div class="lg:col-span-2 space-y-12">
+                <!-- 3. Participating Teams Table -->
+                <section>
+                    <div class="flex items-center gap-3 mb-6">
+                        <h2 class="text-2xl font-display font-bold text-white uppercase"><i class="fa-solid fa-ranking-star text-accent-cyan mr-2"></i> Final Standings</h2>
+                        <div class="flex-1 h-px bg-gradient-to-r from-accent-cyan/50 to-transparent"></div>
+                    </div>
+                    
+                    <div class="glass-card rounded-xl border border-white/10 overflow-hidden bg-[#0F1115]">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-black/80 border-b border-white/10 text-[10px] font-mono tracking-widest text-gray-500 uppercase">
+                                        <th class="p-4 font-normal">Rank</th>
+                                        <th class="p-4 font-normal">Team</th>
+                                        <th class="p-4 font-normal">Organization</th>
+                                        <th class="p-4 font-normal text-right">Points</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">
+                                    {% for team in teams %}
+                                    <tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                                        <td class="p-4 font-mono font-bold w-16 text-center">
+                                            {% if forloop.counter == 1 %}
+                                                <span class="text-yellow-500 font-bold">#1</span>
+                                            {% elif forloop.counter == 2 %}
+                                                <span class="text-gray-400 font-bold">#2</span>
+                                            {% elif forloop.counter == 3 %}
+                                                <span class="text-amber-600 font-bold">#3</span>
+                                            {% else %}
+                                                <span class="text-gray-600 group-hover:text-gray-400">#{{ forloop.counter }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="p-4 font-bold text-white group-hover:text-accent-cyan transition-colors">{{ team.team_name }}</td>
+                                        <td class="p-4 text-gray-400">{{ team.organization|default:"-" }}</td>
+                                        <td class="p-4 text-right font-mono font-bold text-accent-pink">{{ team.points }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="p-8 text-center text-gray-500 text-sm">No teams found for this tournament.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Match Scorecard History -->
+                <section>
+                    <div class="flex items-center gap-3 mb-6">
+                        <h2 class="text-2xl font-display font-bold text-white uppercase"><i class="fa-solid fa-gamepad text-accent-pink mr-2"></i> Match History</h2>
+                        <div class="flex-1 h-px bg-gradient-to-r from-accent-pink/50 to-transparent"></div>
+                    </div>
+
+                    <div class="space-y-4">
+                        {% for match in scorecards %}
+                        <div class="glass-card rounded-xl border border-white/10 p-6 bg-brand-dark/80 hover:border-white/20 transition-colors">
+                            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-4 pb-4 border-b border-white/5">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-black/60 rounded flex items-center justify-center font-display font-bold text-xl text-accent-cyan shadow-[inset_0_0_10px_rgba(102,252,241,0.2)]">
+                                        M{{ match.match_number }}
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] text-gray-500 font-mono tracking-widest uppercase block">Scorecard</span>
+                                        <h3 class="font-bold text-white">Match #{{ match.match_number }} Results</h3>
+                                    </div>
+                                </div>
+                                
+                                <button onclick="openScorecardModal('{{ match.id }}')" 
+                                        class="text-[10px] font-mono uppercase tracking-widest px-4 py-2 border border-accent-cyan/50 text-accent-cyan hover:bg-accent-cyan hover:text-black hover:shadow-[0_0_15px_rgba(102,252,241,0.5)] transition-all rounded">
+                                    <i class="fa-solid fa-magnifying-glass mr-1"></i> View Details
+                                </button>
+                            </div>
+                            
+                            <div class="prose prose-invert prose-sm max-w-none text-gray-400 line-clamp-2">
+                                {{ match.ai_analysis|truncatechars:150 }}
+                            </div>
+                        </div>
+
+                        <!-- 5. Scorecard Modal for each match -->
+                        <div id="scorecard-modal-{{ match.id }}" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+                            <!-- Backdrop -->
+                            <div class="absolute inset-0 bg-black/90 backdrop-blur-sm pointer-events-none transition-opacity" onclick="closeScorecardModal('{{ match.id }}')"></div>
+                            
+                            <!-- Modal Content -->
+                            <div class="relative glass-card border border-white/10 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden bg-brand-dark shadow-[0_0_50px_rgba(0,0,0,0.8)] pointer-events-auto transform transition-transform scale-95 opacity-0 duration-300" id="modal-content-{{ match.id }}">
+                                
+                                <div class="p-6 border-b border-white/10 flex justify-between items-center bg-black/40">
+                                    <h3 class="text-xl font-display font-bold text-white uppercase tracking-widest">
+                                        <i class="fa-solid fa-terminal text-accent-cyan mr-2"></i> Match {{ match.match_number }} Analysis
+                                    </h3>
+                                    <button onclick="closeScorecardModal('{{ match.id }}')" class="text-gray-500 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">
+                                        <i class="fa-solid fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="overflow-y-auto p-6 md:p-8 space-y-8 flex-1">
+                                    <!-- AI Analysis Section -->
+                                    <div>
+                                        <h4 class="text-[10px] font-mono text-accent-pink tracking-widest uppercase mb-3"><i class="fa-solid fa-robot mr-1"></i> AI Generated Report</h4>
+                                        <div class="prose prose-invert max-w-none text-gray-300 font-mono text-sm leading-relaxed p-4 bg-black/40 rounded-lg border border-white/5 relative selection:bg-accent-cyan selection:text-black">
+                                            <!-- Scanline effect for terminal look -->
+                                            <div class="absolute inset-0 bg-[linear-gradient(rgba(102,252,241,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(102,252,241,0.03)_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none rounded-lg"></div>
+                                            {{ match.ai_analysis|linebreaks }}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Optional Raw Data Parsing -->
+                                    {% if match.match_data %}
+                                    <div>
+                                        <h4 class="text-[10px] font-mono text-gray-500 tracking-widest uppercase mb-3"><i class="fa-solid fa-database mr-1"></i> Raw Data Extract</h4>
+                                        <div class="bg-black/60 rounded-lg p-4 font-mono text-xs text-gray-400 overflow-x-auto border border-white/5">
+                                            <pre>{{ match.match_data|pprint }}</pre>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-12 border border-dashed border-white/10 rounded-xl bg-black/20">
+                            <i class="fa-solid fa-file-invoice text-4xl text-gray-700 mb-3"></i>
+                            <p class="text-gray-500 text-sm">No match scorecards published for this tournament yet.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lg:col-span-1 space-y-8">
+                <!-- 2. Participating Organizations -->
+                <div class="glass-card rounded-xl border border-white/10 p-6 bg-[#0F1115]">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-widest mb-4 pb-2 border-b border-white/10 flex items-center justify-between">
+                        <span><i class="fa-solid fa-building text-gray-400 mr-2"></i> Organizations</span>
+                        <span class="text-accent-cyan">{{ organizations|length }}</span>
+                    </h3>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        {% for org in organizations %}
+                        <span class="px-3 py-1.5 bg-black/50 border border-white/5 rounded text-xs text-gray-300 font-bold hover:border-accent-cyan/50 hover:text-accent-cyan transition-colors cursor-default">
+                            {{ org }}
+                        </span>
+                        {% empty %}
+                        <p class="text-gray-500 text-xs italic">No associated organizations found.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Quick Info -->
+                <div class="glass-card rounded-xl border border-white/10 p-6 bg-[#0F1115]">
+                     <h3 class="text-sm font-bold text-white uppercase tracking-widest mb-4 pb-2 border-b border-white/10">
+                        <i class="fa-solid fa-circle-info text-gray-400 mr-2"></i> Details
+                    </h3>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex justify-between items-center text-gray-400">
+                            <span>Status</span>
+                            <span class="text-green-400 font-bold text-xs px-2 py-0.5 bg-green-400/10 border border-green-400/20 rounded">CONCLUDED</span>
+                        </li>
+                        <li class="flex justify-between items-center text-gray-400">
+                            <span>Matches Logged</span>
+                            <span class="text-white font-mono">{{ scorecards|length }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    function openScorecardModal(matchId) {
+        const modal = document.getElementById(`scorecard-modal-${matchId}`);
+        const content = document.getElementById(`modal-content-${matchId}`);
+        const backdrop = modal.querySelector('.bg-black\\/90');
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Trigger reflow
+        void modal.offsetWidth;
+        
+        backdrop.classList.add('pointer-events-auto');
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeScorecardModal(matchId) {
+        const modal = document.getElementById(`scorecard-modal-${matchId}`);
+        const content = document.getElementById(`modal-content-${matchId}`);
+        const backdrop = modal.querySelector('.bg-black\\/90');
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        backdrop.classList.remove('pointer-events-auto');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }, 300);
+    }
+</script>
+{% endblock %}

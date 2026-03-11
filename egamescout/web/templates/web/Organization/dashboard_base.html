@@ -40,6 +40,22 @@
         }
     </script>
     <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+    <style type="text/tailwindcss">
+        @layer components {
+            .page-breadcrumb { @apply flex items-center gap-2 text-sm mb-6 font-mono text-gray-400; }
+            .breadcrumb-link { @apply hover:text-accent-cyan transition-colors flex items-center gap-1.5; }
+            .breadcrumb-separator { @apply text-gray-600 text-[10px]; }
+            .breadcrumb-active { @apply text-white font-semibold; }
+            
+            .page-header { @apply flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10; }
+            .page-title-group { @apply flex items-center gap-4 w-full; }
+            .page-title-decorator { @apply w-1.5 h-14 bg-gradient-to-b from-accent-cyan to-blue-500 rounded-full shadow-[0_0_15px_rgba(102,252,241,0.5)] shrink-0; }
+            .page-title { @apply text-3xl md:text-4xl font-display font-bold text-white mb-1 tracking-wide uppercase; }
+            .page-title-highlight { @apply text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500; }
+            .page-subtitle { @apply text-gray-400 text-sm font-sans normal-case tracking-normal; }
+            .page-actions { @apply flex flex-col sm:flex-row gap-3 w-full lg:w-auto mt-4 lg:mt-0 items-start sm:items-center shrink-0; }
+        }
+    </style>
     <style>
         /* Custom scrollbar for sidebar */
         .no-scrollbar::-webkit-scrollbar {
@@ -66,9 +82,9 @@
 
     <!-- Sidebar -->
     <aside
-        class="w-64 h-full bg-brand-dark/90 border-r border-white/5 flex flex-col z-50 transition-all duration-300 mobile-sidebar hidden md:flex">
+        class="w-64 h-full bg-brand-dark/90 border-r border-white/5 flex flex-col z-50 shrink-0 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-300 mobile-sidebar">
         <!-- Sidebar Header / Logo -->
-        <div class="h-20 flex items-center px-5 border-b border-white/5 relative overflow-hidden shrink-0 bg-black/10">
+        <div class="h-20 flex items-center justify-between px-5 border-b border-white/5 relative overflow-hidden shrink-0 bg-black/10">
             <!-- Subtle ambient glow behind logo -->
             <div class="absolute left-0 top-0 w-32 h-full bg-accent-cyan/5 blur-2xl pointer-events-none"></div>
             <div class="flex items-center gap-3 relative z-10">
@@ -86,6 +102,10 @@
                     <span class="text-[9px] font-bold tracking-[0.3em] text-white/30 uppercase">Organization</span>
                 </div>
             </div>
+            <!-- Close button for mobile -->
+            <button class="md:hidden text-white/60 hover:text-white relative z-10" onclick="toggleSidebar()">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
         </div>
 
         <!-- Navigation -->
@@ -167,55 +187,58 @@
             <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-cyan/30 to-transparent"></div>
             <!-- Bidding Season Banner -->
             {% if bidding_status %}
-            <div class="px-6 py-1.5 flex items-center gap-3 border-b border-white/5
+            <div class="px-3 md:px-6 py-1.5 flex flex-wrap md:flex-nowrap items-center gap-2 md:gap-3 border-b border-white/5
                 {% if bidding_status.is_active %}bg-green-500/5{% else %}bg-yellow-500/5{% endif %}">
-                <span class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest
+                <span class="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-widest
                     {% if bidding_status.is_active %}text-green-400{% else %}text-yellow-400{% endif %}">
                     <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
                     {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING CLOSED{% endif %}
                 </span>
                 
                 {% if bidding_status.is_active %}
-                <span class="text-white/30 text-[10px]">|</span>
-                <span class="text-white/60 text-[11px] font-mono">
+                <span class="text-white/30 text-[10px] hidden md:inline">|</span>
+                <span class="text-white/60 text-[10px] md:text-[11px] font-mono hidden md:inline">
                     <span class="text-white/40">Season:</span>
                     <span class="text-white font-bold">{{ bidding_status.season_name }}</span>
                 </span>
                 <span class="text-white/30 text-[10px]">|</span>
-                <span class="text-[11px] font-mono font-bold text-accent-pink" id="orgBiddingCountdown"
+                <span class="text-[10px] md:text-[11px] font-mono font-bold text-accent-pink" id="orgBiddingCountdown"
                     data-start="{{ bidding_status.start_date|date:'c' }}"
                     data-end="{{ bidding_status.end_date|date:'c' }}"
                     data-active="true">--:--:--</span>
                 {% else %}
                 <span class="text-white/30 text-[10px]">|</span>
-                <span class="text-[11px] font-mono font-bold text-yellow-500" id="orgBiddingCountdown"
+                <span class="text-[10px] md:text-[11px] font-mono font-bold text-yellow-500" id="orgBiddingCountdown"
                     data-start="{{ bidding_status.next_season_start|date:'c' }}"
                     data-active="false">--:--:--</span>
                 {% endif %}
                 
-                <a href="{% url 'org_bidding_dashboard' %}" class="ml-auto text-[10px] font-bold text-accent-cyan hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1">
-                    <i class="fa-solid fa-gavel text-[10px]"></i> Bidding Hub
+                <a href="{% url 'org_bidding_dashboard' %}" class="ml-auto text-[9px] md:text-[10px] font-bold text-accent-cyan hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1">
+                    <i class="fa-solid fa-gavel text-[10px]"></i> <span class="hidden md:inline">Bidding Hub</span>
                 </a>
             </div>
             {% endif %}
             <!-- Main Header Row -->
-            <div class="h-20 flex items-center justify-between px-6">
-            <!-- Mobile Menu Button -->
-            <button class="md:hidden text-white text-xl mr-4" onclick="toggleSidebar()">
-                <i class="fa-solid fa-bars"></i>
-            </button>
+            <div class="h-20 flex items-center justify-between px-4 md:px-6 w-full">
+            
+            <div class="flex items-center gap-4">
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-white/60 hover:text-white text-xl" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
 
-            <!-- Page Title -->
-            <div>
-                <h2 class="text-xl font-display font-bold text-white tracking-wider">
-                    ORGANIZATION <span
-                        class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500">DASHBOARD</span>
-                </h2>
-                <p class="text-xs text-gray-500 font-mono">Manage your esports organization</p>
+                <!-- Page Title -->
+                <div class="hidden sm:block">
+                    <h2 class="text-lg md:text-xl font-display font-bold text-white tracking-wider">
+                        ORGANIZATION <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500">DASHBOARD</span>
+                    </h2>
+                    <p class="text-[10px] md:text-xs text-gray-500 font-mono">Manage your esports organization</p>
+                </div>
             </div>
 
             <!-- Right Actions -->
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4 md:gap-6">
                 <!-- Search (Visual) -->
                 <div
                     class="hidden md:flex items-center bg-black/20 border border-white/10 rounded-full px-4 py-2 w-64 focus-within:border-accent-cyan/50 transition-colors">
@@ -452,13 +475,11 @@
             const sidebar = document.querySelector('.mobile-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
 
-            if (sidebar.classList.contains('hidden')) {
-                sidebar.classList.remove('hidden');
-                sidebar.classList.add('absolute', 'top-0', 'left-0', 'h-full', 'shadow-2xl');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
                 overlay.classList.remove('hidden');
             } else {
-                sidebar.classList.add('hidden');
-                sidebar.classList.remove('absolute', 'top-0', 'left-0', 'h-full', 'shadow-2xl');
+                sidebar.classList.add('-translate-x-full');
                 overlay.classList.add('hidden');
             }
         }

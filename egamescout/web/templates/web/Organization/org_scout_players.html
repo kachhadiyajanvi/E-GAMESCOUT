@@ -3,26 +3,28 @@
 {% block content %}
 <div class="dashboard-container rounded-2xl p-8 min-h-[calc(100vh-80px)]">
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm mb-6">
-        <a href="{% url 'organizer_dashboard' %}"
-            class="text-white/60 hover:text-white transition-colors flex items-center gap-1.5 font-bold">
+    <nav class="page-breadcrumb">
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </a>
-        <span class="text-white/30">/</span>
-        <span class="text-accent-cyan font-bold tracking-wider">Scout Players</span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-active">Scout Players</span>
     </nav>
 
     <!-- Header Area -->
-    <div class="flex flex-col md:flex-row items-end justify-between mb-8 gap-6">
-        <div>
-            <h1 class="text-3xl font-display font-bold text-white mb-2 uppercase tracking-widest flex items-center gap-3">
-                <i class="fa-solid fa-users-viewfinder text-accent-cyan"></i>
-                PLAYER <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">DATABASE</span>
-            </h1>
-            <p class="text-brand-light/60 text-sm font-mono">
-                Browse and scout from {{ available_players|length }} active players on the platform.
-            </p>
+    <div class="page-header">
+        <div class="page-title-group">
+            <div class="page-title-decorator"></div>
+            <div>
+                <h1 class="page-title">
+                    <i class="fa-solid fa-users-viewfinder text-accent-cyan mr-3"></i>
+                    PLAYER <span class="page-title-highlight">DATABASE</span>
+                </h1>
+                <p class="page-subtitle">
+                    Browse and scout from {{ available_players|length }} active players on the platform.
+                </p>
+            </div>
         </div>
 
         <!-- Pill-Shaped View Toggle matching user screenshot -->
@@ -88,7 +90,7 @@
             <!-- TABLE VIEW (Hidden by default) -->
             <div id="playersTable" class="hidden overflow-hidden transition-opacity duration-300 border border-white/10 rounded-2xl bg-black/40">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
+                    <table class="w-full text-left text-sm whitespace-nowrap md:whitespace-normal">
                         <thead class="text-xs text-brand-light/50 uppercase bg-black hover:bg-black/80 font-display border-b border-white/10">
                             <tr>
                                 <th class="px-6 py-4 font-bold">Player</th>

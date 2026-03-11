@@ -5,8 +5,8 @@
 {% block content %}
 <div class="container mx-auto max-w-5xl p-6 lg:p-8">
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm mb-6">
-        <a href="{% url 'org_upcoming_tournaments' %}" class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
+    <nav class="page-breadcrumb">
+        <a href="{% url 'org_upcoming_tournaments' %}" class="breadcrumb-link !font-bold">
             <i class="fa-solid fa-arrow-left text-xs"></i>
             <span>Back to Tournaments</span>
         </a>
@@ -14,10 +14,10 @@
 
     <!-- Header -->
     <div class="mb-10 text-center">
-        <h1 class="text-3xl font-display font-bold text-white mb-2">
+        <h1 class="page-title mb-2">
             Join <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">{{ tournament.Name }}</span>
         </h1>
-        <p class="text-gray-400">Select your active roster of 5 players to participate in this tournament.</p>
+        <p class="page-subtitle text-gray-400">Select your active roster of 5 players to participate in this tournament.</p>
     </div>
 
     <form method="post" action="{% url 'org_join_tournament' tournament.Tournament_ID %}">

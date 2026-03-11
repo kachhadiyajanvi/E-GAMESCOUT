@@ -4,26 +4,27 @@
 {% block content %}
 <div class="container mx-auto p-8">
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm mb-6">
-        <a href="{% url 'organizer_dashboard' %}"
-            class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
+    <nav class="page-breadcrumb">
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </a>
-        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
-        <span class="text-white font-semibold">My Players</span>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <span class="breadcrumb-active">My Players</span>
     </nav>
 
-    <div class="flex items-center justify-between mb-8">
-        <div>
-            <h1 class="text-3xl font-display font-bold text-white mb-2 flex items-center gap-3">
-                <span class="w-1 h-8 bg-accent-cyan rounded-full shadow-[0_0_10px_#66FCF1]"></span>
-                MY PLAYERS
-            </h1>
-            <p class="text-brand-light/50 text-sm tracking-wide">Manage your recruited roster</p>
+    <div class="page-header">
+        <div class="page-title-group">
+            <div class="page-title-decorator"></div>
+            <div>
+                <h1 class="page-title">
+                    MY <span class="page-title-highlight">PLAYERS</span>
+                </h1>
+                <p class="page-subtitle">Manage your recruited roster</p>
+            </div>
         </div>
 
-        <div class="flex gap-3">
+        <div class="page-actions">
             <a href="{% url 'organizer_dashboard' %}"
                 class="px-6 py-2 border border-white/10 rounded hover:bg-white/5 text-brand-light/60 hover:text-white font-display font-bold text-xs tracking-widest uppercase transition-all flex items-center gap-2">
                 <i class="fa-solid fa-arrow-left"></i> Back

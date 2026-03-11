@@ -1,26 +1,20 @@
-{% extends 'web/Admin/admin_base.html' %}
-{% block title %}System Settings{% endblock %}
+{% extends 'web/Admin/admin_page_base.html' %}
 
-{% block content %}
-<div class="flex-1 flex flex-col overflow-hidden relative">
-    
-    <div class="flex-1 overflow-y-auto p-8">
-        <!-- Page Header -->
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h1 class="text-3xl font-display font-bold text-white mb-1">SYSTEM SETTINGS</h1>
-                <p class="text-white/40 text-sm">Manage global platform configurations and controls.</p>
-            </div>
-            <div class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-white/40 font-mono">
-                <i class="fa-solid fa-clock text-brand-blue/60"></i>
-                Last saved: {{ settings.updated_at|date:"M d, Y H:i" }}
-            </div>
-        </div>
+{% block header_icon %}<i class="fa-solid fa-gear"></i>{% endblock %}
+{% block header_title %}SYSTEM SETTINGS{% endblock %}
+{% block header_desc %}Manage global platform configurations and controls.{% endblock %}
 
-        <form method="POST" action="{% url 'admin_settings' %}" id="settingsForm" class="flex flex-col h-full">
-            {% csrf_token %}
+{% block header_actions %}
+<div class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-white/40 font-mono whitespace-nowrap text-right justify-end">
+    <i class="fa-solid fa-clock text-brand-blue/60"></i> Last saved: {{ settings.updated_at|date:"M d, Y H:i" }}
+</div>
+{% endblock %}
 
-            <div class="space-y-6 pb-24">
+{% block page_content %}
+<form method="POST" action="{% url 'admin_settings' %}" id="settingsForm" class="flex flex-col h-full relative">
+    {% csrf_token %}
+
+    <div class="space-y-6 pb-24">
 
                 <!-- ═══════════════════════════════════════════ -->
                 <!-- SECTION 1: Maintenance Mode                -->
@@ -216,26 +210,14 @@
                     </div>
                 </div>
 
-            </div>
-            
-            <!-- Save Bar (Absolute inside relative parent) -->
-            <div class="absolute bottom-0 left-0 w-full px-8 py-4 bg-black/80 backdrop-blur-xl border-t border-white/10 flex items-center justify-between z-50">
-                <p class="text-xs text-white/30"><i class="fa-solid fa-info-circle mr-1"></i> Changes apply immediately across the entire platform.</p>
-                <button type="submit" class="px-8 py-3 bg-brand-blue text-black font-display font-black text-xs tracking-[0.15em] uppercase rounded-lg hover:shadow-[0_0_25px_rgba(0,243,255,0.5)] transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-floppy-disk"></i> Save All Settings
-                </button>
-            </div>
-            
-        </form>
-    </div>
+        </div>
+        
         <!-- Save Bar -->
-        <div class="fixed bottom-[1px] left-64 right-0 px-8 py-4 bg-[#050505]/95 backdrop-blur-xl border-t border-white/10 flex items-center justify-between z-50">
+        <div class="fixed bottom-0 left-64 right-0 px-8 py-4 bg-[#050505]/95 backdrop-blur-xl border-t border-white/10 flex items-center justify-between z-50">
             <p class="text-xs text-white/30"><i class="fa-solid fa-info-circle mr-1"></i> Changes apply immediately across the entire platform.</p>
             <button type="submit" class="px-8 py-3 bg-brand-blue text-black font-display font-black text-xs tracking-[0.15em] uppercase rounded-lg hover:shadow-[0_0_25px_rgba(0,243,255,0.5)] transition-all flex items-center gap-2">
                 <i class="fa-solid fa-floppy-disk"></i> Save All Settings
             </button>
         </div>
-
-    </form>
-</div>
+</form>
 {% endblock %}

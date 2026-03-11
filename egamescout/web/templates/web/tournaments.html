@@ -1,40 +1,10 @@
-<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+{% extends 'web/base.html' %}
 {% load static %}
 {% load humanize %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upcoming Tournaments | E-Game Scout</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Rajdhani', 'sans-serif'],
-                        display: ['Orbitron', 'sans-serif'],
-                    },
-                    colors: {
-                        'brand-dark': '#0B0C10',
-                        'brand-gray': '#1F2833',
-                        'brand-light': '#C5C6C7',
-                        'accent-cyan': '#66FCF1',
-                        'accent-dark-cyan': '#45A29E',
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+{% block title %}Upcoming Tournaments | E-Game Scout{% endblock %}
 
+{% block extra_head %}
     <style>
         .coming-soon-card {
             background: linear-gradient(135deg, #0F1115 0%, #12141a 100%);
@@ -106,38 +76,16 @@
             box-shadow: 0 8px 30px rgba(102, 252, 241, 0.08);
         }
     </style>
-</head>
+{% endblock %}
 
-<body class="bg-brand-dark text-white font-sans selection:bg-accent-cyan selection:text-brand-dark overflow-x-hidden">
-
-    <!-- Grain Overlay -->
-    <div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[100]"
-        style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');">
-    </div>
-    <div class="fixed inset-0 bg-grid-pattern pointer-events-none -z-20"></div>
-
-    <!-- Navbar -->
-    <nav
-        class="fixed w-full z-50 transition-all duration-300 py-6 px-6 md:px-12 flex items-center justify-between bg-brand-dark/90 backdrop-blur-md border-b border-white/5">
-        <a href="{% url 'index' %}" class="flex items-center gap-2 group">
-            <img src="{% static 'web/images/logo.png' %}" alt="E-Game Scout Logo"
-                class="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(102,252,241,0.5)] group-hover:rotate-12 transition-transform duration-300">
-            <span
-                class="text-xl font-display font-bold tracking-wider text-white group-hover:text-accent-cyan transition-colors">E-GAME
-                SCOUT</span>
-        </a>
-        <div class="flex gap-4">
-            <a href="{% url 'auth_login' %}"
-                class="px-5 py-2 rounded border border-white/10 text-white font-display font-bold text-sm tracking-wider hover:bg-white/5 hover:border-accent-cyan transition-all">LOGIN</a>
-            <a href="{% url 'auth_login' %}?action=register"
-                class="px-5 py-2 rounded bg-accent-cyan text-brand-dark font-display font-bold text-sm tracking-wider hover:bg-white transition-all hover:shadow-[0_0_15px_rgba(102,252,241,0.4)]">JOIN
-                NOW</a>
-        </div>
-    </nav>
-
+{% block content %}
     <!-- Header -->
-    <section class="pt-40 pb-12 px-6 md:px-12 relative overflow-hidden">
-        <div class="container mx-auto text-center relative z-10">
+    <main class="pt-32 pb-24 px-6 md:px-12 min-h-screen relative overflow-hidden">
+        <!-- Ambient Glows -->
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-accent-cyan/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+        
+        <div class="container mx-auto text-center relative z-10 w-full">
             <div
                 class="inline-flex items-center gap-2 px-3 py-1 border border-accent-cyan/30 rounded-full bg-accent-cyan/5 mb-6">
                 <span class="w-2 h-2 rounded-full bg-accent-cyan animate-pulse"></span>
@@ -449,13 +397,6 @@
             {% endif %}
 
         </div>
-    </section>
+    </main>
 
-    <!-- Footer -->
-    <footer class="bg-black py-12 border-t border-white/10 text-center mt-16">
-        <p class="text-gray-600 text-sm">© 2026 E-Game Scout. All Rights Reserved.</p>
-    </footer>
-
-</body>
-
-</html>
+{% endblock %}

@@ -3,8 +3,8 @@
 {% block content %}
 <div class="p-6 md:p-8 space-y-6">
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm">
-        <span class="text-white font-semibold flex items-center gap-1.5">
+    <nav class="page-breadcrumb !mb-0">
+        <span class="breadcrumb-active flex items-center gap-1.5">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </span>
@@ -224,7 +224,7 @@
                     RECENT RECRUITS
                 </h3>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
                         <thead>
                             <tr class="border-b border-white/10 text-xs text-brand-light/50 uppercase tracking-widest">
                                 <th class="py-3 px-2 font-bold">Player</th>

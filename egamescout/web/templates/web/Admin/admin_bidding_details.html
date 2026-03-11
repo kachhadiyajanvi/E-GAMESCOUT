@@ -1,21 +1,17 @@
-{% extends 'web/Admin/admin_base.html' %}
+{% extends 'web/Admin/admin_page_base.html' %}
 {% load humanize %}
 
-{% block content %}
-<div class="flex-1 overflow-y-auto p-8 space-y-8">
+{% block header_icon %}<i class="fa-solid fa-chart-line text-brand-blue"></i>{% endblock %}
+{% block header_title %}BIDDING DETAILS{% endblock %}
+{% block header_desc %}In-depth analytics and all bids for the current active season.{% endblock %}
 
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-        <div>
-            <div class="flex items-center gap-3 mb-1">
-                <a href="{% url 'admin_bidding_dashboard' %}" class="text-white/40 hover:text-white transition-colors">
-                    <i class="fa-solid fa-arrow-left text-xl"></i>
-                </a>
-                <h1 class="font-display font-bold text-3xl text-white">BIDDING DETAILS</h1>
-            </div>
-            <p class="text-white/40 text-sm ml-8">In-depth analytics and all bids for the current active season.</p>
-        </div>
-    </div>
+{% block header_actions %}
+<a href="{% url 'admin_bidding_dashboard' %}" class="px-6 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white hover:text-black transition-all flex items-center gap-2 whitespace-nowrap">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+{% endblock %}
+
+{% block page_content %}
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
@@ -23,7 +19,7 @@
         <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col">
             <h3 class="font-display font-bold text-lg text-white mb-4">ALL BIDS</h3>
             <div class="overflow-x-auto rounded-lg border border-white/10">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
                     <thead>
                         <tr class="bg-black/40 border-b border-white/10 text-xs uppercase tracking-widest text-white/50">
                             <th class="p-4 font-bold">Player</th>
@@ -62,7 +58,7 @@
         <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col">
             <h3 class="font-display font-bold text-lg text-white mb-4">ORGANIZATION SPENDING</h3>
             <div class="overflow-x-auto rounded-lg border border-white/10">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
                     <thead>
                         <tr class="bg-black/40 border-b border-white/10 text-xs uppercase tracking-widest text-white/50">
                             <th class="p-4 font-bold">Rank</th>
@@ -91,5 +87,4 @@
 
     </div>
 
-</div>
 {% endblock %}

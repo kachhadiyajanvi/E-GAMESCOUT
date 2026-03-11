@@ -1,27 +1,17 @@
-{% extends 'web/Admin/admin_base.html' %}
+{% extends 'web/Admin/admin_page_base.html' %}
 
-{% block content %}
-<div class="flex-1 overflow-y-auto p-8 space-y-8">
+{% block header_icon %}<i class="fa-solid fa-user-shield"></i>{% endblock %}
+{% block header_title %}MY PROFILE{% endblock %}
+{% block header_desc %}Manage your account settings and preferences.{% endblock %}
 
-    <!-- Breadcrumbs -->
-    <div class="flex items-center gap-2 text-xs text-white/40 mb-2 font-mono">
-        <a href="{% url 'admin_dashboard' %}" class="hover:text-brand-blue transition-colors">Dashboard</a>
-        <span>/</span>
-        <span class="text-white">Profile</span>
-    </div>
+{% block header_actions %}
+<a href="{% url 'admin_logout' %}" class="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-6 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 border border-red-500/20 hover:border-red-500/50 group shadow-[0_0_20px_rgba(239,68,68,0.1)] whitespace-nowrap">
+    <i class="fa-solid fa-right-from-bracket group-hover:rotate-180 transition-transform duration-300"></i>
+    Logout
+</a>
+{% endblock %}
 
-    <!-- Page Title -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="font-display font-bold text-3xl text-white mb-1">MY PROFILE</h1>
-            <p class="text-white/40 text-sm">Manage your account settings and preferences.</p>
-        </div>
-        <a href="{% url 'admin_logout' %}"
-            class="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-6 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 border border-red-500/20 hover:border-red-500/50 group shadow-[0_0_20px_rgba(239,68,68,0.1)]">
-            <i class="fa-solid fa-right-from-bracket group-hover:rotate-180 transition-transform duration-300"></i>
-            Logout
-        </a>
-    </div>
+{% block page_content %}
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -193,5 +183,4 @@
 
         </div>
     </div>
-</div>
 {% endblock %}

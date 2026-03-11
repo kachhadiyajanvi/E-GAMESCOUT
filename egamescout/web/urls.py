@@ -4,6 +4,8 @@ from web import views, admin_views
 urlpatterns = [
     path('', views.index, name='index'),
     path('tournaments/', views.public_tournaments, name='public_tournaments'),
+    path('previous-tournaments/', views.public_previous_tournaments, name='public_previous_tournaments'),
+    path('tournament-history/<int:tournament_id>/', views.tournament_history_detail, name='tournament_history_detail'),
     
     # Organization Registration
     path('organization/register/', views.org_register_start, name='org_register_start'),
@@ -111,6 +113,7 @@ urlpatterns = [
 
     # Tournament Publishing & Participation
     path('organization/tournaments/<int:tournament_id>/publish/', views.publish_tournament, name='publish_tournament'),
+    path('organization/tournaments/history/<int:history_id>/publish/', views.publish_previous_tournament, name='publish_previous_tournament'),
     path('organization/tournaments/upcoming/', views.org_upcoming_tournaments, name='org_upcoming_tournaments'),
     path('organization/tournaments/<int:tournament_id>/join/', views.org_join_tournament, name='org_join_tournament'),
     path('organization/player/accept-invite/<uuid:token>/', views.accept_player_invite, name='accept_player_invite'),

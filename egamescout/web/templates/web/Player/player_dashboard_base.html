@@ -63,7 +63,7 @@
             <div class="h-24 flex items-center px-8 border-b border-white/5">
                 <a href="{% url 'index' %}" class="flex items-center gap-3">
                     <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-8 h-8 object-contain">
-                    <span class="font-display font-bold text-white tracking-wider">E-GAME SCOUT</span>
+                    <span class="font-display font-bold logo-text-multi tracking-wider">EGAMESCOUT</span>
                 </a>
             </div>
             <div class="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
@@ -99,7 +99,7 @@
             <div class="h-24 flex items-center px-8 border-b border-white/5">
                 <a href="{% url 'index' %}" class="flex items-center gap-3">
                     <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-8 h-8 object-contain">
-                    <span class="font-display font-bold text-white tracking-wider">E-GAME SCOUT</span>
+                    <span class="font-display font-bold logo-text-multi tracking-wider">EGAMESCOUT</span>
                 </a>
             </div>
 
@@ -143,39 +143,39 @@
             <header class="border-b border-white/5 bg-[#0B0C10]/80 backdrop-blur-md sticky top-0 z-40">
                 <!-- Bidding Season Banner -->
                 {% if bidding_status %}
-                <div class="px-6 md:px-8 py-1.5 flex items-center gap-3 border-b border-white/5
+                <div class="px-3 md:px-8 py-1.5 flex flex-wrap md:flex-nowrap items-center gap-2 md:gap-3 border-b border-white/5
                     {% if bidding_status.is_active %}bg-green-500/5{% else %}bg-yellow-500/5{% endif %}">
-                    <span class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest
+                    <span class="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-widest
                         {% if bidding_status.is_active %}text-green-400{% else %}text-yellow-400{% endif %}">
                         <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
                         {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING CLOSED{% endif %}
                     </span>
                     
                     {% if bidding_status.is_active %}
-                    <span class="text-white/30 text-[10px]">|</span>
-                    <span class="text-white/60 text-[11px] font-mono">
+                    <span class="text-white/30 text-[10px] hidden md:inline">|</span>
+                    <span class="text-white/60 text-[10px] md:text-[11px] font-mono hidden md:inline">
                         <span class="text-white/40">Season:</span>
                         <span class="text-white font-bold">{{ bidding_status.season_name }}</span>
                     </span>
                     <span class="text-white/30 text-[10px]">|</span>
-                    <span class="text-[11px] font-mono font-bold text-neon-pink" id="playerBiddingCountdown"
+                    <span class="text-[10px] md:text-[11px] font-mono font-bold text-neon-pink" id="playerBiddingCountdown"
                         data-start="{{ bidding_status.start_date|date:'c' }}"
                         data-end="{{ bidding_status.end_date|date:'c' }}"
                         data-active="true">--:--:--</span>
                     {% else %}
                     <span class="text-white/30 text-[10px]">|</span>
-                    <span class="text-[11px] font-mono font-bold text-yellow-500" id="playerBiddingCountdown"
+                    <span class="text-[10px] md:text-[11px] font-mono font-bold text-yellow-500" id="playerBiddingCountdown"
                         data-start="{{ bidding_status.next_season_start|date:'c' }}"
                         data-active="false">--:--:--</span>
                     {% endif %}
                     
-                    <a href="{% url 'player_bidding_dashboard' %}" class="ml-auto text-[10px] font-bold text-accent-cyan hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1">
-                        <i class="fa-solid fa-gavel text-[10px]"></i> Bidding Hub
+                    <a href="{% url 'player_bidding_dashboard' %}" class="ml-auto text-[9px] md:text-[10px] font-bold text-accent-cyan hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1">
+                        <i class="fa-solid fa-gavel text-[10px]"></i> <span class="hidden md:inline">Bidding Hub</span>
                     </a>
                 </div>
                 {% endif %}
                 <!-- Main Header Row -->
-                <div class="h-20 px-6 md:px-8 flex items-center justify-between">
+                <div class="h-20 px-4 md:px-8 flex items-center justify-between w-full">
 
                 <!-- Mobile Toggle & Breadcrumbs -->
                 <div class="flex items-center gap-4">
@@ -185,7 +185,7 @@
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
 
-                    <div class="flex flex-col justify-center">
+                    <div class="hidden sm:flex flex-col justify-center">
                         <nav class="flex text-xs font-mono text-gray-500 mb-1" aria-label="Breadcrumb">
                             <ol class="inline-flex items-center space-x-1">
                                 <li class="inline-flex items-center">
@@ -223,7 +223,7 @@
                         </nav>
 
                         <!-- Page Title Header -->
-                        <h2 class="text-xl font-display font-bold text-white tracking-wider flex items-center gap-3">
+                        <h2 class="text-lg md:text-xl font-display font-bold text-white tracking-wider flex items-center gap-3">
                             {% if request.resolver_match.url_name == 'player_dashboard' %}
                             <i class="fa-solid fa-border-all text-accent-cyan opacity-80"></i> DASHBOARD
                             {% elif request.resolver_match.url_name == 'player_profile' %}

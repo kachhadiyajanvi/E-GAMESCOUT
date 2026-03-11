@@ -190,7 +190,40 @@ class AdminNotification(models.Model):
     def __str__(self):
         return f"{self.notification_type}: {self.message[:50]}"
 
+# --- Tournament History Models ---
 
+class PreviousTournament(models.Model):
+    """Stores history of past tournaments for the Index page."""
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='previous_tournaments', null=True, blank=True)
+    tournament_name = models.CharField(max_length=255)
+    date = models.DateField(auto_now_add=True)
+    winner_team = models.CharField(max_length=255, blank=True, null=True)
+    runner_up_team = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    published = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"{self.tournament_name} ({self.date.year})"
+
+class TournamentTeam(models.Model):
+    tournament = models.ForeignKey(PreviousTournament, on_delete=models.CASCADE, related_name='participating_teams')
+    team_name = models.CharField(max_length=255)
+    organization = models.CharField(max_length=255, blank=True, null=True)
+    placement = models.IntegerField(null=True, blank=True)
+    points = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.team_name} - {self.tournament.tournament_name}"
+
+class TournamentScorecard(models.Model):
+    tournament = models.ForeignKey(PreviousTournament, on_delete=models.CASCADE, related_name='scorecards')
+    match_number = models.IntegerField()
+    match_data = models.JSONField(help_text="Raw JSON data of the match scoreboard")
+    ai_analysis = models.TextField(help_text="AI generated summary for this match")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Match {self.match_number} - {self.tournament.tournament_name}"
 
 class PlayerTask(models.Model):
     TASK_TYPES = [

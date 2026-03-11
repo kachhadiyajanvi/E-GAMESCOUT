@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E-Game Scout | Pro Scouting Platform{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-dark': '#0B0C10',
+                        'brand-gray': '#1F2833',
+                        'brand-light': '#C5C6C7',
+                        'accent-cyan': '#66FCF1',
+                        'accent-dark-cyan': '#45A29E',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+    <style>
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .animate-marquee {
+            animation: marquee 50s linear infinite;
+            display: flex;
+            width: max-content;
+        }
+
+        @keyframes scan {
+
+            0%,
+            100% {
+                top: 0%;
+                opacity: 0;
+            }
+
+            10%,
+            90% {
+                opacity: 1;
+            }
+
+            50% {
+                top: 100%;
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-brand-dark text-white font-sans selection:bg-accent-cyan selection:text-brand-dark overflow-x-hidden">
+
+    <!-- Global Grain Overlay -->
+    <div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[100]"
+        style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');">
+    </div>
+
+    <!-- Script for Scroll Reveal -->
+    <!-- Custom Scripts -->
+    <script src="{% static 'web/js/script.js' %}"></script>
+
+    <!-- Grid Background -->
+    <div class="fixed inset-0 bg-grid-pattern pointer-events-none -z-20"></div>
+
+    <!-- Navbar -->
+    <nav id="main-navbar"
+        class="fixed w-full z-50 transition-all duration-500 py-4 px-6 md:px-12 flex items-center justify-between bg-transparent">
+
+        <!-- Brand / Logo -->
+        <a href="{% url 'index' %}" class="flex items-center gap-3 group shrink-0">
+            <img src="{% static 'web/images/logo.png' %}" alt="E-Game Scout Logo"
+                class="w-9 h-9 object-contain drop-shadow-[0_0_10px_rgba(249,115,22,0.6)] group-hover:drop-shadow-[0_0_18px_rgba(249,115,22,0.9)] transition-all">
+            <span class="text-lg font-display font-black tracking-[0.15em] logo-text-multi group-hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.5)] transition-all">
+                EGAMESCOUT
+            </span>
+        </a>
+
+        <!-- Desktop Nav Links -->
+        <div class="hidden md:flex items-center gap-7">
+            <!-- Bidding Status Line -->
+            <a href="{% url 'index' %}#bidding-season" class="border border-orange-500/50 bg-orange-500/10 px-3 py-1 rounded text-orange-500 font-display text-xs tracking-wider uppercase flex items-center gap-2 hover:bg-orange-500/20 hover:border-orange-500 transition-colors shadow-[0_0_10px_rgba(249,115,22,0.2)]">
+                <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span> Bidding Hub
+            </a>
+
+            <a href="{% url 'public_tournaments' %}"
+                class="text-sm font-semibold text-gray-300 hover:text-orange-500 transition-colors tracking-wider flex items-center gap-2 group">
+                <i class="fa-solid fa-trophy text-xs text-orange-500/50 group-hover:text-orange-500 transition-colors"></i>
+                Tournaments
+            </a>
+            <a href="{% url 'public_previous_tournaments' %}"
+                class="text-sm font-semibold text-gray-300 hover:text-orange-500 transition-colors tracking-wider flex items-center gap-2 group">
+                <i class="fa-solid fa-clock-rotate-left text-xs text-orange-500/50 group-hover:text-orange-500 transition-colors"></i>
+                Previous Tournaments
+            </a>
+            <a href="{% url 'index' %}#how-it-works"
+                class="text-sm font-semibold text-gray-300 hover:text-orange-500 transition-colors tracking-wider">
+                How It Works
+            </a>
+            <a href="{% url 'index' %}#features"
+                class="text-sm font-semibold text-gray-300 hover:text-orange-500 transition-colors tracking-wider">
+                Features
+            </a>
+        </div>
+
+    </nav>
+
+    <!-- Floating Glassmorphism Mobile Navbar -->
+    <nav class="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[400px] z-[100]">
+        <div class="bg-brand-gray/50 backdrop-blur-xl border border-white/10 rounded-full p-2 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+            
+            <a href="{% url 'index' %}" class="mobile-nav-item flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 text-gray-400 hover:text-white" data-path="/">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="font-display font-bold text-sm tracking-wide hidden">Home</span>
+            </a>
+
+            <a href="{% url 'public_tournaments' %}" class="mobile-nav-item flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 text-gray-400 hover:text-white" data-path="/tournaments/">
+                <i class="fa-solid fa-trophy text-lg"></i>
+                <span class="font-display font-bold text-sm tracking-wide hidden">Events</span>
+            </a>
+
+            <a href="{% url 'public_previous_tournaments' %}" class="mobile-nav-item flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 text-gray-400 hover:text-white" data-path="/previous-tournaments/">
+                <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                <span class="font-display font-bold text-sm tracking-wide hidden">History</span>
+            </a>
+
+            <a href="{% url 'index' %}#bidding-season" class="mobile-nav-item flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 text-gray-400 hover:text-white" data-path="#bidding-season">
+                <i class="fa-solid fa-gavel text-lg"></i>
+                <span class="font-display font-bold text-sm tracking-wide hidden">Bidding</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Navbar & Mobile Menu JS -->
+    <script>
+        // Scroll-based navbar style
+        const navbar = document.getElementById('main-navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 40) {
+                navbar.style.background = 'rgba(8,10,14,0.92)';
+                navbar.style.backdropFilter = 'blur(16px)';
+                navbar.style.borderBottom = '1px solid rgba(249,115,22,0.3)';
+                navbar.style.paddingTop = '12px';
+                navbar.style.paddingBottom = '12px';
+                navbar.style.boxShadow = '0 4px 30px rgba(0,0,0,0.5)';
+            } else {
+                navbar.style.background = 'transparent';
+                navbar.style.backdropFilter = '';
+                navbar.style.borderBottom = '';
+                navbar.style.paddingTop = '';
+                navbar.style.paddingBottom = '';
+                navbar.style.boxShadow = '';
+            }
+        });
+
+        // Mobile Bottom Navbar active state logic
+        const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+        
+        function updateMobileNav() {
+            const currentPath = window.location.pathname;
+            const currentHash = window.location.hash;
+            
+            mobileNavItems.forEach(nav => {
+                const targetPath = nav.getAttribute('data-path');
+                const href = nav.getAttribute('href');
+                
+                let isActive = false;
+                if (targetPath.startsWith('#') && currentHash === targetPath) {
+                    isActive = true;
+                } else if (targetPath !== '/' && currentPath.includes(targetPath)) {
+                    isActive = true;
+                } else if (targetPath === '/' && currentPath === '/' && !currentHash) {
+                    isActive = true;
+                }
+
+                if (isActive) {
+                    nav.classList.remove('text-gray-400');
+                    nav.classList.add('bg-accent-cyan/10', 'border', 'border-accent-cyan/30', 'text-accent-cyan', 'shadow-[inset_0_0_15px_rgba(102,252,241,0.15)]');
+                    const span = nav.querySelector('span');
+                    if(span) span.classList.remove('hidden');
+                } else {
+                    nav.classList.remove('bg-accent-cyan/10', 'border', 'border-accent-cyan/30', 'text-accent-cyan', 'shadow-[inset_0_0_15px_rgba(102,252,241,0.15)]');
+                    nav.classList.add('text-gray-400');
+                    const span = nav.querySelector('span');
+                    if(span) span.classList.add('hidden');
+                }
+            });
+        }
+
+        // Run on load and hash change
+        updateMobileNav();
+        window.addEventListener('hashchange', updateMobileNav);
+
+        // Update on click for instant feedback
+        mobileNavItems.forEach(item => {
+            item.addEventListener('click', function() {
+                setTimeout(updateMobileNav, 50);
+            });
+        });
+    </script>
+    
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer id="footer" class="py-12 md:py-16 px-6 md:px-12 border-t border-white/10 bg-black relative overflow-hidden">
+        <!-- Glow accents -->
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px] pointer-events-none">
+        </div>
+        <div class="absolute bottom-0 right-1/4 w-64 h-64 bg-blue-600/5 rounded-full blur-[80px] pointer-events-none">
+        </div>
+
+        <div class="container mx-auto relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12 border-b border-white/5 pb-12">
+
+                <!-- Brand Col -->
+                <div class="md:col-span-1">
+                    <a href="#" class="flex items-center gap-3 mb-6 inline-block">
+                        <img src="{% static 'web/images/logo.png' %}" alt="E-Game Scout Logo"
+                            class="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(249,115,22,0.6)] group-hover:drop-shadow-[0_0_18px_rgba(249,115,22,0.9)] transition-all">
+                        <span
+                            class="text-xl font-display font-black tracking-widest text-white logo-text-multi">EGAMESCOUT</span>
+                    </a>
+                    <p class="text-brand-light/60 text-sm leading-relaxed mb-6">
+                        Bridging the gap between raw gaming talent and professional esports organizations globally.
+                    </p>
+                    <div class="flex items-center gap-4">
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-brand-dark border border-white/5 flex items-center justify-center text-gray-400 hover:text-accent-cyan hover:border-accent-cyan/30 transition-all hover:-translate-y-1">
+                            <i class="fa-brands fa-twitter"></i>
+                        </a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-brand-dark border border-white/5 flex items-center justify-center text-gray-400 hover:text-accent-cyan hover:border-accent-cyan/30 transition-all hover:-translate-y-1">
+                            <i class="fa-brands fa-discord"></i>
+                        </a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-brand-dark border border-white/5 flex items-center justify-center text-gray-400 hover:text-accent-cyan hover:border-accent-cyan/30 transition-all hover:-translate-y-1">
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-brand-dark border border-white/5 flex items-center justify-center text-gray-400 hover:text-accent-cyan hover:border-accent-cyan/30 transition-all hover:-translate-y-1">
+                            <i class="fa-brands fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Links Col 1 -->
+                <div class="md:col-span-1 border-l border-white/5 pl-0 md:pl-8">
+                    <h4 class="font-display font-bold text-white uppercase tracking-widest mb-6">Platform</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">How it
+                                works</a></li>
+                        <li><a href="#"
+                                class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">Tournaments</a>
+                        </li>
+                        <li><a href="#"
+                                class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">Leaderboards</a>
+                        </li>
+                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">Scouting
+                                Network</a></li>
+                    </ul>
+                </div>
+
+                <!-- Links Col 2 -->
+                <div class="md:col-span-1 border-l border-white/5 pl-0 md:pl-8">
+                    <h4 class="font-display font-bold text-white uppercase tracking-widest mb-6">Support</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">Help
+                                Center</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">FAQ</a>
+                        </li>
+                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">Contact
+                                Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">System
+                                Status</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support Col -->
+                <div class="md:col-span-1 border-l border-white/5 pl-0 md:pl-8">
+                    <h4 class="font-display font-bold text-white uppercase tracking-widest mb-6">Contact</h4>
+                    <p class="text-brand-light/60 text-sm leading-relaxed mb-6">
+                        Need assistance? Reach out to our dedicated support team anytime.
+                    </p>
+                    <a href="mailto:help.egamescout@gmail.com"
+                        class="inline-flex items-center gap-3 px-6 py-3 bg-brand-gray/30 border border-white/10 rounded-lg text-gray-300 hover:text-accent-cyan hover:border-accent-cyan/30 transition-all group">
+                        <i class="fa-solid fa-headset group-hover:animate-pulse"></i>
+                        <span class="text-sm font-bold tracking-wider">help.egamescout@gmail.com</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Bottom Note -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-gray-600 text-xs font-mono uppercase tracking-widest">
+                    © 2026 E-Game Scout Network. All Systems Operational.
+                </p>
+                <div class="flex items-center gap-6">
+                    <a href="{% url 'terms' %}" class="text-gray-600 hover:text-white text-xs tracking-wider transition-colors">Terms of
+                        Service</a>
+                    <a href="#" class="text-gray-600 hover:text-white text-xs tracking-wider transition-colors">Privacy
+                        Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- Active dot javascript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const navItems = document.querySelectorAll('.group\\/item');
+            const scrollnavGlow = document.getElementById('scrollnav-glow');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-50% 0px -50% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        navItems.forEach(item => {
+                            const dot = item.querySelector('.nav-dot');
+                            if (!dot) return;
+                            
+                            if (item.getAttribute('href') === `#${id}`) {
+                                // Add active class according to section
+                                // Reset glow base classes first
+                                if (scrollnavGlow) {
+                                  scrollnavGlow.className = "absolute right-0 top-0 bottom-0 w-64 blur-3xl opacity-0 group-hover/scrollnav:opacity-100 transition-all duration-700 pointer-events-none -z-20 bg-gradient-to-l to-transparent";
+                                }
+
+                                if (id === 'featured-game') {
+                                    dot.classList.add('bg-orange-500', 'scale-[2.5]', 'shadow-[0_0_15px_#f97316]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-orange-500/40');
+                                } else if (id === 'bidding-season') {
+                                    dot.classList.add('bg-green-500', 'scale-[2.5]', 'shadow-[0_0_15px_#22c55e]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-green-500/40');
+                                } else if (id === 'problems') {
+                                    dot.classList.add('bg-red-500', 'scale-[2.5]', 'shadow-[0_0_15px_#ef4444]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-red-500/40');
+                                } else if (id === 'how-it-works') {
+                                    dot.classList.add('bg-blue-500', 'scale-[2.5]', 'shadow-[0_0_15px_#3b82f6]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-blue-500/40');
+                                } else if (id === 'ai-automation') {
+                                    dot.classList.add('bg-purple-500', 'scale-[2.5]', 'shadow-[0_0_15px_#a855f7]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-purple-500/40');
+                                } else {
+                                    dot.classList.add('bg-accent-cyan', 'scale-[2.5]', 'shadow-[0_0_15px_#66FCF1]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-accent-cyan/40');
+                                }
+                            } else {
+                                // Remove active classes
+                                dot.classList.remove('bg-orange-500', 'bg-red-500', 'bg-blue-500', 'bg-purple-500', 'bg-accent-cyan', 'bg-green-500', 'scale-[2.5]', 'shadow-[0_0_15px_#f97316]', 'shadow-[0_0_15px_#ef4444]', 'shadow-[0_0_15px_#3b82f6]', 'shadow-[0_0_15px_#a855f7]', 'shadow-[0_0_15px_#66FCF1]', 'shadow-[0_0_15px_#22c55e]');
+                                dot.classList.add('bg-gray-500/50');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(sec => {
+                observer.observe(sec);
+            });
+        });
+    </script>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
+
+    <!-- Django Messages Data -->
+    {% if messages %}
+    <script id="django-messages" type="application/json">
+        [
+            {% for message in messages %}
+            {
+                "message": "{{ message|escapejs }}",
+                "tags": "{{ message.tags }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+    {% endif %}
+
+    <script>
+        function showToast(message, tags) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            // Style based on tags
+            let iconClass = 'fa-info-circle';
+            let iconColorClass = 'text-blue-500 bg-blue-500/10';
+            let title = 'Notification';
+
+            if (tags.includes('success')) {
+                iconClass = 'fa-check';
+                iconColorClass = 'text-green-500 bg-green-500/10';
+                title = 'Success';
+            } else if (tags.includes('error') || tags.includes('warning')) {
+                iconClass = 'fa-triangle-exclamation';
+                iconColorClass = 'text-red-500 bg-red-500/10';
+                title = 'System Alert';
+            }
+
+            toast.className = `
+                pointer-events-auto
+                bg-[#0a0a0a] border border-white/10 
+                rounded-xl p-4 pr-12
+                shadow-[0_8px_30px_rgb(0,0,0,0.5)]
+                flex items-center gap-4
+                transform transition-all duration-500 ease-out translate-x-20 opacity-0
+                min-w-[300px]
+            `;
+
+            toast.innerHTML = `
+                <div class="w-10 h-10 rounded-full ${iconColorClass} flex items-center justify-center shrink-0">
+                    <i class="fa-solid ${iconClass} text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-white text-sm font-display tracking-wide">${title}</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" 
+                    class="absolute top-4 right-4 text-white/20 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-20', 'opacity-0');
+            });
+
+            // Auto Dismiss
+            setTimeout(() => {
+                toast.classList.add('translate-x-20', 'opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        }
+
+        // Initialize Django Messages
+        document.addEventListener('DOMContentLoaded', () => {
+            const messagesJson = document.getElementById('django-messages');
+            if (messagesJson) {
+                try {
+                    const messages = JSON.parse(messagesJson.textContent);
+                    messages.forEach(item => {
+                        showToast(item.message, item.tags);
+                    });
+                } catch (e) {
+                    console.error('Error parsing messages:', e);
+                }
+            }
+        });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+
+</body>
+
+</html>

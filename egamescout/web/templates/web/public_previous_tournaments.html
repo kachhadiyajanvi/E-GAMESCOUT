@@ -1,0 +1,86 @@
+{% extends 'web/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Previous Tournaments | E-Game Scout{% endblock %}
+
+{% block content %}
+    <!-- Main Content -->
+    <main class="pt-32 pb-24 px-6 md:px-12 min-h-screen relative overflow-hidden">
+        <!-- Ambient Glows -->
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-accent-cyan/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+        
+        <div class="max-w-7xl mx-auto relative z-10 w-full">
+                <div class="text-center mb-16 animate-fade-in-up">
+                    <h1 class="text-3xl md:text-5xl font-display font-bold text-white mb-4 uppercase tracking-wider">
+                        PREVIOUS <span class="text-orange-500 drop-shadow-[0_0_8px_rgba(255,95,31,0.5)]">TOURNAMENTS</span>
+                    </h1>
+                    <p class="text-brand-light/60 max-w-2xl mx-auto font-light">
+                        Relive the action and results from our concluded esports events.
+                    </p>
+                </div>
+
+                {% if tournaments %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {% for tourney in tournaments %}
+                    <div class="glass-card rounded-xl border border-white/10 overflow-hidden hover:-translate-y-2 hover:border-orange-500/50 hover:shadow-[0_0_30px_rgba(255,95,31,0.15)] transition-all duration-300 group flex flex-col h-full bg-[#0F1115]">
+                        
+                        <!-- Card Header / Banner -->
+                        <div class="relative h-48 overflow-hidden bg-gradient-to-br from-black to-brand-dark flex items-center justify-center border-b border-white/10 group-hover:border-orange-500/30 transition-colors">
+                            <div class="absolute inset-0 bg-orange-500/5 mix-blend-screen group-hover:bg-orange-500/20 transition-colors"></div>
+                            <i class="fa-solid fa-trophy text-6xl text-white/10 group-hover:text-orange-500/40 group-hover:scale-110 transition-transform duration-500"></i>
+                            <div class="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.2)_50%)] bg-[length:100%_4px] pointer-events-none"></div>
+                            
+                            <!-- Date Badge -->
+                            <div class="absolute top-4 right-4 bg-black/60 backdrop-blur border border-white/10 px-3 py-1 rounded text-[10px] font-mono text-orange-500 tracking-widest uppercase shadow-lg">
+                                <i class="fa-solid fa-calendar-alt mr-1"></i> {{ tourney.date|date:"d M Y" }}
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-6 flex-1 flex flex-col justify-between relative z-10">
+                            <div>
+                                <h3 class="font-display font-bold text-xl text-white mb-2 uppercase tracking-wide group-hover:text-orange-500 transition-colors line-clamp-2">
+                                    {{ tourney.tournament_name }}
+                                </h3>
+                                {% if tourney.description %}
+                                <p class="text-gray-400 text-sm mb-6 line-clamp-3 leading-relaxed">
+                                    {{ tourney.description }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <!-- Winner Reveal -->
+                                <div class="bg-black/40 border border-white/5 rounded p-3 relative overflow-hidden group/winner">
+                                    <div class="absolute inset-0 bg-orange-500/5 opacity-0 group-hover/winner:opacity-100 transition-opacity"></div>
+                                    <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Champion</div>
+                                    <div class="font-bold text-orange-500 flex items-center">
+                                        <i class="fa-solid fa-crown text-yellow-500 mr-2 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]"></i> 
+                                        <span class="truncate">{{ tourney.winner_team|default:"TBD" }}</span>
+                                    </div>
+                                </div>
+
+                                <a href="{% url 'tournament_history_detail' tourney.id %}" 
+                                   class="w-full inline-block text-center py-3 bg-transparent border border-white/20 text-white hover:border-orange-500 hover:text-orange-500 font-bold rounded uppercase tracking-widest text-sm transition-all duration-300">
+                                    View Details <i class="fa-solid fa-arrow-right ml-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-16">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-brand-dark border border-white/10 text-gray-500 mb-6 relative group">
+                        <div class="absolute inset-0 border border-orange-500/30 rounded-full animate-ping opacity-20 hidden group-hover:block"></div>
+                        <i class="fa-solid fa-ghost text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display text-white mb-2">No History Available</h3>
+                    <p class="text-gray-400">Past tournaments will be archived here once concluded.</p>
+                </div>
+                {% endif %}
+            </div>
+    </main>
+{% endblock %}

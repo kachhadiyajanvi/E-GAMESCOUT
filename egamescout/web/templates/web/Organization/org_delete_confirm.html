@@ -4,14 +4,13 @@
 {% block content %}
 <div class="container mx-auto max-w-lg min-h-[60vh] flex flex-col justify-center">
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm mb-6 absolute top-24 left-8">
-        <a href="{% url 'organizer_dashboard' %}"
-            class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
+    <nav class="page-breadcrumb absolute top-24 left-8">
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </a>
-        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
-        <span class="text-white font-semibold">Delete Account</span>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <span class="breadcrumb-active">Delete Account</span>
     </nav>
     <div
         class="bg-[#0B0C10] border border-red-500/20 rounded-3xl p-8 relative overflow-hidden shadow-[0_0_50px_rgba(239,68,68,0.1)]">

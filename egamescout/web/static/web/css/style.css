@@ -75,6 +75,20 @@
     -webkit-text-fill-color: transparent;
 }
 
+.logo-text-multi {
+    background: linear-gradient(90deg, 
+        #FFFFFF 0%, #FFFFFF 45%,      /* EGAME (White) */
+        #5CE1E6 45%, #5CE1E6 56%,      /* S (Cyan) */
+        #a6b4d3 56%, #a6b4d3 67%,      /* C (Light purple/blue) */
+        #c49ec6 67%, #c49ec6 78%,      /* O (Purple) */
+        #e387b9 78%, #e387b9 89%,      /* U (Pink) */
+        #FF3366 89%, #FF3366 100%      /* T (Magenta) */
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 .cyber-grid-floor {
     background-image:
         linear-gradient(to right, rgba(102, 252, 241, 0.1) 1px, transparent 1px),

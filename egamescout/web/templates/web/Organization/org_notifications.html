@@ -5,27 +5,31 @@
 {% block content %}
 <div class="p-8">
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm mb-6">
-        <a href="{% url 'organizer_dashboard' %}"
-            class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
+    <nav class="page-breadcrumb">
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </a>
-        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
-        <span class="text-white font-semibold">Notifications</span>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <span class="breadcrumb-active">Notifications</span>
     </nav>
 
-    <div class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-display font-bold text-white mb-2">Notifications</h1>
-            <p class="text-gray-400">Manage your alerts and updates</p>
+    <div class="page-header">
+        <div class="page-title-group">
+            <div class="page-title-decorator"></div>
+            <div>
+                <h1 class="page-title">Notifications</h1>
+                <p class="page-subtitle">Manage your alerts and updates</p>
+            </div>
         </div>
 
         {% if notifications %}
-        <a href="{% url 'org_mark_all_notifications_read' %}"
-            class="px-4 py-2 bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan rounded hover:bg-accent-cyan hover:text-brand-dark transition-all font-bold text-sm flex items-center gap-2">
-            <i class="fa-solid fa-check-double"></i> Mark All Read
-        </a>
+        <div class="page-actions shrink-0">
+            <a href="{% url 'org_mark_all_notifications_read' %}"
+                class="px-4 py-2 bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan rounded hover:bg-accent-cyan hover:text-brand-dark transition-all font-bold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-check-double"></i> Mark All Read
+            </a>
+        </div>
         {% endif %}
     </div>
 

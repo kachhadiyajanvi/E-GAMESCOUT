@@ -5,31 +5,27 @@
 {% block content %}
 <div class="p-8">
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm mb-6">
-        <a href="{% url 'organizer_dashboard' %}"
-            class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
+    <nav class="page-breadcrumb">
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </a>
-        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
-        <span class="text-white font-semibold">Tournaments</span>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <span class="breadcrumb-active">Tournaments</span>
     </nav>
 
     <!-- Header with enhanced styling -->
-    <div class="flex justify-between items-center mb-10">
-        <div class="flex items-center gap-4">
-            <div
-                class="w-1.5 h-16 bg-gradient-to-b from-accent-cyan to-blue-500 rounded-full shadow-[0_0_15px_rgba(102,252,241,0.5)]">
-            </div>
+    <div class="page-header">
+        <div class="page-title-group">
+            <div class="page-title-decorator"></div>
             <div>
-                <h1 class="text-4xl font-display font-bold text-white mb-2 tracking-wide">
-                    Tournament <span
-                        class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500">Management</span>
+                <h1 class="page-title">
+                    Tournament <span class="page-title-highlight">Management</span>
                 </h1>
-                <p class="text-gray-400 text-sm">Create and manage your esports tournaments</p>
+                <p class="page-subtitle">Create and manage your esports tournaments</p>
             </div>
         </div>
-        <div class="flex gap-3">
+        <div class="page-actions">
             <a href="{% url 'tournament_history' %}"
                 class="px-5 py-3.5 bg-brand-gray border border-white/10 text-white font-display font-bold rounded-xl hover:bg-white/5 hover:border-accent-cyan/50 transition-all duration-300 flex items-center gap-2.5">
                 <i class="fa-solid fa-clock-rotate-left"></i>
@@ -229,7 +225,7 @@
 
     <!-- TABLE VIEW -->
     <div id="tournamentTableView" class="hidden mb-8 overflow-x-auto rounded-2xl border border-white/10 shadow-xl">
-        <table class="w-full text-left border-collapse">
+        <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
             <thead class="bg-black/60 backdrop-blur-md text-xs uppercase text-gray-400 font-bold tracking-wider">
                 <tr>
                     <th class="px-6 py-4 border-b border-white/10 w-16 text-center">#</th>

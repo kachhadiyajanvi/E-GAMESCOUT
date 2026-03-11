@@ -1,11 +1,29 @@
-{% extends 'web/Player/player_dashboard_base.html' %}
+{% extends 'web/Player/player_page_base.html' %}
 {% load humanize %}
 {% load static %}
 
-{% block content %}
+{% block header_icon %}fa-solid fa-gavel{% endblock %}
+{% block header_tag %}Bidding Hub{% endblock %}
+{% block header_title %}
+    AUCTION <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">STATUS</span>
+{% endblock %}
+{% block header_desc %}
+    {% if bidding_status.is_active %}
+    <span class="flex items-center justify-center md:justify-start gap-2 mt-1">
+        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+        Active Season: <strong class="text-green-400">{{ bidding_status.season_name }}</strong>
+    </span>
+    {% else %}
+    <span class="flex items-center justify-center md:justify-start gap-2 mt-1 text-sm font-mono">
+        <span class="w-2 h-2 rounded-full bg-red-500"></span>
+        <span class="text-red-400 font-bold">Bidding is closed.</span> Next starting <strong class="text-yellow-500">{{ bidding_status.next_season_start|date:"d M Y" }}</strong>.
+    </span>
+    {% endif %}
+{% endblock %}
+
+{% block page_content %}
 <div class="max-w-4xl mx-auto space-y-6">
 
-    <!-- Bidding Season Countdown Banner -->
     <!-- Bidding Season Countdown Banner -->
     {% if bidding_status %}
     <div class="relative overflow-hidden rounded-xl mb-6 p-4 border
@@ -53,27 +71,6 @@
         </div>
     </div>
     {% endif %}
-
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-        <div>
-            <h1 class="text-3xl font-display font-bold text-white mb-1 uppercase tracking-widest">
-                AUCTION <span
-                    class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">STATUS</span>
-            </h1>
-            {% if bidding_status.is_active %}
-            <p class="text-brand-light/60 text-sm font-mono flex items-center gap-2 mt-1">
-                <span class="w-2 h-2 rounded-full bg-accent-green animate-pulse"></span>
-                Active Season: <strong class="text-accent-green">{{ bidding_status.season_name }}</strong>
-            </p>
-            {% else %}
-            <p class="text-brand-light/60 text-sm font-mono flex items-center gap-2 mt-1">
-                <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                <span class="text-red-400 font-bold">Bidding is currently closed.</span> Next season starts <strong class="text-yellow-500">{{ bidding_status.next_season_start|date:"d M Y" }}</strong>.
-            </p>
-            {% endif %}
-        </div>
-    </div>
 
     <!-- Status Banner -->
     <div class="relative overflow-hidden rounded-2xl p-8 border border-white/10
@@ -165,7 +162,6 @@
             {% endfor %}
         </div>
     </div>
-</div>
 {% endblock %}
 
 {% block scripts %}

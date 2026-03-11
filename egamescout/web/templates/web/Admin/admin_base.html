@@ -86,10 +86,13 @@
         class="fixed inset-0 z-0 overflow-hidden pointer-events-none opacity-[0.05] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay">
     </div>
 
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="mobileSidebarBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+
     <!-- Sidebar -->
-    <aside class="w-64 h-full bg-white/5 backdrop-blur-md border-r border-white/10 flex flex-col z-10 shrink-0">
+    <aside id="adminSidebar" class="w-64 h-full bg-white/5 backdrop-blur-md border-r border-white/10 flex flex-col z-50 shrink-0 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-300">
         <!-- Sidebar Header -->
-        <div class="h-20 flex items-center px-5 border-b border-white/5 relative overflow-hidden">
+        <div class="h-20 flex items-center justify-between px-5 border-b border-white/5 relative overflow-hidden">
             <!-- Subtle ambient glow behind logo -->
             <div class="absolute left-0 top-0 w-32 h-full bg-brand-blue/5 blur-2xl pointer-events-none"></div>
             <div class="flex items-center gap-3 relative z-10">
@@ -107,6 +110,10 @@
                     <span class="text-[9px] font-bold tracking-[0.3em] text-white/30 uppercase">Admin Console</span>
                 </div>
             </div>
+            <!-- Close button for mobile -->
+            <button class="md:hidden text-white/60 hover:text-white" onclick="toggleSidebar()">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
         </div>
 
         <!-- Navigation -->
@@ -194,49 +201,56 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative z-10">
+    <main class="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative z-10 w-full md:w-auto">
         <!-- Top Header -->
         <header class="bg-black/30 backdrop-blur-xl z-40 shadow-[0_4px_30px_rgba(0,0,0,0.4)] relative">
             <!-- Glassy bottom glow line -->
             <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-blue/30 to-transparent"></div>
             
             <!-- Main Header Row (Aligned with Sidebar Header) -->
-            <div class="h-20 px-8 flex items-center justify-between border-b border-white/[0.08]">
+            <div class="h-20 px-4 md:px-8 flex items-center justify-between border-b border-white/[0.08]">
                 
-                <!-- Left Side: Bidding Season Banner -->
-                <div>
-                    {% if bidding_status %}
-                    <div id="biddingBanner" class="px-4 py-1.5 rounded-lg flex items-center gap-3 border border-white/10
-                        {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-yellow-500/10{% endif %}">
-                        <span class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest
-                            {% if bidding_status.is_active %}text-green-400{% else %}text-yellow-400{% endif %}">
-                            <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
-                            {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING INACTIVE{% endif %}
-                        </span>
-                        <span class="text-white/30 text-[10px]">|</span>
-                        <span class="text-white/60 text-[11px] font-mono">
-                            <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next Season:{% endif %}</span>
-                            <span class="text-white font-bold">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M Y" }}{% endif %}</span>
-                        </span>
-                        
-                        {% if bidding_status.is_active %}
-                        <span class="text-white/30 text-[10px]">|</span>
-                        <span class="text-[11px] font-mono font-bold text-brand-pink" id="adminBiddingCountdown"
-                            data-start="{{ bidding_status.start_date|date:'c' }}"
-                            data-end="{{ bidding_status.end_date|date:'c' }}"
-                            data-active="true">--:--:--</span>
-                        {% else %}
-                        <span class="text-white/30 text-[10px]">|</span>
-                        <span class="text-[11px] font-mono font-bold text-yellow-500" id="adminBiddingCountdown"
-                            data-start="{{ bidding_status.next_season_start|date:'c' }}"
-                            data-active="false">--:--:--</span>
+                <div class="flex items-center gap-4">
+                    <!-- Mobile Hamburger -->
+                    <button class="md:hidden text-white/60 hover:text-white" onclick="toggleSidebar()">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+
+                    <!-- Left Side: Bidding Season Banner -->
+                    <div class="hidden sm:block">
+                        {% if bidding_status %}
+                        <div id="biddingBanner" class="px-3 md:px-4 py-1.5 rounded-lg flex items-center gap-2 md:gap-3 border border-white/10
+                            {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-yellow-500/10{% endif %}">
+                            <span class="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-widest
+                                {% if bidding_status.is_active %}text-green-400{% else %}text-yellow-400{% endif %}">
+                                <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
+                                {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING INACTIVE{% endif %}
+                            </span>
+                            <span class="text-white/30 text-[10px] hidden md:inline">|</span>
+                            <span class="text-white/60 text-[10px] md:text-[11px] font-mono hidden md:inline">
+                                <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next Season:{% endif %}</span>
+                                <span class="text-white font-bold">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M Y" }}{% endif %}</span>
+                            </span>
+                            
+                            {% if bidding_status.is_active %}
+                            <span class="text-white/30 text-[10px]">|</span>
+                            <span class="text-[10px] md:text-[11px] font-mono font-bold text-brand-pink" id="adminBiddingCountdown"
+                                data-start="{{ bidding_status.start_date|date:'c' }}"
+                                data-end="{{ bidding_status.end_date|date:'c' }}"
+                                data-active="true">--:--:--</span>
+                            {% else %}
+                            <span class="text-white/30 text-[10px]">|</span>
+                            <span class="text-[10px] md:text-[11px] font-mono font-bold text-yellow-500" id="adminBiddingCountdown"
+                                data-start="{{ bidding_status.next_season_start|date:'c' }}"
+                                data-active="false">--:--:--</span>
+                            {% endif %}
+                        </div>
                         {% endif %}
                     </div>
-                    {% endif %}
                 </div>
 
                 <!-- Right Actions -->
-                <div class="flex items-center gap-6">
+                <div class="flex items-center gap-4 md:gap-6">
                     <!-- Notifications -->
                     <div class="relative cursor-pointer group">
                         <div class="absolute -top-2 -right-2 min-w-5 h-5 bg-brand-pink rounded-full border-2 border-black px-1 flex items-center justify-center hidden"
@@ -249,15 +263,15 @@
 
                     <!-- Profile -->
                     <a href="{% url 'admin_profile' %}"
-                        class="flex items-center gap-3 pl-6 border-l border-white/10 cursor-pointer group h-10">
-                        <div class="text-right hidden md:block">
+                        class="flex items-center gap-3 pl-4 md:pl-6 border-l border-white/10 cursor-pointer group h-10">
+                        <div class="text-right hidden sm:block">
                             <p
                                 class="text-sm font-bold text-white leading-none group-hover:text-brand-blue transition-colors">
                                 Admin User</p>
                             <p class="text-[10px] text-white/40 font-bold tracking-wider">SUPER ADMIN</p>
                         </div>
                         <div
-                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue to-purple-600 p-[2px] group-hover:shadow-[0_0_15px_rgba(0,243,255,0.3)] transition-all">
+                            class="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-brand-blue to-purple-600 p-[2px] group-hover:shadow-[0_0_15px_rgba(0,243,255,0.3)] transition-all">
                             <img src="https://ui-avatars.com/api/?name=Admin+User&background=000&color=fff"
                                 class="w-full h-full rounded-[10px] object-cover" alt="Profile">
                         </div>
@@ -332,6 +346,18 @@
 
 
     <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('adminSidebar');
+            const backdrop = document.getElementById('mobileSidebarBackdrop');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
+
         function showToast(data) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');

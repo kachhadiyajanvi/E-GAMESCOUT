@@ -23,14 +23,15 @@ import json
 from web.forms import (
     OrganizationEmailForm, OTPForm, OrganizationDetailsForm,
     OrganizationLoginForm, OrganizationPhotoForm, TournamentForm,
-    EmailLoginForm, OTPVerifyForm, PlayerRegistrationForm,
-    AadharUploadForm, PlayerProfileForm,
+    EmailLoginForm, OTPVerifyForm, AadharUploadForm,
+    PlayerRegistrationForm, PlayerProfileForm
 )
 from web.models import (
-    Organization, Tournament, Player, PlayerTask,
-    OrganizationNotification, PlayerNotification,
-    BiddingSeason, Bid, Transaction,
-    SystemSettings, ScorecardAnalysis,
+    Organization, Tournament, TournamentBidder, Player, 
+    Transaction, OrganizationPlayer, ExternalPlayerInvite, PlayerNotification,
+    AdminNotification, BiddingSeason, BiddingSeasonLog, Bid, Negotiation,
+    SystemSettings, PlayerTask, OrganizationNotification, UserSession, ScorecardAnalysis,
+    PreviousTournament, TournamentTeam, TournamentScorecard
 )
 from web.decorators import login_required_organization
 from web.auth_services import handle_secure_login, handle_secure_logout
@@ -82,7 +83,7 @@ def api_send_otp(request):
                 cache.set(cache_key, otp_code, timeout=300)
                 
                 # Send Email
-                html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+                html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 plain_message = strip_tags(html_message)
                 
                 send_mail(
@@ -181,7 +182,7 @@ def api_register_send_otp(request):
             cache.set(cache_key, otp_code, timeout=300)
             
             # Send Email
-            html_message = render_to_string('web/emails/otp_verification.html', {'otp_code': otp_code, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+            html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
             plain_message = strip_tags(html_message)
             
             send_mail(
@@ -306,7 +307,7 @@ def api_register_step2(request):
             # Send Welcome Email
             try:
                 subject = 'Welcome to E-Game Scout - Journey Started'
-                html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+                html_content = render_to_string('web/emails/welcome.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 text_content = strip_tags(html_content)
                 
                 msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -381,7 +382,7 @@ def auth_login(request):
             
             # Send Email
                             
-            html_message = render_to_string('web/email/otp_email.html', {'otp_code': otp_code, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+            html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
             plain_message = strip_tags(html_message)
             
             send_mail(
@@ -530,7 +531,7 @@ def auth_register_details(request):
             # Send Welcome Email
             try:
                 subject = 'Welcome to E-Game Scout - Journey Started'
-                html_content = render_to_string('web/email/welcome_email.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+                html_content = render_to_string('web/emails/welcome.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 text_content = strip_tags(html_content)
                 
                 msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -693,9 +694,13 @@ def index(request):
             live_scouting = BiddingSeason.objects.filter(is_active=True).exists()
     except Exception:
         live_scouting = False
+        
+    previous_tournaments = PreviousTournament.objects.filter(published=True).order_by('-date')[:6]
+        
     return render(request, 'web/index.html', {
         'organizations': organizations,
         'live_scouting': live_scouting,
+        'previous_tournaments': previous_tournaments,
     })
 
 def public_tournaments(request):
@@ -724,6 +729,32 @@ def public_tournaments(request):
         'player_id': player_id,
     })
 
+def public_previous_tournaments(request):
+    """Public view for all historic/previous tournaments"""
+    tournaments = PreviousTournament.objects.filter(published=True).order_by('-date')
+    return render(request, 'web/public_previous_tournaments.html', {
+        'tournaments': tournaments
+    })
+
+def tournament_history_detail(request, tournament_id):
+    """Public detail view for a published PreviousTournament"""
+    tournament = get_object_or_404(PreviousTournament, id=tournament_id, published=True)
+    teams = tournament.participating_teams.all().order_by('placement')
+    scorecards = tournament.scorecards.all().order_by('match_number')
+    
+    # Extract unique organizations from the teams for the Org Grid
+    organizations = set()
+    for team in teams:
+        if team.organization:
+            organizations.add(team.organization)
+            
+    return render(request, 'web/tournament_history_detail.html', {
+        'tournament': tournament,
+        'teams': teams,
+        'scorecards': scorecards,
+        'organizations': list(organizations),
+    })
+
 # --- Registration Flow ---
 
 def org_register_start(request):
@@ -743,7 +774,7 @@ def org_register_start(request):
             # Send OTP via Email
             # Send OTP via Email (HTML + Text)
             subject = 'E-Game Scout Registration OTP'
-            html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+            html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
             text_content = strip_tags(html_content)
             
             msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -869,7 +900,7 @@ def org_login_start(request):
                 # Send OTP via Email
                 # Send OTP via Email (HTML + Text)
                 subject = 'E-Game Scout Login OTP'
-                html_content = render_to_string('web/email/email_otp.html', {'otp': otp, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+                html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 text_content = strip_tags(html_content)
                 
                 msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -1108,7 +1139,7 @@ def resend_otp(request):
             
         # Send OTP via Email
         subject = 'E-Game Scout OTP Resend'
-        html_content = render_to_string('web/email/email_otp.html', {'otp': otp, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+        html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
         text_content = strip_tags(html_content)
         
         msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -1150,7 +1181,24 @@ def scorecard_tool(request):
         try:
             # Prepare Prompt
             user_prompt = """
-            Act as a professional esports journalist similar to Cricbuzz and analyze the provided standings image from the SkyeSports Skirmish Series Finals (BGMI). Write a detailed, narrative-style tournament report explaining how the leaderboard unfolded, highlighting the championship-winning team’s consistency, the close title race among the top teams, mid-table performances, and struggles of the lower-ranked teams, using only the visible data such as matches played, wins, placement points, eliminations, and total points. Maintain an analytical yet engaging tone, convert statistics into match-like insights, avoid inventing players or events, and conclude with an overall verdict on the competitiveness and quality of the tournament and its significance for upcoming BGMI events.
+            Act as a professional esports journalist and data analyst. Analyze the provided standings image from a BGMI tournament. 
+            Extract the data and write a detailed, narrative-style report.
+
+            You MUST return a pure JSON object (no markdown formatting, no backticks, just the raw JSON string) with the following structure:
+            {
+                "tournament_name": "Extracted Name or 'Unknown Tournament'",
+                "winner_team": "Name of Rank 1 Team",
+                "runner_up_team": "Name of Rank 2 Team",
+                "teams": [
+                    {
+                        "rank": 1,
+                        "team_name": "Team A",
+                        "points": 150
+                    }
+                ],
+                "analysis_report": "Your detailed narrative report explaining how the leaderboard unfolded, highlighting the championship-winning team’s consistency, the close title race among the top teams, mid-table performances, and struggles of the lower-ranked teams, using only the visible data. Convert statistics into match-like insights, avoid inventing players or events, and conclude with an overall verdict on the competitiveness.",
+                "match_number": 1
+            }
             """
             
             # Providers Config - Multiple Gemini keys with Groq fallback
@@ -1251,10 +1299,65 @@ def scorecard_tool(request):
                     continue
             
             if response_text:
-                analysis.summary_text = response_text
-                analysis.ai_provider = used_provider
-                analysis.save()
-                messages.success(request, 'Analysis Complete!')
+                # Clean up response text if the model returned markdown
+                cleaned_text = response_text.strip()
+                if cleaned_text.startswith("```json"):
+                    cleaned_text = cleaned_text[7:]
+                if cleaned_text.endswith("```"):
+                    cleaned_text = cleaned_text[:-3]
+                
+                try:
+                    data = json.loads(cleaned_text.strip())
+                    
+                    analysis.summary_text = data.get("analysis_report", "Analysis generated successfully.")
+                    analysis.ai_provider = used_provider
+                    analysis.save()
+                    
+                    # Store in Previous Tournament History
+                    pt_name = data.get("tournament_name", "Unknown Tournament")
+                    
+                    # Create or Get the overall Tournament Record
+                    prev_tournament, created = PreviousTournament.objects.get_or_create(
+                        tournament_name=pt_name,
+                        organization=org,
+                        defaults={
+                            'winner_team': data.get("winner_team", ""),
+                            'runner_up_team': data.get("runner_up_team", ""),
+                            'description': data.get("analysis_report", "")[:200] + "...",
+                            'published': False
+                        }
+                    )
+                    
+                    # Save Match Scorecard
+                    match_data_json = {
+                        "teams": data.get("teams", [])
+                    }
+                    TournamentScorecard.objects.create(
+                        tournament=prev_tournament,
+                        match_number=data.get("match_number", 1),
+                        match_data=match_data_json,
+                        ai_analysis=data.get("analysis_report", "")
+                    )
+                    
+                    # If this is a newly created tournament, add the teams
+                    if created:
+                        for team_data in data.get("teams", []):
+                            TournamentTeam.objects.create(
+                                tournament=prev_tournament,
+                                team_name=team_data.get("team_name", "Unknown"),
+                                placement=team_data.get("rank", 99),
+                                points=team_data.get("points", 0)
+                            )
+                            
+                    messages.success(request, 'Analysis Complete and added to Tournament History Workflow!')
+
+                except json.JSONDecodeError as e:
+                    print(f"JSON Parse Error: {e} - Raw output: {response_text}")
+                    analysis.summary_text = "Analysis succeeded but format was invalid. Saved raw output:\n\n" + response_text
+                    analysis.ai_provider = used_provider
+                    analysis.save()
+                    messages.warning(request, 'Analysis complete, but data formatting failed.')
+
             else:
                 analysis.summary_text = "Analysis failed. Please try again later."
                 analysis.ai_provider = 'failed'
@@ -1269,7 +1372,18 @@ def scorecard_tool(request):
 
     # GET Request: Show history
     history = ScorecardAnalysis.objects.filter(organization=org).order_by('-created_at')
-    return render(request, 'web/Organization/org_scorecard_tool.html', {'org': org, 'history': history})
+    
+    # Get unpublished tournaments that can be reviewed and published
+    unpublished_tournaments = PreviousTournament.objects.filter(
+        organization=org, 
+        published=False
+    ).order_by('-date')
+    
+    return render(request, 'web/Organization/org_scorecard_tool.html', {
+        'org': org, 
+        'history': history,
+        'unpublished_tournaments': unpublished_tournaments
+    })
 
 # --- Profile Management ---
 
@@ -1371,6 +1485,21 @@ def tournament_list(request):
         'show_form': False,
         'total_org_count': total_org_count
     })
+
+@login_required_organization
+def publish_previous_tournament(request, history_id):
+    """Toggle the published state of a PreviousTournament"""
+    if request.method == 'POST':
+        pt = get_object_or_404(PreviousTournament, id=history_id)
+        pt.published = not pt.published
+        pt.save()
+        status = "published" if pt.published else "unpublished"
+        messages.success(request, f'Tournament history successfully {status}.')
+        
+    # Redirect back to the scorecard tool page (or wherever the button is placed)
+    # The user request asks for it to be connected with AI Scorecard Generator, so we'll 
+    # assume they meant that page or the tournament history list. We will redirect to scorecard_tool.
+    return redirect('scorecard_tool')
 
 @login_required_organization
 def tournament_history(request):

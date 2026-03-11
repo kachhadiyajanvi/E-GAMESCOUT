@@ -53,7 +53,6 @@
                 <div class="w-16 h-16 border-4 border-accent-cyan border-t-transparent rounded-full animate-spin mb-4">
                 </div>
                 <h3 class="text-xl font-display font-bold text-white animate-pulse">Analyzing Match Data...</h3>
-                <p class="text-gray-400 text-xs mt-2">Powered by Gemini & Groq AI</p>
             </div>
         </div>
 
@@ -68,6 +67,31 @@
 
             <div class="prose prose-invert prose-sm max-w-none text-gray-300">
                 {{ history.first.summary_text|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Unpublished Tournaments -->
+        {% if unpublished_tournaments %}
+        <div class="glass-card p-6 rounded-xl border border-yellow-500/30 mt-6 bg-yellow-500/5">
+            <div class="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
+                <h3 class="font-display font-bold text-white"><i class="fa-solid fa-clock text-yellow-500 mr-2"></i> PENDING PUBLICATION</h3>
+            </div>
+            <div class="space-y-4">
+                {% for pt in unpublished_tournaments %}
+                <div class="bg-black/40 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-white/5 hover:border-white/10 transition-colors">
+                    <div>
+                        <h4 class="font-bold text-accent-cyan uppercase tracking-wide">{{ pt.tournament_name }}</h4>
+                        <p class="text-xs text-gray-400 mt-1"><i class="fa-regular fa-calendar mr-1"></i> {{ pt.date|date:"M d, Y" }} | <i class="fa-solid fa-crown text-yellow-500 mx-1"></i> {{ pt.winner_team|default:"TBD" }}</p>
+                    </div>
+                    <form action="{% url 'publish_previous_tournament' pt.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-accent-cyan text-brand-dark font-bold py-2 px-4 rounded text-xs uppercase tracking-widest hover:bg-white transition-all hover:shadow-[0_0_15px_rgba(102,252,241,0.5)]">
+                            <i class="fa-solid fa-bullhorn mr-1"></i> Publish to Index
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
             </div>
         </div>
         {% endif %}
@@ -96,8 +120,6 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-start mb-1">
                             <span class="text-xs font-bold text-white truncate">Analysis #{{ item.id }}</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-gray-400 uppercase">{{
-                                item.ai_provider }}</span>
                         </div>
                         <p class="text-xs text-gray-400 line-clamp-2">{{ item.summary_text }}</p>
                         <p class="text-[10px] text-gray-600 mt-2 text-right">{{ item.created_at|date:"M d, H:i" }}</p>

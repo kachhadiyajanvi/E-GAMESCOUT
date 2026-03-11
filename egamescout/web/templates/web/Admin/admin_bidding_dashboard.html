@@ -1,17 +1,14 @@
-{% extends 'web/Admin/admin_base.html' %}
+{% extends 'web/Admin/admin_page_base.html' %}
 {% load humanize %}
 
-{% block content %}
-<div class="flex-1 overflow-y-auto p-8 space-y-8">
+{% block header_icon %}<i class="fa-solid fa-gavel"></i>{% endblock %}
+{% block header_title %}BIDDING SEASON MANAGEMENT{% endblock %}
+{% block header_desc %}Control the organization bidding system manually or automatically.{% endblock %}
 
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-        <div>
-            <h1 class="font-display font-bold text-3xl text-white mb-1">BIDDING SEASON MANAGEMENT</h1>
-            <p class="text-white/40 text-sm">Control the organization bidding system manually or automatically.</p>
-        </div>
-        <!-- We use the configure button inside the active season card now -->
-    </div>
+{% block header_actions %}
+{% endblock %}
+
+{% block page_content %}
 
     <!-- Feedback Messages -->
     {% if messages %}
@@ -202,7 +199,7 @@
     </div>
 
     <!-- Configure Season Modal (Only for editing Active Season) -->
-    <div id="seasonModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div id="seasonModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div
             class="bg-[#0f0f0f] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative overflow-hidden flex flex-col">
             <div class="p-6 border-b border-white/10 bg-black/20 flex items-center justify-between">
@@ -405,7 +402,9 @@
             </div>
         </form>
     </div>
-</div>
+{% endblock %}
+
+{% block page_scripts %}
 <script>
     function openEndSeasonModal() {
         const m = document.getElementById('endSeasonModal');

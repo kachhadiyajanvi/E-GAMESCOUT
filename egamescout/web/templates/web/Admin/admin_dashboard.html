@@ -1,20 +1,16 @@
-{% extends 'web/Admin/admin_base.html' %}
-{% block content %}
-        <!-- Dashboard Content -->
-        <div class="flex-1 overflow-y-auto p-8 space-y-8">
+{% extends 'web/Admin/admin_page_base.html' %}
 
+{% block header_icon %}<i class="fa-solid fa-chart-line"></i>{% endblock %}
+{% block header_title %}DASHBOARD{% endblock %}
+{% block header_desc %}Welcome back, here's what's happening today.{% endblock %}
 
-            <!-- Page Title -->
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="font-display font-bold text-3xl text-white mb-1">DASHBOARD</h1>
-                    <p class="text-white/40 text-sm">Welcome back, here's what's happening today.</p>
-                </div>
-                <button
-                    class="bg-brand-blue/10 border border-brand-blue/50 text-brand-blue hover:bg-brand-blue hover:text-black px-6 py-2.5 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-download"></i> Export Report
-                </button>
-            </div>
+{% block header_actions %}
+<button class="bg-brand-blue/10 border border-brand-blue/50 text-brand-blue hover:bg-brand-blue hover:text-black px-6 py-2.5 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
+    <i class="fa-solid fa-download"></i> Export Report
+</button>
+{% endblock %}
+
+{% block page_content %}
 
             <!-- Stats Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -168,8 +164,9 @@
                 </div>
             </div>
 
-        </div>
+{% endblock %}
 
+{% block page_scripts %}
         <!-- Chart Data -->
         {% if chart_labels %}
         {{ chart_labels|json_script:"chart-labels-data" }}

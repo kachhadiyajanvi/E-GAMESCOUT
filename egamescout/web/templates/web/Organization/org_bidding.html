@@ -78,25 +78,28 @@
 
     <!-- Header & Wallet -->
 
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-        <div>
-            <h1 class="text-3xl font-display font-bold text-white mb-1 uppercase tracking-widest">
-                AUCTION <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">HUB</span>
-            </h1>
-            {% if bidding_status.is_active %}
-            <p class="text-brand-light/60 text-sm font-mono flex items-center gap-2 mt-1">
-                <span class="w-2 h-2 rounded-full bg-accent-green animate-pulse"></span>
-                Active Season: <strong class="text-accent-green">{{ bidding_status.season_name }}</strong>
-            </p>
-            {% else %}
-            <p class="text-brand-light/60 text-sm font-mono flex items-center gap-2 mt-1">
-                <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                <span class="text-red-400 font-bold">Bidding is currently closed.</span> Next season starts <strong class="text-yellow-500">{{ bidding_status.next_season_start|date:"d M Y" }}</strong>.
-            </p>
-            {% endif %}
+    <div class="page-header shrink-0">
+        <div class="page-title-group">
+            <div class="page-title-decorator"></div>
+            <div>
+                <h1 class="page-title">
+                    AUCTION <span class="page-title-highlight">HUB</span>
+                </h1>
+                {% if bidding_status.is_active %}
+                <p class="page-subtitle flex items-center gap-2 mt-1">
+                    <span class="w-2 h-2 rounded-full bg-accent-cyan animate-pulse"></span>
+                    Active Season: <strong class="text-accent-cyan">{{ bidding_status.season_name }}</strong>
+                </p>
+                {% else %}
+                <p class="page-subtitle flex items-center gap-2 mt-1">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                    <span class="text-red-400 font-bold">Bidding is closed.</span> Next season starts <strong class="text-yellow-500">{{ bidding_status.next_season_start|date:"d M Y" }}</strong>.
+                </p>
+                {% endif %}
+            </div>
         </div>
 
-        <div class="glass-panel p-4 rounded-xl border border-yellow-500/30 flex items-center gap-4 group">
+        <div class="page-actions shrink-0 glass-panel p-4 rounded-xl border border-yellow-500/30 flex items-center gap-4 group">
             <div class="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/50 group-hover:scale-110 transition-transform">
                 <i class="fa-solid fa-wallet text-yellow-400 text-xl"></i>
             </div>
@@ -186,7 +189,7 @@
                 </h3>
                 {% if my_roster %}
                 <div class="overflow-x-auto rounded-xl border border-white/5 bg-black/20">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
+                    <table class="w-full text-left text-sm whitespace-nowrap md:whitespace-normal">
                         <thead class="text-xs text-brand-light/40 uppercase bg-black/60 font-display">
                             <tr>
                                 <th class="px-4 py-3 font-bold border-b border-white/5">Player</th>
