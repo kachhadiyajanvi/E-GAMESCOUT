@@ -359,58 +359,63 @@
         </div>
 
         <div class="relative max-w-6xl mx-auto z-10 reveal-on-scroll delay-100">
-            <!-- Connecting Line -->
-            <div class="hidden md:block absolute top-1/2 left-0 w-full h-[2px] bg-white/10 -translate-y-1/2 z-0">
-                <div class="absolute top-0 left-0 h-full bg-accent-cyan animate-scanline" style="width: 100%;"></div>
+            <!-- Desktop Connecting Line with Arrows -->
+            <div class="hidden md:block absolute top-[45px] left-[10%] right-[10%] h-[2px] bg-white/5 z-0">
+                <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-accent-cyan via-blue-500 to-accent-cyan animate-scanline" style="width: 100%;"></div>
+                
+                <!-- Arrow 1 -->
+                <div class="absolute top-1/2 left-[25%] -translate-y-1/2 -translate-x-1/2 flex items-center justify-center">
+                    <div class="w-3 h-3 border-t-2 border-r-2 border-accent-cyan rotate-45 animate-pulse"></div>
+                </div>
+                <!-- Arrow 2 -->
+                <div class="absolute top-1/2 left-[50%] -translate-y-1/2 -translate-x-1/2 flex items-center justify-center">
+                    <div class="w-3 h-3 border-t-2 border-r-2 border-blue-500 rotate-45 animate-pulse" style="animation-delay: 0.2s;"></div>
+                </div>
+                <!-- Arrow 3 -->
+                <div class="absolute top-1/2 left-[75%] -translate-y-1/2 -translate-x-1/2 flex items-center justify-center">
+                    <div class="w-3 h-3 border-t-2 border-r-2 border-accent-cyan rotate-45 animate-pulse" style="animation-delay: 0.4s;"></div>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <!-- Step 1 -->
-                <div
-                    class="relative group bg-brand-dark/80 backdrop-blur border border-white/10 flex flex-col items-center p-6 rounded-xl hover:border-accent-cyan/50 hover:-translate-y-2 transition-all duration-300 z-10">
-                    <div
-                        class="w-16 h-16 rounded-full bg-accent-cyan/10 border-2 border-accent-cyan/30 flex items-center justify-center text-accent-cyan text-2xl mb-4 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all shadow-[0_0_15px_rgba(102,252,241,0.2)]">
-                        1
+                <div class="relative group flex flex-col items-center z-10">
+                    <div class="w-20 h-20 rounded-2xl bg-brand-dark border border-white/10 flex items-center justify-center text-accent-cyan text-3xl mb-6 group-hover:border-accent-cyan transition-all duration-500 shadow-[0_0_20px_rgba(102,252,241,0.1)] relative">
+                        <span class="relative z-10 font-display font-black">01</span>
+                        <div class="absolute inset-0 bg-accent-cyan/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
-                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2">Build Profile</h3>
-                    <p class="text-xs text-gray-400 text-center">Register and connect your game accounts to showcase
-                        your stats.</p>
+                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2 tracking-wider group-hover:text-accent-cyan transition-colors">Build Profile</h3>
+                    <p class="text-[11px] text-gray-500 text-center leading-relaxed px-4">Register and connect your game accounts to showcase your stats.</p>
                 </div>
 
                 <!-- Step 2 -->
-                <div
-                    class="relative group bg-brand-dark/80 backdrop-blur border border-white/10 flex flex-col items-center p-6 rounded-xl hover:border-accent-cyan/50 hover:-translate-y-2 transition-all duration-300 z-10">
-                    <div
-                        class="w-16 h-16 rounded-full bg-accent-cyan/10 border-2 border-accent-cyan/30 flex items-center justify-center text-accent-cyan text-2xl mb-4 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all shadow-[0_0_15px_rgba(102,252,241,0.2)]">
-                        2
+                <div class="relative group flex flex-col items-center z-10">
+                    <div class="w-20 h-20 rounded-2xl bg-brand-dark border border-white/10 flex items-center justify-center text-accent-cyan text-3xl mb-6 group-hover:border-accent-cyan transition-all duration-500 shadow-[0_0_20px_rgba(102,252,241,0.1)] relative">
+                        <span class="relative z-10 font-display font-black">02</span>
+                        <div class="absolute inset-0 bg-accent-cyan/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
-                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2">Upload Data</h3>
-                    <p class="text-xs text-gray-400 text-center">Play in tournaments and use AI to parse your scorecards
-                        automatically.</p>
+                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2 tracking-wider group-hover:text-accent-cyan transition-colors">Upload Data</h3>
+                    <p class="text-[11px] text-gray-500 text-center leading-relaxed px-4">Play in tournaments and use AI to parse your scorecards automatically.</p>
                 </div>
 
                 <!-- Step 3 -->
-                <div
-                    class="relative group bg-brand-dark/80 backdrop-blur border border-white/10 flex flex-col items-center p-6 rounded-xl hover:border-accent-cyan/50 hover:-translate-y-2 transition-all duration-300 z-10">
-                    <div
-                        class="w-16 h-16 rounded-full bg-accent-cyan/10 border-2 border-accent-cyan/30 flex items-center justify-center text-accent-cyan text-2xl mb-4 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all shadow-[0_0_15px_rgba(102,252,241,0.2)]">
-                        3
+                <div class="relative group flex flex-col items-center z-10">
+                    <div class="w-20 h-20 rounded-2xl bg-brand-dark border border-white/10 flex items-center justify-center text-accent-cyan text-3xl mb-6 group-hover:border-accent-cyan transition-all duration-500 shadow-[0_0_20px_rgba(102,252,241,0.1)] relative">
+                        <span class="relative z-10 font-display font-black">03</span>
+                        <div class="absolute inset-0 bg-accent-cyan/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
-                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2">Get Scouted</h3>
-                    <p class="text-xs text-gray-400 text-center">Organizations analyze leaderboards and place secure
-                        digital offers.</p>
+                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2 tracking-wider group-hover:text-accent-cyan transition-colors">Analyze</h3>
+                    <p class="text-[11px] text-gray-500 text-center leading-relaxed px-4">Organizations analyze leaderboards and place secure digital offers.</p>
                 </div>
 
                 <!-- Step 4 -->
-                <div
-                    class="relative group bg-brand-dark/80 backdrop-blur border border-white/10 flex flex-col items-center p-6 rounded-xl hover:border-accent-cyan/50 hover:-translate-y-2 transition-all duration-300 z-10">
-                    <div
-                        class="w-16 h-16 rounded-full bg-accent-cyan/10 border-2 border-accent-cyan/30 flex items-center justify-center text-accent-cyan text-2xl mb-4 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all shadow-[0_0_15px_rgba(102,252,241,0.2)]">
-                        4
+                <div class="relative group flex flex-col items-center z-10">
+                    <div class="w-20 h-20 rounded-2xl bg-brand-dark border border-white/10 flex items-center justify-center text-accent-cyan text-3xl mb-6 group-hover:border-accent-cyan transition-all duration-500 shadow-[0_0_20px_rgba(102,252,241,0.1)] relative">
+                        <span class="relative z-10 font-display font-black">04</span>
+                        <div class="absolute inset-0 bg-accent-cyan/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
-                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2">Get Scouted</h3>
-                    <p class="text-xs text-gray-400 text-center">Top orgs use our bidding system to draft the best
-                        performing players.</p>
+                    <h3 class="font-display text-lg font-bold text-white uppercase text-center mb-2 tracking-wider group-hover:text-accent-cyan transition-colors">Get Drafted</h3>
+                    <p class="text-[11px] text-gray-500 text-center leading-relaxed px-4">Top orgs use our bidding system to draft the best performing players.</p>
                 </div>
             </div>
         </div>
@@ -444,134 +449,78 @@
             </p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10 max-w-7xl mx-auto">
-            <!-- Feature 1: Player Profiles -->
-            <div
-                class="group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-500 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.2)] transform-style-3d hover:-translate-y-2 hover:rotate-[1deg]">
-                <!-- Corner Markers -->
-                <div
-                    class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
-                <div
-                    class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
-                <div
-                    class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
-                <div
-                    class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
+        <div class="relative z-10 max-w-7xl mx-auto overflow-hidden px-4 md:px-0" id="features-slider-container">
+            <div class="flex md:grid md:grid-cols-3 gap-8 transition-transform duration-500 ease-out" id="features-slider">
+                <!-- Feature 1: Player Profiles -->
+                <div class="min-w-full md:min-w-0 group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-500 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.2)] transform-style-3d hover:-translate-y-2 hover:rotate-[1deg]">
+                    <!-- Corner Markers -->
+                    <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
+                    <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
+                    <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
+                    <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
 
-                <div
-                    class="bg-brand-gray/20 backdrop-blur-sm p-8 h-full flex flex-col items-start relative overflow-hidden group-hover:bg-brand-gray/30 transition-colors">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-b from-transparent via-accent-cyan/10 to-transparent -translate-y-full group-hover:animate-scanline pointer-events-none z-0">
+                    <div class="bg-brand-gray/20 backdrop-blur-sm p-8 h-full flex flex-col items-start relative overflow-hidden group-hover:bg-brand-gray/30 transition-colors">
+                        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-accent-cyan/10 to-transparent -translate-y-full group-hover:animate-scanline pointer-events-none z-0"></div>
+                        <div class="absolute top-2 right-2 text-[8px] text-accent-cyan/30 font-display tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">PRO.FILE // V1</div>
+                        <div class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all duration-300">
+                            <i class="fa-solid fa-id-card-clip text-2xl group-hover:animate-pulse"></i>
+                        </div>
+                        <h3 class="relative z-10 font-display font-bold text-2xl text-white mb-3 tracking-wide group-hover:text-accent-cyan transition-colors">PLAYER PROFILES</h3>
+                        <p class="relative z-10 text-brand-light/70 leading-relaxed mb-6">Showcase skills, gameplay highlights, advanced stats, and tournament achievements in one verified digital CV.</p>
+                        <div class="mt-auto w-full h-[2px] bg-white/10 overflow-hidden relative z-10">
+                            <div class="h-full bg-accent-cyan w-0 group-hover:w-full transition-all duration-700 ease-out"></div>
+                        </div>
                     </div>
-                    <div
-                        class="absolute top-2 right-2 text-[8px] text-accent-cyan/30 font-display tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                        PRO.FILE // V1</div>
+                </div>
 
-                    <div
-                        class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all duration-300">
-                        <i class="fa-solid fa-id-card-clip text-2xl group-hover:animate-pulse"></i>
+                <!-- Feature 2: Organization Access -->
+                <div class="min-w-full md:min-w-0 group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-500 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.2)] transform-style-3d hover:-translate-y-2 hover:rotate-[1deg]">
+                    <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
+                    <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
+                    <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
+                    <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
+
+                    <div class="bg-brand-gray/20 backdrop-blur-sm p-8 h-full flex flex-col items-start relative overflow-hidden group-hover:bg-brand-gray/30 transition-colors">
+                        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-accent-cyan/10 to-transparent -translate-y-full group-hover:animate-scanline pointer-events-none z-0"></div>
+                        <div class="absolute top-2 right-2 text-[8px] text-accent-cyan/30 font-display tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">ORG.NET // AUTH</div>
+                        <div class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all duration-300">
+                            <i class="fa-solid fa-chart-line text-2xl group-hover:animate-pulse"></i>
+                        </div>
+                        <h3 class="relative z-10 font-display font-bold text-2xl text-white mb-3 tracking-wide group-hover:text-accent-cyan transition-colors">ORGANIZATION ACCESS</h3>
+                        <p class="relative z-10 text-brand-light/70 leading-relaxed mb-6">Advanced filters for scouting, deep-dive analytics on player performance.</p>
+                        <div class="mt-auto w-full h-[2px] bg-white/10 overflow-hidden relative z-10">
+                            <div class="h-full bg-accent-cyan w-0 group-hover:w-full transition-all duration-700 ease-out delay-100"></div>
+                        </div>
                     </div>
-                    <h3
-                        class="relative z-10 font-display font-bold text-2xl text-white mb-3 tracking-wide group-hover:text-accent-cyan transition-colors">
-                        PLAYER PROFILES</h3>
-                    <p class="relative z-10 text-brand-light/70 leading-relaxed mb-6">Showcase skills, gameplay
-                        highlights, advanced stats, and tournament achievements in one verified digital CV.</p>
+                </div>
 
-                    <div class="mt-auto w-full h-[2px] bg-white/10 overflow-hidden relative z-10">
-                        <div class="h-full bg-accent-cyan w-0 group-hover:w-full transition-all duration-700 ease-out">
+                <!-- Feature 3: Tournament & Contract -->
+                <div class="min-w-full md:min-w-0 group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-500 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.2)] transform-style-3d hover:-translate-y-2 hover:rotate-[1deg]">
+                    <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
+                    <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
+                    <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
+                    <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors"></div>
+
+                    <div class="bg-brand-gray/20 backdrop-blur-sm p-8 h-full flex flex-col items-start relative overflow-hidden group-hover:bg-brand-gray/30 transition-colors">
+                        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-accent-cyan/10 to-transparent -translate-y-full group-hover:animate-scanline pointer-events-none z-0"></div>
+                        <div class="absolute top-2 right-2 text-[8px] text-accent-cyan/30 font-display tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">EXEC.CON // SEC</div>
+                        <div class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all duration-300">
+                            <i class="fa-solid fa-file-contract text-2xl group-hover:animate-pulse"></i>
+                        </div>
+                        <h3 class="relative z-10 font-display font-bold text-2xl text-white mb-3 tracking-wide group-hover:text-accent-cyan transition-colors">TOURNAMENTS & CONTRACTS</h3>
+                        <p class="relative z-10 text-brand-light/70 leading-relaxed mb-6">Host and participate in secure, transparent tournaments and sign digital contracts on the blockchain.</p>
+                        <div class="mt-auto w-full h-[2px] bg-white/10 overflow-hidden relative z-10">
+                            <div class="h-full bg-accent-cyan w-0 group-hover:w-full transition-all duration-700 ease-out delay-200"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Feature 2: Organization Access -->
-            <div
-                class="group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-500 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.2)] transform-style-3d hover:-translate-y-2 hover:rotate-[1deg]">
-                <div
-                    class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
-                <div
-                    class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
-                <div
-                    class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
-                <div
-                    class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
-
-                <div
-                    class="bg-brand-gray/20 backdrop-blur-sm p-8 h-full flex flex-col items-start relative overflow-hidden group-hover:bg-brand-gray/30 transition-colors">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-b from-transparent via-accent-cyan/10 to-transparent -translate-y-full group-hover:animate-scanline pointer-events-none z-0">
-                    </div>
-                    <div
-                        class="absolute top-2 right-2 text-[8px] text-accent-cyan/30 font-display tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                        ORG.NET // AUTH</div>
-
-                    <div
-                        class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all duration-300">
-                        <i class="fa-solid fa-chart-line text-2xl group-hover:animate-pulse"></i>
-                    </div>
-                    <h3
-                        class="relative z-10 font-display font-bold text-2xl text-white mb-3 tracking-wide group-hover:text-accent-cyan transition-colors">
-                        ORGANIZATION ACCESS</h3>
-                    <p class="relative z-10 text-brand-light/70 leading-relaxed mb-6">Advanced filters for scouting,
-                        deep-dive analytics on player performance.</p>
-
-                    <div class="mt-auto w-full h-[2px] bg-white/10 overflow-hidden relative z-10">
-                        <div
-                            class="h-full bg-accent-cyan w-0 group-hover:w-full transition-all duration-700 ease-out delay-100">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Feature 3: Tournament & Contract -->
-            <div
-                class="group relative bg-brand-dark/60 border border-white/10 p-1 overflow-hidden transition-all duration-500 hover:border-accent-cyan/50 hover:shadow-[0_0_20px_rgba(102,252,241,0.2)] transform-style-3d hover:-translate-y-2 hover:rotate-[1deg]">
-                <div
-                    class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
-                <div
-                    class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
-                <div
-                    class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
-                <div
-                    class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-white/20 group-hover:border-accent-cyan transition-colors">
-                </div>
-
-                <div
-                    class="bg-brand-gray/20 backdrop-blur-sm p-8 h-full flex flex-col items-start relative overflow-hidden group-hover:bg-brand-gray/30 transition-colors">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-b from-transparent via-accent-cyan/10 to-transparent -translate-y-full group-hover:animate-scanline pointer-events-none z-0">
-                    </div>
-                    <div
-                        class="absolute top-2 right-2 text-[8px] text-accent-cyan/30 font-display tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                        EXEC.CON // SEC</div>
-
-                    <div
-                        class="relative z-10 w-14 h-14 mb-6 flex items-center justify-center text-accent-cyan bg-accent-cyan/10 rounded border border-accent-cyan/20 group-hover:scale-110 group-hover:bg-accent-cyan group-hover:text-black transition-all duration-300">
-                        <i class="fa-solid fa-file-contract text-2xl group-hover:animate-pulse"></i>
-                    </div>
-                    <h3
-                        class="relative z-10 font-display font-bold text-2xl text-white mb-3 tracking-wide group-hover:text-accent-cyan transition-colors">
-                        TOURNAMENTS & CONTRACTS</h3>
-                    <p class="relative z-10 text-brand-light/70 leading-relaxed mb-6">Host and participate in secure,
-                        transparent tournaments and sign digital contracts on the blockchain.</p>
-
-                    <div class="mt-auto w-full h-[2px] bg-white/10 overflow-hidden relative z-10">
-                        <div
-                            class="h-full bg-accent-cyan w-0 group-hover:w-full transition-all duration-700 ease-out delay-200">
-                        </div>
-                    </div>
-                </div>
+            <!-- Slider Dots -->
+            <div class="flex justify-center gap-2 mt-8 md:hidden" id="features-dots">
+                <button class="w-2 h-2 rounded-full bg-accent-cyan transition-all duration-300" data-index="0"></button>
+                <button class="w-2 h-2 rounded-full bg-white/20 transition-all duration-300" data-index="1"></button>
+                <button class="w-2 h-2 rounded-full bg-white/20 transition-all duration-300" data-index="2"></button>
             </div>
         </div>
     <!-- Bidding Season Section -->
@@ -699,65 +648,44 @@
             </div>
 
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Problem 1 -->
-                <div
-                    class="reveal-on-scroll delay-100 bg-red-950/10 border border-red-500/20 p-8 rounded-xl hover:bg-red-950/30 hover:border-red-500/60 transition-all duration-300 group hover:-translate-y-2 relative overflow-hidden">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+            <div class="relative z-10 max-w-7xl mx-auto overflow-hidden px-4 md:px-0" id="problems-slider-container">
+                <div class="flex md:grid md:grid-cols-3 gap-6 transition-transform duration-500 ease-out" id="problems-slider">
+                    <!-- Problem 1 -->
+                    <div class="min-w-full md:min-w-0 reveal-on-scroll delay-100 bg-red-950/10 border border-red-500/20 p-8 rounded-xl hover:bg-red-950/30 hover:border-red-500/60 transition-all duration-300 group hover:-translate-y-2 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+                            <i class="fa-solid fa-eye-slash text-2xl animate-pulse"></i>
+                        </div>
+                        <h3 class="text-white font-display font-bold text-xl mb-3 group-hover:text-red-400 transition-colors">LACK OF VISIBILITY</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed border-l-2 border-red-900/50 pl-4">Talent is buried under noise. Grassroots players remain invisible to top-tier organizations.</p>
                     </div>
 
-                    <div
-                        class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.2)]">
-                        <i class="fa-solid fa-eye-slash text-2xl animate-pulse"></i>
+                    <!-- Problem 2 -->
+                    <div class="min-w-full md:min-w-0 reveal-on-scroll delay-200 bg-red-950/10 border border-red-500/20 p-8 rounded-xl hover:bg-red-950/30 hover:border-red-500/60 transition-all duration-300 group hover:-translate-y-2 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+                            <i class="fa-solid fa-magnifying-glass-chart text-2xl animate-pulse" style="animation-delay: 0.2s;"></i>
+                        </div>
+                        <h3 class="text-white font-display font-bold text-xl mb-3 group-hover:text-red-400 transition-colors">INEFFICIENT SCOUTING</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed border-l-2 border-red-900/50 pl-4">Manual data collection is slow and prone to error. Scouts miss critical performance metrics.</p>
                     </div>
-                    <h3
-                        class="text-white font-display font-bold text-xl mb-3 group-hover:text-red-400 transition-colors">
-                        LACK OF VISIBILITY</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed border-l-2 border-red-900/50 pl-4">
-                        Talent is buried under noise. Grassroots players remain invisible to top-tier organizations.
-                    </p>
+
+                    <!-- Problem 3 -->
+                    <div class="min-w-full md:min-w-0 reveal-on-scroll delay-400 bg-red-950/10 border border-red-500/20 p-8 rounded-xl hover:bg-red-950/30 hover:border-red-500/60 transition-all duration-300 group hover:-translate-y-2 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+                            <i class="fa-solid fa-bridge-water text-2xl animate-pulse" style="animation-delay: 0.6s;"></i>
+                        </div>
+                        <h3 class="text-white font-display font-bold text-xl mb-3 group-hover:text-red-400 transition-colors">AMATEUR-PRO GAP</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed border-l-2 border-red-900/50 pl-4">The path to pro is broken. No clear progression system exists for rising stars.</p>
+                    </div>
                 </div>
 
-                <!-- Problem 2 -->
-                <div
-                    class="reveal-on-scroll delay-200 bg-red-950/10 border border-red-500/20 p-8 rounded-xl hover:bg-red-950/30 hover:border-red-500/60 transition-all duration-300 group hover:-translate-y-2 relative overflow-hidden">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                    </div>
-
-                    <div
-                        class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.2)]">
-                        <i class="fa-solid fa-magnifying-glass-chart text-2xl animate-pulse"
-                            style="animation-delay: 0.2s;"></i>
-                    </div>
-                    <h3
-                        class="text-white font-display font-bold text-xl mb-3 group-hover:text-red-400 transition-colors">
-                        INEFFICIENT SCOUTING</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed border-l-2 border-red-900/50 pl-4">
-                        Manual data collection is slow and prone to error. Scouts miss critical performance metrics.
-                    </p>
-                </div>
-
-
-
-                <!-- Problem 4 -->
-                <div
-                    class="reveal-on-scroll delay-400 bg-red-950/10 border border-red-500/20 p-8 rounded-xl hover:bg-red-950/30 hover:border-red-500/60 transition-all duration-300 group hover:-translate-y-2 relative overflow-hidden">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                    </div>
-
-                    <div
-                        class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.2)]">
-                        <i class="fa-solid fa-bridge-water text-2xl animate-pulse" style="animation-delay: 0.6s;"></i>
-                    </div>
-                    <h3
-                        class="text-white font-display font-bold text-xl mb-3 group-hover:text-red-400 transition-colors">
-                        AMATEUR-PRO GAP</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed border-l-2 border-red-900/50 pl-4">
-                        The path to pro is broken. No clear progression system exists for rising stars.
-                    </p>
+                <!-- Slider Dots -->
+                <div class="flex justify-center gap-2 mt-8 md:hidden" id="problems-dots">
+                    <button class="w-2 h-2 rounded-full bg-red-500 transition-all duration-300" data-index="0"></button>
+                    <button class="w-2 h-2 rounded-full bg-white/20 transition-all duration-300" data-index="1"></button>
+                    <button class="w-2 h-2 rounded-full bg-white/20 transition-all duration-300" data-index="2"></button>
                 </div>
             </div>
         </div>
@@ -1022,72 +950,97 @@
             </div>
         </div>
 
-        <!-- Right Visual - Stylized Map/Network Node -->
-        <div class="w-full md:w-1/2 flex justify-center items-center relative z-10 perspective-1000">
-            <!-- Circular Radar Scan Effect -->
-            <div class="absolute w-[500px] h-[500px] border border-white/5 rounded-full animate-pulse-slow"></div>
-            <div class="absolute w-[350px] h-[350px] border border-accent-cyan/20 rounded-full animate-spin-slow"
-                style="animation-duration: 20s;">
-                <div class="absolute -top-1 left-1/2 w-2 h-2 bg-accent-cyan rounded-full shadow-[0_0_10px_#66FCF1]">
-                </div>
-            </div>
-
-            <div
-                class="glass-card p-2 rounded-xl border border-accent-cyan/30 relative transform rotate-y-12 transition-transform duration-500 hover:rotate-y-0 hover:scale-105">
-                <div
-                    class="absolute -top-3 -right-3 w-20 h-20 border-t-2 border-r-2 border-accent-cyan/50 rounded-tr-xl">
-                </div>
-                <div
-                    class="absolute -bottom-3 -left-3 w-20 h-20 border-b-2 border-l-2 border-accent-cyan/50 rounded-bl-xl">
-                </div>
-
-                <div
-                    class="w-full max-w-[280px] lg:max-w-[340px] h-[450px] bg-brand-dark/90 flex flex-col relative overflow-hidden">
-
-                    <!-- Simulating a player card scan -->
-                    <div
-                        class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')] bg-cover bg-center opacity-60 grayscale mix-blend-luminosity">
-                    </div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
-
-                    <!-- UI Elements on top -->
-                    <div class="relative z-10 p-6 h-full flex flex-col justify-between">
-                        <div class="flex justify-between items-start">
-                            <div
-                                class="bg-black/50 backdrop-blur px-2 py-1 rounded text-[10px] border border-white/10 text-accent-cyan font-mono">
-                                ID: 894-XJ-02
-                            </div>
-                            <div class="animate-pulse">
-                                <i class="fa-solid fa-circle text-[8px] text-green-500"></i>
-                            </div>
-                        </div>
-
+        <!-- Right Visual - Platform UI Showcase -->
+        <div class="w-full md:w-1/2 flex justify-center items-center relative z-10 perspective-1000 mt-12 md:mt-0">
+            <!-- Dynamic Environment -->
+            <div class="absolute w-[600px] h-[600px] border border-accent-cyan/5 rounded-full animate-pulse-slow"></div>
+            <div class="absolute w-[400px] h-[400px] border-2 border-accent-cyan/10 rounded-full border-dashed animate-spin-slow"></div>
+            
+            <!-- Main Platform UI Frame -->
+            <div class="relative w-full max-w-[320px] lg:max-w-[400px] aspect-[4/5] bg-brand-dark/95 border border-white/10 rounded-2xl overflow-hidden shadow-2xl transform hover:rotate-y-0 transition-all duration-700 shadow-[0_0_50px_rgba(0,0,0,0.5)] group">
+                <!-- Scanner Laser Layer -->
+                <div class="absolute top-0 left-0 w-full h-[2px] bg-accent-cyan shadow-[0_0_15px_#66FCF1] z-30 animate-scan"></div>
+                
+                <!-- Background Image (Simulated Platform Map) -->
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')] bg-cover bg-center opacity-20 grayscale border-b border-white/5"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/40 to-transparent"></div>
+                
+                <!-- HUD Overlay -->
+                <div class="absolute inset-0 p-6 flex flex-col z-20 font-mono">
+                    <!-- Top Bar -->
+                    <div class="flex justify-between items-start mb-8">
                         <div>
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="text-4xl text-white font-display font-bold italic">98</span>
-                                <span
-                                    class="text-xs text-accent-cyan font-bold uppercase border border-accent-cyan px-1 rounded">S-TIER</span>
+                            <div class="text-accent-cyan text-[10px] tracking-widest uppercase mb-1 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-accent-cyan animate-pulse"></span>
+                                Live_Node_Connection
                             </div>
-                            <h3 class="text-2xl text-white font-display font-bold uppercase leading-none mb-1">ALEX CHEN
-                            </h3>
-                            <p class="text-gray-400 text-xs uppercase tracking-widest mb-4">Role: Entry Fragger</p>
+                            <div class="text-white/40 text-[8px]">CORE SYSTEMS // ACTIVATED</div>
+                        </div>
+                        <div class="w-10 h-10 border border-white/20 rounded flex items-center justify-center text-accent-cyan bg-white/5">
+                            <i class="fa-solid fa-microchip animate-pulse"></i>
+                        </div>
+                    </div>
 
-                            <!-- Mini Stats Graph (CSS) -->
-                            <div class="flex items-end gap-1 h-8 w-full mb-2">
-                                <div class="w-1/5 bg-accent-cyan/20 h-[40%] rounded-t-sm"></div>
-                                <div class="w-1/5 bg-accent-cyan/40 h-[70%] rounded-t-sm"></div>
-                                <div class="w-1/5 bg-accent-cyan h-[90%] rounded-t-sm"></div>
-                                <div class="w-1/5 bg-accent-cyan/60 h-[60%] rounded-t-sm"></div>
-                                <div class="w-1/5 bg-accent-cyan/30 h-[50%] rounded-t-sm"></div>
+                    <!-- Centered Profile Card -->
+                    <div class="flex-1 flex flex-col justify-center">
+                        <div class="relative p-0.5 rounded-xl bg-gradient-to-br from-accent-cyan/40 to-transparent mb-6">
+                            <div class="bg-brand-dark rounded-xl p-4 border border-white/5">
+                                <div class="flex items-center gap-4 mb-4">
+                                    <div class="w-16 h-16 rounded-lg overflow-hidden border border-accent-cyan/50 relative">
+                                        <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
+                                        <div class="absolute inset-0 bg-accent-cyan/10"></div>
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-display font-bold text-lg leading-tight uppercase">VAL_GHOST_99</div>
+                                        <div class="text-accent-cyan text-[10px] tracking-widest uppercase">Verified Player</div>
+                                        <div class="flex gap-1 mt-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-accent-cyan"></div>
+                                            <div class="w-1.5 h-1.5 rounded-full bg-accent-cyan"></div>
+                                            <div class="w-1.5 h-1.5 rounded-full bg-accent-cyan"></div>
+                                            <div class="w-1.5 h-1.5 rounded-full bg-white/10"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Stats Grid -->
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-white/5 p-2 border border-white/5 rounded">
+                                        <div class="text-gray-500 text-[8px] uppercase">K/D Ratio</div>
+                                        <div class="text-white text-sm font-bold">2.84</div>
+                                    </div>
+                                    <div class="bg-white/5 p-2 border border-white/5 rounded">
+                                        <div class="text-gray-500 text-[8px] uppercase">Match Win</div>
+                                        <div class="text-white text-sm font-bold">78%</div>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
 
-                            <button
-                                class="w-full py-2 bg-accent-cyan text-black font-bold text-xs uppercase tracking-wide rounded hover:bg-white transition-colors">
-                                View Full Profile
-                            </button>
+                        <!-- Data Stream Sim -->
+                        <div class="space-y-2">
+                            <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-accent-cyan w-[65%] animate-pulse"></div>
+                            </div>
+                            <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-500 w-[85%] animate-pulse" style="animation-delay: 0.2s;"></div>
+                            </div>
+                            <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-white/20 w-[45%] animate-pulse" style="animation-delay: 0.4s;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Action Bar -->
+                    <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center">
+                        <div class="text-white/60 text-[10px] italic">Telemetry_Stream_ID: 4882-X</div>
+                        <div class="px-3 py-1 bg-accent-cyan text-black text-[10px] font-bold uppercase rounded cursor-pointer hover:bg-white transition-colors">
+                            Launch Hub
                         </div>
                     </div>
                 </div>
+
+                <!-- Glitch/Tech Patterns overlay -->
+                <div class="absolute inset-0 pointer-events-none opacity-20 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhYWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==')]"></div>
             </div>
         </div>
     </section>
@@ -1121,11 +1074,189 @@
                 </div>
             </div>
         </div>
-    </section>
-    <!-- Footer Section -->
-    <footer class="bg-black py-12 border-t-2 border-accent-cyan relative overflow-hidden">
-        <!-- Glow effect at top -->
-        <div class="absolute top-0 left-0 w-full h-1 bg-accent-cyan shadow-[0_0_20px_#66FCF1]"></div>
+    </section    <!-- Section Navigation Menu -->
+    <!-- Hidden on mobile, visible md+ only -->
+    <div
+        class="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-50 flex-col gap-8 group/scrollnav py-10 pr-[14px] pl-12 transition-all duration-500 w-12 hover:w-auto h-full justify-center">
+        <!-- Decorative Track -->
+        <div class="absolute right-[16px] top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-accent-cyan/30 to-transparent -z-10"
+            style="opacity: 0.8; box-shadow: 0 0 8px rgba(102,252,241,0.3);"></div>
+
+        <!-- Neon Glow (Dynamic Color) -->
+        <div id="scrollnav-glow"
+            class="absolute right-0 top-0 bottom-0 w-64 bg-gradient-to-l from-accent-cyan/40 to-transparent blur-3xl opacity-0 group-hover/scrollnav:opacity-100 transition-all duration-700 pointer-events-none -z-20">
+        </div>
+
+        <!-- Nav Items -->
+        <a href="#hero" class="relative flex items-center justify-end gap-6 group/item w-full py-2" data-target="hero">
+            <div
+                class="scrollnav-label absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 rounded-lg text-[10px] md:text-sm font-display font-semibold tracking-widest whitespace-nowrap nav-label-animate"
+                style="animation-delay: 0s;">
+                DISCOVER
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-accent-cyan group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#66FCF1]">
+            </div>
+        </a>
+
+        <a href="#featured-game" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="featured-game">
+            <div class="scrollnav-label absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 rounded-lg text-[10px] md:text-sm font-display font-semibold tracking-widest whitespace-nowrap nav-label-animate"
+                style="transition-delay: 75ms; animation-delay: -0.7s;">
+                FEATURED GAME
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-orange-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#f97316]">
+            </div>
+        </a>
+
+        <a href="#how-it-works" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="how-it-works">
+            <div class="scrollnav-label absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 rounded-lg text-[10px] md:text-sm font-display font-semibold tracking-widest whitespace-nowrap nav-label-animate"
+                style="transition-delay: 100ms; animation-delay: -1.4s;">
+                HOW IT WORKS
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-blue-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#3b82f6]">
+            </div>
+        </a>
+
+        <a href="#features" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="features">
+            <div class="scrollnav-label absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 rounded-lg text-[10px] md:text-sm font-display font-semibold tracking-widest whitespace-nowrap nav-label-animate"
+                style="transition-delay: 100ms; animation-delay: -2.1s;">
+                PLATFORM
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-accent-cyan group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#66FCF1]">
+            </div>
+        </a>
+
+        <a href="#bidding-season" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="bidding-season">
+            <div class="scrollnav-label absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 rounded-lg text-[10px] md:text-sm font-display font-semibold tracking-widest whitespace-nowrap nav-label-animate"
+                style="transition-delay: 125ms; animation-delay: -2.8s;">
+                BIDDING SEASON
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-green-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#22c55e]">
+            </div>
+        </a>
+
+        <a href="#problems" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="problems">
+            <div class="scrollnav-label absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 rounded-lg text-[10px] md:text-sm font-display font-semibold tracking-widest whitespace-nowrap nav-label-animate"
+                style="transition-delay: 150ms; animation-delay: -3.5s;">
+                SYSTEM CRITICAL
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-red-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#ef4444]">
+            </div>
+        </a>
+
+        <a href="#ai-automation" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="ai-automation">
+            <div class="scrollnav-label absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 rounded-lg text-[10px] md:text-sm font-display font-semibold tracking-widest whitespace-nowrap nav-label-animate"
+                style="transition-delay: 175ms; animation-delay: -4.2s;">
+                AI AGENTS
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-purple-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#a855f7]">
+            </div>
+        </a>
+
+        <a href="#global-reach" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="global-reach">
+            <div class="scrollnav-label absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 rounded-lg text-[10px] md:text-sm font-display font-semibold tracking-widest whitespace-nowrap nav-label-animate"
+                style="transition-delay: 200ms; animation-delay: -4.9s;">
+                GLOBAL GRID
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-accent-cyan group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#66FCF1]">
+            </div>
+        </a>
+
+        <a href="#testimonials" class="relative flex items-center justify-end gap-6 group/item w-full py-2"
+            data-target="testimonials">
+            <div class="scrollnav-label absolute right-8 opacity-0 group-hover/scrollnav:opacity-100 translate-x-4 group-hover/scrollnav:translate-x-0 transition-all duration-500 ease-out py-2.5 px-5 rounded-lg text-[10px] md:text-sm font-display font-semibold tracking-widest whitespace-nowrap nav-label-animate"
+                style="transition-delay: 250ms; animation-delay: -5.6s;">
+                TESTIMONIALS
+            </div>
+            <div
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-accent-cyan group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#66FCF1]">
+            </div>
+        </a>
+    </div>
+
+    <!-- Active dot javascript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const navItems = document.querySelectorAll('.group\/item');
+            const scrollnavGlow = document.getElementById('scrollnav-glow');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-50% 0px -50% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        navItems.forEach(item => {
+                            const dot = item.querySelector('.nav-dot');
+                            if (!dot) return;
+
+                            if (item.getAttribute('href') === `#${id}`) {
+                                // Add active class according to section
+                                // Reset glow base classes first
+                                if (scrollnavGlow) {
+                                  scrollnavGlow.className = "absolute right-0 top-0 bottom-0 w-64 blur-3xl opacity-0 group-hover/scrollnav:opacity-100 transition-all duration-700 pointer-events-none -z-20 bg-gradient-to-l to-transparent";
+                                }
+
+                                if (id === 'featured-game') {
+                                    dot.classList.add('bg-orange-500', 'scale-[2.5]', 'shadow-[0_0_15px_#f97316]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-orange-500/40');
+                                } else if (id === 'how-it-works') {
+                                    dot.classList.add('bg-blue-500', 'scale-[2.5]', 'shadow-[0_0_15px_#3b82f6]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-blue-500/40');
+                                } else if (id === 'bidding-season') {
+                                    dot.classList.add('bg-green-500', 'scale-[2.5]', 'shadow-[0_0_15px_#22c55e]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-green-500/40');
+                                } else if (id === 'problems') {
+                                    dot.classList.add('bg-red-500', 'scale-[2.5]', 'shadow-[0_0_15px_#ef4444]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-red-500/40');
+                                } else if (id === 'ai-automation') {
+                                    dot.classList.add('bg-purple-500', 'scale-[2.5]', 'shadow-[0_0_15px_#a855f7]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-purple-500/40');
+                                } else {
+                                    dot.classList.add('bg-accent-cyan', 'scale-[2.5]', 'shadow-[0_0_15px_#66FCF1]');
+                                    dot.classList.remove('bg-gray-500/50');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-accent-cyan/40');
+                                }
+                            } else {
+                                // Remove active classes
+                                dot.classList.remove('bg-orange-500', 'bg-red-500', 'bg-blue-500', 'bg-purple-500', 'bg-accent-cyan', 'bg-green-500', 'scale-[2.5]', 'shadow-[0_0_15px_#f97316]', 'shadow-[0_0_15px_#ef4444]', 'shadow-[0_0_15px_#3b82f6]', 'shadow-[0_0_15px_#a855f7]', 'shadow-[0_0_15px_#66FCF1]', 'shadow-[0_0_15px_#22c55e]');
+                                dot.classList.add('bg-gray-500/50');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(sec => {
+                observer.observe(sec);
+            });
+        });
+    </script>
+
 {% endblock %}
 
 {% block scripts %}
@@ -1182,6 +1313,119 @@
 
         setInterval(updateIndexTimers, 1000);
             updateIndexTimers();
+        }
+
+        // --- Card Sliders Logic ---
+        function initSlider(sliderId, dotsId, autoSlideTime = 5000) {
+            const slider = document.getElementById(sliderId);
+            const dotsContainer = document.getElementById(dotsId);
+            if (!slider || !dotsContainer) return;
+
+            const cards = slider.children;
+            const dots = dotsContainer.children;
+            let currentIndex = 0;
+            let isDragging = false;
+            let startPos = 0;
+            let currentTranslate = 0;
+            let prevTranslate = 0;
+            let animationID = 0;
+            let startTime = 0;
+
+            function updateSlider() {
+                const width = slider.offsetWidth;
+                currentTranslate = -currentIndex * width;
+                prevTranslate = currentTranslate;
+                setSliderPosition();
+                updateDots();
+            }
+
+            function setSliderPosition() {
+                slider.style.transform = `translateX(${currentTranslate}px)`;
+            }
+
+            function updateDots() {
+                Array.from(dots).forEach((dot, index) => {
+                    if (index === currentIndex) {
+                        dot.classList.add('bg-accent-cyan');
+                        dot.classList.remove('bg-white/20');
+                        dot.style.width = '1.5rem';
+                    } else {
+                        dot.classList.remove('bg-accent-cyan');
+                        dot.classList.add('bg-white/20');
+                        dot.style.width = '0.5rem';
+                    }
+                });
+            }
+
+            // Touch events
+            slider.addEventListener('touchstart', touchStart(currentIndex));
+            slider.addEventListener('touchend', touchEnd);
+            slider.addEventListener('touchmove', touchMove);
+
+            function touchStart(index) {
+                return (event) => {
+                    currentIndex = index;
+                    startPos = getPositionX(event);
+                    isDragging = true;
+                    animationID = requestAnimationFrame(animation);
+                    slider.classList.remove('transition-transform');
+                };
+            }
+
+            function touchEnd() {
+                isDragging = false;
+                cancelAnimationFrame(animationID);
+                const movedBy = currentTranslate - prevTranslate;
+
+                if (movedBy < -100 && currentIndex < cards.length - 1) currentIndex += 1;
+                if (movedBy > 100 && currentIndex > 0) currentIndex -= 1;
+
+                slider.classList.add('transition-transform');
+                updateSlider();
+            }
+
+            function touchMove(event) {
+                if (isDragging) {
+                    const currentPosition = getPositionX(event);
+                    currentTranslate = prevTranslate + currentPosition - startPos;
+                }
+            }
+
+            function getPositionX(event) {
+                return event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+            }
+
+            function animation() {
+                setSliderPosition();
+                if (isDragging) requestAnimationFrame(animation);
+            }
+
+            // Click on dots
+            Array.from(dots).forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    currentIndex = index;
+                    updateSlider();
+                });
+            });
+
+            // Auto-slide
+            let slideInterval = setInterval(() => {
+                if (!isDragging) {
+                    currentIndex = (currentIndex + 1) % cards.length;
+                    updateSlider();
+                }
+            }, autoSlideTime);
+
+            // Handle window resize
+            window.addEventListener('resize', updateSlider);
+            
+            // Initial call
+            updateSlider();
+        }
+
+        if (window.innerWidth < 768) {
+            initSlider('features-slider', 'features-dots');
+            initSlider('problems-slider', 'problems-dots');
         }
     </script>
 {% endblock %}

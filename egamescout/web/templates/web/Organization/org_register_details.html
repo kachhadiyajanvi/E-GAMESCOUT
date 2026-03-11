@@ -42,13 +42,66 @@
                 {% endif %}
             </div>
 
+            <!-- Terms & Conditions -->
+            <div>
+                <label class="flex items-start gap-3 cursor-pointer group select-none">
+                    <div class="relative mt-0.5 shrink-0">
+                        <input id="terms-check-org" type="checkbox" required class="peer sr-only">
+                        <div class="w-5 h-5 rounded border-2 border-white/20 bg-white/5 peer-checked:bg-accent-cyan peer-checked:border-accent-cyan transition-all">
+                        </div>
+                    </div>
+                    <span class="text-gray-400 text-xs leading-relaxed group-hover:text-gray-300 transition-colors">
+                        I have read and agree to the
+                        <a href="{% url 'terms' %}" target="_blank"
+                            class="text-accent-cyan hover:text-white underline underline-offset-2 font-semibold transition-colors">
+                            Terms &amp; Conditions
+                        </a>
+                        of E-Game Scout. I confirm all information provided is accurate and legitimate.
+                    </span>
+                </label>
+                <p id="terms-error-org" class="text-red-500 text-xs mt-2 font-bold hidden">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> You must accept the Terms &amp; Conditions to register.
+                </p>
+            </div>
 
-
-            <button type="submit"
-                class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded transition-colors group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)] mt-6">
+            <button id="submit-btn-org" type="submit"
+                class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent-cyan mt-6"
+                disabled>
                 Register Organization
             </button>
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const termsCheck = document.getElementById('terms-check-org');
+        const termsError = document.getElementById('terms-error-org');
+        const submitBtn = document.getElementById('submit-btn-org');
+
+        if (termsCheck && submitBtn) {
+            termsCheck.addEventListener('change', function () {
+                submitBtn.disabled = !this.checked;
+                if (termsError && this.checked) termsError.classList.add('hidden');
+                // Toggle visual checkmark
+                const box = this.nextElementSibling;
+                if (box) {
+                    if (this.checked) {
+                        box.innerHTML = '<i class="fa-solid fa-check text-[10px] text-black"></i>';
+                    } else {
+                        box.innerHTML = '';
+                    }
+                }
+            });
+
+            submitBtn.closest('form').addEventListener('submit', function (e) {
+                if (!termsCheck.checked) {
+                    e.preventDefault();
+                    if (termsError) termsError.classList.remove('hidden');
+                    termsCheck.closest('label').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

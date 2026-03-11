@@ -41,15 +41,9 @@
     {% block extra_head %}{% endblock %}
     <style>
         @keyframes marquee {
-            0% {
-                transform: translateX(0);
-            }
-
-            100% {
-                transform: translateX(-50%);
-            }
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
         }
-
         .animate-marquee {
             animation: marquee 50s linear infinite;
             display: flex;
@@ -57,22 +51,49 @@
         }
 
         @keyframes scan {
+            0%, 100% { top: 0%; opacity: 0; }
+            10%, 90% { opacity: 1; }
+            50% { top: 100%; opacity: 1; }
+        }
 
-            0%,
-            100% {
-                top: 0%;
-                opacity: 0;
-            }
+        /* ─── Scroll-nav label color cycle ─── */
+        @keyframes navColorCycle {
+            0%   { color: #66FCF1; text-shadow: 0 0 12px rgba(102,252,241,0.8), 0 0 30px rgba(102,252,241,0.4); }
+            16%  { color: #f97316; text-shadow: 0 0 12px rgba(249,115,22,0.8),  0 0 30px rgba(249,115,22,0.4); }
+            33%  { color: #3b82f6; text-shadow: 0 0 12px rgba(59,130,246,0.8),  0 0 30px rgba(59,130,246,0.4); }
+            50%  { color: #22c55e; text-shadow: 0 0 12px rgba(34,197,94,0.8),   0 0 30px rgba(34,197,94,0.4); }
+            66%  { color: #ef4444; text-shadow: 0 0 12px rgba(239,68,68,0.8),   0 0 30px rgba(239,68,68,0.4); }
+            83%  { color: #a855f7; text-shadow: 0 0 12px rgba(168,85,247,0.8),  0 0 30px rgba(168,85,247,0.4); }
+            100% { color: #66FCF1; text-shadow: 0 0 12px rgba(102,252,241,0.8), 0 0 30px rgba(102,252,241,0.4); }
+        }
+        .nav-label-animate {
+            animation: navColorCycle 6s linear infinite;
+        }
 
-            10%,
-            90% {
-                opacity: 1;
-            }
+        /* ─── Navbar glass base ─── */
+        #main-navbar {
+            background: rgba(11,12,16,0.55);
+            backdrop-filter: blur(18px) saturate(160%);
+            -webkit-backdrop-filter: blur(18px) saturate(160%);
+            border-bottom: 1px solid rgba(102,252,241,0.08);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        #main-navbar.scrolled {
+            background: rgba(6,7,10,0.88) !important;
+            backdrop-filter: blur(24px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+            border-bottom: 1px solid rgba(249,115,22,0.25) !important;
+            box-shadow: 0 6px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(249,115,22,0.05), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+        }
 
-            50% {
-                top: 100%;
-                opacity: 1;
-            }
+        /* ─── Scroll-nav label glass pill ─── */
+        .scrollnav-label {
+            background: rgba(11,12,16,0.72);
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+            text-shadow: 0 0 16px currentColor;
         }
     </style>
 </head>
@@ -93,7 +114,7 @@
 
     <!-- Navbar -->
     <nav id="main-navbar"
-        class="fixed w-full z-50 transition-all duration-500 py-4 px-6 md:px-12 flex items-center justify-between bg-transparent">
+        class="fixed w-full z-50 transition-all duration-300 py-3 md:py-4 px-4 md:px-12 flex items-center justify-between">
 
         <!-- Brand / Logo -->
         <a href="{% url 'index' %}" class="flex items-center gap-3 group shrink-0">
@@ -161,25 +182,15 @@
 
     <!-- Navbar & Mobile Menu JS -->
     <script>
-        // Scroll-based navbar style
+        // Scroll-based navbar style (class toggle, base glass in CSS)
         const navbar = document.getElementById('main-navbar');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 40) {
-                navbar.style.background = 'rgba(8,10,14,0.92)';
-                navbar.style.backdropFilter = 'blur(16px)';
-                navbar.style.borderBottom = '1px solid rgba(249,115,22,0.3)';
-                navbar.style.paddingTop = '12px';
-                navbar.style.paddingBottom = '12px';
-                navbar.style.boxShadow = '0 4px 30px rgba(0,0,0,0.5)';
+                navbar.classList.add('scrolled');
             } else {
-                navbar.style.background = 'transparent';
-                navbar.style.backdropFilter = '';
-                navbar.style.borderBottom = '';
-                navbar.style.paddingTop = '';
-                navbar.style.paddingBottom = '';
-                navbar.style.boxShadow = '';
+                navbar.classList.remove('scrolled');
             }
-        });
+        }, { passive: true });
 
         // Mobile Bottom Navbar active state logic
         const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
@@ -230,103 +241,103 @@
     {% block content %}{% endblock %}
 
     <!-- Footer -->
-    <footer id="footer" class="py-12 md:py-16 px-6 md:px-12 border-t border-white/10 bg-black relative overflow-hidden">
-        <!-- Glow accents -->
-        <div class="absolute top-0 left-1/4 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px] pointer-events-none">
-        </div>
-        <div class="absolute bottom-0 right-1/4 w-64 h-64 bg-blue-600/5 rounded-full blur-[80px] pointer-events-none">
-        </div>
+    <footer id="footer" class="pt-16 pb-8 px-6 md:px-12 border-t border-white/5 bg-[#060709] relative overflow-hidden">
+        <!-- Top neon line -->
+        <div class="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-cyan/60 to-transparent"></div>
+        <!-- Ambient glows -->
+        <div class="absolute top-0 left-1/4 w-96 h-40 bg-accent-cyan/4 rounded-full blur-[80px] pointer-events-none"></div>
+        <div class="absolute bottom-0 right-1/4 w-64 h-32 bg-orange-500/4 rounded-full blur-[80px] pointer-events-none"></div>
 
         <div class="container mx-auto relative z-10">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12 border-b border-white/5 pb-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
 
                 <!-- Brand Col -->
                 <div class="md:col-span-1">
-                    <a href="#" class="flex items-center gap-3 mb-6 inline-block">
+                    <a href="{% url 'index' %}" class="flex items-center gap-3 mb-5 group inline-flex">
                         <img src="{% static 'web/images/logo.png' %}" alt="E-Game Scout Logo"
-                            class="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(249,115,22,0.6)] group-hover:drop-shadow-[0_0_18px_rgba(249,115,22,0.9)] transition-all">
-                        <span
-                            class="text-xl font-display font-black tracking-widest text-white logo-text-multi">EGAMESCOUT</span>
+                            class="w-9 h-9 object-contain drop-shadow-[0_0_10px_rgba(249,115,22,0.6)] group-hover:drop-shadow-[0_0_18px_rgba(249,115,22,0.9)] transition-all">
+                        <span class="text-lg font-display font-black tracking-[0.15em] logo-text-multi">EGAMESCOUT</span>
                     </a>
-                    <p class="text-brand-light/60 text-sm leading-relaxed mb-6">
+                    <p class="text-gray-500 text-sm leading-relaxed mb-6 max-w-xs">
                         Bridging the gap between raw gaming talent and professional esports organizations globally.
                     </p>
-                    <div class="flex items-center gap-4">
-                        <a href="#"
-                            class="w-10 h-10 rounded-full bg-brand-dark border border-white/5 flex items-center justify-center text-gray-400 hover:text-accent-cyan hover:border-accent-cyan/30 transition-all hover:-translate-y-1">
-                            <i class="fa-brands fa-twitter"></i>
-                        </a>
-                        <a href="#"
-                            class="w-10 h-10 rounded-full bg-brand-dark border border-white/5 flex items-center justify-center text-gray-400 hover:text-accent-cyan hover:border-accent-cyan/30 transition-all hover:-translate-y-1">
-                            <i class="fa-brands fa-discord"></i>
-                        </a>
-                        <a href="#"
-                            class="w-10 h-10 rounded-full bg-brand-dark border border-white/5 flex items-center justify-center text-gray-400 hover:text-accent-cyan hover:border-accent-cyan/30 transition-all hover:-translate-y-1">
-                            <i class="fa-brands fa-instagram"></i>
-                        </a>
-                        <a href="#"
-                            class="w-10 h-10 rounded-full bg-brand-dark border border-white/5 flex items-center justify-center text-gray-400 hover:text-accent-cyan hover:border-accent-cyan/30 transition-all hover:-translate-y-1">
-                            <i class="fa-brands fa-youtube"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Links Col 1 -->
-                <div class="md:col-span-1 border-l border-white/5 pl-0 md:pl-8">
-                    <h4 class="font-display font-bold text-white uppercase tracking-widest mb-6">Platform</h4>
-                    <ul class="space-y-3">
-                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">How it
-                                works</a></li>
-                        <li><a href="#"
-                                class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">Tournaments</a>
-                        </li>
-                        <li><a href="#"
-                                class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">Leaderboards</a>
-                        </li>
-                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">Scouting
-                                Network</a></li>
-                    </ul>
-                </div>
-
-                <!-- Links Col 2 -->
-                <div class="md:col-span-1 border-l border-white/5 pl-0 md:pl-8">
-                    <h4 class="font-display font-bold text-white uppercase tracking-widest mb-6">Support</h4>
-                    <ul class="space-y-3">
-                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">Help
-                                Center</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">FAQ</a>
-                        </li>
-                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">Contact
-                                Us</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-accent-cyan text-sm transition-colors">System
-                                Status</a></li>
-                    </ul>
-                </div>
-
-                <!-- Support Col -->
-                <div class="md:col-span-1 border-l border-white/5 pl-0 md:pl-8">
-                    <h4 class="font-display font-bold text-white uppercase tracking-widest mb-6">Contact</h4>
-                    <p class="text-brand-light/60 text-sm leading-relaxed mb-6">
-                        Need assistance? Reach out to our dedicated support team anytime.
-                    </p>
+                    <!-- Contact pill -->
                     <a href="mailto:help.egamescout@gmail.com"
-                        class="inline-flex items-center gap-3 px-6 py-3 bg-brand-gray/30 border border-white/10 rounded-lg text-gray-300 hover:text-accent-cyan hover:border-accent-cyan/30 transition-all group">
-                        <i class="fa-solid fa-headset group-hover:animate-pulse"></i>
-                        <span class="text-sm font-bold tracking-wider">help.egamescout@gmail.com</span>
+                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/4 border border-white/8 rounded-lg text-gray-400 hover:text-accent-cyan hover:border-accent-cyan/30 transition-all text-xs font-mono tracking-wider group">
+                        <i class="fa-solid fa-envelope group-hover:animate-bounce text-accent-cyan/70"></i>
+                        help.egamescout@gmail.com
                     </a>
+                </div>
+
+                <!-- Platform Links -->
+                <div class="md:col-span-1">
+                    <h4 class="font-display font-bold text-white uppercase tracking-widest mb-6 text-sm flex items-center gap-2">
+                        <span class="w-4 h-px bg-accent-cyan/60"></span>Platform
+                    </h4>
+                    <ul class="space-y-4">
+                        <li>
+                            <a href="{% url 'index' %}#how-it-works"
+                                class="text-gray-400 hover:text-white text-sm transition-all flex items-center gap-2 group">
+                                <i class="fa-solid fa-chevron-right text-[10px] text-accent-cyan/40 group-hover:text-accent-cyan group-hover:translate-x-1 transition-all"></i>
+                                How It Works
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'public_tournaments' %}"
+                                class="text-gray-400 hover:text-white text-sm transition-all flex items-center gap-2 group">
+                                <i class="fa-solid fa-chevron-right text-[10px] text-accent-cyan/40 group-hover:text-accent-cyan group-hover:translate-x-1 transition-all"></i>
+                                Tournaments
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'public_previous_tournaments' %}"
+                                class="text-gray-400 hover:text-white text-sm transition-all flex items-center gap-2 group">
+                                <i class="fa-solid fa-chevron-right text-[10px] text-accent-cyan/40 group-hover:text-accent-cyan group-hover:translate-x-1 transition-all"></i>
+                                Previous Tournaments
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'index' %}#bidding-season"
+                                class="text-gray-400 hover:text-white text-sm transition-all flex items-center gap-2 group">
+                                <i class="fa-solid fa-chevron-right text-[10px] text-accent-cyan/40 group-hover:text-accent-cyan group-hover:translate-x-1 transition-all"></i>
+                                Bidding Hub
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Legal + Status Col -->
+                <div class="md:col-span-1">
+                    <h4 class="font-display font-bold text-white uppercase tracking-widest mb-6 text-sm flex items-center gap-2">
+                        <span class="w-4 h-px bg-orange-500/60"></span>Legal
+                    </h4>
+                    <ul class="space-y-4 mb-8">
+                        <li>
+                            <a href="{% url 'terms' %}"
+                                class="text-gray-400 hover:text-white text-sm transition-all flex items-center gap-2 group">
+                                <i class="fa-solid fa-chevron-right text-[10px] text-orange-500/40 group-hover:text-orange-500 group-hover:translate-x-1 transition-all"></i>
+                                Terms of Service
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- System Status badge -->
+                    <div class="inline-flex items-center gap-2 px-3 py-2 bg-green-500/8 border border-green-500/20 rounded-lg">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_6px_#22c55e]"></span>
+                        <span class="text-green-400 text-xs font-mono tracking-widest uppercase">All Systems Operational</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Bottom Note -->
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <!-- Bottom bar -->
+            <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-3">
                 <p class="text-gray-600 text-xs font-mono uppercase tracking-widest">
-                    © 2026 E-Game Scout Network. All Systems Operational.
+                    © 2026 E-Game Scout Network. All Rights Reserved.
                 </p>
-                <div class="flex items-center gap-6">
-                    <a href="{% url 'terms' %}" class="text-gray-600 hover:text-white text-xs tracking-wider transition-colors">Terms of
-                        Service</a>
-                    <a href="#" class="text-gray-600 hover:text-white text-xs tracking-wider transition-colors">Privacy
-                        Policy</a>
+                <div class="flex items-center gap-2 text-gray-700 text-xs font-mono tracking-wide">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-cyan/40"></span>
+                    Built for Champions
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-cyan/40"></span>
                 </div>
             </div>
         </div>
