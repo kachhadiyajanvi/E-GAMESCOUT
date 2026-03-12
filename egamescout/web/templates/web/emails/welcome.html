@@ -1,83 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Welcome to E-Game Scout</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap');
-  body { margin: 0; padding: 0; background: #0a0a0f; font-family: 'Rajdhani', sans-serif; color: #C5C6C7; }
-  .wrapper { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
-  .card { background: linear-gradient(135deg, #0f1117 0%, #141820 100%); border: 1px solid rgba(102,252,241,0.4); border-radius: 16px; overflow: hidden; box-shadow: 0 0 40px rgba(102,252,241,0.1); }
-  .header { background: linear-gradient(135deg, #0B1728 0%, #0f1a20 100%); padding: 40px 40px; text-align: center; border-bottom: 1px solid rgba(102,252,241,0.2); position: relative; }
-  .logo { max-width: 80px; margin-bottom: 16px; filter: drop-shadow(0 0 10px rgba(102,252,241,0.6)); }
-  .logo-text { font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 900; color: #ffffff; letter-spacing: 4px; text-shadow: 0 0 20px rgba(102,252,241,0.6); }
-  .tagline { color: #66FCF1; font-size: 13px; margin-top: 8px; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; }
-  .body { padding: 40px; }
-  .badge { display: inline-block; background: rgba(255,42,109,0.1); border: 1px solid rgba(255,42,109,0.4); border-radius: 8px; padding: 6px 16px; color: #FF2A6D; font-weight: 700; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
-  h1 { font-family: 'Orbitron', monospace; font-size: 28px; color: #FFFFFF; margin: 0 0 16px; line-height: 1.3; text-transform: uppercase; }
-  .highlight { color: #66FCF1; }
-  p { line-height: 1.7; font-size: 16px; margin: 0 0 16px; }
-  .info-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin: 32px 0; }
-  .info-row { display: flex; align-items: flex-start; margin-bottom: 16px; }
-  .info-row:last-child { margin-bottom: 0; }
-  .info-icon { width: 24px; color: #66FCF1; font-size: 16px; margin-top: 2px; }
-  .info-text-area { flex: 1; margin-left: 12px; }
-  .info-title { display: block; font-family: 'Orbitron', monospace; font-size: 13px; color: #fff; margin-bottom: 4px; letter-spacing: 1px; }
-  .info-desc { font-size: 14px; color: rgba(197,198,199,0.7); margin: 0; }
-  .cta-btn { display: block; margin: 32px auto; padding: 18px 40px; background: linear-gradient(135deg, #66FCF1, #45A29E); color: #0B0C10; font-family: 'Orbitron', monospace; font-size: 15px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; border-radius: 10px; text-align: center; box-shadow: 0 0 30px rgba(102,252,241,0.4); text-shadow: 0 1px 2px rgba(255,255,255,0.3); }
-  .footer { padding: 32px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
-  .footer p { font-size: 12px; color: rgba(197,198,199,0.3); margin: 0 0 8px; }
-</style>
-</head>
-<body>
-<div class="wrapper">
-  <div class="card">
-    <div class="header">
-      {% if logo_url %}<img src="{{ logo_url }}" alt="Logo" class="logo">{% endif %}
-      <div class="logo-text">E-GAME SCOUT</div>
-      <div class="tagline">Welcome to the Pro Circuit</div>
-    </div>
+{% extends 'web/emails/base_email.html' %}
 
-    <div class="body">
-      <div class="badge">🚀 Registration Complete</div>
-      <h1>Welcome, <span class="highlight">{{ user.username|default:"Player" }}</span></h1>
-      <p>Your account has been successfully created. You are now part of the premier esports talent discovery platform built to connect top-tier players with professional organizations.</p>
+{% block title %}Welcome to E-Game Scout{% endblock %}
 
-      <div class="info-box">
-        <div class="info-row">
-          <div class="info-icon">🎯</div>
-          <div class="info-text-area">
-            <span class="info-title">BUILD YOUR PROFILE</span>
-            <p class="info-desc">Complete your player card with your gaming stats, achievements, and social links to get noticed by scouts.</p>
-          </div>
-        </div>
-        <div class="info-row">
-          <div class="info-icon">🏆</div>
-          <div class="info-text-area">
-            <span class="info-title">COMPETE AND WIN</span>
-            <p class="info-desc">Register for official tournaments to prove your skills against the best players in the circuit.</p>
-          </div>
-        </div>
-        <div class="info-row">
-          <div class="info-icon">🤝</div>
-          <div class="info-text-area">
-            <span class="info-title">GET SIGNED</span>
-            <p class="info-desc">Perform well and receive official digital contract offers from verified professional organizations.</p>
-          </div>
-        </div>
-      </div>
-
-      <a href="{{ login_url|default:'#' }}" class="cta-btn">ACCESS DASHBOARD</a>
-
-      <p style="text-align: center; font-size: 13px; color: rgba(197,198,199,0.5); margin-top: 24px;">GLHF from the entire E-Game Scout Team!</p>
-    </div>
-
-    <div class="footer">
-      <p>You received this email because you registered on E-Game Scout.</p>
-      <p>&copy; 2026 E-Game Scout. All Rights Reserved.</p>
-    </div>
-  </div>
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle"><i class="fa-solid fa-rocket"></i></div>
 </div>
-</body>
-</html>
+
+<h1>Welcome, <span style="color: #66FCF1;">{{ user.username|default:"Player" }}</span></h1>
+
+<p>Your account has been successfully created. You are now part of the premier esports talent discovery platform built to connect top-tier players with professional organizations.</p>
+
+<div class="highlight-box">
+    <div class="highlight-title">GET STARTED</div>
+    <div style="margin-bottom: 20px;">
+        <strong style="color: #66FCF1; font-size: 15px;"><i class="fa-solid fa-bullseye"></i> BUILD YOUR PROFILE</strong><br>
+        <span style="font-size: 14px; color: rgba(197,198,199,0.7);">Complete your player card with your gaming stats, achievements, and social links to get noticed by scouts.</span>
+    </div>
+    <div style="margin-bottom: 20px;">
+        <strong style="color: #66FCF1; font-size: 15px;"><i class="fa-solid fa-trophy"></i> COMPETE AND WIN</strong><br>
+        <span style="font-size: 14px; color: rgba(197,198,199,0.7);">Register for official tournaments to prove your skills against the best players in the circuit.</span>
+    </div>
+    <div>
+        <strong style="color: #66FCF1; font-size: 15px;"><i class="fa-solid fa-handshake"></i> GET SIGNED</strong><br>
+        <span style="font-size: 14px; color: rgba(197,198,199,0.7);">Perform well and receive official digital contract offers from verified professional organizations.</span>
+    </div>
+</div>
+
+<div class="btn-wrapper">
+    <a href="{{ login_url|default:'http://egamescout.com/login' }}" class="cta-button">ACCESS DASHBOARD</a>
+</div>
+
+<p style="text-align: center; font-size: 13px; color: rgba(197,198,199,0.5); margin-top: 24px;">GLHF from the entire E-Game Scout Team!</p>
+{% endblock %}

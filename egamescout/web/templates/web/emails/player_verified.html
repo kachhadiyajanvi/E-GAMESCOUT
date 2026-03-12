@@ -1,80 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Player Verified – E-GameScout</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&display=swap');
-  body { margin: 0; padding: 0; background-color: #060810; font-family: 'Rajdhani', sans-serif; color: #C5C6C7; -webkit-font-smoothing: antialiased; }
-  .wrapper { width: 100%; padding: 40px 10px; box-sizing: border-box; }
-  .container { max-width: 600px; margin: 0 auto; background: #0B101E; border: 1px solid rgba(102, 252, 241, 0.1); border-radius: 12px; overflow: hidden; box-shadow: 0 0 30px rgba(102, 252, 241, 0.05); }
-  .header { background: linear-gradient(135deg, #0B1728 0%, #0A1020 100%); padding: 30px 40px; border-bottom: 2px solid #45B6FE; text-align: center; }
-  .logo-text { font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 900; letter-spacing: 4px; color: #ffffff; margin: 0; }
-  .logo-highlight { color: #66FCF1; text-shadow: 0 0 10px rgba(102, 252, 241, 0.5); }
-  .content { padding: 40px; background-image: radial-gradient(circle at center, rgba(102, 252, 241, 0.03) 0%, transparent 70%); }
-  .icon-container { text-align: center; margin-bottom: 25px; }
-  .icon-circle { display: inline-block; width: 80px; height: 80px; background: rgba(69, 182, 254, 0.1); border: 2px solid #45B6FE; border-radius: 50%; line-height: 80px; font-size: 40px; box-shadow: 0 0 20px rgba(69, 182, 254, 0.3); text-align: center; color: #45B6FE; }
-  h1 { font-family: 'Orbitron', sans-serif; color: #45B6FE; font-size: 24px; text-align: center; margin: 0 0 20px 0; letter-spacing: 1px; text-shadow: 0 0 5px rgba(69, 182, 254, 0.5); text-transform: uppercase; }
-  p { font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.8); margin: 0 0 20px 0; }
-  .highlight-box { background-color: rgba(255, 255, 255, 0.03); border-left: 4px solid #45B6FE; padding: 20px; margin: 30px 0; border-radius: 4px 8px 8px 4px; }
-  .highlight-title { color: #ffffff; font-weight: 700; font-size: 18px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; font-family: 'Orbitron', sans-serif; }
-  ul { padding-left: 20px; color: rgba(255,255,255,0.7); margin: 0; }
-  li { margin-bottom: 10px; font-size: 15px; }
-  li strong { color: #45B6FE; }
-  .btn-wrapper { text-align: center; margin-top: 40px; }
-  .cta-button { display: inline-block; padding: 16px 30px; background: linear-gradient(90deg, #45B6FE 0%, #1A85FF 100%); color: #ffffff; text-decoration: none; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 15px; letter-spacing: 2px; text-transform: uppercase; border-radius: 4px; box-shadow: 0 0 20px rgba(69, 182, 254, 0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-  .footer { background-color: #05070D; padding: 30px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
-  .social-links { margin-bottom: 15px; }
-  .social-link { color: #66FCF1; text-decoration: none; margin: 0 10px; font-weight: 600; font-size: 14px; letter-spacing: 1px; font-family: 'Orbitron', sans-serif; }
-  .footer-text { font-size: 12px; color: rgba(255,255,255,0.4); margin: 0 0 10px 0; line-height: 1.5; }
-</style>
-</head>
-<body>
-  <div class="wrapper">
-    <div class="container">
-      <div class="header">
-        <p class="logo-text">EGAME<span class="logo-highlight">SCOUT</span></p>
-      </div>
-      
-      <div class="content">
-        <div class="icon-container">
-          <div class="icon-circle">✓</div>
-        </div>
-        
-        <h1>VERIFICATION APPROVED</h1>
-        
-        <p>Greetings <strong style="color:#ffffff; font-size: 18px;">{{ player.full_name }}</strong>,</p>
-        
-        <p>Congratulations! Your account has been officially verified by the E-GameScout administrative team. You are now recognized as an authentic competitive player on our platform.</p>
-        
-        <div class="highlight-box">
-          <div class="highlight-title">Your Verified Status Unlocks:</div>
-          <ul>
-            <li>The official <strong>Blue Verification Tick</strong> displayed next to your player name.</li>
-            <li>Stand out to global esports organizations during bidding seasons.</li>
-            <li>Increased credibility for tournament sign-ups and scout radars.</li>
-            <li>Priority access to premium E-GameScout features.</li>
-          </ul>
-        </div>
-        
-        <p>The blue badge is a mark of authenticity and dedication on our platform. Maintain high standards and fair play to keep your verified status.</p>
-        
-        <div class="btn-wrapper">
-          <a href="{{ login_url|default:'http://127.0.0.1:8000/player/dashboard/' }}" class="cta-button">ACCESS DASHBOARD</a>
-        </div>
-      </div>
-      
-      <div class="footer">
-        <div class="social-links">
-          <a href="#" class="social-link">TWITTER</a>
-          <a href="#" class="social-link">DISCORD</a>
-          <a href="#" class="social-link">INSTAGRAM</a>
-        </div>
-        <p class="footer-text">&copy; 2026 E-GameScout. All Rights Reserved.</p>
-        <p class="footer-text">This is an automated system notification. Please do not reply to this email.</p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
+{% extends 'web/emails/base_email.html' %}
+{% block theme_class %}theme-blue{% endblock %}
+{% block title %}Player Verified – E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle"><i class="fa-solid fa-check"></i></div>
+</div>
+
+<h1>VERIFICATION <span style="color: #45B6FE;">APPROVED</span></h1>
+
+<p>Greetings <strong style="color:#ffffff;">{{ player.full_name }}</strong>,</p>
+
+<p>Congratulations! Your account has been officially verified by the E-GameScout administrative team. You are now recognized as an authentic competitive player on our platform.</p>
+
+<div class="highlight-box">
+    <div class="highlight-title" style="color: #45B6FE;">Your Verified Status Unlocks:</div>
+    <ul style="padding-left: 20px; color: rgba(255,255,255,0.8); margin: 0; padding-top: 10px;">
+        <li style="margin-bottom: 10px;">The official <strong style="color: #45B6FE;">Blue Verification Tick</strong> displayed next to your player name.</li>
+        <li style="margin-bottom: 10px;">Stand out to global esports organizations during bidding seasons.</li>
+        <li style="margin-bottom: 10px;">Increased credibility for tournament sign-ups and scout radars.</li>
+        <li>Priority access to premium E-GameScout features.</li>
+    </ul>
+</div>
+
+<p>The blue badge is a mark of authenticity and dedication on our platform. Maintain high standards and fair play to keep your verified status.</p>
+
+<div class="btn-wrapper">
+    <a href="{{ login_url|default:'http://127.0.0.1:8000/player/dashboard/' }}" class="cta-button">ACCESS DASHBOARD</a>
+</div>
+{% endblock %}

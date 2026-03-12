@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E-GAMESCOUT Notification{% endblock %}</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+        
+        /* Reset & Base */
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background-color: #060810; 
+            font-family: 'Rajdhani', sans-serif; 
+            color: #C5C6C7; 
+            -webkit-font-smoothing: antialiased; 
+            -ms-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        table {
+            border-spacing: 0;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+
+        img {
+            border: 0;
+            -ms-interpolation-mode: bicubic;
+        }
+
+        /* Wrapper & Container */
+        .wrapper { 
+            width: 100%; 
+            padding: 40px 10px; 
+            box-sizing: border-box; 
+            background-color: #060810;
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: #0B101E; 
+            border: 1px solid rgba(102, 252, 241, 0.1); 
+            border-radius: 12px; 
+            overflow: hidden; 
+            box-shadow: 0 0 30px rgba(102, 252, 241, 0.05); 
+        }
+
+        /* Header */
+        .header { 
+            background: linear-gradient(135deg, #0B1728 0%, #0A1020 100%); 
+            padding: 30px 40px; 
+            border-bottom: 2px solid #66FCF1; 
+            text-align: center; 
+        }
+        .logo-text { 
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 28px; 
+            font-weight: 900; 
+            letter-spacing: 4px; 
+            color: #ffffff; 
+            margin: 0; 
+        }
+        .logo-highlight { 
+            color: #66FCF1; 
+            text-shadow: 0 0 10px rgba(102, 252, 241, 0.5); 
+        }
+
+        /* Content Area */
+        .content { 
+            padding: 40px; 
+            background-image: radial-gradient(circle at center, rgba(102, 252, 241, 0.03) 0%, transparent 70%); 
+        }
+
+        /* Typography */
+        h1 { 
+            font-family: 'Orbitron', sans-serif; 
+            color: #66FCF1; 
+            font-size: 24px; 
+            text-align: center; 
+            margin: 0 0 20px 0; 
+            letter-spacing: 1px; 
+            text-transform: uppercase; 
+            text-shadow: 0 0 5px rgba(102, 252, 241, 0.5);
+        }
+        p { 
+            font-size: 16px; 
+            line-height: 1.6; 
+            color: rgba(255,255,255,0.8); 
+            margin: 0 0 20px 0; 
+        }
+        strong { 
+            color: #ffffff; 
+        }
+        
+        /* Icons */
+        .icon-container { 
+            text-align: center; 
+            margin-bottom: 25px; 
+        }
+        .icon-circle { 
+            display: inline-block; 
+            width: 80px; 
+            height: 80px; 
+            background: rgba(102, 252, 241, 0.1); 
+            border: 2px solid #66FCF1; 
+            border-radius: 50%; 
+            line-height: 80px; 
+            font-size: 40px; 
+            box-shadow: 0 0 20px rgba(102, 252, 241, 0.3); 
+            text-align: center; 
+            color: #66FCF1; 
+        }
+
+        /* Highlight Boxes */
+        .highlight-box { 
+            background-color: rgba(255, 255, 255, 0.03); 
+            border-left: 4px solid #66FCF1; 
+            padding: 20px; 
+            margin: 30px 0; 
+            border-radius: 4px 8px 8px 4px; 
+        }
+        .highlight-title { 
+            color: #ffffff; 
+            font-weight: 700; 
+            font-size: 18px; 
+            margin-bottom: 12px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            font-family: 'Orbitron', sans-serif; 
+        }
+
+        /* Buttons */
+        .btn-wrapper { 
+            text-align: center; 
+            margin-top: 40px; 
+        }
+        .cta-button { 
+            display: inline-block; 
+            padding: 16px 30px; 
+            background: linear-gradient(90deg, #66FCF1 0%, #45A29E 100%); 
+            color: #0B0C10 !important; 
+            text-decoration: none; 
+            font-family: 'Orbitron', sans-serif; 
+            font-weight: 900; 
+            font-size: 15px; 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            border-radius: 4px; 
+            box-shadow: 0 0 20px rgba(102, 252, 241, 0.4); 
+        }
+        .cta-button:hover {
+            box-shadow: 0 0 30px rgba(102, 252, 241, 0.6);
+        }
+
+        /* Footer */
+        .footer { 
+            background-color: #05070D; 
+            padding: 30px 40px; 
+            text-align: center; 
+            border-top: 1px solid rgba(255,255,255,0.05); 
+        }
+        .social-links { 
+            margin-bottom: 15px; 
+        }
+        .social-link { 
+            color: #66FCF1; 
+            text-decoration: none; 
+            margin: 0 10px; 
+            font-weight: 600; 
+            font-size: 14px; 
+            letter-spacing: 1px; 
+            font-family: 'Orbitron', sans-serif; 
+        }
+        .footer-text { 
+            font-size: 12px; 
+            color: rgba(255,255,255,0.4); 
+            margin: 0 0 10px 0; 
+            line-height: 1.5; 
+        }
+
+        /* Utility Colors for Blocks */
+        .theme-green .header { border-bottom-color: #22C55E; }
+        .theme-green h1 { color: #22C55E; text-shadow: 0 0 5px rgba(34, 197, 94, 0.5); }
+        .theme-green .icon-circle { border-color: #22C55E; color: #22C55E; background: rgba(34, 197, 94, 0.1); box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+        .theme-green .cta-button { background: linear-gradient(90deg, #22C55E 0%, #16A34A 100%); color: #000; box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+        .theme-green .highlight-box { border-left-color: #22C55E; }
+
+        .theme-red .header { border-bottom-color: #EF4444; }
+        .theme-red h1 { color: #EF4444; text-shadow: 0 0 5px rgba(239, 68, 68, 0.5); }
+        .theme-red .icon-circle { border-color: #EF4444; color: #EF4444; background: rgba(239, 68, 68, 0.1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+        .theme-red .cta-button { background: linear-gradient(90deg, #EF4444 0%, #B91C1C 100%); color: #fff !important; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+        .theme-red .highlight-box { border-left-color: #EF4444; }
+
+        .theme-gold .header { border-bottom-color: #FFD700; }
+        .theme-gold h1 { color: #FFD700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+        .theme-gold .icon-circle { border-color: #FFD700; color: #FFD700; background: rgba(255, 215, 0, 0.1); box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+        .theme-gold .cta-button { background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%); color: #000; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+        .theme-gold .highlight-box { border-left-color: #FFD700; }
+
+        .theme-blue .header { border-bottom-color: #45B6FE; }
+        .theme-blue h1 { color: #45B6FE; text-shadow: 0 0 5px rgba(69, 182, 254, 0.5); }
+        .theme-blue .icon-circle { border-color: #45B6FE; color: #45B6FE; background: rgba(69, 182, 254, 0.1); box-shadow: 0 0 20px rgba(69, 182, 254, 0.3); }
+        .theme-blue .cta-button { background: linear-gradient(90deg, #45B6FE 0%, #1A85FF 100%); color: #fff !important; box-shadow: 0 0 20px rgba(69, 182, 254, 0.4); }
+        .theme-blue .highlight-box { border-left-color: #45B6FE; }
+
+        {% block extra_css %}
+        {% endblock %}
+    </style>
+</head>
+<body>
+    <div class="wrapper {% block theme_class %}{% endblock %}">
+        <div class="container" style="{% block container_style %}{% endblock %}">
+            <!-- Header -->
+            <div class="header" style="{% block header_style %}{% endblock %}">
+                <a href="https://egamescout.com" style="text-decoration:none;">
+                    <p class="logo-text">EGAME<span class="logo-highlight">SCOUT</span></p>
+                </a>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="content" style="{% block content_style %}{% endblock %}">
+                {% block content %}{% endblock %}
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer">
+                <div class="social-links">
+                    <a href="https://twitter.com/egamescout" class="social-link">TWITTER</a>
+                    <a href="https://discord.gg/egamescout" class="social-link">DISCORD</a>
+                    <a href="https://instagram.com/egamescout" class="social-link">INSTAGRAM</a>
+                </div>
+                <p class="footer-text">
+                    &copy; {% now "Y" %} E-GameScout. All Rights Reserved.<br>
+                    {% block footer_extra %}{% endblock %}
+                </p>
+                <div class="footer-text">
+                    <a href="#" style="color: rgba(255,255,255,0.4); text-decoration: none; margin: 0 5px;">Privacy Policy</a> • 
+                    <a href="#" style="color: rgba(255,255,255,0.4); text-decoration: none; margin: 0 5px;">Support</a> •
+                    <a href="#" style="color: rgba(255,255,255,0.4); text-decoration: none; margin: 0 5px;">Unsubscribe</a>
+                </div>
+                <p class="footer-text">This is an automated system notification. Please do not reply to this email.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

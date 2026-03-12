@@ -95,10 +95,18 @@
             </div>
 
             <div class="flex gap-3 relative z-10">
-                <a href="{% url 'org_view_player_profile' player.id %}"
-                    class="flex-1 py-2 text-center bg-white/5 hover:bg-accent-cyan/10 border border-white/10 hover:border-accent-cyan/30 rounded text-xs font-bold text-brand-light/80 hover:text-accent-cyan font-display tracking-widest uppercase transition-all duration-300">
+                {% if player.player %}
+                <a href="{% url 'org_view_player_profile' player.player.id %}"
+                    class="flex-1 py-1.5 text-center bg-white/5 hover:bg-accent-cyan/10 border border-white/10 hover:border-accent-cyan/30 rounded text-xs font-bold text-brand-light/80 hover:text-accent-cyan font-display tracking-widest uppercase transition-all duration-300">
                     View Profile
                 </a>
+                {% else %}
+                <button disabled
+                    class="flex-1 py-1.5 text-center bg-white/5 border border-white/5 rounded text-xs font-bold text-white/20 font-display tracking-widest uppercase cursor-not-allowed">
+                    No Profile
+                </button>
+                {% endif %}
+                
                 <form action="{% url 'org_remove_player' player.id %}" method="POST"
                     class="m-0 p-0 shadow-none border-none inline-block">
                     {% csrf_token %}

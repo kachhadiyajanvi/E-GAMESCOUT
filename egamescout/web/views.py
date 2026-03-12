@@ -11,7 +11,7 @@ from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.core.cache import cache
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
 from django.core.serializers.json import DjangoJSONEncoder
@@ -1143,18 +1143,46 @@ def organizer_dashboard(request):
     # --- Recent Recruits ---
     recent_recruits = Player.objects.filter(organization=org).order_by('-created_at')[:5]
     
-    print(f"DEBUG: Analytics Data: {analytics_data}")
+    # Feature #5: Auction Reminder
+    show_auction_reminder = False
+    auction_start_date_display = None
+    
+    today = timezone.now().date()
+    
+    # Check scheduled seasons first
+    next_season = BiddingSeason.objects.filter(is_active=False, start_date__gt=timezone.now()).order_by('start_date').first()
+    if next_season:
+        diff = (next_season.start_date.date() - today).days
+        if diff == 2:
+            show_auction_reminder = True
+            auction_start_date_display = next_season.start_date
+    else:
+        # Check standard Jan/July dates (Hardcoded fallback)
+        current_year = today.year
+        # We check roughly if we are near Jan 1 or July 1
+        # Jan 1 check (Dec 30)
+        dec_30 = datetime.date(current_year, 12, 30)
+        # July 1 check (June 29)
+        jun_29 = datetime.date(current_year, 6, 29)
+        
+        if today == dec_30:
+             show_auction_reminder = True
+             auction_start_date_display = datetime.date(current_year + 1, 1, 1)
+        elif today == jun_29:
+             show_auction_reminder = True
+             auction_start_date_display = datetime.date(current_year, 7, 1)
 
     return render(request, 'web/Organization/organizer_dashboard.html', {
         'org': org,
         'total_players': total_players,
-        'show_player_setup_popup': show_player_setup_popup,
-        'active_tournaments': active_tournaments,
+        'show_auction_reminder': show_auction_reminder,
+        'auction_start_date': auction_start_date_display,
         'notifications': notifications,
-        'notifications_count': len(notifications),
+        'active_tournaments': active_tournaments,
         'analytics_labels': analytics_labels,
         'analytics_data': analytics_data,
-        'recent_recruits': recent_recruits
+        'recent_recruits': recent_recruits,
+        'show_player_setup_popup': show_player_setup_popup
     })
 
 @csrf_exempt
@@ -1993,14 +2021,16 @@ def accept_player_invite(request, token):
 
 @login_required_organization
 def org_view_player_profile(request, player_id):
-    """Organization views a player's profile"""
+    """Organization views a player's profile (from roster or search)"""
     org_id = request.session.get('organizer_id')
     org = get_object_or_404(Organization, id=org_id)
     from .models import OrganizationPlayer
-    # player_id passed from URL corresponds to OrganizationPlayer ID now for orgs or Player ID?
-    # Context suggests we want to look at the link or the actual player info
-    org_player_link = get_object_or_404(OrganizationPlayer, id=player_id, organization=org)
-    player = org_player_link.player
+    
+    # Try finding Player by ID first (player_id refers to Player.id)
+    player = get_object_or_404(Player, id=player_id)
+    
+    # Check if they are in roster
+    org_player_link = OrganizationPlayer.objects.filter(organization=org, player=player).first()
     
     return render(request, 'web/Organization/org_player_profile.html', {'org': org, 'player': player, 'org_player_link': org_player_link})
 
@@ -2010,6 +2040,10 @@ def org_remove_player(request, player_id):
     org_id = request.session.get('organizer_id')
     org = get_object_or_404(Organization, id=org_id)
     from .models import OrganizationPlayer
+    
+    # Find OrganizationPlayer link using OrganizationPlayer ID
+    # (Reverting to use ID directly to support unlinked players)
+    org_player_link = get_object_or_404(OrganizationPlayer, id=player_id, organization=org)
     org_player_link = get_object_or_404(OrganizationPlayer, id=player_id, organization=org)
     
     if request.method == "POST":
@@ -2261,6 +2295,9 @@ def org_notifications(request):
 def org_bidding_dashboard(request):
     """View for organizations to see available players, their roster, and bidding wallet."""
     org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+        
     org = get_object_or_404(Organization, id=org_id)
     
     active_season = BiddingSeason.objects.filter(is_active=True).first()
@@ -2273,20 +2310,30 @@ def org_bidding_dashboard(request):
     # Check if all players are sold out
     all_sold = (all_active_players.exists() and not available_players.exists())
     
-    # 2. My Bids
-    my_bids = Bid.objects.filter(organization=org).order_by('-created_at')
+    # 2. My Bids Logic
+    all_bids = Bid.objects.filter(organization=org).select_related('player', 'season').prefetch_related('negotiations').order_by('-created_at')
+    
+    active_bids = all_bids.filter(status='Pending')
+    rejected_bids = all_bids.filter(status='Rejected')
+    negotiation_bids = all_bids.filter(status='Negotiation')
     
     # 3. My Roster
-    my_roster = Player.objects.filter(id__in=my_bids.filter(status='Accepted').values_list('player_id', flat=True))
+    my_roster = Player.objects.filter(id__in=all_bids.filter(status='Accepted').values_list('player_id', flat=True))
     
+    # 4. Notifications
+    notifications = OrganizationNotification.objects.filter(recipient=org, is_read=False).order_by('-created_at')[:5]
+
     context = {
         'org': org,
         'active_season': active_season,
         'wallet_balance': org.coins,
         'available_players': available_players,
-        'my_bids': my_bids,
+        'active_bids': active_bids,
+        'rejected_bids': rejected_bids,
+        'negotiation_bids': negotiation_bids,
         'my_roster': my_roster,
-        'all_sold': all_sold
+        'all_sold': all_sold,
+        'notifications': notifications
     }
     return render(request, 'web/Organization/org_bidding.html', context)
 
@@ -2300,11 +2347,20 @@ def player_bidding_dashboard(request):
     active_season = BiddingSeason.objects.filter(is_active=True).first()
     
     # Get all bids for this player
-    bids = Bid.objects.filter(player=player).order_by('-created_at')
+    all_bids = Bid.objects.filter(player=player).order_by('-created_at')
+    
+    # Split bids into categories
+    active_bids = all_bids.filter(status='Pending')
+    negotiation_bids = all_bids.filter(status='Negotiation')
+    rejected_bids = all_bids.filter(status='Rejected')
+    accepted_bids = all_bids.filter(status='Accepted')
+    
+    # Check Notifications
+    notifications = PlayerNotification.objects.filter(recipient=player, is_read=False).order_by('-created_at')[:3]
     
     # Determine Status
-    highest_accepted = bids.filter(status='Accepted').order_by('-amount').first()
-    in_negotiation = bids.filter(status='Negotiation').exists()
+    highest_accepted = accepted_bids.order_by('-amount').first()
+    in_negotiation = negotiation_bids.exists()
     
     auction_status = "Available"
     if highest_accepted:
@@ -2315,8 +2371,12 @@ def player_bidding_dashboard(request):
     context = {
         'player': player,
         'active_season': active_season,
-        'bids': bids,
-        'auction_status': auction_status
+        'active_bids': active_bids,
+        'negotiation_bids': negotiation_bids,
+        'rejected_bids': rejected_bids,
+        'accepted_bids': accepted_bids,
+        'auction_status': auction_status,
+        'notifications': notifications
     }
     return render(request, 'web/Player/player_bidding.html', context)
 
@@ -2401,9 +2461,17 @@ def place_bid(request, player_id):
         status='Pending'
     )
     
-    # Deduct from wallet
+    # Deduct from wallet (Lock funds)
     org.coins -= amount
     org.save()
+    
+    # Create Transaction Record for Locked Bid
+    Transaction.objects.create(
+        sender=org,
+        amount=amount,
+        transaction_type='BID_LOCKED',
+        description=f"Bid placed on {player.full_name} ({player.email})"
+    )
     
     # Notify the player about the bid (Issue #7)
     PlayerNotification.objects.create(
@@ -2415,3 +2483,316 @@ def place_bid(request, player_id):
     
     messages.success(request, f'Bid of ₹{amount:,} placed on {player.full_name} successfully!')
     return redirect('org_bidding_dashboard')
+
+@login_required
+def player_accept_bid(request, bid_id):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    bid = get_object_or_404(Bid, id=bid_id, player_id=player_id, status='Pending')
+    
+    # 1. Update Bid Status
+    bid.status = 'Accepted'
+    bid.save()
+    
+    # 2. Transfer Coins to Player (from locked status to player wallet)
+    # Note: Coins were already deducted from Org in place_bid
+    bid.player.coins += bid.amount
+    bid.player.organization = bid.organization # Assign organization
+    bid.player.status = 'ACTIVE' # Ensure active
+    bid.player.save()
+    
+    # 3. Create Transaction Record (Transfer to player)
+    Transaction.objects.create(
+        sender=bid.organization, # Org sent the money
+        recipient_player=bid.player, # Player received passed
+        amount=bid.amount,
+        transaction_type='BID_PAYMENT',
+        description=f"Bid accepted by {bid.player.full_name} from {bid.organization.Organization_Name}"
+    )
+
+    # 4. Add to Organization Roster
+    OrganizationPlayer.objects.create(
+        organization=bid.organization,
+        player=bid.player,
+        name=bid.player.full_name,
+        email=bid.player.email,
+        game_id=bid.player.uid, # Assuming uid is game id
+        status_label='Purchased via Bidding'
+    )
+    
+    # 5. Reject all other pending bids for this player & Refund
+    other_bids = Bid.objects.filter(player=bid.player, status='Pending').exclude(id=bid.id)
+    for other_bid in other_bids:
+        other_bid.status = 'Rejected'
+        other_bid.save()
+        
+        # Refund Organization
+        other_bid.organization.coins += other_bid.amount
+        other_bid.organization.save()
+        
+        Transaction.objects.create(
+            recipient=other_bid.organization,
+            amount=other_bid.amount,
+            transaction_type='BID_REFUND',
+            description=f"Bid rejected by {other_bid.player.full_name} (Sold to another org)"
+        )
+        
+        OrganizationNotification.objects.create(
+            recipient=other_bid.organization,
+            message=f"Your bid for {other_bid.player.full_name} was rejected because they accepted another offer.",
+            notification_type='BID_REJECTED'
+        )
+
+    # 6. Notify Organization
+    OrganizationNotification.objects.create(
+        recipient=bid.organization,
+        message=f"Bid Accepted! {bid.player.full_name} has joined your organization.",
+        notification_type='BID_ACCEPTED',
+        link='/organization/players/'
+    )
+    
+    messages.success(request, f"Congratulations! You have joined {bid.organization.Organization_Name}.")
+    return redirect('player_bidding_dashboard')
+
+@login_required
+def player_reject_bid(request, bid_id):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    bid = get_object_or_404(Bid, id=bid_id, player_id=player_id, status='Pending')
+    
+    # 1. Update Bid Status
+    bid.status = 'Rejected'
+    bid.save()
+    
+    # 2. Refund Organization
+    bid.organization.coins += bid.amount
+    bid.organization.save()
+    
+    # 3. Create Transaction Record (Refund)
+    Transaction.objects.create(
+        recipient=bid.organization,
+        amount=bid.amount,
+        transaction_type='BID_REFUND',
+        description=f"Bid rejected by player {bid.player.full_name}"
+    )
+    
+    # 4. Notify Organization
+    OrganizationNotification.objects.create(
+        recipient=bid.organization,
+        message=f"Your bid for {bid.player.full_name} has been rejected.",
+        notification_type='BID_REJECTED'
+    )
+    
+    messages.success(request, "Bid rejected successfully.")
+    return redirect('player_bidding_dashboard')
+
+@login_required
+def player_negotiate_bid(request, bid_id):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    bid = get_object_or_404(Bid, id=bid_id, player_id=player_id, status='Pending')
+    
+    if request.method == 'POST':
+        counter_amount = request.POST.get('counter_amount')
+        message = request.POST.get('message')
+        
+        try:
+            amount = Decimal(counter_amount)
+        except:
+             messages.error(request, "Invalid counter amount.")
+             return redirect('player_bidding_dashboard')
+
+        # Create Negotiation
+        Negotiation.objects.create(
+            bid=bid,
+            organization=bid.organization,
+            counter_amount=amount,
+            message=message
+        )
+        
+        # Update Bid Status
+        bid.status = 'Negotiation'
+        bid.save()
+        
+        # Notify Organization
+        OrganizationNotification.objects.create(
+            recipient=bid.organization,
+            message=f"{bid.player.full_name} wants to negotiate. Counter Offer: {amount}",
+            notification_type='BID_NEGOTIATION',
+            link='/organization/bidding/' # Needs to be updated to show negotiation
+        )
+        
+        messages.success(request, "Counter offer sent to organization.")
+        return redirect('player_bidding_dashboard')
+    
+    return redirect('player_bidding_dashboard')
+
+@login_required_organization
+def org_transaction_history(request):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    
+    transactions = Transaction.objects.filter(
+        Q(sender=org) | Q(recipient=org)
+    ).order_by('-timestamp')
+    
+    return render(request, 'web/Organization/org_transactions.html', {'transactions': transactions, 'org': org})
+
+@login_required
+def admin_transaction_history(request):
+    if not request.user.is_superuser:
+        return redirect('admin_login')
+        
+    transactions = Transaction.objects.all().order_by('-timestamp')
+    return render(request, 'web/Admin/admin_transactions.html', {'transactions': transactions})
+
+@login_required_organization
+def org_respond_negotiation(request, negotiation_id, action):
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login')
+        
+    negotiation = get_object_or_404(Negotiation, id=negotiation_id, organization__id=org_id)
+    bid = negotiation.bid
+    # Verify bid status just in case
+    if bid.status != 'Negotiation':
+        messages.error(request, 'This negotiation is no longer active.')
+        return redirect('org_bidding_dashboard')
+
+    if action == 'accept':
+        try:
+            with transaction.atomic():
+                # 1. Update Bid Amount
+                old_amount = bid.amount
+                new_amount = negotiation.counter_amount
+                org = bid.organization
+                diff = new_amount - old_amount
+                
+                # Check balance if diff > 0
+                if diff > 0:
+                    if org.coins < diff:
+                        messages.error(request, f'Insufficient balance to accept counter offer. Need {diff} more coins.')
+                        return redirect('org_bidding_dashboard')
+                    org.coins -= diff
+                    org.save()
+                    Transaction.objects.create(
+                        sender=org,
+                        amount=diff,
+                        transaction_type='BID_LOCKED', 
+                        description=f"Additional amount for counter offer on {bid.player.full_name}"
+                    )
+                elif diff < 0:
+                    refund = abs(diff)
+                    org.coins += refund
+                    org.save()
+                    Transaction.objects.create(
+                        recipient=org,
+                        amount=refund,
+                        transaction_type='BID_REFUND',
+                        description=f"Refund from lower counter offer on {bid.player.full_name}"
+                    )
+                    
+                bid.amount = new_amount
+                bid.status = 'Accepted'
+                bid.save()
+                
+                # Execute Transfer
+                bid.player.organization = org
+                bid.player.status = 'ACTIVE'
+                # Note: Coins were already deducted from Org (locked)
+                bid.player.coins += bid.amount
+                bid.player.save()
+                
+                Transaction.objects.create(
+                    sender=org,
+                    recipient_player=bid.player,
+                    amount=bid.amount,
+                    transaction_type='BID_PAYMENT',
+                    description=f"Bid accepted (Negotiated) by {org.Organization_Name}"
+                )
+
+                OrganizationPlayer.objects.create(
+                    organization=org,
+                    player=bid.player,
+                    name=bid.player.full_name,
+                    email=bid.player.email,
+                    game_id=bid.player.uid,
+                    status_label='Purchased via Negotiation'
+                )
+                
+                # Reject other bids
+                other_bids = Bid.objects.filter(player=bid.player, status='Pending').exclude(id=bid.id)
+                for other_bid in other_bids:
+                    other_bid.status = 'Rejected'
+                    other_bid.save()
+                    other_bid.organization.coins += other_bid.amount
+                    other_bid.organization.save()
+                    Transaction.objects.create(
+                        recipient=other_bid.organization,
+                        amount=other_bid.amount,
+                        transaction_type='BID_REFUND',
+                        description=f"Bid rejected (Sold via Negotiation)"
+                    )
+                    OrganizationNotification.objects.create(
+                        recipient=other_bid.organization,
+                        message=f"Bid for {bid.player.full_name} rejected. Player sold to another team.",
+                        notification_type='BID_REJECTED'
+                    )
+                    
+                PlayerNotification.objects.create(
+                    recipient=bid.player,
+                    message=f"Great news! {org.Organization_Name} accepted your counter offer of {new_amount}. You have joined the team.",
+                    notification_type='BID_ACCEPTED'
+                )
+                
+                messages.success(request, f"Counter offer accepted! {bid.player.full_name} is now in your team.")
+
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+            return redirect('org_bidding_dashboard')
+
+    elif action == 'reject':
+        with transaction.atomic():
+            bid.status = 'Rejected'
+            bid.save()
+            
+            org = bid.organization
+            org.coins += bid.amount
+            org.save()
+            
+            Transaction.objects.create(
+                recipient=org,
+                amount=bid.amount,
+                transaction_type='BID_REFUND',
+                description=f"Negotiation rejected by Org for {bid.player.full_name}"
+            )
+            
+            PlayerNotification.objects.create(
+                recipient=bid.player,
+                message=f"{org.Organization_Name} rejected your counter offer. The bid has been cancelled.",
+                notification_type='BID_REJECTED'
+            )
+            
+            messages.info(request, "Negotiation rejected. Bid cancelled and funds refunded.")
+        
+    return redirect('org_bidding_dashboard')
+
+@login_required
+def player_notifications(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+    player = get_object_or_404(Player, id=player_id)
+    notifications = PlayerNotification.objects.filter(recipient=player).order_by('-created_at')
+    
+    # Mark as read
+    PlayerNotification.objects.filter(recipient=player, is_read=False).update(is_read=True)
+    
+    return render(request, 'web/Player/player_notifications.html', {'notifications': notifications, 'player': player})
+

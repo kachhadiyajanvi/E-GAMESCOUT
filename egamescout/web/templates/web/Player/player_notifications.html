@@ -1,0 +1,19 @@
+{% extends 'web/Player/player_base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Player Notifications</h2>
+    {% if notifications %}
+        <ul class="list-group">
+            {% for n in notifications %}
+                <li class="list-group-item {% if not n.is_read %}active{% endif %}">
+                    <p>{{ n.message }}</p>
+                    <small>{{ n.created_at }}</small>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No notifications.</p>
+    {% endif %}
+</div>
+{% endblock %}

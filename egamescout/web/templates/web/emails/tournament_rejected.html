@@ -1,81 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tournament Rejected – E-GameScout</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&display=swap');
-  body { margin: 0; padding: 0; background-color: #060810; font-family: 'Rajdhani', sans-serif; color: #C5C6C7; -webkit-font-smoothing: antialiased; }
-  .wrapper { width: 100%; padding: 40px 10px; box-sizing: border-box; }
-  .container { max-width: 600px; margin: 0 auto; background: #0B101E; border: 1px solid rgba(239, 68, 68, 0.1); border-radius: 12px; overflow: hidden; box-shadow: 0 0 30px rgba(239, 68, 68, 0.05); }
-  .header { background: linear-gradient(135deg, #0B1728 0%, #0A1020 100%); padding: 30px 40px; border-bottom: 2px solid #EF4444; text-align: center; }
-  .logo-text { font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 900; letter-spacing: 4px; color: #ffffff; margin: 0; }
-  .logo-highlight { color: #66FCF1; text-shadow: 0 0 10px rgba(102, 252, 241, 0.5); }
-  .content { padding: 40px; background-image: radial-gradient(circle at center, rgba(239, 68, 68, 0.03) 0%, transparent 70%); }
-  .icon-container { text-align: center; margin-bottom: 25px; }
-  .icon-circle { display: inline-block; width: 80px; height: 80px; background: rgba(239, 68, 68, 0.1); border: 2px solid #EF4444; border-radius: 50%; line-height: 80px; font-size: 35px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); text-align: center; color: #EF4444; }
-  h1 { font-family: 'Orbitron', sans-serif; color: #EF4444; font-size: 24px; text-align: center; margin: 0 0 20px 0; letter-spacing: 1px; text-shadow: 0 0 5px rgba(239, 68, 68, 0.5); text-transform: uppercase; }
-  p { font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.8); margin: 0 0 20px 0; }
-  .highlight-box { background-color: rgba(255, 255, 255, 0.03); border-left: 4px solid #EF4444; padding: 20px; margin: 30px 0; border-radius: 4px 8px 8px 4px; }
-  .tourn-name { font-size: 22px; color: #ffffff; font-weight: 700; margin-bottom: 5px; font-family: 'Orbitron', sans-serif; }
-  .tourn-meta { font-size: 14px; color: #EF4444; margin-bottom: 15px; font-family: monospace; letter-spacing: 1px; }
-  .reason-box { background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); padding: 15px; border-radius: 6px; margin-top: 15px; }
-  .reason-title { font-size: 12px; color: #EF4444; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-  .reason-text { font-size: 15px; color: #ffffff; margin: 0; font-style: italic; }
-  .btn-wrapper { text-align: center; margin-top: 40px; }
-  .cta-button { display: inline-block; padding: 16px 30px; background: linear-gradient(90deg, #EF4444 0%, #B91C1C 100%); color: #ffffff; text-decoration: none; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 15px; letter-spacing: 2px; text-transform: uppercase; border-radius: 4px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-  .footer { background-color: #05070D; padding: 30px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
-  .social-links { margin-bottom: 15px; }
-  .social-link { color: #EF4444; text-decoration: none; margin: 0 10px; font-weight: 600; font-size: 14px; letter-spacing: 1px; font-family: 'Orbitron', sans-serif; }
-  .footer-text { font-size: 12px; color: rgba(255,255,255,0.4); margin: 0 0 10px 0; line-height: 1.5; }
-</style>
-</head>
-<body>
-  <div class="wrapper">
-    <div class="container">
-      <div class="header">
-        <p class="logo-text">EGAME<span class="logo-highlight">SCOUT</span></p>
-      </div>
-      
-      <div class="content">
-        <div class="icon-container">
-          <div class="icon-circle">!</div>
-        </div>
-        
-        <h1>TOURNAMENT REJECTED</h1>
-        
-        <p>Greetings <strong style="color:#ffffff; font-size: 18px;">{{ tournament.Organization_Name.Organization_Name }}</strong>,</p>
-        
-        <p>Your recent tournament submission has been reviewed by the E-GameScout administrative team. Unfortunately, it has been rejected and cannot be published at this time.</p>
-        
-        <div class="highlight-box">
-          <div class="tourn-name">{{ tournament.Name }}</div>
-          <div class="tourn-meta">ID: #{{ tournament.Tournament_ID }} • Game: {{ tournament.Game_Name }}</div>
-          
-          <div class="reason-box">
-            <div class="reason-title">Reason for Rejection:</div>
-            <p class="reason-text">"{{ tournament.admin_rejection_reason|default:'Not provided.' }}"</p>
-          </div>
-        </div>
-        
-        <p><strong>Next Steps:</strong> Please review the reason for rejection above. You can login to your dashboard, edit the tournament details to resolve the issues, and resubmit it for approval.</p>
-        
-        <div class="btn-wrapper">
-          <a href="{{ login_url|default:'http://127.0.0.1:8000/organization/dashboard/' }}" class="cta-button">EDIT TOURNAMENT</a>
-        </div>
-      </div>
-      
-      <div class="footer">
-        <div class="social-links">
-          <a href="#" class="social-link">SUPPORT</a>
-          <a href="#" class="social-link">GUIDELINES</a>
-          <a href="#" class="social-link">CONTACT</a>
-        </div>
-        <p class="footer-text">&copy; 2026 E-GameScout. All Rights Reserved.</p>
-        <p class="footer-text">This is an automated system notification. Please do not reply to this email.</p>
-      </div>
+{% extends 'web/emails/base_email.html' %}
+{% block theme_class %}theme-red{% endblock %}
+{% block title %}Tournament Rejected – E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle"><i class="fa-solid fa-ban"></i></div>
+</div>
+
+<h1>TOURNAMENT <span style="color: #EF4444;">REJECTED</span></h1>
+
+<p>Greetings <strong style="color:#ffffff;">{{ tournament.Organization_Name.Organization_Name }}</strong>,</p>
+
+<p>Your recent tournament submission has been reviewed by the E-GameScout administrative team. Unfortunately, it has been rejected and cannot be published at this time.</p>
+
+<div class="highlight-box">
+    <div style="font-size: 20px; color: #ffffff; font-weight: 700; margin-bottom: 5px; font-family: 'Orbitron', sans-serif;">{{ tournament.Name }}</div>
+    <div style="font-size: 14px; color: #EF4444; margin-bottom: 15px; font-family: monospace; letter-spacing: 1px;">ID: #{{ tournament.Tournament_ID }} • Game: {{ tournament.game_name|default:tournament.Game_Name }}</div>
+    
+    <div style="background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); padding: 15px; border-radius: 6px; margin-top: 15px;">
+        <div style="font-size: 12px; color: #EF4444; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Reason for Rejection:</div>
+        <p style="font-size: 15px; color: #ffffff; margin: 0; font-style: italic;">"{{ tournament.admin_rejection_reason|default:'Not provided.' }}"</p>
     </div>
-  </div>
-</body>
-</html>
+</div>
+
+<p><strong>Next Steps:</strong> Please review the reason for rejection above. You can login to your dashboard, edit the tournament details to resolve the issues, and resubmit it for approval.</p>
+
+<div class="btn-wrapper">
+    <a href="{{ login_url|default:'http://127.0.0.1:8000/organization/dashboard/' }}" class="cta-button">EDIT TOURNAMENT</a>
+</div>
+{% endblock %}

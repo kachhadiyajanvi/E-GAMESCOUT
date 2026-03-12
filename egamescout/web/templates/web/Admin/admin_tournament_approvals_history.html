@@ -1,0 +1,109 @@
+{% extends 'web/Admin/admin_page_base.html' %}
+
+{% block header_icon %}<i class="fa-solid fa-clock-rotate-left text-blue-400"></i>{% endblock %}
+{% block header_title %}TOURNAMENT HISTORY{% endblock %}
+{% block header_desc %}History of approved and rejected tournaments.{% endblock %}
+
+{% block header_actions %}
+<div class="flex gap-2">
+    <a href="{% url 'admin_tournament_approvals' %}" 
+        class="px-4 py-2 border border-white/10 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+        <i class="fa-solid fa-arrow-left"></i> Back to Pending
+    </a>
+</div>
+{% endblock %}
+
+{% block page_content %}
+
+    <!-- History Table -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
+        <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
+                    <th class="p-4 font-bold">Tournament</th>
+                    <th class="p-4 font-bold">Organizer</th>
+                    <th class="p-4 font-bold">Status</th>
+                    <th class="p-4 font-bold">Details</th>
+                    <th class="p-4 font-bold text-right">Updated On</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm">
+                {% for tournament in tournaments %}
+                <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 p-[2px]">
+                                <div class="w-full h-full rounded-[6px] bg-black flex items-center justify-center">
+                                    <i class="fa-solid fa-trophy text-blue-400"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white group-hover:text-blue-400 transition-colors">
+                                    {{ tournament.Name }}</h4>
+                                <p class="text-xs text-white/40">ID: #{{ tournament.Tournament_ID }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 text-white/80">
+                        <span class="flex items-center gap-2">
+                            {{ tournament.Organization_Name.Organization_Name }}
+                            {% if tournament.Organization_Name.is_verified %}
+                            <i class="fa-solid fa-circle-check text-yellow-400 text-xs" title="Verified Organization"></i>
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        {% if tournament.approval_status == 'APPROVED' %}
+                            <span class="px-2 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded text-[10px] font-bold uppercase tracking-wider">
+                                <i class="fa-solid fa-check mr-1"></i> Approved
+                            </span>
+                        {% elif tournament.approval_status == 'REJECTED' %}
+                            <span class="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[10px] font-bold uppercase tracking-wider">
+                                <i class="fa-solid fa-xmark mr-1"></i> Rejected
+                            </span>
+                        {% else %}
+                            <span class="px-2 py-1 bg-gray-500/10 text-gray-400 border border-gray-500/20 rounded text-[10px] font-bold uppercase tracking-wider">
+                                {{ tournament.approval_status }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs font-mono text-brand-blue">{{ tournament.PrizePool }} INR</span>
+                            <span class="text-[10px] text-white/40 uppercase">{{ tournament.max_teams }} Teams • {% if tournament.is_offline %}Offline{% else %}Online{% endif %}</span>
+                        </div>
+                    </td>
+                    <td class="p-4 text-right text-white/40 font-mono text-xs">
+                        {{ tournament.UpdatedAt|date:"M d, Y H:i" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="p-12 text-center">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-history text-2xl text-white/20"></i>
+                        </div>
+                        <p class="text-white/60 font-bold">No History Found</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        {% if tournaments.has_other_pages %}
+        <div class="p-4 border-t border-white/10 flex justify-center gap-2">
+            {% if tournaments.has_previous %}
+                <a href="?page={{ tournaments.previous_page_number }}" class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded text-xs text-white">Previous</a>
+            {% endif %}
+            
+            <span class="px-3 py-1 text-xs text-white/40">Page {{ tournaments.number }} of {{ tournaments.paginator.num_pages }}</span>
+            
+            {% if tournaments.has_next %}
+                <a href="?page={{ tournaments.next_page_number }}" class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded text-xs text-white">Next</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+{% endblock %}

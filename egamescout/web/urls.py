@@ -111,8 +111,15 @@ urlpatterns = [
     # Organization & Player Bidding
     path('organization/bidding/', views.org_bidding_dashboard, name='org_bidding_dashboard'),
     path('organization/bidding/place/<int:player_id>/', views.place_bid, name='place_bid'),
+    path('organization/bidding/negotiation/<int:negotiation_id>/<str:action>/', views.org_respond_negotiation, name='org_respond_negotiation'),
     path('organization/transactions/', views.org_transaction_history, name='org_transaction_history'),
     path('player/bidding/', views.player_bidding_dashboard, name='player_bidding_dashboard'),
+    path('player/bidding/<int:bid_id>/accept/', views.player_accept_bid, name='player_accept_bid'),
+    path('player/bidding/<int:bid_id>/reject/', views.player_reject_bid, name='player_reject_bid'),
+    path('player/bidding/<int:bid_id>/negotiate/', views.player_negotiate_bid, name='player_negotiate_bid'),
+    
+    # Admin Transactions
+    path('admin/transactions/', views.admin_transaction_history, name='admin_transaction_history'),
 
     # Tournament Publishing & Participation
     path('organization/tournaments/<int:tournament_id>/publish/', views.publish_tournament, name='publish_tournament'),
@@ -140,6 +147,7 @@ urlpatterns = [
     
     # Admin Tournament Approvals
     path('admin/tournament/approvals/', admin_views.admin_tournament_approvals, name='admin_tournament_approvals'),
+    path('admin/tournament/approvals/history/', admin_views.admin_tournament_approvals_history, name='admin_tournament_approvals_history'),
     path('admin/tournament/approvals/approve/<int:tournament_id>/', admin_views.admin_approve_tournament, name='admin_approve_tournament'),
     path('admin/tournament/approvals/reject/<int:tournament_id>/', admin_views.admin_reject_tournament, name='admin_reject_tournament'),
 ]

@@ -1,0 +1,29 @@
+{% extends 'web/emails/base_email.html' %}
+{% block theme_class %}theme-red{% endblock %}
+{% block title %}Bid Rejected – E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle"><i class="fa-solid fa-ban"></i></div>
+</div>
+
+<h1>BID <span style="color: #EF4444;">REJECTED</span></h1>
+
+<p>Hello <strong style="color:#ffffff;">{{ org.Organization_Name }}</strong>,</p>
+
+<p>We are writing to inform you that your bid for <strong style="color: #ffffff;">{{ player.full_name|default:player.username }}</strong> has been rejected by the player.</p>
+
+<div class="highlight-box">
+    <div style="font-size: 16px; color: #EF4444; margin-bottom: 20px; font-weight: 700; text-align: center;">YOUR BID OF ₹{{ bid.Current_Bid_Price }} WAS NOT ACCEPTED</div>
+    
+    <div style="text-align: center;">
+        <p style="font-size: 15px; margin: 0; color: rgba(255,255,255,0.7);">Your held funds for this bid have been returned to your wallet immediately.</p>
+    </div>
+</div>
+
+<p>You can still place a new bid for this player or explore other available talent in the ongoing bidding season.</p>
+
+<div class="btn-wrapper">
+    <a href="{{ market_url|default:'http://127.0.0.1:8000/organization/market/' }}" class="cta-button">EXPLORE PLAYERS</a>
+</div>
+{% endblock %}

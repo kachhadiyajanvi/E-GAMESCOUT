@@ -250,10 +250,13 @@ class Transaction(models.Model):
         ('BID_LOCKED', 'Bid Locked'),
         ('BID_ACCEPTED', 'Bid Accepted'),
         ('BID_REFUND', 'Bid Refund'),
+        ('ADMIN_GRANT', 'Admin Grant'),
+        ('BID_PAYMENT', 'Bid Payment'),
     ]
 
     sender = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, related_name='sent_transactions')
     recipient = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, related_name='received_transactions')
+    recipient_player = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name='received_transactions')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     transaction_type = models.CharField(max_length=50, choices=TRANSACTION_TYPES, default='OTHER')
     related_tournament = models.ForeignKey(Tournament, on_delete=models.SET_NULL, null=True, blank=True)

@@ -370,6 +370,14 @@
                 <input type="text" name="name" placeholder="E.g., Special Draft 2026" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500" required>
             </div>
             <div class="mb-4">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Organization Bidding Budget</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2.5 text-gray-500 font-bold">₹</span>
+                    <input type="number" name="bidding_budget" placeholder="50000" min="0" class="w-full bg-black/50 border border-white/10 rounded-lg pl-8 pr-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 font-mono">
+                </div>
+                <p class="text-[10px] text-gray-500 mt-1">Leave empty to keep existing balances. If set, ALL organizations get this exact amount.</p>
+            </div>
+            <div class="mb-4">
                 <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Start Date & Time <span class="text-[10px] text-gray-500 normal-case">(Optional, now)</span></label>
                 <input type="datetime-local" name="start_date" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
             </div>

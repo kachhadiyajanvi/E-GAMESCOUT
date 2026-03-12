@@ -808,6 +808,8 @@ def admin_start_bidding_season(request):
         name = request.POST.get('name', f"Manual Season {timezone.now().strftime('%Y-%m-%d')}")
         start_date_str = request.POST.get('start_date')
         end_date_str = request.POST.get('end_date')
+        # Admin Wallet Distribution (Feature #1)
+        bidding_budget = request.POST.get('bidding_budget')
         
         # Ensure no other active seasons
         BiddingSeason.objects.filter(is_active=True).update(is_active=False)
@@ -835,7 +837,33 @@ def admin_start_bidding_season(request):
             except ValueError:
                 pass
                 
-        BiddingSeasonLog.objects.create(season=season, action='START', message="Bidding Manually Started by Admin")
+        # Distribute Coins Logic
+        if bidding_budget:
+            try:
+                budget_amount = Decimal(bidding_budget)
+                if budget_amount > 0:
+                    orgs = Organization.objects.filter(status='Active', is_active_account=True)
+                    count = 0
+                    for org in orgs:
+                        org.coins = budget_amount
+                        org.save()
+                        
+                        # create transaction record for history
+                        Transaction.objects.create(
+                            recipient=org,
+                            amount=budget_amount,
+                            transaction_type='ADMIN_GRANT',
+                            description=f"Initial Bidding Budget for {season.name}"
+                        )
+                        count += 1
+                    BiddingSeasonLog.objects.create(season=season, action='START', message=f"Bidding Started with Budget: {budget_amount} distributed to {count} organizations.")
+                else:
+                     BiddingSeasonLog.objects.create(season=season, action='START', message="Bidding Manually Started by Admin (Zero Budget)")
+            except Exception as e:
+                messages.error(request, f"Error distributing budget: {str(e)}")
+        else:
+            BiddingSeasonLog.objects.create(season=season, action='START', message="Bidding Manually Started by Admin")
+            
         messages.success(request, f"Bidding Season '{season.name}' started successfully.")
     return redirect('admin_bidding_dashboard')
 
@@ -864,6 +892,11 @@ def admin_end_bidding_season(request):
             season.is_active = False
             season.save()
             BiddingSeasonLog.objects.create(season=season, action='END', message="Bidding Ended by Admin")
+            
+            # Feature #3: Wallet Reset After Auction
+            Organization.objects.all().update(coins=0)
+            BiddingSeasonLog.objects.create(season=season, action='RESET', message="Organization Wallets Reset to 0")
+
             messages.success(request, f"Bidding Season '{season.name}' ended successfully.")
     return redirect('admin_bidding_dashboard')
 
@@ -1012,3 +1045,16 @@ def admin_reject_tournament(request, tournament_id):
         messages.warning(request, f"Tournament {tournament.Name} has been rejected.")
         
     return redirect('admin_tournament_approvals')
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_tournament_approvals_history(request):
+    history = Tournament.objects.filter(approval_status__in=['APPROVED', 'REJECTED']).order_by('-UpdatedAt')
+    
+    paginator = Paginator(history, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'tournaments': page_obj,
+    }
+    return render(request, 'web/Admin/admin_tournament_approvals_history.html', context)

@@ -6,6 +6,56 @@ import re
 import time
 import requests
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
+
+def send_platform_email(subject, template_name, context, recipient_list, from_email=None):
+    """
+    Sends a platform email using a standard HTML template and auto-generated plain text version.
+    
+    Args:
+        subject (str): Email subject.
+        template_name (str): Path to template within 'web/emails/', e.g., 'welcome.html'.
+        context (dict): Context data for template rendering.
+        recipient_list (list): List of recipient email addresses.
+        from_email (str, optional): Sender email. Defaults to settings.DEFAULT_FROM_EMAIL.
+        
+    Returns:
+        bool: True if email sent successfully, False otherwise.
+    """
+    if not from_email:
+        from_email = settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com'
+
+    # Ensure context has common variables if not provided
+    if 'year' not in context:
+        context['year'] = datetime.datetime.now().year
+    
+    # Template path handling
+    if template_name.startswith('web/emails/'):
+        full_template_path = template_name
+    elif template_name.startswith('emails/'):
+        full_template_path = f'web/{template_name}'
+    else:
+        full_template_path = f'web/emails/{template_name}'
+    
+    try:
+        # Render HTML content
+        html_content = render_to_string(full_template_path, context)
+        # Create plain text alternative
+        text_content = strip_tags(html_content)
+        
+        # Create Email Value Object
+        msg = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+        
+        print(f"EMAIL SENT: '{subject}' to {recipient_list}")
+        return True
+    except Exception as e:
+        print(f"EMAIL ERROR: Failed to send '{subject}' to {recipient_list}. Error: {str(e)}")
+        return False
 
 
 def extract_aadhar_details(image_file):
