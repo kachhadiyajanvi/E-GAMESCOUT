@@ -96,7 +96,7 @@
                             title="View Full Details">
                             <i class="fa-solid fa-eye"></i>
                         </button>
-                        <button onclick="openStatusModal('{{ player.id }}', '{{ player.status }}', '{{ player.is_verified }}')"
+                        <button onclick="openStatusModal('{{ player.id }}', '{{ player.status }}', '{{ player.is_verified }}', '{{ player.is_active_account|lower }}')"
                             class="text-white/40 hover:text-brand-blue transition-colors px-2" title="Edit Status">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
@@ -359,7 +359,7 @@
         modal.classList.add('flex');
     }
 
-    function openStatusModal(playerId, currentStatus, isVerified) {
+    function openStatusModal(playerId, currentStatus, isVerified, isActiveAccount) {
         const modal = document.getElementById('statusModal');
         const form = document.getElementById('statusForm');
         const verifySection = document.getElementById('playerVerificationSection');
@@ -371,8 +371,11 @@
         form.action = `/admin/players/update-status/${playerId}/`;
         checkbox.checked = false;
 
-        const radio = form.querySelector(`input[value="${currentStatus}"]`);
+        const radio = form.querySelector(`input[name="status"][value="${currentStatus}"]`);
         if (radio) radio.checked = true;
+
+        const activeRadio = form.querySelector(`input[name="is_active_account"][value="${isActiveAccount}"]`);
+        if (activeRadio) activeRadio.checked = true;
 
         if (isVerified === 'True') {
             verifySection.className = 'mb-4 p-4 rounded-lg border border-red-500/20 bg-red-500/5';

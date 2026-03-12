@@ -230,7 +230,8 @@ def admin_edit_organization(request, org_id):
     if request.method == 'POST':
         # Basic update logic
         # Only allow Status Update
-        org.status = request.POST.get('status', 'Active')
+        org.status = request.POST.get('status', org.status)
+        org.is_active_account = request.POST.get('is_active_account') == 'true'
         
         # Handle verification grant
         if request.POST.get('grant_verification') == 'true' and not org.is_verified:
@@ -305,7 +306,8 @@ def admin_delete_player(request, player_id):
 def admin_edit_player(request, player_id):
     player = get_object_or_404(Player, id=player_id)
     if request.method == 'POST':
-        player.status = request.POST.get('status', 'PENDING')
+        player.status = request.POST.get('status', player.status)
+        player.is_active_account = request.POST.get('is_active_account') == 'true'
         player.save()
         messages.success(request, f'Player "{player.full_name}" status updated.')
         return redirect('admin_players_detail')

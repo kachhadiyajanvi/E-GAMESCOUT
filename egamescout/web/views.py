@@ -662,6 +662,35 @@ def player_profile(request):
         
     return render(request, 'web/Player/profile.html', {'player': player, 'form': form})
 
+def player_deactivate_account(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    if request.method == 'POST':
+        player = get_object_or_404(Player, id=player_id)
+        player.is_active_account = False
+        player.save()
+        messages.success(request, 'Your account has been deactivated.')
+        return redirect('player_profile')
+        
+    # Using existing profile page to trigger viaPOST
+    return redirect('player_profile')
+
+def player_activate_account(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    if request.method == 'POST':
+        player = get_object_or_404(Player, id=player_id)
+        player.is_active_account = True
+        player.save()
+        messages.success(request, 'Your account has been activated.')
+        return redirect('player_profile')
+
+    return redirect('player_profile')
+
 def player_delete_account(request):
     player_id = request.session.get('player_id')
     if not player_id:
@@ -691,31 +720,61 @@ def index(request):
     organizations = Organization.objects.filter(status='Active')[:10]
     # Check if bidding season is currently active - drives the LIVE SCOUTING badge
     try:
-            live_scouting = BiddingSeason.objects.filter(is_active=True).exists()
+        live_scouting = BiddingSeason.objects.filter(is_active=True).exists()
     except Exception:
         live_scouting = False
         
     previous_tournaments = PreviousTournament.objects.filter(published=True).order_by('-date')[:6]
+    
+    # Upcoming Tournaments (Verified & Published)
+    now = timezone.now()
+    upcoming_tournaments = list(Tournament.objects.filter(
+        start_date__gte=now,
+        is_published=True,
+        approval_status='APPROVED',
+        is_archived=False
+    ).order_by('start_date')[:6])
+    
+    # Check if tournament is currently running
+    today = timezone.now().date()
+    for t in upcoming_tournaments:
+        if t.start_date and t.end_date and t.start_date.date() <= today <= t.end_date.date():
+            t.is_running = True
+        else:
+            t.is_running = False
         
     return render(request, 'web/index.html', {
         'organizations': organizations,
         'live_scouting': live_scouting,
         'previous_tournaments': previous_tournaments,
+        'upcoming_tournaments': upcoming_tournaments,
     })
 
 def public_tournaments(request):
     """Public view for upcoming tournaments"""
-    # Published tournaments (visible and joinable)
+    now = timezone.now()
+    current_month = now.month
+    current_year = now.year
+    
+    # 1. Active & Scheduled (Current Month Only)
     tournaments = Tournament.objects.filter(
-        Status__in=['Scheduled', 'Ongoing'],
+        start_date__year=current_year,
+        start_date__month=current_month,
         is_published=True,
+        approval_status='APPROVED',
         is_archived=False
     ).order_by('start_date')
 
-    # Coming soon - unpublished tournaments (teaser only)
+    # 2. Coming Soon (Future Months)
+    # We can exclude current month by filtering start_date > end of this month, or simply exclude current month
     coming_soon = Tournament.objects.filter(
-        is_published=False,
+        start_date__gt=now,
+        is_published=True,
+        approval_status='APPROVED',
         is_archived=False
+    ).exclude(
+        start_date__year=current_year, 
+        start_date__month=current_month
     ).order_by('start_date')
 
     # Bidding system removed
@@ -1386,6 +1445,28 @@ def scorecard_tool(request):
     })
 
 # --- Profile Management ---
+
+@login_required_organization
+def org_deactivate_account(request):
+    org = request.org
+    if request.method == 'POST':
+        org.is_active_account = False
+        org.save()
+        messages.success(request, 'Organization account has been deactivated.')
+        return redirect('manage_profile')
+        
+    return redirect('manage_profile')
+
+@login_required_organization
+def org_activate_account(request):
+    org = request.org
+    if request.method == 'POST':
+        org.is_active_account = True
+        org.save()
+        messages.success(request, 'Organization account has been activated.')
+        return redirect('manage_profile')
+        
+    return redirect('manage_profile')
 
 @login_required_organization
 def manage_profile(request):
@@ -2184,9 +2265,13 @@ def org_bidding_dashboard(request):
     
     active_season = BiddingSeason.objects.filter(is_active=True).first()
     
-    # 1. Available Players (Not Sold yet)
+    # 1. Available Players (Not Sold yet and Active Account)
     sold_player_ids = Bid.objects.filter(status='Accepted').values_list('player_id', flat=True)
-    available_players = Player.objects.filter(is_archived=False, status='ACTIVE').exclude(id__in=sold_player_ids)
+    all_active_players = Player.objects.filter(is_archived=False, status='ACTIVE', is_active_account=True)
+    available_players = all_active_players.exclude(id__in=sold_player_ids)
+    
+    # Check if all players are sold out
+    all_sold = (all_active_players.exists() and not available_players.exists())
     
     # 2. My Bids
     my_bids = Bid.objects.filter(organization=org).order_by('-created_at')
@@ -2200,7 +2285,8 @@ def org_bidding_dashboard(request):
         'wallet_balance': org.coins,
         'available_players': available_players,
         'my_bids': my_bids,
-        'my_roster': my_roster
+        'my_roster': my_roster,
+        'all_sold': all_sold
     }
     return render(request, 'web/Organization/org_bidding.html', context)
 
@@ -2240,12 +2326,18 @@ def org_scout_players(request):
     org_id = request.session.get('organizer_id')
     org = get_object_or_404(Organization, id=org_id)
     
-    # Fetch all active non-archived players
-    available_players = Player.objects.filter(is_archived=False, status='ACTIVE').order_by('-created_at')
+    active_season = BiddingSeason.objects.filter(is_active=True).first()
+    
+    # Only show players if there is an active bidding season
+    if active_season:
+        available_players = Player.objects.filter(is_archived=False, status='ACTIVE', is_active_account=True).order_by('-created_at')
+    else:
+        available_players = []
     
     context = {
         'org': org,
-        'available_players': available_players
+        'available_players': available_players,
+        'active_season': active_season
     }
     return render(request, 'web/Organization/org_scout_players.html', context)
 
@@ -2257,12 +2349,26 @@ def place_bid(request, player_id):
     
     org_id = request.session.get('organizer_id')
     org = get_object_or_404(Organization, id=org_id)
-    player = get_object_or_404(Player, id=player_id, is_archived=False, status='ACTIVE')
+    
+    if not org.is_active_account:
+        messages.error(request, 'Your organization account is deactivated. You cannot place bids.')
+        return redirect('org_bidding_dashboard')
+
+    player = get_object_or_404(Player, id=player_id, is_archived=False, status='ACTIVE', is_active_account=True)
     
     # Check active season
     active_season = BiddingSeason.objects.filter(is_active=True).first()
     if not active_season:
         messages.error(request, 'No active bidding season. Bids cannot be placed right now.')
+        return redirect('org_bidding_dashboard')
+        
+    # Check if all players are sold out
+    sold_player_ids = Bid.objects.filter(status='Accepted').values_list('player_id', flat=True)
+    all_active_players = Player.objects.filter(is_archived=False, status='ACTIVE')
+    available_players = all_active_players.exclude(id__in=sold_player_ids)
+    
+    if all_active_players.exists() and not available_players.exists():
+        messages.error(request, 'All players are sold out. Bidding participation is disabled.')
         return redirect('org_bidding_dashboard')
     
     # Check player isn't already sold

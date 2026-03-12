@@ -421,7 +421,116 @@
         </div>
     </section>
 
-    <!-- Removed Previous Tournaments Section - Moved to separate page -->
+    <!-- Upcoming Tournaments Section -->
+    <section id="upcoming-tournaments" class="py-16 md:py-24 px-6 md:px-12 bg-[#090a0f] relative overflow-hidden border-t border-white/5">
+        <!-- Background Elements -->
+        <div class="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-blue-900/10 to-transparent pointer-events-none"></div>
+
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 reveal-on-scroll">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 border border-accent-cyan/30 rounded-full bg-accent-cyan/5 mb-4">
+                        <span class="w-1.5 h-1.5 rounded-full bg-accent-cyan animate-pulse"></span>
+                        <span class="text-accent-cyan text-xs font-display tracking-widest uppercase">Verified Events</span>
+                    </div>
+                    <h2 class="text-3xl md:text-5xl font-display font-bold text-white mb-2 uppercase">
+                        Upcoming <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">Tournaments</span>
+                    </h2>
+                    <p class="text-gray-400 max-w-xl font-light">Join the most prestigious verified tournaments in the circuit.</p>
+                </div>
+                
+                <a href="{% url 'public_tournaments' %}" class="hidden md:inline-flex items-center gap-2 group text-white font-bold uppercase text-sm tracking-wider hover:text-accent-cyan transition-colors">
+                    View Full Schedule <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+
+            {% if upcoming_tournaments %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for tournament in upcoming_tournaments %}
+                    <div class="group relative bg-brand-dark border border-white/10 rounded-xl p-1 hover:border-accent-cyan/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(102,252,241,0.15)] reveal-on-scroll" style="transition-delay: {{ forloop.counter0 }}00ms">
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                        
+                        <div class="bg-[#0B0C10] rounded-lg p-6 h-full flex flex-col relative z-10">
+                            <!-- Header: Org & Status -->
+                            <div class="flex justify-between items-start mb-6">
+                                <div class="flex items-center gap-3">
+                                    {% if tournament.Organization_Name.Organization_Photo %}
+                                    <img src="{{ tournament.Organization_Name.Organization_Photo.url }}" class="w-10 h-10 rounded border border-white/10 object-cover">
+                                    {% else %}
+                                    <div class="w-10 h-10 rounded border border-white/10 bg-white/5 flex items-center justify-center text-white/40">
+                                        <i class="fa-solid fa-users"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">hosted by</div>
+                                        <div class="text-white font-bold text-sm leading-none flex items-center gap-1">
+                                            {{ tournament.Organization_Name.Organization_Name }}
+                                            {% if tournament.Organization_Name.is_verified %}
+                                            <i class="fa-solid fa-circle-check text-yellow-500 text-[10px]" title="Verified"></i>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex flex-col items-end">
+                                    <span class="text-2xl font-display font-black text-white leading-none">{{ tournament.start_date|date:"d" }}</span>
+                                    <span class="text-[10px] font-bold text-accent-cyan uppercase tracking-wider">{{ tournament.start_date|date:"M" }}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Title -->
+                            <h3 class="text-xl font-display font-bold text-white mb-2 group-hover:text-accent-cyan transition-colors line-clamp-1">
+                                {{ tournament.Name }}
+                            </h3>
+                            
+                            <!-- Badges -->
+                            <div class="flex flex-wrap gap-2 mb-6">
+                                {% if tournament.is_running %}
+                                <span class="px-2 py-1 rounded bg-green-500/20 border border-green-500/30 text-[10px] font-mono text-green-400 uppercase font-bold flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                    RUNNING
+                                </span>
+                                {% endif %}
+                                <span class="px-2 py-1 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-gray-400 uppercase">
+                                    {% if tournament.is_offline %}LAN{% else %}ONLINE{% endif %}
+                                </span>
+                                <span class="px-2 py-1 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-gray-400 uppercase">
+                                    {{ tournament.max_teams }} Slots
+                                </span>
+                            </div>
+
+                            <!-- Footer: Prize & Action -->
+                            <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                                <div>
+                                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Prize Pool</div>
+                                    <div class="text-green-400 font-mono font-bold">₹{{ tournament.PrizePool|floatformat:0 }}</div>
+                                </div>
+                                
+                                <a href="{% url 'public_tournaments' %}" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white hover:bg-accent-cyan hover:text-black transition-all group-hover:scale-110">
+                                    <i class="fa-solid fa-arrow-right -rotate-45 group-hover:rotate-0 transition-transform"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-8 text-center md:hidden">
+                    <a href="{% url 'public_tournaments' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-white font-bold uppercase text-xs tracking-wider rounded-lg hover:bg-white/10 transition-all">
+                        View All Tournaments
+                    </a>
+                </div>
+            {% else %}
+                <div class="text-center py-16 bg-white/5 rounded-2xl border border-dashed border-white/10">
+                    <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-white/20 text-2xl mx-auto mb-4">
+                        <i class="fa-regular fa-calendar"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-bold text-gray-400 uppercase">No Upcoming Tournaments</h3>
+                    <p class="text-sm text-gray-500 mt-2 max-w-sm mx-auto">The tournament calendar is currently being updated. Check back soon for new verified events.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
 
     <!-- Solution Section ("What We Offer") -->
     <section id="features" class="py-16 md:py-24 px-6 md:px-12 relative overflow-hidden">

@@ -24,6 +24,8 @@ urlpatterns = [
     path('organization/profile/', views.manage_profile, name='manage_profile'),
     path('organization/profile/update/', views.update_profile, name='update_profile'),
     path('organization/profile/photo/update/', views.update_profile_photo, name='update_profile_photo'),
+    path('organization/deactivate/', views.org_deactivate_account, name='org_deactivate_account'),
+    path('organization/activate/', views.org_activate_account, name='org_activate_account'),
     path('organization/delete/', views.org_delete_account, name='org_delete_account'),
     
     # Tools
@@ -73,7 +75,8 @@ urlpatterns = [
     path('player/dashboard/', views.player_dashboard, name='player_dashboard'),
     path('player/profile/', views.player_profile, name='player_profile'),
     
-
+    path('player/deactivate/', views.player_deactivate_account, name='player_deactivate_account'),
+    path('player/activate/', views.player_activate_account, name='player_activate_account'),
     path('player/delete/', views.player_delete_account, name='player_delete_account'),
     path('auth/logout/', views.auth_logout, name='auth_logout'),
 

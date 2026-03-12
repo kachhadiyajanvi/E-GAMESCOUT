@@ -266,16 +266,38 @@ class TournamentForm(forms.ModelForm):
             raise forms.ValidationError("Prize Pool must be a positive number.")
         return prize_pool
 
-    def clean_prize_distribution(self):
-        data = self.cleaned_data.get('prize_distribution')
-        # If it comes as a string (from hidden input), try to parse it
-        if isinstance(data, str):
-            import json
-            try:
-                data = json.loads(data)
-            except json.JSONDecodeError:
-                raise forms.ValidationError("Invalid Prize Distribution Format")
-        return data
+    def clean(self):
+        cleaned_data = super().clean()
+        prize_pool = cleaned_data.get('PrizePool')
+        prize_distribution = cleaned_data.get('prize_distribution')
+
+        if prize_pool is not None and prize_distribution:
+            # If it comes as a string (from hidden input), try to parse it
+            if isinstance(prize_distribution, str):
+                import json
+                try:
+                    prize_distribution = json.loads(prize_distribution)
+                except json.JSONDecodeError:
+                    raise forms.ValidationError("Invalid Prize Distribution Format")
+
+            total_distribution = 0.0
+            if isinstance(prize_distribution, list):
+                for item in prize_distribution:
+                    # Item could be dict like {'position': 1, 'amount': 1000} or just amount
+                    amount = item.get('amount') if isinstance(item, dict) else item
+                    try:
+                        if amount is not None:
+                            total_distribution += float(amount)
+                    except (ValueError, TypeError):
+                        pass
+
+            if float(prize_pool) < total_distribution:
+                raise forms.ValidationError("Tournament prize cannot be higher than total distribution amount.")
+                
+            # Keep parsed data
+            cleaned_data['prize_distribution'] = prize_distribution
+            
+        return cleaned_data
 
 class AddPlayerForm(forms.Form):
     name = forms.CharField(

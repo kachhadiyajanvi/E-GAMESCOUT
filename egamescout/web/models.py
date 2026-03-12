@@ -20,6 +20,7 @@ class Organization(models.Model):
         ('Pending', 'Pending'),
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Active')
+    is_active_account = models.BooleanField(default=True)
     is_archived = models.BooleanField(default=False)
     has_seen_player_setup_popup = models.BooleanField(default=False)
     last_player_reminder_date = models.DateField(null=True, blank=True)
@@ -128,6 +129,7 @@ class Player(models.Model):
     age = models.IntegerField()
     coins = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    is_active_account = models.BooleanField(default=True)
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='players')
     is_archived = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)

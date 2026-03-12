@@ -99,7 +99,7 @@
                             <i class="fa-solid fa-eye"></i>
                         </button>
 
-                        <button onclick="openOrgStatusModal('{{ org.id }}', '{{ org.status }}', '{{ org.is_verified }}')"
+                        <button onclick="openOrgStatusModal('{{ org.id }}', '{{ org.status }}', '{{ org.is_verified }}', '{{ org.is_active_account|lower }}')"
                             class="text-white/40 hover:text-brand-blue transition-colors px-2" title="Edit Status">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
@@ -350,7 +350,7 @@
         modal.classList.add('flex');
     }
 
-    function openOrgStatusModal(orgId, currentStatus, isVerified) {
+    function openOrgStatusModal(orgId, currentStatus, isVerified, isActiveAccount) {
         const modal = document.getElementById('statusOrgModal');
         const form = document.getElementById('statusOrgForm');
         const verifySection = document.getElementById('verificationSection');
@@ -362,8 +362,11 @@
         // Ensure this maps to your actual update URL
         form.action = `/admin/organizations/edit/${orgId}/`;
 
-        const radio = form.querySelector(`input[value="${currentStatus}"]`);
+        const radio = form.querySelector(`input[name="status"][value="${currentStatus}"]`);
         if (radio) radio.checked = true;
+
+        const activeRadio = form.querySelector(`input[name="is_active_account"][value="${isActiveAccount}"]`);
+        if (activeRadio) activeRadio.checked = true;
 
         verifyCheckbox.checked = false;
         verifySection.classList.remove('hidden');

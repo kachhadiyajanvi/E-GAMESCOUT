@@ -447,23 +447,35 @@
                      data-section="soon">
 
                     <div class="flex flex-col md:flex-row">
-                        <!-- Date Column -->
-                        <div class="w-full md:w-40 p-6 flex flex-col justify-center items-center text-center flex-shrink-0"
-                             style="background:rgba(0,0,0,0.2); border-right:1px solid rgba(245,158,11,0.08)">
+                        <!-- Date Column with Countdown -->
+                        <div class="w-full md:w-48 p-4 flex flex-col justify-center items-center text-center flex-shrink-0 bg-black/40 border-r border-yellow-500/10">
                             {% if t.start_date %}
-                            <span class="text-4xl font-display font-black leading-none mb-1 shimmer">
-                                {{ t.start_date|date:"d" }}
-                            </span>
-                            <span class="text-xs font-display font-bold text-yellow-600 uppercase tracking-widest mb-4">
-                                {{ t.start_date|date:"M Y" }}
+                            <div class="coming-soon-countdown mb-3 w-full" data-target="{{ t.start_date|date:'c' }}">
+                                <div class="grid grid-cols-3 gap-1 text-center font-mono">
+                                    <div class="bg-black/40 rounded p-1 border border-white/5">
+                                        <span class="block text-lg font-bold text-white days">00</span>
+                                        <span class="block text-[7px] uppercase text-white/50">Days</span>
+                                    </div>
+                                    <div class="bg-black/40 rounded p-1 border border-white/5">
+                                        <span class="block text-lg font-bold text-white hours">00</span>
+                                        <span class="block text-[7px] uppercase text-white/50">Hrs</span>
+                                    </div>
+                                    <div class="bg-black/40 rounded p-1 border border-white/5">
+                                        <span class="block text-lg font-bold text-white minutes">00</span>
+                                        <span class="block text-[7px] uppercase text-white/50">Min</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-xs font-display font-bold text-yellow-500 uppercase tracking-widest mb-2">
+                                {{ t.start_date|date:"d M Y" }}
                             </span>
                             {% else %}
                             <i class="fa-solid fa-calendar-question text-3xl text-yellow-700 mb-2"></i>
                             <span class="text-xs font-display text-yellow-700 uppercase tracking-widest mb-4">TBD</span>
                             {% endif %}
 
-                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-yellow-900/40 text-yellow-500 border border-yellow-500/20">
-                                <i class="fa-solid fa-lock mr-1 text-[9px]"></i>Unpublished
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 w-full">
+                                <i class="fa-solid fa-clock mr-1 text-[9px]"></i> Coming Soon
                             </span>
                         </div>
 
@@ -661,5 +673,44 @@
             sec.style.display = visible.length === 0 ? 'none' : '';
         });
     }
+
+    /* ── Coming Soon Countdowns ── */
+    function initCountdowns() {
+        const timers = document.querySelectorAll('.coming-soon-countdown');
+        if (timers.length === 0) return;
+
+        function updateTimers() {
+            const now = new Date();
+            timers.forEach(timer => {
+                const targetStr = timer.getAttribute('data-target');
+                if (!targetStr) return;
+                
+                const target = new Date(targetStr);
+                const diff = target - now;
+
+                if (diff <= 0) {
+                    timer.innerHTML = '<span class="text-xs font-bold text-yellow-500 uppercase tracking-widest">Starting Now!</span>';
+                    return;
+                }
+
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+                const daysEl = timer.querySelector('.days');
+                const hoursEl = timer.querySelector('.hours');
+                const minsEl = timer.querySelector('.minutes');
+
+                if (daysEl) daysEl.innerText = d.toString().padStart(2, '0');
+                if (hoursEl) hoursEl.innerText = h.toString().padStart(2, '0');
+                if (minsEl) minsEl.innerText = m.toString().padStart(2, '0');
+            });
+        }
+
+        setInterval(updateTimers, 1000);
+        updateTimers();
+    }
+    
+    document.addEventListener('DOMContentLoaded', initCountdowns);
 </script>
 {% endblock %}

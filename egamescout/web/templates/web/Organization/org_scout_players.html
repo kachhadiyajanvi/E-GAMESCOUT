@@ -42,8 +42,9 @@
     <div class="glass-panel rounded-2xl p-6 border border-white/5 relative overflow-hidden min-h-[400px]">
         <div class="absolute top-0 right-0 w-64 h-64 bg-accent-cyan/5 rounded-full blur-[80px] pointer-events-none z-0"></div>
 
-        {% if available_players %}
-        <div class="relative z-10 space-y-6">
+        {% if active_season %}
+            {% if available_players %}
+            <div class="relative z-10 space-y-6">
 
             <!-- Search and Filter Bar -->
             <div class="flex flex-col md:flex-row gap-4">
@@ -147,6 +148,23 @@
             </div>
             <h3 class="text-xl font-display font-bold text-white mb-2">DB is Empty</h3>
             <p class="text-white/40 text-sm max-w-sm">There are no active players registered on the platform yet.</p>
+        </div>
+        {% endif %}
+        {% else %}
+        <!-- Bidding NOT active -->
+        <div class="flex flex-col items-center justify-center py-20 text-center relative z-10">
+            <div class="w-24 h-24 rounded-full bg-yellow-500/10 flex items-center justify-center mb-6 border border-yellow-500/20 shadow-[0_0_30px_rgba(234,179,8,0.1)]">
+                <i class="fa-solid fa-lock text-4xl text-yellow-500/50"></i>
+            </div>
+            <h3 class="text-2xl font-display font-bold text-white mb-3 tracking-wide">SCOUTING LOCKED</h3>
+            <p class="text-white/40 max-w-lg mb-8 leading-relaxed">
+                Player profiles and scouting data are only available during an active bidding season. 
+                Please wait for the administrator to open the bidding session.
+            </p>
+            <div class="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
+                <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                <span class="text-xs font-mono text-white/60 uppercase tracking-widest">Awaiting Season Start</span>
+            </div>
         </div>
         {% endif %}
     </div>

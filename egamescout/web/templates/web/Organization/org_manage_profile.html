@@ -97,16 +97,17 @@
 
                     <!-- Account Status -->
                     <div
-                        class="p-3 bg-black/50 rounded border border-green-500/20 flex items-center justify-between relative overflow-hidden">
-                        <div class="absolute inset-0 bg-green-500/5"></div>
+                        class="p-3 bg-black/50 rounded border flex items-center justify-between relative overflow-hidden
+                        {% if org.is_active_account %}border-green-500/20{% else %}border-orange-500/20{% endif %}">
+                        <div class="absolute inset-0 {% if org.is_active_account %}bg-green-500/5{% else %}bg-orange-500/5{% endif %}"></div>
                         <div class="relative">
                             <p class="text-[10px] text-brand-light/40 uppercase tracking-wider mb-1">Status</p>
                             <p
-                                class="text-green-400 font-bold font-display tracking-wide flex items-center gap-2 text-sm">
-                                ACTIVE
+                                class="{% if org.is_active_account %}text-green-400{% else %}text-orange-400{% endif %} font-bold font-display tracking-wide flex items-center gap-2 text-sm">
+                                {% if org.is_active_account %}ACTIVE{% else %}DEACTIVATED{% endif %}
                             </p>
                         </div>
-                        <i class="fa-solid fa-circle-check text-green-500/20 text-2xl relative"></i>
+                        <i class="fa-solid {% if org.is_active_account %}fa-circle-check text-green-500/20{% else %}fa-circle-exclamation text-orange-500/20{% endif %} text-2xl relative"></i>
                     </div>
                 </div>
 
@@ -114,7 +115,28 @@
                 <div class="mt-8 pt-8 border-t border-white/5 flex flex-col gap-4">
                     <div>
                         <h4 class="text-white font-bold mb-1 font-display text-sm tracking-wide">Danger Zone</h4>
-                        <p class="text-xs text-brand-light/40">Permanently delete your organization account.</p>
+                        
+                        {% if org.is_active_account %}
+                        <p class="text-[10px] text-brand-light/40 mb-3 leading-relaxed">Deactivating your account will hide your organization from the bidding pool and prevent tournament participation.</p>
+                        <form action="{% url 'org_deactivate_account' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit"
+                                class="w-full py-2 bg-orange-500/10 hover:bg-orange-500 text-orange-500 hover:text-white rounded border border-orange-500/30 transition-all font-bold uppercase tracking-wider text-[10px] flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-store-slash"></i> Deactivate Account
+                            </button>
+                        </form>
+                        {% else %}
+                        <p class="text-[10px] text-orange-400 mb-3 leading-relaxed font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> Your organization is currently deactivated.</p>
+                        <form action="{% url 'org_activate_account' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit"
+                                class="w-full py-2 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded border border-green-500/30 transition-all font-bold uppercase tracking-wider text-[10px] flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-store"></i> Activate Account
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <p class="text-[10px] text-brand-light/40 mt-4 pt-4 border-t border-red-500/10">Permanently delete your organization account.</p>
                     </div>
                     <a href="{% url 'org_delete_account' %}"
                         class="w-full py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded border border-red-500/30 transition-all font-bold uppercase tracking-wider text-[10px] flex items-center justify-center gap-2">
