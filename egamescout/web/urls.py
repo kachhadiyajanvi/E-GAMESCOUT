@@ -3,6 +3,7 @@ from web import views, admin_views
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('maintenance/', views.maintenance_page, name='maintenance_page'),
     path('tournaments/', views.public_tournaments, name='public_tournaments'),
     path('previous-tournaments/', views.public_previous_tournaments, name='public_previous_tournaments'),
     path('tournament-history/<int:tournament_id>/', views.tournament_history_detail, name='tournament_history_detail'),

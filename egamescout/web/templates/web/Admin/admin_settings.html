@@ -76,7 +76,7 @@
                     <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
                             <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">Platform Name</label>
-                            <input type="text" name="platform_name" value="{{ settings.platform_name }}" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 transition-colors">
+                            <input type="text" name="site_name" value="{{ settings.site_name }}" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 transition-colors">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">Contact / Support Email</label>
@@ -110,10 +110,10 @@
                                 </div>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                {% if settings.player_registration_open %}
-                                <input type="checkbox" name="player_registration_open" class="sr-only peer" checked>
+                                {% if settings.allow_player_registration %}
+                                <input type="checkbox" name="allow_player_registration" class="sr-only peer" checked>
                                 {% else %}
-                                <input type="checkbox" name="player_registration_open" class="sr-only peer">
+                                <input type="checkbox" name="allow_player_registration" class="sr-only peer">
                                 {% endif %}
                                 <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-blue border border-white/10"></div>
                             </label>
@@ -130,10 +130,10 @@
                                 </div>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                {% if settings.org_registration_open %}
-                                <input type="checkbox" name="org_registration_open" class="sr-only peer" checked>
+                                {% if settings.allow_org_registration %}
+                                <input type="checkbox" name="allow_org_registration" class="sr-only peer" checked>
                                 {% else %}
-                                <input type="checkbox" name="org_registration_open" class="sr-only peer">
+                                <input type="checkbox" name="allow_org_registration" class="sr-only peer">
                                 {% endif %}
                                 <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-blue border border-white/10"></div>
                             </label>

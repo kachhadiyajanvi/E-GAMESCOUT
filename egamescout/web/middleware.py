@@ -92,3 +92,35 @@ class SecureSessionValidationMiddleware:
     def get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         return x_forwarded_for.split(',')[0] if x_forwarded_for else request.META.get('REMOTE_ADDR')
+
+class MaintenanceModeMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        path = request.path_info
+        
+        # Paths that should ignore maintenance mode
+        EXCLUDED_PATHS = [
+            '/admin/',
+            '/maintenance/',
+        ]
+        
+        # Exclude static/media files
+        if path.startswith('/static/') or path.startswith('/media/'):
+            return self.get_response(request)
+
+        # Check if the path is explicitly excluded
+        is_excluded = any(path.startswith(prefix) for prefix in EXCLUDED_PATHS)
+
+        if not is_excluded:
+            from web.models import SystemSettings
+            try:
+                settings = SystemSettings.get_settings()
+                if settings.is_maintenance_mode:
+                    return redirect('maintenance_page')
+            except Exception:
+                pass # db not ready or some other error during setup
+                
+        return self.get_response(request)
+

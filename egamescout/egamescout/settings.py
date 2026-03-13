@@ -81,6 +81,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'web.middleware.SecureSessionValidationMiddleware',
+    'web.middleware.MaintenanceModeMiddleware',
 ]
 
 ROOT_URLCONF = 'egamescout.urls'
