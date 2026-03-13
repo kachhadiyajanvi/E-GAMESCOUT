@@ -41,6 +41,14 @@ from web.helpers import extract_aadhar_details
 def terms_and_conditions(request):
     return render(request, 'web/terms.html')
 
+def maintenance_page(request):
+    from web.models import SystemSettings
+    settings = SystemSettings.get_settings()
+    if not settings.is_maintenance_mode:
+        return redirect('index')
+    # Since maintenance.html expects `message` instead of `settings.maintenance_message`
+    return render(request, 'web/maintenance.html', {'message': settings.maintenance_message})
+
 @csrf_exempt
 def api_send_otp(request):
     if request.method == 'POST':
@@ -166,9 +174,13 @@ def api_register_send_otp(request):
                  return JsonResponse({'status': 'error', 'message': 'Email and role are required'}, status=400)
                  
             if role.lower() == 'player':
+                if not SystemSettings.get_settings().allow_player_registration:
+                    return JsonResponse({'status': 'error', 'message': 'Player registration is currently disabled.'}, status=403)
                 if Player.objects.filter(email__iexact=email).exists():
                      return JsonResponse({'status': 'error', 'message': 'Player already exists. Please login.'}, status=409)
             elif role.lower() == 'organization':
+                 if not SystemSettings.get_settings().allow_org_registration:
+                     return JsonResponse({'status': 'error', 'message': 'Organization registration is currently disabled.'}, status=403)
                  if Organization.objects.filter(Organization_Email__iexact=email).exists():
                      return JsonResponse({'status': 'error', 'message': 'Organization already exists. Please login.'}, status=409)
             else:
@@ -327,10 +339,6 @@ def api_register_step2(request):
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
 def auth_login(request):
-    if SystemSettings.get_settings().is_maintenance_mode:
-        messages.error(request, SystemSettings.get_settings().maintenance_message)
-        return redirect('index')
-
     # Check if a verification flow is already in progress and verified
     if request.session.get('auth_email') and request.session.get('otp_verified'):
         # If verified, redirect based on player existence
@@ -471,6 +479,10 @@ def auth_verify_otp(request):
 
 def auth_register_upload(request):
     """Step 1: Upload Aadhar Card"""
+    if not SystemSettings.get_settings().allow_player_registration:
+        messages.error(request, 'Player registration is currently disabled.')
+        return redirect('index')
+        
     # Strict Redirect
     if request.session.get('player_id'):
         return redirect('player_dashboard')
@@ -901,6 +913,11 @@ def tournament_history_detail(request, tournament_id):
 # --- Registration Flow ---
 
 def org_register_start(request):
+    from web.models import SystemSettings
+    if not SystemSettings.get_settings().allow_org_registration:
+        messages.error(request, 'Organization registration is currently disabled.')
+        return redirect('index')
+
     if request.session.get('organizer_id'):
         return redirect('organizer_dashboard')
 
@@ -1016,10 +1033,6 @@ def org_register_details(request):
 # --- Login Flow ---
 
 def org_login_start(request):
-    if SystemSettings.get_settings().is_maintenance_mode:
-        messages.error(request, SystemSettings.get_settings().maintenance_message)
-        return redirect('index')
-
     if request.session.get('organizer_id'):
         return redirect('organizer_dashboard')
 
