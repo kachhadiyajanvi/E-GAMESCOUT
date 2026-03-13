@@ -22,6 +22,7 @@ class Organization(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Active')
     is_active_account = models.BooleanField(default=True)
     is_archived = models.BooleanField(default=False)
+    archived_at = models.DateTimeField(null=True, blank=True)
     has_seen_player_setup_popup = models.BooleanField(default=False)
     last_player_reminder_date = models.DateField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)
@@ -77,6 +78,7 @@ class Tournament(models.Model):
     roadmap_content = models.TextField(null=True, blank=True)
     prize_distribution = models.JSONField(default=list, blank=True)
     is_archived = models.BooleanField(default=False)
+    archived_at = models.DateTimeField(null=True, blank=True)
     
     # Removed Bidding Fields
     
@@ -131,6 +133,8 @@ class Player(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
     is_active_account = models.BooleanField(default=True)
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='players')
+    address = models.CharField(max_length=500, null=True, blank=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
     is_archived = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

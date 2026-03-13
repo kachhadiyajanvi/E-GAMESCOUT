@@ -393,18 +393,21 @@
                 <br>This action cannot be undone.
             </p>
             
-            <!-- Double Confirmation Checkbox -->
-            <div class="flex items-center justify-center gap-2 mb-6">
-                <input type="checkbox" id="rejectConfirmCheck" class="w-4 h-4 rounded border-gray-600 bg-black/40 text-red-500 focus:ring-offset-black focus:ring-red-500">
-                <label for="rejectConfirmCheck" class="text-xs text-brand-light/60 select-none cursor-pointer">Yes, I understand and want to reject.</label>
-            </div>
-            
-            <div class="flex gap-3">
-                <button type="button" onclick="closeRejectModal()" class="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg transition-colors">Cancel</button>
-                <a id="confirmRejectBtn" href="#" class="flex-1 py-3 bg-red-500/20 text-red-400 border border-red-500/50 font-bold rounded-lg transition-all text-center pointer-events-none opacity-50">
-                    Confirm Reject
-                </a>
-            </div>
+            <form id="rejectBidForm" method="POST" action="">
+                {% csrf_token %}
+                <!-- Double Confirmation Checkbox -->
+                <div class="flex items-center justify-center gap-2 mb-6">
+                    <input type="checkbox" id="rejectConfirmCheck" class="w-4 h-4 rounded border-gray-600 bg-black/40 text-red-500 focus:ring-offset-black focus:ring-red-500">
+                    <label for="rejectConfirmCheck" class="text-xs text-brand-light/60 select-none cursor-pointer">Yes, I understand and want to reject.</label>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeRejectModal()" class="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg transition-colors">Cancel</button>
+                    <button id="confirmRejectBtn" type="submit" class="flex-1 py-3 bg-red-500/20 text-red-400 border border-red-500/50 font-bold rounded-lg transition-all text-center pointer-events-none opacity-50">
+                        Confirm Reject
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -430,13 +433,14 @@
         document.getElementById('rejOrgName').textContent = orgName;
         document.getElementById('rejAmount').textContent = '₹' + amount;
         
-        const confirmBtn = document.getElementById('confirmRejectBtn');
-        confirmBtn.href = "/player/bidding/" + bidId + "/reject/";
+        const form = document.getElementById('rejectBidForm');
+        form.action = "/player/bidding/" + bidId + "/reject/";
         
         // Reset checkbox
+        const confirmBtn = document.getElementById('confirmRejectBtn');
         const checkbox = document.getElementById('rejectConfirmCheck');
         checkbox.checked = false;
-        confirmBtn.classList.add('pointer-events-none', 'opacity-50', 'bg-red-500/20');
+        confirmBtn.classList.add('pointer-events-none', 'opacity-50', 'bg-red-500/20', 'text-red-400');
         confirmBtn.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
     }
     

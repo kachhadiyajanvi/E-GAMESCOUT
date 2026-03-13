@@ -21,9 +21,14 @@
                 <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-2">
                     Enter OTP Code
                 </label>
-                {{ form.otp_code }}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-accent-cyan transition-colors z-10">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    {{ form.otp_code }}
+                </div>
                 {% if form.otp_code.errors %}
-                <p class="text-red-500 text-xs mt-1">{{ form.otp_code.errors.0 }}</p>
+                <p class="text-red-500 text-xs mt-1 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ form.otp_code.errors.0 }}</p>
                 {% endif %}
             </div>
 

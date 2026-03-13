@@ -5,9 +5,13 @@
 <div class="container mx-auto p-4 md:p-8 max-w-4xl">
     <!-- Breadcrumb -->
     <nav class="page-breadcrumb">
-        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">
+        <a href="{% url 'index' %}" class="breadcrumb-link">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
+        </a>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">
+            Organization
         </a>
         <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
         <a href="{% url 'my_players' %}" class="breadcrumb-link">
@@ -39,7 +43,7 @@
                 <i class="fa-solid fa-circle-info text-blue-400 mt-0.5 shrink-0"></i>
                 <div>
                     <p class="text-sm text-blue-300 font-bold">Registered Players → Use Bidding</p>
-                    <p class="text-xs text-blue-200/60 mt-0.5">If the player is already registered on E-GameScout, you must acquire them through the <a href="{% url 'player_bidding_dashboard' %}" class="underline hover:text-blue-300">Bidding System</a>.</p>
+                    <p class="text-xs text-blue-200/60 mt-0.5">If the player is already registered on E-GameScout, you must acquire them through the <a href="{% url 'org_bidding_dashboard' %}" class="underline hover:text-blue-300">Bidding System</a>.</p>
                 </div>
             </div>
 

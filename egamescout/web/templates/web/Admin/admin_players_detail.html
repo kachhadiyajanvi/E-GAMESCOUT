@@ -5,11 +5,23 @@
 {% block header_desc %}Manage user accounts and player profiles.{% endblock %}
 
 {% block header_actions %}
-<form method="GET" action="{% url 'admin_players_detail' %}" class="relative w-full sm:w-64 group">
-    <input type="text" name="q" value="{{ search_query }}" placeholder="Search Players..." class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder-white/30">
-    <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-blue transition-colors text-xs bg-transparent border-none cursor-pointer">
-        <i class="fa-solid fa-magnifying-glass"></i>
-    </button>
+<form method="GET" action="{% url 'admin_players_detail' %}" class="flex items-center gap-2">
+    <!-- Filter Dropdown -->
+    <select name="status" onchange="this.form.submit()" class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all cursor-pointer">
+        <option value="" {% if not status_filter %}selected{% endif %}>All Status</option>
+        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+        <option value="deactivated" {% if status_filter == 'deactivated' %}selected{% endif %}>Deactivated</option>
+        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+    </select>
+
+    <!-- Search Input -->
+    <div class="relative w-full sm:w-64 group">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search Players..." class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder-white/30">
+        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-blue transition-colors text-xs bg-transparent border-none cursor-pointer">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </div>
 </form>
 <button onclick="openModal('players')" class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center justify-center gap-2 whitespace-nowrap">
     <i class="fa-solid fa-bullhorn"></i> Notify
@@ -62,7 +74,12 @@
 
 
                     <td class="p-4">
-                        {% if player.status == 'ACTIVE' %}
+                        {% if not player.is_active_account %}
+                        <span
+                            class="text-red-500 bg-red-500/10 px-2 py-1 rounded-full text-xs font-bold dot-indicator flex items-center gap-1 w-fit">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Deactivated
+                        </span>
+                        {% elif player.status == 'ACTIVE' %}
                         <span
                             class="text-green-400 bg-green-400/10 px-2 py-1 rounded-full text-xs font-bold dot-indicator flex items-center gap-1 w-fit">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Active

@@ -114,7 +114,7 @@ class OrganizationPhotoForm(forms.ModelForm):
 class EmailLoginForm(forms.Form):
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
-            'class': 'cyber-input w-full rounded-lg p-3 placeholder-white/30',
+            'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 placeholder-white/30',
             'placeholder': 'Enter your email'
         }),
         label="Email Address"
@@ -138,11 +138,11 @@ class PlayerRegistrationForm(forms.ModelForm):
         model = Player
         fields = ['full_name', 'age', 'uid', 'mobile_no', 'aadhar_number'] # Age & Aadhar extracted via AI
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3 opacity-70 cursor-not-allowed', 'placeholder': 'Enter Full Name', 'readonly': 'readonly'}),
-            'age': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3 opacity-70 cursor-not-allowed', 'placeholder': 'Age', 'readonly': 'readonly'}),
-            'uid': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3', 'placeholder': 'Enter Game ID'}),
-            'mobile_no': forms.NumberInput(attrs={'class': 'cyber-input w-full rounded-lg p-3', 'placeholder': 'Enter Mobile Number'}),
-            'aadhar_number': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3 opacity-70 cursor-not-allowed', 'placeholder': 'Aadhar Number', 'readonly': 'readonly'}),
+            'full_name': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 opacity-70 cursor-not-allowed', 'placeholder': 'Enter Full Name', 'readonly': 'readonly'}),
+            'age': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 opacity-70 cursor-not-allowed', 'placeholder': 'Age', 'readonly': 'readonly'}),
+            'uid': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 'placeholder': 'Enter Game ID'}),
+            'mobile_no': forms.NumberInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 'placeholder': 'Enter Mobile Number'}),
+            'aadhar_number': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 opacity-70 cursor-not-allowed', 'placeholder': 'Aadhar Number', 'readonly': 'readonly'}),
         }
 
     def clean_mobile_no(self):
@@ -178,12 +178,16 @@ class PlayerRegistrationForm(forms.ModelForm):
 class PlayerProfileForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['username', 'profile_photo']
+        fields = ['username', 'profile_photo', 'address']
         widgets = {
              'username': forms.TextInput(attrs={
-                'class': 'flex-1 bg-transparent border-none outline-none text-white', 
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
                 'placeholder': 'gamer_tag',
                 'required': 'required'
+            }),
+             'address': forms.TextInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'City, State, Country'
             }),
              'profile_photo': forms.FileInput(attrs={
                 'class': 'hidden',

@@ -3,6 +3,29 @@
 
 {% block content %}
 <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 custom-scrollbar relative">
+    <nav class="flex items-center gap-2 text-xs text-white/40 font-mono">
+        <a href="{% url 'index' %}" class="hover:text-white transition-colors">Home</a>
+        <i class="fa-solid fa-chevron-right text-[9px] text-white/20"></i>
+        <a href="{% url 'admin_dashboard' %}" class="hover:text-white transition-colors">Admin</a>
+        <i class="fa-solid fa-chevron-right text-[9px] text-white/20"></i>
+        <span class="text-white/70 font-semibold">
+            {% with route=request.resolver_match.url_name %}
+                {% if route == 'admin_dashboard' %}Dashboard
+                {% elif route == 'admin_players_detail' %}Players
+                {% elif route == 'admin_organization_detail' %}Organizations
+                {% elif route == 'admin_tournaments_detail' %}Tournaments
+                {% elif route == 'admin_archive_actions' %}Archive
+                {% elif route == 'admin_profile' %}Profile
+                {% elif route == 'admin_analytics' %}Analytics
+                {% elif route == 'admin_settings' %}Settings
+                {% elif route == 'admin_bidding_dashboard' %}Bidding Dashboard
+                {% elif route == 'admin_bidding_details' %}Bidding Details
+                {% elif route == 'admin_tournament_approvals' %}Approvals
+                {% elif route == 'admin_tournament_approvals_history' %}Approval History
+                {% else %}Admin Page{% endif %}
+            {% endwith %}
+        </span>
+    </nav>
     
     <!-- Admin Standard Page Header -->
     <div class="flex flex-col md:flex-row flex-wrap items-start md:items-center justify-between gap-4 border-b border-white/5 pb-6 relative z-10">

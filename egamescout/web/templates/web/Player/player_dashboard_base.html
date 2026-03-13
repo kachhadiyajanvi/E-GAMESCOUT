@@ -189,11 +189,20 @@
                         <nav class="flex text-xs font-mono text-gray-500 mb-1" aria-label="Breadcrumb">
                             <ol class="inline-flex items-center space-x-1">
                                 <li class="inline-flex items-center">
-                                    <a href="{% url 'player_dashboard' %}"
+                                    <a href="{% url 'index' %}"
                                         class="hover:text-accent-cyan transition-colors flex items-center gap-1.5 focus:outline-none focus:text-accent-cyan">
                                         <i class="fa-solid fa-house text-[10px]"></i>
-                                        Player Portal
+                                        Home
                                     </a>
+                                </li>
+                                <li>
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-chevron-right text-[8px] text-gray-600 mx-1.5"></i>
+                                        <a href="{% url 'player_dashboard' %}"
+                                            class="hover:text-accent-cyan transition-colors flex items-center gap-1.5 focus:outline-none focus:text-accent-cyan">
+                                            Player Portal
+                                        </a>
+                                    </div>
                                 </li>
                                 {% if request.resolver_match.url_name != 'player_dashboard' %}
                                 <li>

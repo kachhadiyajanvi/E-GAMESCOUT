@@ -67,15 +67,16 @@ urlpatterns = [
     path('auth/register/upload/', views.auth_register_upload, name='auth_register_upload'),
     path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
     # Organization Player Management Routing
-    path('organization/my-players/', views.my_players, name='my_players'),
+    path('organization/my-players/', views.my_players, name='my_players_legacy'),
     path('organization/add-player/', views.org_add_player, name='org_add_player'),
-    path('organization/player/<int:player_id>/', views.org_view_player_profile, name='org_view_player_profile'),
-    path('organization/player/<int:player_id>/remove/', views.org_remove_player, name='org_remove_player'),
+    path('organization/player/<int:player_id>/', views.org_view_player_profile, name='org_view_player_profile_legacy'),
+    path('organization/player/<int:player_id>/remove/', views.org_remove_player, name='org_remove_player_legacy'),
     
     path('player/dashboard/', views.player_dashboard, name='player_dashboard'),
     path('player/profile/', views.player_profile, name='player_profile'),
     
     path('player/deactivate/', views.player_deactivate_account, name='player_deactivate_account'),
+    path('player/reactivate-confirm/', views.player_reactivate_confirm, name='player_reactivate_confirm'),
     path('player/activate/', views.player_activate_account, name='player_activate_account'),
     path('player/delete/', views.player_delete_account, name='player_delete_account'),
     path('auth/logout/', views.auth_logout, name='auth_logout'),
@@ -150,4 +151,10 @@ urlpatterns = [
     path('admin/tournament/approvals/history/', admin_views.admin_tournament_approvals_history, name='admin_tournament_approvals_history'),
     path('admin/tournament/approvals/approve/<int:tournament_id>/', admin_views.admin_approve_tournament, name='admin_approve_tournament'),
     path('admin/tournament/approvals/reject/<int:tournament_id>/', admin_views.admin_reject_tournament, name='admin_reject_tournament'),
+    
+    # Admin Archive Actions
+    path('admin/archive/', admin_views.admin_archive_actions, name='admin_archive_actions'),
+    path('admin/archive/player/<int:player_id>/delete/', admin_views.admin_delete_archived_player, name='admin_delete_archived_player'),
+    path('admin/archive/org/<int:org_id>/delete/', admin_views.admin_delete_archived_organization, name='admin_delete_archived_organization'),
+    path('admin/archive/tournament/<int:tournament_id>/delete/', admin_views.admin_delete_archived_tournament, name='admin_delete_archived_tournament'),
 ]

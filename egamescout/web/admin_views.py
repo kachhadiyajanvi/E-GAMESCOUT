@@ -9,6 +9,10 @@ from django.utils import timezone
 from datetime import datetime, time, timedelta
 from decimal import Decimal
 from web.auth_services import handle_secure_login, handle_secure_logout
+import csv
+from django.http import HttpResponse
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 # Helper to check if user is superuser
 from django.core.paginator import Paginator
@@ -158,15 +162,28 @@ def admin_dashboard(request):
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_players_detail(request):
     search_query = request.GET.get('q', '')
+    status_filter = request.GET.get('status', '')
+    
+    players_list = Player.objects.filter(is_archived=False)
+
     if search_query:
-        players_list = Player.objects.filter(
+        players_list = players_list.filter(
             Q(full_name__icontains=search_query) | 
             Q(username__icontains=search_query) |
-            Q(email__icontains=search_query),
-            is_archived=False
-        ).order_by('-created_at')
-    else:
-        players_list = Player.objects.filter(is_archived=False).order_by('-created_at')
+            Q(email__icontains=search_query)
+        )
+    
+    if status_filter:
+        if status_filter == 'active':
+            players_list = players_list.filter(status='ACTIVE', is_active_account=True)
+        elif status_filter == 'deactivated':
+            players_list = players_list.filter(is_active_account=False)
+        elif status_filter == 'pending':
+            players_list = players_list.filter(status='PENDING')
+        elif status_filter == 'suspended':
+            players_list = players_list.filter(status='SUSPENDED')
+
+    players_list = players_list.order_by('-created_at')
         
     paginator = Paginator(players_list, 10) # Show 10 players per page
     page_number = request.GET.get('page')
@@ -175,7 +192,8 @@ def admin_players_detail(request):
     return render(request, 'web/Admin/admin_players_detail.html', {
         'players': page_obj, 
         'page_obj': page_obj, 
-        'search_query': search_query
+        'search_query': search_query,
+        'status_filter': status_filter
     })
 
 @user_passes_test(is_superuser, login_url='admin_login')
@@ -218,6 +236,7 @@ def admin_delete_organization(request, org_id):
     org = get_object_or_404(Organization, id=org_id)
     if request.method == 'POST':
         org.is_archived = True
+        org.archived_at = timezone.now()
         org.save()
         messages.success(request, f'Organization "{org.Organization_Name}" has been deleted.')
         return redirect('admin_organization_detail')
@@ -293,10 +312,50 @@ def admin_update_player_status(request, player_id):
 def admin_delete_player(request, player_id):
     player = get_object_or_404(Player, id=player_id)
     if request.method == 'POST':
-        player_name = player.full_name
-        player.is_archived = True
-        player.delete()
-    messages.success(request, "Player and associated bids/negotiations deleted permanently.")
+        # Admin Archive Action
+        # Just mark as archived, don't trigger full deactivation logic which is user-side
+        # OR trigger full logic if Admin wants complete removal
+        
+        with transaction.atomic():
+            player.is_archived = True
+            player.archived_at = timezone.now()
+            player.is_active_account = False
+            player.status = 'SUSPENDED'
+            
+            # Handle Organization Removal (Admin Action)
+            if player.organization:
+                org = player.organization
+                OrganizationPlayer.objects.filter(player=player, organization=org).delete()
+                
+                # Notify Organization
+                OrganizationNotification.objects.create(
+                    recipient=org,
+                    message=f"Player {player.full_name} has been archived by Admin.",
+                    notification_type='ADMIN_ACTION'
+                )
+                
+                player.organization = None
+                
+            player.save()
+            
+            # Handle Active Bids (Refund)
+            active_bids = Bid.objects.filter(player=player, status__in=['Pending', 'Negotiation'])
+            for bid in active_bids:
+                org = bid.organization
+                org.coins += bid.amount
+                org.save()
+                
+                Transaction.objects.create(
+                    recipient=org,
+                    amount=bid.amount,
+                    transaction_type='BID_REFUND',
+                    description=f"Bid cancelled by Admin Archive: {player.full_name}"
+                )
+                
+                bid.status = 'Rejected'
+                bid.save()
+
+        messages.success(request, f"Player {player.full_name} has been archived.")
     return redirect('admin_players_detail')
     
     # Render confirmation page for GET request
@@ -358,6 +417,7 @@ def admin_delete_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id)
     if request.method == 'POST':
         name = tournament.Name
+        tournament.archived_at = timezone.now()
         tournament.is_archived = True
         tournament.save()
         messages.success(request, f'Tournament "{name}" has been deleted.')
@@ -1012,14 +1072,20 @@ def admin_grant_verification(request, entity_type, entity_id):
 
 @user_passes_test(is_superuser, login_url='/admin/login/')
 def admin_tournament_approvals(request):
-    pending_tournaments = Tournament.objects.filter(approval_status='PENDING').order_by('-CreatedAt')
+    tab = request.GET.get('tab', 'pending')
     
-    paginator = Paginator(pending_tournaments, 10)
+    if tab == 'history':
+        tournaments_list = Tournament.objects.filter(approval_status__in=['APPROVED', 'REJECTED']).order_by('-UpdatedAt')
+    else:
+        tournaments_list = Tournament.objects.filter(approval_status='PENDING').order_by('-CreatedAt')
+    
+    paginator = Paginator(tournaments_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
     context = {
         'tournaments': page_obj,
+        'current_tab': tab,
     }
     return render(request, 'web/Admin/admin_tournament_approvals.html', context)
 
@@ -1029,6 +1095,16 @@ def admin_approve_tournament(request, tournament_id):
         tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id)
         tournament.approval_status = 'APPROVED'
         tournament.save()
+
+        # Notify Organizer
+        from .models import OrganizationNotification
+        OrganizationNotification.objects.create(
+            recipient=tournament.Organization_Name,
+            message=f"Your tournament '{tournament.Name}' has been approved by Admin! You can now publish it.",
+            notification_type='TOURNAMENT',
+            related_tournament=tournament,
+        )
+
         messages.success(request, f"Tournament {tournament.Name} has been approved.")
         
     return redirect('admin_tournament_approvals')
@@ -1042,6 +1118,16 @@ def admin_reject_tournament(request, tournament_id):
         tournament.admin_rejection_reason = reason
         tournament.is_published = False
         tournament.save()
+
+        # Notify Organizer
+        from .models import OrganizationNotification
+        OrganizationNotification.objects.create(
+            recipient=tournament.Organization_Name,
+            message=f"Your tournament '{tournament.Name}' has been rejected by Admin. Reason: {reason}",
+            notification_type='TOURNAMENT',
+            related_tournament=tournament,
+        )
+
         messages.warning(request, f"Tournament {tournament.Name} has been rejected.")
         
     return redirect('admin_tournament_approvals')
@@ -1058,3 +1144,163 @@ def admin_tournament_approvals_history(request):
         'tournaments': page_obj,
     }
     return render(request, 'web/Admin/admin_tournament_approvals_history.html', context)
+
+# --- Archive Actions ---
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_archive_actions(request):
+    if request.method == 'POST':
+        action_type = request.POST.get('action_type')
+        selected_ids = request.POST.getlist('selected_ids')
+        
+        if not selected_ids:
+             messages.warning(request, "No items selected.")
+             return redirect('admin_archive_actions')
+             
+        if action_type == 'delete_players':
+            deleted_count, _ = Player.objects.filter(id__in=selected_ids, is_archived=True).delete()
+            messages.success(request, f"{deleted_count} archived players permanently deleted.")
+        elif action_type == 'delete_orgs':
+            deleted_count, _ = Organization.objects.filter(id__in=selected_ids, is_archived=True).delete()
+            messages.success(request, f"{deleted_count} archived organizations permanently deleted.")
+        elif action_type == 'delete_tournaments':
+            deleted_count, _ = Tournament.objects.filter(Tournament_ID__in=selected_ids, is_archived=True).delete()
+            messages.success(request, f"{deleted_count} archived tournaments permanently deleted.")
+            
+        return redirect('admin_archive_actions')
+
+    # Get search queries
+    player_q = request.GET.get('player_q', '')
+    org_q = request.GET.get('org_q', '')
+    tour_q = request.GET.get('tour_q', '')
+
+    # Base Querysets
+    players_qs = Player.objects.filter(is_archived=True).order_by('-created_at')
+    orgs_qs = Organization.objects.filter(is_archived=True).order_by('-CreatedAt')
+    tours_qs = Tournament.objects.filter(is_archived=True).order_by('-CreatedAt')
+
+    # Counts for Dashboard
+    total_players = players_qs.count()
+    total_orgs = orgs_qs.count()
+    total_tours = tours_qs.count()
+
+    # --- Export Functionality ---
+    export_type = request.GET.get('export')
+    if export_type:
+        response = HttpResponse(content_type='text/csv')
+        writer = csv.writer(response)
+        
+        if export_type == 'players':
+            response['Content-Disposition'] = 'attachment; filename="archived_players.csv"'
+            writer.writerow(['ID', 'Full Name', 'Email', 'Mobile', 'UID', 'Created At', 'Archived At'])
+            for p in players_qs:
+                archived_at = p.archived_at.strftime("%Y-%m-%d %H:%M:%S") if p.archived_at else "Unknown"
+                writer.writerow([p.id, p.full_name, p.email, p.mobile_no, p.uid, p.created_at, archived_at])
+                
+        elif export_type == 'orgs':
+            response['Content-Disposition'] = 'attachment; filename="archived_organizations.csv"'
+            writer.writerow(['ID', 'Organization Name', 'Email', 'Contact', 'Created At', 'Archived At'])
+            for o in orgs_qs:
+                archived_at = o.archived_at.strftime("%Y-%m-%d %H:%M:%S") if o.archived_at else "Unknown"
+                writer.writerow([o.id, o.Organization_Name, o.Organization_Email, o.Organization_Contact, o.CreatedAt, archived_at])
+                
+        elif export_type == 'tournaments':
+            response['Content-Disposition'] = 'attachment; filename="archived_tournaments.csv"'
+            writer.writerow(['ID', 'Tournament Name', 'Organization', 'Status', 'Created At', 'Archived At'])
+            for t in tours_qs:
+                org_name = t.Organization_Name.Organization_Name if t.Organization_Name else 'N/A'
+                archived_at = t.archived_at.strftime("%Y-%m-%d %H:%M:%S") if t.archived_at else "Unknown"
+                writer.writerow([t.Tournament_ID, t.Name, org_name, t.Status, t.CreatedAt, archived_at])
+                
+        return response
+
+    # Apply Filters for Display
+    if player_q:
+        players_qs = players_qs.filter(
+            Q(full_name__icontains=player_q) | 
+            Q(email__icontains=player_q) | 
+            Q(uid__icontains=player_q)
+        )
+
+    if org_q:
+        orgs_qs = orgs_qs.filter(
+            Q(Organization_Name__icontains=org_q) |
+            Q(Organization_Email__icontains=org_q)
+        )
+
+    if tour_q:
+        tours_qs = tours_qs.filter(
+            Q(Name__icontains=tour_q) |
+            Q(Organization_Name__Organization_Name__icontains=tour_q)
+        )
+
+    # --- Chart Data Preparation ---
+    # Distribution Data (Pie Chart)
+    distribution_data = {
+        'labels': ['Players', 'Organizations', 'Tournaments'],
+        'data': [total_players, total_orgs, total_tours]
+    }
+
+    # Activity Data (Line Chart) - Using created_at as proxy for "activity" or timeframe
+    # Grouping by date (last 30 days or general distribution)
+    # Since we don't have 'archived_at', we'll show 'Creation Date' distribution or 'Last Updated'
+    # Let's use UpdatedAt (approximating archive time)
+    
+    # helper for date grouping
+    def get_date_counts(queryset, date_field):
+        return (queryset
+                .extra(select={'day': f"date({date_field})"})
+                .values('day')
+                .annotate(count=Count('id' if date_field != 'Tournament_ID' else 'Tournament_ID'))
+                .order_by('day'))
+
+    # Since SQLite/MySQL syntax differs for date extraction, keeping it simple:
+    # Just passing counts for now. Logic for complex date grouping might need DB specific functions.
+    # We will pass simple total counts for now to ensure robustness.
+    
+    context = {
+        # Lists
+        'archived_players': players_qs,
+        'archived_orgs': orgs_qs,
+        'archived_tournaments': tours_qs,
+        
+        # Search Params
+        'player_q': player_q,
+        'org_q': org_q,
+        'tour_q': tour_q,
+        
+        # Dashboard Counts
+        'total_players': total_players,
+        'total_orgs': total_orgs,
+        'total_tours': total_tours,
+        
+        # Charts
+        'distribution_chart_data': json.dumps(distribution_data),
+    }
+    return render(request, 'web/Admin/admin_archive_actions.html', context)
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_delete_archived_player(request, player_id):
+    player = get_object_or_404(Player, id=player_id, is_archived=True)
+    if request.method == 'POST':
+        name = player.username or player.full_name
+        player.delete()
+        messages.success(request, f"Player '{name}' has been permanently deleted.")
+    return redirect('admin_archive_actions')
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_delete_archived_organization(request, org_id):
+    org = get_object_or_404(Organization, id=org_id, is_archived=True)
+    if request.method == 'POST':
+        name = org.Organization_Name
+        org.delete()
+        messages.success(request, f"Organization '{name}' has been permanently deleted.")
+    return redirect('admin_archive_actions')
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_delete_archived_tournament(request, tournament_id):
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, is_archived=True)
+    if request.method == 'POST':
+        name = tournament.Name
+        tournament.delete()
+        messages.success(request, f"Tournament '{name}' has been permanently deleted.")
+    return redirect('admin_archive_actions')

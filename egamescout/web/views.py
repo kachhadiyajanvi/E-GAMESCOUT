@@ -360,11 +360,20 @@ def auth_login(request):
                     # return redirect(f"{request.path}?action=register") # Removed redirect as requested
                     return redirect('auth_login') # Refresh to show message
                 
-                # Check Suspended Status
+            # Login Flow Continuation
+            if not is_register: 
                 player = Player.objects.get(email=email)
+                
+                # Check for Admin Suspension
                 if player.status == 'SUSPENDED':
-                    messages.error(request, 'Your account has been suspended. Please contact support.')
-                    return redirect('auth_login')
+                    messages.error(request, 'Your account has been suspended by Admin. Please contact support.')
+                    return redirect('index')
+                
+                # Check for Deactivation (User Init)
+                if not player.is_active_account:
+                    return render(request, 'web/Player/reactivate_account.html', {'player': player})
+
+            # Generate OTP
             
             else: # REGISTER FLOW
                 if player_exists:
@@ -566,7 +575,12 @@ def player_dashboard(request):
     if not player_id:
         return redirect('auth_login')
         
-    player = Player.objects.get(id=player_id)
+    try:
+        player = Player.objects.get(id=player_id)
+    except Player.DoesNotExist:
+        request.session.flush()
+        return redirect('auth_login')
+
     
     # Fetch Tasks & Events
     import json
@@ -647,16 +661,20 @@ def player_profile(request):
     if not player_id:
         return redirect('auth_login')
         
-    player = get_object_or_404(Player, id=player_id)
+    try:
+        player = Player.objects.get(id=player_id)
+    except Player.DoesNotExist:
+        request.session.flush()
+        return redirect('auth_login')
     
     if request.method == 'POST':
         form = PlayerProfileForm(request.POST, request.FILES, instance=player)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Profile updated successfully!')
+            messages.success(request, 'Profile updated successfully.')
             return redirect('player_profile')
         else:
-             messages.error(request, 'Error updating profile. Please check the fields.')
+             messages.error(request, 'Error updating profile. Please check the required fields.')
     else:
         form = PlayerProfileForm(instance=player)
         
@@ -668,11 +686,69 @@ def player_deactivate_account(request):
         return redirect('auth_login')
         
     if request.method == 'POST':
-        player = get_object_or_404(Player, id=player_id)
-        player.is_active_account = False
-        player.save()
-        messages.success(request, 'Your account has been deactivated.')
-        return redirect('player_profile')
+        try:
+            player = Player.objects.get(id=player_id)
+        except Player.DoesNotExist:
+            request.session.flush()
+            return redirect('auth_login')
+            
+        with transaction.atomic():
+            # 1. Update Player Status
+            player.is_active_account = False
+            # player.status = 'SUSPENDED'  <-- REMOVED per user request
+            # We keep current status or mark as 'DEACTIVATED' if such status exists.
+            # Assuming we just rely on is_active_account=False for now.
+            player.save()
+            
+            # 2. Handle Organization Removal
+            if player.organization:
+                org = player.organization
+                
+                # Remove from Org Roster
+                OrganizationPlayer.objects.filter(player=player, organization=org).delete()
+                
+                # Notify Organization
+                OrganizationNotification.objects.create(
+                    recipient=org,
+                    message=f"Player {player.full_name} has deactivated their account and left the organization.",
+                    notification_type='PLAYER_LEFT'
+                )
+                
+                # Unlink Player
+                player.organization = None
+                player.save()
+                
+            # 3. Handle Active Bids (Refund & Cancel)
+            active_bids = Bid.objects.filter(player=player, status__in=['Pending', 'Negotiation'])
+            for bid in active_bids:
+                org = bid.organization
+                
+                # Refund Amount
+                org.coins += bid.amount
+                org.save()
+                
+                # Log Transaction
+                Transaction.objects.create(
+                    recipient=org,
+                    amount=bid.amount,
+                    transaction_type='BID_REFUND',
+                    description=f"Bid details cancelled due to player deactivation: {player.full_name}"
+                )
+                
+                # Notify Organization
+                OrganizationNotification.objects.create(
+                    recipient=org,
+                    message=f"Bid for {player.full_name} cancelled. Player deactivated account.",
+                    notification_type='BID_CANCELLED'
+                )
+                
+                # Update Bid Status
+                bid.status = 'Rejected' # Or Cancelled if available
+                bid.save()
+
+        request.session.flush()
+        messages.success(request, 'Your account has been successfully deactivated. If you want to reactivate your account in the future, simply log in again using the same account credentials.')
+        return redirect('auth_login')
         
     # Using existing profile page to trigger viaPOST
     return redirect('player_profile')
@@ -683,7 +759,11 @@ def player_activate_account(request):
         return redirect('auth_login')
         
     if request.method == 'POST':
-        player = get_object_or_404(Player, id=player_id)
+        try:
+            player = Player.objects.get(id=player_id)
+        except Player.DoesNotExist:
+            request.session.flush()
+            return redirect('auth_login')
         player.is_active_account = True
         player.save()
         messages.success(request, 'Your account has been activated.')
@@ -697,7 +777,11 @@ def player_delete_account(request):
         return redirect('auth_login')
         
     if request.method == 'POST':
-        player = get_object_or_404(Player, id=player_id)
+        try:
+            player = Player.objects.get(id=player_id)
+        except Player.DoesNotExist:
+            request.session.flush()
+            return redirect('auth_login')
         player.delete()
         request.session.flush()
         messages.success(request, 'Your account has been permanently deleted.')
@@ -1814,6 +1898,7 @@ def tournament_delete(request, tournament_id):
         tournament_name = tournament.Name
         # Soft delete: archive instead of hard delete
         tournament.is_archived = True
+        tournament.archived_at = timezone.now()
         tournament.save()
         messages.success(request, f'Tournament "{tournament_name}" archived successfully!')
         return redirect('tournament_list')
@@ -2558,6 +2643,10 @@ def player_accept_bid(request, bid_id):
 
 @login_required
 def player_reject_bid(request, bid_id):
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('player_bidding_dashboard')
+
     player_id = request.session.get('player_id')
     if not player_id:
         return redirect('auth_login')
@@ -2795,4 +2884,52 @@ def player_notifications(request):
     PlayerNotification.objects.filter(recipient=player, is_read=False).update(is_read=True)
     
     return render(request, 'web/Player/player_notifications.html', {'notifications': notifications, 'player': player})
+
+def player_reactivate_confirm(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'cancel':
+            return redirect('index')
+            
+        email = request.POST.get('email')
+        if not email:
+            return redirect('auth_login')
+            
+        try:
+            player = Player.objects.get(email=email)
+        except Player.DoesNotExist:
+            return redirect('auth_login')
+        
+        if action == 'confirm':
+            player.is_active_account = True
+            if player.status != 'PENDING':
+                player.status = 'ACTIVE'
+            player.save()
+            
+            # Generate OTP (Replicated Logic)
+            otp_code = str(random.randint(100000, 999999))
+            request.session['auth_email'] = email
+            request.session['auth_otp'] = otp_code
+            request.session['auth_otp_created_at'] = time.time()
+            request.session['otp_verified'] = False
+            
+            try:
+                html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+                plain_message = strip_tags(html_message)
+                
+                send_mail(
+                    'Your E-Game Scout Code',
+                    plain_message,
+                    settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com',
+                    [email],
+                    fail_silently=False,
+                    html_message=html_message
+                )
+            except Exception as e:
+                print(f"Error sending email: {e}")
+            
+            messages.success(request, f'Account Reactivated! OTP sent to {email}')
+            return redirect('auth_verify_otp')
+
+    return redirect('auth_login')
 
