@@ -6,10 +6,12 @@
 <div class="container mx-auto max-w-7xl p-8">
     <!-- Breadcrumb -->
     <nav class="page-breadcrumb">
-        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">
+        <a href="{% url 'index' %}" class="breadcrumb-link">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </a>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">My Dashboard</a>
         <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
         <span class="breadcrumb-active">Upcoming Tournaments</span>
     </nav>

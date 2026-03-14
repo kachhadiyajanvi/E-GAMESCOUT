@@ -79,6 +79,7 @@
                             </div>
                             {{ form.username }}
                         </div>
+                        <p id="username-status" class="hidden"></p>
                         {% if form.username.errors %}
                         <p class="text-red-400 text-xs mt-2 px-1 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ form.username.errors.0 }}</p>
                         {% endif %}
@@ -330,5 +331,48 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const usernameInput = document.getElementById('id_username');
+        const statusMsg = document.getElementById('username-status');
+        let timeout = null;
+
+        if(usernameInput && statusMsg) {
+            usernameInput.addEventListener('keyup', function() {
+                clearTimeout(timeout);
+                const val = this.value.trim();
+                
+                if(val.length === 0) {
+                    statusMsg.classList.add('hidden');
+                    return;
+                }
+                
+                statusMsg.classList.remove('hidden');
+                statusMsg.className = 'text-xs mt-2 px-1 flex items-center gap-1 font-bold text-gray-400';
+                statusMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking availability...';
+                
+                timeout = setTimeout(() => {
+                    fetch(`/api/check-username/?username=${encodeURIComponent(val)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.available) {
+                            statusMsg.className = 'text-xs mt-2 px-1 flex items-center gap-1 font-bold text-green-400';
+                            statusMsg.innerHTML = '<i class="fa-solid fa-check"></i> Username available';
+                            usernameInput.classList.remove('border-red-500');
+                        } else {
+                            statusMsg.className = 'text-xs mt-2 px-1 flex items-center gap-1 font-bold text-red-500';
+                            statusMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Username already taken';
+                            usernameInput.classList.remove('border-green-500');
+                        }
+                    })
+                    .catch(e => {
+                        statusMsg.classList.add('hidden');
+                    });
+                }, 500);
+            });
+        }
+    });
+</script>
 
 {% endblock %}

@@ -1,255 +1,352 @@
-{% extends 'web/Player/player_page_base.html' %}
+{% extends 'web/Player/player_dashboard_base.html' %}
 {% load humanize %}
 {% load static %}
 
-{% block header_icon %}fa-solid fa-gavel{% endblock %}
-{% block header_tag %}Bidding Hub{% endblock %}
-{% block header_title %}
-    AUCTION <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">STATUS</span>
-{% endblock %}
-{% block header_desc %}
-    {% if bidding_status.is_active %}
-    <span class="flex items-center justify-center md:justify-start gap-2 mt-1">
-        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-        Active Season: <strong class="text-green-400">{{ bidding_status.season_name }}</strong>
-    </span>
-    {% else %}
-    <span class="flex items-center justify-center md:justify-start gap-2 mt-1 text-sm font-mono">
-        <span class="w-2 h-2 rounded-full bg-red-500"></span>
-        <span class="text-red-400 font-bold">Bidding is closed.</span> Next starting <strong class="text-yellow-500">{{ bidding_status.next_season_start|date:"d M Y" }}</strong>.
-    </span>
-    {% endif %}
-{% endblock %}
 
-{% block page_content %}
+{% block content %}
 <div class="max-w-4xl mx-auto space-y-6">
 
-    <!-- Notifications Section -->
-    {% if notifications %}
-    <div class="mb-6 bg-white/5 border border-white/10 rounded-xl p-4">
-        <h3 class="text-white font-bold mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-bell text-yellow-400"></i> New Notifications
-        </h3>
-        <div class="space-y-2">
-            {% for n in notifications %}
-            <div class="flex items-start gap-3 p-3 bg-black/20 rounded-lg border border-white/5">
-                <div class="w-2 h-2 mt-1.5 rounded-full bg-accent-cyan shrink-0"></div>
-                <div>
-                    <p class="text-sm text-white/80">{{ n.message }}</p>
-                    <p class="text-[10px] text-white/30 font-mono mt-1">{{ n.created_at|timesince }} ago</p>
-                </div>
-            </div>
-            {% endfor %}
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="mb-4 space-y-2">
+        {% for message in messages %}
+        <div class="px-4 py-3 rounded-xl text-sm font-bold border flex items-center gap-2 
+            {% if message.tags == 'success' %}bg-green-500/10 border-green-500/30 text-green-400{% else %}bg-red-500/10 border-red-500/30 text-red-400{% endif %}">
+            <i class="fa-solid {% if message.tags == 'success' %}fa-check-circle{% else %}fa-circle-exclamation{% endif %}"></i>
+            {{ message }}
         </div>
-    </div>
-    {% endif %}
-
-    <!-- Bidding Season Countdown Banner -->
-    {% if bidding_status %}
-    <div class="relative overflow-hidden rounded-xl mb-6 p-4 border
-        {% if bidding_status.is_active %}bg-green-500/5 border-green-500/20{% else %}bg-yellow-500/5 border-yellow-500/20{% endif %}">
-        <div class="absolute top-0 right-0 w-48 h-48 {% if bidding_status.is_active %}bg-green-500/5{% else %}bg-yellow-500/5{% endif %} rounded-full blur-[60px] pointer-events-none"></div>
-        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-                <p class="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-2
-                    {% if bidding_status.is_active %}text-green-400{% else %}text-yellow-400{% endif %}">
-                    <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
-                    {% if bidding_status.is_active %}Bidding Season Active{% else %}Bidding Currently Closed{% endif %}
-                </p>
-                <h3 class="text-white font-display font-bold text-xl tracking-wider">
-                    {% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}System Auto-Scheduled{% endif %}
-                </h3>
-                
-                {% if bidding_status.is_active %}
-                <p class="text-white/50 text-xs font-mono mt-1">
-                    <span class="text-white/30">Bidding Closes:</span>
-                    <span class="text-white font-bold">{{ bidding_status.end_date|date:"d F Y" }}</span>
-                </p>
-                {% else %}
-                <p class="text-white/50 text-xs font-mono mt-1">
-                    <span class="text-white/30">Next Bidding Season Starts:</span>
-                    <span class="text-yellow-500 font-bold border-b border-yellow-500/30 pb-0.5">{{ bidding_status.next_season_start|date:"d F Y" }}</span>
-                </p>
-                {% endif %}
-            </div>
-            
-            <div class="text-right shrink-0">
-                <p class="text-[10px] text-white/40 uppercase tracking-widest mb-1 font-bold">{% if bidding_status.is_active %}Time Remaining{% else %}Opens In{% endif %}</p>
-                {% if bidding_status.is_active %}
-                <span class="text-2xl font-display font-bold text-green-400 tabular-nums"
-                    id="playerPageCountdown"
-                    data-start="{{ bidding_status.start_date|date:'c' }}"
-                    data-end="{{ bidding_status.end_date|date:'c' }}"
-                    data-active="true">--:--:--</span>
-                {% else %}
-                <span class="text-2xl font-display font-bold text-yellow-500 tabular-nums"
-                    id="playerPageCountdown"
-                    data-start="{{ bidding_status.next_season_start|date:'c' }}"
-                    data-active="false">--:--:--</span>
-                {% endif %}
-            </div>
-        </div>
+        {% endfor %}
     </div>
     {% endif %}
 
     <!-- Status Banner -->
-    <div class="relative overflow-hidden rounded-2xl p-8 border border-white/10
-        {% if 'Available' in auction_status %}bg-gradient-to-br from-blue-900/40 to-black/60 shadow-[0_0_30px_rgba(59,130,246,0.15)]
-        {% elif 'Negotiation' in auction_status %}bg-gradient-to-br from-yellow-900/40 to-black/60 shadow-[0_0_30px_rgba(234,179,8,0.15)]
-        {% else %}bg-gradient-to-br from-green-900/40 to-black/60 shadow-[0_0_30px_rgba(34,197,94,0.15)]
+    <div class="relative overflow-hidden rounded-2xl p-6 md:p-8 border border-white/5 bg-[#0a0a0e]/80 backdrop-blur-xl shadow-2xl transition-all
+        {% if 'Available' in auction_status %}hover:border-blue-500/30 hover:shadow-[0_0_40px_rgba(59,130,246,0.1)]
+        {% elif 'Negotiation' in auction_status %}hover:border-yellow-500/30 hover:shadow-[0_0_40px_rgba(234,179,8,0.1)]
+        {% else %}hover:border-[#4ade80]/30 hover:shadow-[0_0_40px_rgba(74,222,128,0.1)]
         {% endif %}">
 
-        <!-- Noise overlay removed as image is missing -->
+        <!-- Background Glow -->
+        <div class="absolute inset-0 pointer-events-none opacity-20 transition-all duration-700
+            {% if 'Available' in auction_status %}bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-900/40 via-transparent to-transparent
+            {% elif 'Negotiation' in auction_status %}bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-yellow-900/40 via-transparent to-transparent
+            {% else %}bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-green-900/40 via-transparent to-transparent
+            {% endif %}">
+        </div>
 
-        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div class="flex flex-col items-center md:items-start text-center md:text-left">
-                <p class="text-sm font-bold tracking-widest uppercase mb-2 text-white/50">Current Status</p>
-                <h2 class="text-4xl font-display font-bold text-white max-w-lg leading-tight">{{ auction_status }}</h2>
+        <div class="relative z-10 flex items-center justify-between gap-6">
+            <div class="flex flex-col items-start gap-1">
+                <p class="text-[10px] font-black tracking-widest uppercase text-white/40 font-mono">Current Status</p>
+                <h2 class="text-2xl md:text-3xl font-display font-black tracking-wider uppercase
+                    {% if 'Available' in auction_status %}text-blue-400
+                    {% elif 'Negotiation' in auction_status %}text-yellow-400
+                    {% else %}text-[#4ade80]
+                    {% endif %}">{{ auction_status }}</h2>
             </div>
 
-            <div class="w-24 h-24 rounded-full flex items-center justify-center shrink-0 border-2
-                {% if 'Available' in auction_status %}bg-blue-500/20 border-blue-500/50 text-blue-400
-                {% elif 'Negotiation' in auction_status %}bg-yellow-500/20 border-yellow-500/50 text-yellow-400
-                {% else %}bg-green-500/20 border-green-500/50 text-green-400
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border border-white/10 shadow-inner
+                {% if 'Available' in auction_status %}bg-blue-950/30 text-blue-400/80
+                {% elif 'Negotiation' in auction_status %}bg-yellow-950/30 text-yellow-400/80
+                {% else %}bg-green-950/30 text-[#4ade80]/80
                 {% endif %}">
                 {% if 'Available' in auction_status %}
-                <i class="fa-solid fa-user-clock text-4xl animate-pulse"></i>
+                <i class="fa-solid fa-user-clock text-3xl animate-pulse"></i>
                 {% elif 'Negotiation' in auction_status %}
-                <i class="fa-solid fa-comments-dollar text-4xl"></i>
+                <i class="fa-solid fa-comments-dollar text-3xl"></i>
                 {% else %}
-                <i class="fa-solid fa-handshake text-4xl"></i>
+                <i class="fa-solid fa-handshake text-3xl"></i>
                 {% endif %}
             </div>
         </div>
     </div>
 
     <!-- Bidding Sections -->
-    <div class="mt-8 space-y-12">
+    <!-- Bidding Sections -->
+    <div class="mt-8 flex flex-col gap-8">
         
-        <!-- 1. ACTIVE BIDS (Pending) -->
-        <div>
-            <h3 class="font-display font-bold text-lg text-white mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-gavel text-blue-400"></i>
+        {% if 'Sold to' in auction_status %}
+        <!-- Professional & Sleek Congratulations Section -->
+        <div class="relative bg-gradient-to-br from-[#0B0F19] to-black border border-emerald-500/20 rounded-3xl p-6 sm:p-10 shadow-[0_20px_60px_-15px_rgba(16,185,129,0.15)] overflow-hidden">
+            <!-- Subtle Background Accents -->
+            <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none transform translate-x-1/3 -translate-y-1/3"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none transform -translate-x-1/2 translate-y-1/2"></div>
+            
+            <div class="relative z-10 flex flex-col md:flex-row items-center gap-6 sm:gap-10">
+                <!-- Left: Graphic / Trophy -->
+                <div class="shrink-0">
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.15)] relative backdrop-blur-md">
+                        <div class="absolute inset-0 rounded-full border border-emerald-400 animate-pulse opacity-20"></div>
+                        <i class="fa-solid fa-trophy text-emerald-400 text-3xl sm:text-4xl drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]"></i>
+                    </div>
+                </div>
+
+                <!-- Right: Content -->
+                <div class="text-center md:text-left flex-1">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-4">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-mono">Deal Finalized</span>
+                    </div>
+                    
+                    <h2 class="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-white tracking-wider uppercase mb-3 drop-shadow-md">
+                        Congratulations!
+                    </h2>
+                    
+                    <p class="text-white/60 text-sm sm:text-base font-mono max-w-2xl leading-relaxed mx-auto md:mx-0">
+                        Your skills have been recognized. You have been officially recruited and assigned to a professional roster for the upcoming season. Welcome to the big leagues.
+                    </p>
+                </div>
+            </div>
+
+            {% if accepted_bids %}
+            <div class="mt-10 sm:mt-12 border-t border-white/5 pt-8 sm:pt-10">
+                <h3 class="text-xs text-white/40 uppercase tracking-widest font-bold font-mono mb-6 ml-2 flex items-center gap-2">
+                    <i class="fa-solid fa-signature text-emerald-500/50"></i> Official Contract Details
+                </h3>
+                {% for bid in accepted_bids %}
+                <div class="bg-black/40 backdrop-blur-md rounded-2xl border border-white/5 p-5 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-8 hover:border-emerald-500/20 transition-all duration-300 group">
+                    
+                    <!-- Organization Info -->
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 sm:gap-6 w-full lg:w-auto">
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#0a0a0e] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-inner group-hover:border-emerald-500/40 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] transition-all">
+                            {% if bid.organization.profile_photo %}
+                            <img src="{{ bid.organization.profile_photo.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                            <div class="text-emerald-500 font-bold text-3xl sm:text-4xl uppercase font-display">
+                                {{ bid.organization.Organization_Name|make_list|first }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex flex-col justify-center h-full">
+                            <p class="text-[10px] text-emerald-500/70 font-bold uppercase tracking-widest font-mono mb-1.5 flex items-center justify-center sm:justify-start gap-1"><i class="fa-solid fa-building-user text-[8px]"></i> Signed With</p>
+                            <h4 class="font-display font-medium text-white text-2xl sm:text-3xl tracking-wide mb-1">{{ bid.organization.Organization_Name }}</h4>
+                            <p class="text-xs text-white/40 mt-1 font-mono flex items-center gap-1.5 justify-center sm:justify-start">
+                                <i class="fa-regular fa-clock text-emerald-500/50"></i> {{ bid.created_at|date:"M d, Y" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Deal Value -->
+                    <div class="w-full lg:w-auto bg-[#0a0a0e]/80 border border-white/5 rounded-xl p-5 sm:p-6 flex flex-col items-center lg:items-end min-w-[220px] shadow-inner relative overflow-hidden group-hover:border-emerald-500/20 transition-colors">
+                        <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <p class="text-[10px] text-white/40 uppercase tracking-widest font-bold font-mono mb-2 relative z-10">Contract Value</p>
+                        <div class="flex items-baseline gap-1 relative z-10">
+                            <span class="font-sans text-xl sm:text-2xl font-bold text-emerald-500">₹</span>
+                            <span class="font-mono text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 tracking-wider font-bold">{{ bid.amount|intcomma }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        {% else %}
+        
+        <!-- Notifications Section (Only show if not sold) -->
+        {% if notifications %}
+        <div class="bg-gradient-to-r from-blue-900/20 to-transparent border border-blue-500/20 rounded-2xl p-6 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+            <h3 class="font-display font-black text-white text-lg tracking-widest uppercase mb-4 flex items-center gap-3">
+                <i class="fa-regular fa-bell text-blue-400 animate-pulse"></i> Alerts
+            </h3>
+            <div class="space-y-3 relative z-10">
+                {% for n in notifications %}
+                <div class="flex items-start gap-4 p-4 bg-black/40 backdrop-blur-sm rounded-xl border border-white/5 hover:border-blue-500/30 transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-info text-blue-400 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-white/90 leading-relaxed">{{ n.message }}</p>
+                        <p class="text-[10px] text-blue-400/60 font-mono mt-2 flex items-center gap-1.5 uppercase font-bold tracking-widest">
+                            <i class="fa-regular fa-clock"></i> {{ n.created_at|timesince }} ago
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Normal Bidding Sections -->
+        <!-- 1. ACTIVE BIDS (Pending) - Full Width -->
+        <div class="relative">
+            <!-- Subtle Grid Background -->
+            <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] rounded-2xl pointer-events-none -z-10 -m-6 p-6"></div>
+
+            <!-- Bidding Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <!-- Stat: Total Offers -->
+                <div class="bg-black/40 backdrop-blur-md border border-white/5 rounded-xl p-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] text-white/40 uppercase tracking-widest font-black font-mono mb-1">Total Offers</p>
+                        <h4 class="font-display text-2xl font-black text-white">{{ total_bids_count|default:"0" }}</h4>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/30 border border-white/10">
+                        <i class="fa-solid fa-list-ul"></i>
+                    </div>
+                </div>
+                
+                <!-- Stat: Organizations Bidding -->
+                <div class="bg-black/40 backdrop-blur-md border border-white/5 rounded-xl p-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] text-blue-400/50 uppercase tracking-widest font-black font-mono mb-1">Interested Teams</p>
+                        <h4 class="font-display text-2xl font-black text-blue-400">{{ unique_orgs_count|default:"0" }}</h4>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
+                        <i class="fa-solid fa-building-user"></i>
+                    </div>
+                </div>
+
+                <!-- Stat: Highest Offer -->
+                <div class="bg-black/40 backdrop-blur-md border border-white/5 rounded-xl p-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] text-[#4ade80]/50 uppercase tracking-widest font-black font-mono mb-1">Peak Offer</p>
+                        <h4 class="font-display text-2xl font-black text-[#4ade80]">₹{{ highest_bid_amount|default:"0"|intcomma }}</h4>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-[#4ade80]/10 flex items-center justify-center text-[#4ade80] border border-[#4ade80]/20">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="font-display font-black text-2xl text-white mb-6 flex items-center gap-3">
+                <i class="fa-solid fa-gavel text-blue-400 transform -rotate-12"></i>
                 ACTIVE BIDS
                 {% if active_bids %}
-                <span class="ml-2 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-bold">{{ active_bids|length }}</span>
+                <span class="ml-1 text-sm bg-[#0b162c] text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg font-bold flex items-center justify-center min-w-[32px]">{{ active_bids|length }}</span>
                 {% endif %}
             </h3>
 
             {% if active_bids %}
-            <div class="space-y-4">
+            <div class="space-y-5">
                 {% for bid in active_bids %}
-                <div class="bg-black/40 border border-t-[3px] border-l border-r border-b border-white/5 border-t-blue-500 
-                           hover:border-white/10 transition-colors rounded-xl p-6 relative overflow-hidden group">
+                <div class="bg-black/60 backdrop-blur-md border 
+                            {% if forloop.first %}border-white/5{% else %}border-white/5 border-t-[3px] border-t-blue-500 shadow-[0_-5px_20px_rgba(59,130,246,0.15)]{% endif %} 
+                           transition-colors rounded-2xl p-6 md:p-8 relative flex flex-col gap-6">
                     
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none group-hover:bg-opacity-20 transition-all"></div>
-
-                    <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                         <!-- Org Info -->
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-xl bg-brand-gray overflow-hidden border border-white/10 shrink-0 shadow-lg">
+                        <div class="flex items-center gap-5">
+                            <div class="w-16 h-16 rounded-2xl bg-[#232732] overflow-hidden flex items-center justify-center shrink-0 border border-white/5 shadow-inner">
                                 {% if bid.organization.profile_photo %}
                                 <img src="{{ bid.organization.profile_photo.url }}" class="w-full h-full object-cover">
                                 {% else %}
-                                <div class="w-full h-full flex items-center justify-center bg-white/5 text-white/30 font-bold text-lg">
+                                <div class="text-white/40 font-black text-2xl lowercase">
                                     {{ bid.organization.Organization_Name|make_list|first }}
                                 </div>
                                 {% endif %}
                             </div>
                             <div>
-                                <h4 class="font-bold text-white text-lg mb-0.5">{{ bid.organization.Organization_Name }}</h4>
-                                <p class="text-xs text-brand-light/40 flex items-center gap-2">
+                                <h4 class="font-bold text-white text-xl tracking-wide mb-1">{{ bid.organization.Organization_Name }}</h4>
+                                <p class="text-xs text-white/40 flex items-center gap-2 font-mono">
                                     <i class="fa-regular fa-clock"></i> {{ bid.created_at|date:"F d, Y - h:i A" }}
                                 </p>
                             </div>
                         </div>
 
                         <!-- Bid Amount -->
-                        <div class="flex flex-col md:items-end gap-1">
-                            <p class="text-[10px] text-brand-light/40 uppercase tracking-widest font-bold">Offer Amount</p>
-                            <span class="font-display text-2xl font-bold text-white tracking-wider">₹{{ bid.amount|intcomma}}</span>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        <div class="flex flex-col items-start md:items-end gap-1.5 min-w-[150px]">
+                            <p class="text-[10px] text-white/30 uppercase tracking-widest font-black">Offer Amount</p>
+                            <span class="font-display text-3xl font-black text-white tracking-widest">₹{{ bid.amount|floatformat:2|intcomma }}</span>
+                            <span class="px-3 py-1 rounded bg-[#0b162c] text-blue-400 border border-blue-500/30 text-[10px] font-bold uppercase tracking-widest flex self-start md:self-end">
                                 Pending Action
                             </span>
                         </div>
                     </div> 
 
                     <!-- Action Buttons -->
-                    <div class="mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-3 relative z-10 justify-end">
-                        <a href="{% url 'player_accept_bid' bid.id %}" 
-                           onclick="return confirm('Are you sure you want to accept this bid? This will finalize the deal.')"
-                           class="flex-1 md:flex-none px-6 py-2.5 bg-green-500 hover:bg-green-400 text-black text-sm font-bold uppercase tracking-wider rounded-lg shadow-lg hover:shadow-green-500/20 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-check"></i> Accept Deal
-                        </a>
+                    <div class="flex flex-wrap md:flex-nowrap justify-end gap-3 md:gap-4 mt-2 border-t border-transparent pt-2">
+                        <form method="POST" action="{% url 'player_accept_bid' bid.id %}" onsubmit="return confirm('Are you sure you want to accept this bid? This will finalize the deal.')" class="w-full md:w-auto order-first md:order-none">
+                            {% csrf_token %}
+                            <button type="submit"
+                               class="w-full md:w-auto px-8 py-3 bg-[#4ade80] hover:bg-[#34d399] text-black text-xs font-black uppercase tracking-widest rounded-lg shadow-[0_0_20px_rgba(74,222,128,0.2)] hover:shadow-[0_0_25px_rgba(74,222,128,0.4)] transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-check text-sm"></i> Accept Deal
+                            </button>
+                        </form>
                         
                         <button type="button" 
                            onclick="openRejectModal('{{ bid.id }}', '{{ bid.organization.Organization_Name|escapejs }}', '{{ bid.amount|intcomma }}')"
-                           class="flex-1 md:flex-none px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 text-red-400 hover:text-red-300 text-sm font-bold uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-xmark"></i> Reject
+                           class="w-full md:w-auto px-8 py-3 bg-[#2a0e10] hover:bg-red-950 border border-red-900/50 hover:border-red-500/50 text-[#e87c86] hover:text-red-300 text-xs font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-xmark text-sm"></i> Reject
                         </button>
                         
                         <button type="button" 
                            onclick="openNegotiationModal('{{ bid.id }}', '{{ bid.organization.Organization_Name|escapejs }}', '{{ bid.amount }}')"
-                           class="flex-1 md:flex-none px-6 py-2.5 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30 hover:border-yellow-500/50 text-yellow-400 hover:text-yellow-300 text-sm font-bold uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-comments-dollar"></i> Negotiate
+                           class="w-full md:w-auto px-8 py-3 bg-[#251e0c] hover:bg-yellow-900 border border-yellow-700/50 hover:border-yellow-500/50 text-[#eab308] hover:text-yellow-300 text-xs font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-comments-dollar text-sm"></i> Negotiate
                         </button>
                     </div>
                 </div> 
                 {% endfor %}
             </div>
             {% else %}
-            <div class="p-6 rounded-xl border border-white/5 border-dashed bg-white/1 text-center">
-                <p class="text-sm text-white/30 italic">No active bids awaiting functionality.</p>
+            <div class="bg-black/40 backdrop-blur-md rounded-2xl border border-white/5 p-12 text-center flex flex-col items-center justify-center min-h-[200px]">
+                <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-gavel text-white/20 text-2xl"></i>
+                </div>
+                <h4 class="font-display font-bold text-white/70 text-lg tracking-wider mb-2">No Active Bids</h4>
+                <p class="text-sm text-white/40 font-mono">You do not have any pending offers to review at this time.</p>
             </div>
             {% endif %}
         </div>
 
-        <!-- 2. NEGOTIATION REQUESTS (Ongoing) -->
+        <!-- Secondary Sections Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- 2. NEGOTIATION REQUESTS (Ongoing) -->
         <div>
-            <h3 class="font-display font-bold text-lg text-white mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-handshake-simple text-yellow-500"></i>
-                NEGOTIATION REQUESTS
+            <div class="flex items-center gap-3 mb-6">
+                <i class="fa-solid fa-handshake-simple text-yellow-500 text-xl"></i>
+                <h3 class="font-display font-black text-xl text-white tracking-widest uppercase">
+                    Negotiation Requests
+                </h3>
                 {% if negotiation_bids %}
-                <span class="ml-2 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full font-bold">{{ negotiation_bids|length }}</span>
+                <span class="px-2.5 py-0.5 rounded bg-[#251e0c] border border-yellow-700/50 text-yellow-500 text-xs font-black">{{ negotiation_bids|length }}</span>
                 {% endif %}
-            </h3>
+            </div>
 
             {% if negotiation_bids %}
             <div class="space-y-4">
                 {% for bid in negotiation_bids %}
-                <div class="bg-black/40 border border-t-[3px] border-l border-r border-b border-white/5 border-t-yellow-500 
-                           rounded-xl p-6 relative overflow-hidden">
+                <div class="relative bg-black/60 backdrop-blur-md rounded-xl border border-[#251e0c] overflow-hidden p-6 transition-all hover:border-yellow-700/50 hover:shadow-[0_0_30px_rgba(234,179,8,0.1)] group">
                     
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+                    <!-- Top Neon Accent -->
+                    <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent"></div>
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 rounded-full blur-[60px] pointer-events-none group-hover:bg-yellow-500/10 transition-colors"></div>
 
                     <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-xl bg-brand-gray overflow-hidden border border-white/10 shrink-0 grayscale hover:grayscale-0 transition-all">
+                        <!-- Left: Org Info -->
+                        <div class="flex items-center gap-5">
+                            <div class="w-16 h-16 rounded-2xl bg-[#0a0a0e] overflow-hidden border border-[#251e0c] shrink-0 flex items-center justify-center p-1 shadow-[inset_0_0_20px_rgba(255,255,255,0.02)] grayscale group-hover:grayscale-0 transition-all duration-500">
                                 {% if bid.organization.profile_photo %}
-                                <img src="{{ bid.organization.profile_photo.url }}" class="w-full h-full object-cover">
+                                <img src="{{ bid.organization.profile_photo.url }}" class="w-full h-full object-cover rounded-xl">
                                 {% else %}
-                                <div class="w-full h-full flex items-center justify-center bg-white/5 text-white/30 font-bold text-lg">
+                                <div class="text-white/40 font-black text-2xl lowercase">
                                     {{ bid.organization.Organization_Name|make_list|first }}
                                 </div>
                                 {% endif %}
                             </div>
                             <div>
-                                <h4 class="font-bold text-white text-lg mb-0.5">{{ bid.organization.Organization_Name }}</h4>
-                                <p class="text-xs text-yellow-400/70 font-mono"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Waiting for Organization Response</p>
+                                <h4 class="font-bold text-white text-xl tracking-wide mb-1">{{ bid.organization.Organization_Name }}</h4>
+                                <p class="text-xs text-yellow-400 flex items-center gap-2 font-mono">
+                                    <i class="fa-solid fa-spinner fa-spin"></i> Waiting for Response
+                                </p>
                             </div>
                         </div>
 
-                        <div class="flex flex-col md:items-end">
-                             <div class="flex items-center gap-4 text-sm font-mono mb-2">
-                                 <span class="text-white/40">Original: <span class="line-through">₹{{ bid.amount|intcomma }}</span></span>
-                                 <i class="fa-solid fa-arrow-right text-white/20"></i>
+                        <!-- Right: Amount Comparison -->
+                        <div class="flex flex-col items-start md:items-end p-4 rounded-xl bg-[#0a0a0e]/50 border border-white/5 md:w-auto w-full">
+                             <div class="flex flex-wrap items-center gap-3 text-sm font-mono mb-2 w-full justify-between md:justify-end">
+                                 <span class="text-white/30 uppercase text-[10px] tracking-widest font-black line-through">₹{{ bid.amount|intcomma }}</span>
+                                 <i class="fa-solid fa-caret-right text-yellow-500 text-xs"></i>
                                  {% with negotiation=bid.negotiations.last %}
-                                 <span class="text-yellow-400 font-bold">Counter: ₹{{ negotiation.counter_amount|intcomma }}</span>
+                                 <span class="text-yellow-400 font-black tracking-widest text-lg md:text-xl">₹{{ negotiation.counter_amount|intcomma }}</span>
                                  {% endwith %}
                              </div>
                              {% with negotiation=bid.negotiations.last %}
                              {% if negotiation.message %}
-                             <p class="text-xs text-white/50 italic">"{{ negotiation.message }}"</p>
+                             <div class="w-full text-left md:text-right">
+                                <p class="text-xs text-white/40 italic font-mono border-l-2 md:border-l-0 md:border-r-2 border-yellow-500/30 pl-2 md:pl-0 md:pr-2 py-1">"{{ negotiation.message }}"</p>
+                             </div>
                              {% endif %}
                              {% endwith %}
                         </div>
@@ -258,27 +355,31 @@
                 {% endfor %}
             </div>
             {% else %}
-            <div class="p-6 rounded-xl border border-white/5 border-dashed bg-white/1 text-center">
-                <p class="text-sm text-white/30 italic">No ongoing negotiations.</p>
+            <div class="p-6 rounded-xl border border-white/5 border-dashed bg-[#0a0a0e]/50 text-center">
+                <i class="fa-solid fa-handshake-slash text-white/20 text-3xl mb-3"></i>
+                <p class="text-sm font-mono text-white/30 uppercase tracking-widest">No ongoing negotiations.</p>
             </div>
             {% endif %}
         </div>
 
         <!-- 3. REJECTED BIDS -->
         <div>
-            <h3 class="font-display font-bold text-lg text-white mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-ban text-red-500"></i>
-                REJECTED BIDS
-            </h3>
+            <div class="flex items-center gap-3 mb-4">
+                <i class="fa-solid fa-ban text-[#e87c86] text-lg"></i>
+                <h3 class="font-display font-black text-lg text-white tracking-widest uppercase">
+                    Rejected Offers
+                </h3>
+            </div>
 
             {% if rejected_bids %}
-            <div class="space-y-3 opacity-60 hover:opacity-100 transition-opacity duration-300">
+            <div class="space-y-3 opacity-80 hover:opacity-100 transition-opacity duration-300">
                 {% for bid in rejected_bids %}
-                <div class="bg-black/20 border border-red-500/10 rounded-xl p-4 flex items-center justify-between gap-4">
+                <div class="bg-black/60 backdrop-blur-md border border-[#2a0e10] hover:border-red-900/50 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all">
+                    
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-brand-gray overflow-hidden border border-white/5 shrink-0 grayscale">
+                        <div class="w-12 h-12 rounded-xl bg-[#0a0a0e] overflow-hidden border border-[#2a0e10] shrink-0 p-1 grayscale">
                             {% if bid.organization.profile_photo %}
-                            <img src="{{ bid.organization.profile_photo.url }}" class="w-full h-full object-cover">
+                            <img src="{{ bid.organization.profile_photo.url }}" class="w-full h-full object-cover rounded-lg">
                             {% else %}
                             <div class="w-full h-full flex items-center justify-center bg-white/5 text-white/20 font-bold">
                                 {{ bid.organization.Organization_Name|make_list|first }}
@@ -286,65 +387,26 @@
                             {% endif %}
                         </div>
                         <div>
-                            <h4 class="font-bold text-white/70 text-sm">{{ bid.organization.Organization_Name }}</h4>
-                            <p class="text-[10px] text-red-400/50 uppercase tracking-wider font-bold">Declined</p>
+                            <h4 class="font-bold text-white/70 text-base tracking-wide">{{ bid.organization.Organization_Name }}</h4>
+                            <p class="text-[10px] text-[#e87c86]/70 uppercase tracking-widest font-black font-mono">Offer Declined</p>
                         </div>
                     </div>
                     
-                    <div class="text-right">
-                        <span class="block font-mono text-sm font-bold text-white/30 line-through">₹{{ bid.amount|intcomma }}</span>
-                        <p class="text-[10px] text-white/20">{{ bid.created_at|date:"M d, Y" }}</p>
+                    <div class="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto mt-2 md:mt-0 pt-2 md:pt-0 border-t border-white/5 md:border-0">
+                        <span class="font-mono text-sm font-black text-white/30 line-through">₹{{ bid.amount|intcomma }}</span>
+                        <p class="text-[10px] text-white/20 font-mono tracking-widest uppercase">{{ bid.created_at|date:"d M y" }}</p>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="p-6 rounded-xl border border-white/5 border-dashed bg-white/1 text-center">
-                <p class="text-sm text-white/30 italic">No rejected bids history.</p>
+            <div class="p-6 rounded-xl border border-white/5 border-dashed bg-[#0a0a0e]/50 text-center">
+                <p class="text-sm font-mono text-white/30 uppercase tracking-widest">No rejected bids history.</p>
             </div>
             {% endif %}
         </div>
-
-        <!-- 4. SOLD (Accepted) -->
-        {% if accepted_bids %}
-        <div>
-            <h3 class="font-display font-bold text-lg text-white mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-trophy text-green-500"></i>
-                SOLD / ACCEPTED
-            </h3>
-            
-            <div class="space-y-4">
-                {% for bid in accepted_bids %}
-                <div class="bg-green-500/5 border border-green-500/20 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-[60px] pointer-events-none"></div>
-                    
-                    <div class="flex items-center gap-4 relative z-10">
-                        <div class="w-16 h-16 rounded-full bg-brand-gray overflow-hidden border-2 border-green-500/30 shrink-0">
-                            {% if bid.organization.profile_photo %}
-                            <img src="{{ bid.organization.profile_photo.url }}" class="w-full h-full object-cover">
-                            {% else %}
-                            <div class="w-full h-full flex items-center justify-center bg-white/5 text-white/30 font-bold text-xl">
-                                {{ bid.organization.Organization_Name|make_list|first }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-bold uppercase tracking-wider mb-1">Official Team</p>
-                            <h4 class="font-bold text-white text-xl">{{ bid.organization.Organization_Name }}</h4>
-                            <p class="text-xs text-white/50">Joined on {{ bid.created_at|date:"F d, Y" }}</p>
-                        </div>
-                    </div>
-
-                    <div class="text-right relative z-10">
-                        <p class="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Sold For</p>
-                        <span class="font-display text-3xl font-bold text-green-400 tracking-wider">₹{{ bid.amount|intcomma }}</span>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
+        </div> <!-- End Secondary Grid -->
         {% endif %}
-
     </div>
 
     <!-- NEGOTIATION MODAL -->
@@ -408,7 +470,6 @@
                     </button>
                 </div>
             </form>
-        </div>
     </div>
 
 {% endblock %}

@@ -593,7 +593,14 @@ def player_dashboard(request):
         request.session.flush()
         return redirect('auth_login')
 
-    
+    if request.method == 'POST':
+        new_task_title = request.POST.get('new_task')
+        if new_task_title:
+            PlayerTask.objects.create(player=player, title=new_task_title, task_type='TASK')
+            from django.contrib import messages
+            messages.success(request, 'Task added successfully.')
+        return redirect('player_dashboard')
+
     # Fetch Tasks & Events
     import json
     
@@ -653,7 +660,18 @@ def player_dashboard(request):
     # Bidding system removed - show all scheduled/ongoing tournaments
     active_tournaments = Tournament.objects.filter(Status='Ongoing')[:5]
     upcoming_tournaments_list = Tournament.objects.filter(Status='Scheduled')[:5]
+    
+    # Calculate Dynamic Stats
     total_tournaments_joined = 0
+    matches_played = 0
+    
+    if player.organization:
+        # Get all tournaments the player's org has joined
+        org_tournaments = TournamentBidder.objects.filter(organization=player.organization).values_list('tournament', flat=True)
+        total_tournaments_joined = org_tournaments.count()
+        # Assume there's a match system later, hardcode matches to 0 for now as there's no Match model.
+        matches_played = 0
+        
     player_credits = player.coins
 
     return render(request, 'web/Player/dashboard.html', {
@@ -664,6 +682,7 @@ def player_dashboard(request):
         'active_tournaments': active_tournaments,
         'upcoming_tournaments_list': upcoming_tournaments_list,
         'total_tournaments_joined': total_tournaments_joined,
+        'matches_played': matches_played,
         'player_credits': player_credits,
     })
 
@@ -2400,6 +2419,23 @@ def org_bidding_dashboard(request):
     
     active_season = BiddingSeason.objects.filter(is_active=True).first()
     
+    # Build bidding_status for the template countdown banner
+    next_season = BiddingSeason.objects.filter(is_active=False, start_date__isnull=False).order_by('start_date').first()
+    if active_season:
+        bidding_status = {
+            'is_active': True,
+            'season_name': active_season.name,
+            'start_date': active_season.start_date,
+            'end_date': active_season.end_date,
+        }
+    elif next_season:
+        bidding_status = {
+            'is_active': False,
+            'next_season_start': next_season.start_date,
+        }
+    else:
+        bidding_status = None
+    
     # 1. Available Players (Not Sold yet and Active Account)
     sold_player_ids = Bid.objects.filter(status='Accepted').values_list('player_id', flat=True)
     all_active_players = Player.objects.filter(is_archived=False, status='ACTIVE', is_active_account=True)
@@ -2420,10 +2456,16 @@ def org_bidding_dashboard(request):
     
     # 4. Notifications
     notifications = OrganizationNotification.objects.filter(recipient=org, is_read=False).order_by('-created_at')[:5]
+    
+    # 5. Player IDs where this org already has an active bid (to disable duplicate bid button in UI)
+    org_active_bid_player_ids = set(
+        all_bids.filter(status__in=['Pending', 'Negotiation']).values_list('player_id', flat=True)
+    )
 
     context = {
         'org': org,
         'active_season': active_season,
+        'bidding_status': bidding_status,
         'wallet_balance': org.coins,
         'available_players': available_players,
         'active_bids': active_bids,
@@ -2431,7 +2473,8 @@ def org_bidding_dashboard(request):
         'negotiation_bids': negotiation_bids,
         'my_roster': my_roster,
         'all_sold': all_sold,
-        'notifications': notifications
+        'notifications': notifications,
+        'org_active_bid_player_ids': org_active_bid_player_ids,
     }
     return render(request, 'web/Organization/org_bidding.html', context)
 
@@ -2444,8 +2487,25 @@ def player_bidding_dashboard(request):
     player = get_object_or_404(Player, id=player_id)
     active_season = BiddingSeason.objects.filter(is_active=True).first()
     
+    # Build bidding_status for the template countdown banner
+    next_season = BiddingSeason.objects.filter(is_active=False, start_date__isnull=False).order_by('start_date').first()
+    if active_season:
+        bidding_status = {
+            'is_active': True,
+            'season_name': active_season.name,
+            'start_date': active_season.start_date,
+            'end_date': active_season.end_date,
+        }
+    elif next_season:
+        bidding_status = {
+            'is_active': False,
+            'next_season_start': next_season.start_date,
+        }
+    else:
+        bidding_status = None
+    
     # Get all bids for this player
-    all_bids = Bid.objects.filter(player=player).order_by('-created_at')
+    all_bids = Bid.objects.filter(player=player).select_related('organization').prefetch_related('negotiations').order_by('-created_at')
     
     # Split bids into categories
     active_bids = all_bids.filter(status='Pending')
@@ -2460,6 +2520,12 @@ def player_bidding_dashboard(request):
     highest_accepted = accepted_bids.order_by('-amount').first()
     in_negotiation = negotiation_bids.exists()
     
+    # Aggregated Stats
+    total_bids_count = all_bids.count()
+    unique_orgs_count = all_bids.values('organization').distinct().count()
+    highest_bid = all_bids.order_by('-amount').first()
+    highest_bid_amount = highest_bid.amount if highest_bid else 0
+    
     auction_status = "Available"
     if highest_accepted:
         auction_status = f"Sold to {highest_accepted.organization.Organization_Name} for ₹{highest_accepted.amount}"
@@ -2469,12 +2535,16 @@ def player_bidding_dashboard(request):
     context = {
         'player': player,
         'active_season': active_season,
+        'bidding_status': bidding_status,
         'active_bids': active_bids,
         'negotiation_bids': negotiation_bids,
         'rejected_bids': rejected_bids,
         'accepted_bids': accepted_bids,
         'auction_status': auction_status,
-        'notifications': notifications
+        'notifications': notifications,
+        'total_bids_count': total_bids_count,
+        'unique_orgs_count': unique_orgs_count,
+        'highest_bid_amount': highest_bid_amount
     }
     return render(request, 'web/Player/player_bidding.html', context)
 
@@ -2550,6 +2620,16 @@ def place_bid(request, player_id):
         messages.error(request, f'Insufficient balance. You only have ₹{org.coins:,} available.')
         return redirect('org_bidding_dashboard')
     
+    # --- FIX: Prevent duplicate bids from same org on same player ---
+    existing_active_bid = Bid.objects.filter(
+        player=player,
+        organization=org,
+        status__in=['Pending', 'Negotiation']
+    ).exists()
+    if existing_active_bid:
+        messages.error(request, f'You already have an active bid on {player.full_name}. Wait for the player\'s response before bidding again.')
+        return redirect('org_bidding_dashboard')
+    
     # Create the bid
     Bid.objects.create(
         season=active_season,
@@ -2582,13 +2662,21 @@ def place_bid(request, player_id):
     messages.success(request, f'Bid of ₹{amount:,} placed on {player.full_name} successfully!')
     return redirect('org_bidding_dashboard')
 
-@login_required
 def player_accept_bid(request, bid_id):
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method.')
+        return redirect('player_bidding_dashboard')
+    
     player_id = request.session.get('player_id')
     if not player_id:
         return redirect('auth_login')
         
-    bid = get_object_or_404(Bid, id=bid_id, player_id=player_id, status='Pending')
+    # Allow accepting Pending OR Negotiation bids
+    bid = get_object_or_404(Bid, id=bid_id, player_id=player_id)
+    
+    if bid.status not in ('Pending', 'Negotiation'):
+        messages.error(request, 'This bid cannot be accepted in its current state.')
+        return redirect('player_bidding_dashboard')
     
     # 1. Update Bid Status
     bid.status = 'Accepted'
@@ -2620,8 +2708,9 @@ def player_accept_bid(request, bid_id):
         status_label='Purchased via Bidding'
     )
     
-    # 5. Reject all other pending bids for this player & Refund
-    other_bids = Bid.objects.filter(player=bid.player, status='Pending').exclude(id=bid.id)
+    # 5. Reject all other non-accepted bids for this player & Refund
+    #    (so every other organization clearly sees the bid as rejected)
+    other_bids = Bid.objects.filter(player=bid.player).exclude(id=bid.id).exclude(status='Accepted')
     for other_bid in other_bids:
         other_bid.status = 'Rejected'
         other_bid.save()
@@ -2647,14 +2736,12 @@ def player_accept_bid(request, bid_id):
     OrganizationNotification.objects.create(
         recipient=bid.organization,
         message=f"Bid Accepted! {bid.player.full_name} has joined your organization.",
-        notification_type='BID_ACCEPTED',
-        link='/organization/players/'
+        notification_type='BID_ACCEPTED'
     )
     
     messages.success(request, f"Congratulations! You have joined {bid.organization.Organization_Name}.")
     return redirect('player_bidding_dashboard')
 
-@login_required
 def player_reject_bid(request, bid_id):
     if request.method != 'POST':
         messages.error(request, "Invalid request method.")
@@ -2663,8 +2750,13 @@ def player_reject_bid(request, bid_id):
     player_id = request.session.get('player_id')
     if not player_id:
         return redirect('auth_login')
-        
-    bid = get_object_or_404(Bid, id=bid_id, player_id=player_id, status='Pending')
+    
+    # Allow rejection of Pending AND Negotiation bids
+    bid = get_object_or_404(Bid, id=bid_id, player_id=player_id)
+    
+    if bid.status not in ('Pending', 'Negotiation'):
+        messages.error(request, "This bid cannot be rejected in its current state.")
+        return redirect('player_bidding_dashboard')
     
     # 1. Update Bid Status
     bid.status = 'Rejected'
@@ -2692,7 +2784,6 @@ def player_reject_bid(request, bid_id):
     messages.success(request, "Bid rejected successfully.")
     return redirect('player_bidding_dashboard')
 
-@login_required
 def player_negotiate_bid(request, bid_id):
     player_id = request.session.get('player_id')
     if not player_id:
@@ -2726,8 +2817,7 @@ def player_negotiate_bid(request, bid_id):
         OrganizationNotification.objects.create(
             recipient=bid.organization,
             message=f"{bid.player.full_name} wants to negotiate. Counter Offer: {amount}",
-            notification_type='BID_NEGOTIATION',
-            link='/organization/bidding/' # Needs to be updated to show negotiation
+            notification_type='BID_NEGOTIATION'
         )
         
         messages.success(request, "Counter offer sent to organization.")
@@ -2746,7 +2836,6 @@ def org_transaction_history(request):
     
     return render(request, 'web/Organization/org_transactions.html', {'transactions': transactions, 'org': org})
 
-@login_required
 def admin_transaction_history(request):
     if not request.user.is_superuser:
         return redirect('admin_login')
@@ -2756,6 +2845,10 @@ def admin_transaction_history(request):
 
 @login_required_organization
 def org_respond_negotiation(request, negotiation_id, action):
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method.')
+        return redirect('org_bidding_dashboard')
+    
     org_id = request.session.get('organizer_id')
     if not org_id:
         return redirect('org_login')
@@ -2885,7 +2978,6 @@ def org_respond_negotiation(request, negotiation_id, action):
         
     return redirect('org_bidding_dashboard')
 
-@login_required
 def player_notifications(request):
     player_id = request.session.get('player_id')
     if not player_id:
@@ -2946,3 +3038,19 @@ def player_reactivate_confirm(request):
 
     return redirect('auth_login')
 
+from django.http import JsonResponse
+def check_username(request):
+    username = request.GET.get('username')
+    player_id = request.session.get('player_id')
+    
+    if not username:
+        return JsonResponse({'available': False, 'error': 'No username provided'})
+        
+    query = Player.objects.filter(username__iexact=username)
+    if player_id:
+        query = query.exclude(id=player_id)
+        
+    if query.exists():
+        return JsonResponse({'available': False})
+        
+    return JsonResponse({'available': True})

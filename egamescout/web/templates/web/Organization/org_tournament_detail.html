@@ -6,15 +6,17 @@
 <div class="p-8">
     <!-- Breadcrumb -->
     <nav class="page-breadcrumb">
-        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">
+        <a href="{% url 'index' %}" class="breadcrumb-link">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </a>
         <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">Organization</a>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
 
         {% if source == 'upcoming' %}
         <a href="{% url 'org_upcoming_tournaments' %}" class="breadcrumb-link">
-            <span>Upcoming Tournaments</span>
+            <span>Upcoming</span>
         </a>
         {% else %}
         <a href="{% url 'tournament_list' %}" class="breadcrumb-link">

@@ -59,6 +59,7 @@ urlpatterns = [
     path('api/register/verify-otp', views.api_register_verify_otp, name='api_register_verify_otp'),
     path('api/register/step1/', views.api_register_step1, name='api_register_step1'),
     path('api/register/step2/', views.api_register_step2, name='api_register_step2'),
+    path('api/check-username/', views.check_username, name='check_username'),
     
     # Organization API
     path('api/organization/dismiss_player_setup/', views.dismiss_player_setup_popup, name='dismiss_player_setup_popup'),

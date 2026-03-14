@@ -148,6 +148,7 @@ class OrganizationPlayer(models.Model):
     name = models.CharField(max_length=255)
     email = models.EmailField()
     game_id = models.CharField(max_length=50)
+    position = models.CharField(max_length=50, default='Player')
     status_label = models.CharField(max_length=50, default='Added Manually') # e.g., 'Added Manually', 'Purchased via Bidding', 'External (Verified)'
     created_at = models.DateTimeField(auto_now_add=True)
 

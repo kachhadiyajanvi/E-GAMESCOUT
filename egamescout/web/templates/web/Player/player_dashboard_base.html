@@ -241,6 +241,8 @@
                             <i class="fa-solid fa-trophy text-accent-cyan opacity-80"></i> UPCOMING TOURNAMENTS
                             {% elif request.resolver_match.url_name == 'player_delete_account' %}
                             <i class="fa-solid fa-gear text-accent-cyan opacity-80"></i> SETTINGS
+                            {% elif request.resolver_match.url_name == 'player_bidding_dashboard' %}
+                            <i class="fa-solid fa-gavel text-accent-cyan opacity-80"></i> BIDDING HUB
                             {% else %}
                             <i class="fa-solid fa-cube text-accent-cyan opacity-80"></i> PORTAL
                             {% endif %}

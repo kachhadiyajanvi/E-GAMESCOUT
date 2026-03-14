@@ -180,10 +180,16 @@
                                 <h4 class="font-bold text-white text-sm group-hover:text-accent-cyan transition-colors">{{ player.full_name }}</h4>
                                 <p class="text-[10px] text-accent-cyan/70 font-mono mb-3">@{{ player.username|default:"No IGN" }}</p>
                                 {% if bidding_status.is_active and not all_sold %}
-                                <button onclick="openBidModal({{ player.id }}, '{{ player.full_name|escapejs }}')"
-                                    class="w-full py-1.5 px-3 bg-white/5 hover:bg-accent-cyan hover:text-black border border-white/10 hover:border-accent-cyan rounded text-xs font-bold transition-all text-center uppercase tracking-wider">
-                                    Place Bid
-                                </button>
+                                    {% if player.id in org_active_bid_player_ids %}
+                                    <div class="w-full py-1.5 px-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400/70 rounded text-[10px] font-bold text-center uppercase tracking-wider cursor-not-allowed">
+                                        <i class="fa-solid fa-clock mr-1"></i> Bid Active
+                                    </div>
+                                    {% else %}
+                                    <button onclick="openBidModal({{ player.id }}, '{{ player.full_name|escapejs }}')"
+                                        class="w-full py-1.5 px-3 bg-white/5 hover:bg-accent-cyan hover:text-black border border-white/10 hover:border-accent-cyan rounded text-xs font-bold transition-all text-center uppercase tracking-wider">
+                                        Place Bid
+                                    </button>
+                                    {% endif %}
                                 {% elif all_sold %}
                                 <div class="w-full py-1.5 px-3 bg-orange-500/10 border border-orange-500/20 text-orange-400/70 rounded text-[10px] font-bold text-center uppercase tracking-wider cursor-not-allowed">
                                     <i class="fa-solid fa-store-slash mr-1"></i> Sold Out
@@ -307,12 +313,18 @@
                                 <p class="text-[10px] text-white/60 italic mb-2">"{{ negotiation.message }}"</p>
                             {% endif %}
                             <div class="flex gap-2 mt-2">
-                                <a href="{% url 'org_respond_negotiation' negotiation.id 'accept' %}" class="flex-1 py-2 bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/30 rounded text-center text-[10px] font-bold uppercase transition-all">
-                                    Accept Offer
-                                </a>
-                                <a href="{% url 'org_respond_negotiation' negotiation.id 'reject' %}" class="flex-1 py-2 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 rounded text-center text-[10px] font-bold uppercase transition-all">
-                                    Reject
-                                </a>
+                                <form method="POST" action="{% url 'org_respond_negotiation' negotiation.id 'accept' %}" style="flex:1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full py-2 bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/30 rounded text-center text-[10px] font-bold uppercase transition-all">
+                                        Accept Offer
+                                    </button>
+                                </form>
+                                <form method="POST" action="{% url 'org_respond_negotiation' negotiation.id 'reject' %}" style="flex:1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full py-2 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 rounded text-center text-[10px] font-bold uppercase transition-all">
+                                        Reject
+                                    </button>
+                                </form>
                             </div>
                         </div>
                         {% endwith %}
