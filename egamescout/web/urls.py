@@ -10,6 +10,7 @@ urlpatterns = [
     
     # Organization Registration
     path('organization/register/', views.org_register_start, name='org_register_start'),
+    path('organization/register/force/', views.org_force_register, name='org_force_register'),
     path('organization/register/otp/', views.org_register_otp, name='org_register_otp'),
     path('organization/register/details/', views.org_register_details, name='org_register_details'),
     
@@ -68,6 +69,8 @@ urlpatterns = [
     path('auth/verify/', views.auth_verify_otp, name='auth_verify_otp'),
     path('auth/register/upload/', views.auth_register_upload, name='auth_register_upload'),
     path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
+    path('auth/register/force/', views.player_force_register, name='player_force_register'),
+    path('auth/register/cancel/', views.cancel_register, name='cancel_register'),
     # Organization Player Management Routing
     path('organization/my-players/', views.my_players, name='my_players_legacy'),
     path('organization/add-player/', views.org_add_player, name='org_add_player'),
@@ -159,4 +162,9 @@ urlpatterns = [
     path('admin/archive/player/<int:player_id>/delete/', admin_views.admin_delete_archived_player, name='admin_delete_archived_player'),
     path('admin/archive/org/<int:org_id>/delete/', admin_views.admin_delete_archived_organization, name='admin_delete_archived_organization'),
     path('admin/archive/tournament/<int:tournament_id>/delete/', admin_views.admin_delete_archived_tournament, name='admin_delete_archived_tournament'),
+    
+    # Admin Role Conflicts
+    path('admin/role-conflicts/', admin_views.admin_role_conflicts, name='admin_role_conflicts'),
+    path('admin/role-conflicts/approve/<int:request_id>/', admin_views.admin_approve_conflict, name='admin_approve_conflict'),
+    path('admin/role-conflicts/reject/<int:request_id>/', admin_views.admin_reject_conflict, name='admin_reject_conflict'),
 ]

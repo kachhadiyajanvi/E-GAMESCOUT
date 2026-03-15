@@ -361,6 +361,22 @@ def auth_login(request):
             email = form.cleaned_data['email']
             player_exists = Player.objects.filter(email=email).exists()
             
+            # --- Conflict Detection (If Registering as Player) ---
+            if is_register:
+                if Organization.objects.filter(Organization_Email=email).exists():
+                    request.session['conflict_email'] = email
+                    return render(request, 'web/Player/login.html', {
+                        'form': form,
+                        'is_register': True,
+                        'conflict_email': email,
+                        'conflict_message': "This email is already registered as an Organization. If you still want to create a Player account with this email, you must request admin approval."
+                    })
+            # -----------------------------------------------------
+            
+            # Clear any previous conflict state
+            if 'conflict_email' in request.session:
+                del request.session['conflict_email']
+            
             # Logic Branching
             if not is_register: # LOGIN FLOW
                 if not player_exists:
@@ -376,13 +392,19 @@ def auth_login(request):
                 if player.status == 'SUSPENDED':
                     messages.error(request, 'Your account has been suspended by Admin. Please contact support.')
                     return redirect('index')
+                    
+                # New status checks
+                if player.status in ['PENDING', 'Pending']:
+                    messages.error(request, 'Your account is currently pending admin approval.')
+                    return redirect('auth_login')
+                if player.status in ['REJECTED', 'Rejected']:
+                    messages.error(request, 'Your account request was not approved by the administrator.')
+                    return redirect('auth_login')
                 
                 # Check for Deactivation (User Init)
                 if not player.is_active_account:
                     return render(request, 'web/Player/reactivate_account.html', {'player': player})
 
-            # Generate OTP
-            
             else: # REGISTER FLOW
                 if player_exists:
                     messages.info(request, "You are already registered. Please Login.")
@@ -417,7 +439,38 @@ def auth_login(request):
     else:
         form = EmailLoginForm()
     
-    return render(request, 'web/Player/login.html', {'form': form, 'is_register': is_register})
+    return render(request, 'web/Player/login.html', {
+        'form': form, 
+        'is_register': is_register,
+        'conflict_email': request.session.get('conflict_email')
+    })
+    
+def player_force_register(request):
+    """Bypasses normal check, saves the conflict email, and proceeds to Aadhar step."""
+    email = request.session.get('conflict_email')
+    if not email:
+        return redirect('auth_login')
+        
+    if request.method == 'POST':
+        request.session['auth_email'] = email
+        request.session['is_force_register'] = True
+        request.session['otp_verified'] = True # Mock OTP verification to skip directly to Aadhar upload
+        return redirect('auth_register_upload')
+        
+    return redirect('auth_login')
+
+
+def cancel_register(request):
+    """Clears all registration session data and redirects to login cleanly."""
+    keys_to_clear = [
+        'auth_email', 'auth_otp', 'auth_otp_created_at',
+        'otp_verified', 'auth_register_data',
+        'is_force_register', 'conflict_email',
+    ]
+    for key in keys_to_clear:
+        if key in request.session:
+            del request.session[key]
+    return redirect('auth_login')
 
 def auth_verify_otp(request):
     # Strict Redirect
@@ -546,29 +599,48 @@ def auth_register_details(request):
             player = form.save(commit=False)
             player.email = email
             player.age = reg_data.get('age', 18) # Default 18 if somehow missing, but step 1 checks it
-            player.status = 'ACTIVE'
-            player.save()
             
-            # Send Welcome Email
-            try:
-                subject = 'Welcome to E-Game Scout - Journey Started'
-                html_content = render_to_string('web/emails/welcome.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
-                text_content = strip_tags(html_content)
+            # Handle Force Register Logic
+            if request.session.get('is_force_register'):
+                player.status = 'PENDING'
+                player.save()
                 
-                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-                msg.attach_alternative(html_content, "text/html")
-                msg.send()
-                print(f"DEBUG: Welcome email sent to {email}")
-            except Exception as e:
-                print(f"ERROR: Failed to send welcome email: {e}")
+                # Create Conflict Request
+                from .models import RoleConflictRequest
+                RoleConflictRequest.objects.create(
+                    email=email,
+                    requested_role='Player',
+                    existing_role='Organization'
+                )
+                
+                messages.success(request, f"Registration request submitted. Because this email is already registered as an Organization, your Player account ({player.full_name}) is pending admin approval. You will not be able to log in until approved.")
+            else:
+                player.status = 'ACTIVE'
+                player.save()
+                
+                # Send Welcome Email
+                try:
+                    subject = 'Welcome to E-Game Scout - Journey Started'
+                    html_content = render_to_string('web/emails/welcome.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+                    text_content = strip_tags(html_content)
+                    
+                    msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+                    msg.attach_alternative(html_content, "text/html")
+                    msg.send()
+                    print(f"DEBUG: Welcome email sent to {email}")
+                except Exception as e:
+                    print(f"ERROR: Failed to send welcome email: {e}")
+                    
+                messages.success(request, f"Registration Complete! Welcome {player.full_name}. Please Login.")
 
             # Clear session
             if 'auth_email' in request.session: del request.session['auth_email']
             if 'otp_verified' in request.session: del request.session['otp_verified']
             if 'auth_register_data' in request.session: del request.session['auth_register_data']
             if 'auth_otp' in request.session: del request.session['auth_otp']
+            if 'is_force_register' in request.session: del request.session['is_force_register']
+            if 'conflict_email' in request.session: del request.session['conflict_email']
             
-            messages.success(request, f"Registration Complete! Welcome {player.full_name}. Please Login.")
             return redirect('auth_login')
     else:
         # Pre-fill form
@@ -944,6 +1016,21 @@ def org_register_start(request):
         form = OrganizationEmailForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['organization_email']
+            
+            # --- Conflict Detection ---
+            if Player.objects.filter(email=email).exists():
+                request.session['conflict_email'] = email
+                return render(request, 'web/Organization/org_register_start.html', {
+                    'form': form,
+                    'conflict_email': email,
+                    'conflict_message': "This email is already registered as a Player. If you still want to create an Organization account with this email, you must request admin approval."
+                })
+            # ---------------------------
+            
+            # Clear any previous conflict state
+            if 'conflict_email' in request.session:
+                del request.session['conflict_email']
+                
             # Generate OTP
             otp = str(random.randint(100000, 999999))
             request.session['reg_email'] = email
@@ -972,7 +1059,24 @@ def org_register_start(request):
     else:
         form = OrganizationEmailForm()
     
-    return render(request, 'web/Organization/org_register_start.html', {'form': form})
+    return render(request, 'web/Organization/org_register_start.html', {
+        'form': form,
+        'conflict_email': request.session.get('conflict_email')
+    })
+
+def org_force_register(request):
+    """Bypasses normal registration OTP and creates a Pending Organization and a RoleConflictRequest."""
+    email = request.session.get('conflict_email')
+    if not email:
+        return redirect('org_register_start')
+        
+    if request.method == 'POST':
+        # Send them to the normal details form, but mark session so we know it's a forced register
+        request.session['reg_email'] = email
+        request.session['is_force_register'] = True
+        return redirect('org_register_details')
+        
+    return redirect('org_register_start')
 
 def org_register_otp(request):
     if request.session.get('organizer_id'):
@@ -1015,34 +1119,55 @@ def org_register_details(request):
         if form.is_valid():
             org = form.save(commit=False)
             org.Organization_Email = email
-            org.save()
             
-            # Send congratulatory email
-            try:
-                subject = 'Welcome to E-Game Scout - Registration Successful!'
-                html_content = render_to_string('web/emails/welcome.html', {
-                    'user': {'username': org.Organization_Name},
-                    'login_url': request.build_absolute_uri('/organization/login/'),
-                    'logo_url': request.build_absolute_uri('/static/web/images/logo.png')
-                })
-                text_content = strip_tags(html_content)
+            # Handle Force Register Logic
+            if request.session.get('is_force_register'):
+                org.status = 'Pending'
+                org.save()
                 
-                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-                msg.attach_alternative(html_content, "text/html")
-                msg.send()
+                # Create Conflict Request
+                from .models import RoleConflictRequest
+                RoleConflictRequest.objects.create(
+                    email=email,
+                    requested_role='Organization',
+                    existing_role='Player'
+                )
                 
-                print(f"DEBUG: Registration success email sent to {email}")
-            except Exception as e:
-                print(f"ERROR: Failed to send registration email: {e}")
-            
+                messages.success(request, f'Registration successful. However, because this email is already registered as a Player, your Organization account ({org.Organization_Name}) is pending admin approval. You will not be able to log in until approved.')
+            else:
+                org.status = 'Active'
+                org.save()
+                
+                # Send congratulatory email
+                try:
+                    subject = 'Welcome to E-Game Scout - Registration Successful!'
+                    html_content = render_to_string('web/emails/welcome.html', {
+                        'user': {'username': org.Organization_Name},
+                        'login_url': request.build_absolute_uri('/organization/login/'),
+                        'logo_url': request.build_absolute_uri('/static/web/images/logo.png')
+                    })
+                    text_content = strip_tags(html_content)
+                    
+                    msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+                    msg.attach_alternative(html_content, "text/html")
+                    msg.send()
+                    
+                    print(f"DEBUG: Registration success email sent to {email}")
+                except Exception as e:
+                    print(f"ERROR: Failed to send registration email: {e}")
+                messages.success(request, f'🎉 Registration successful! Welcome to E-Game Scout, {org.Organization_Name}! A confirmation email has been sent to {email}. Please login to continue.')
+
             # Cleanup registration session
             if 'reg_email' in request.session:
                 del request.session['reg_email']
             if 'reg_otp' in request.session:
                 del request.session['reg_otp']
+            if 'is_force_register' in request.session:
+                del request.session['is_force_register']
+            if 'conflict_email' in request.session:
+                del request.session['conflict_email']
             
             # Show success message and redirect to login
-            messages.success(request, f'🎉 Registration successful! Welcome to E-Game Scout, {org.Organization_Name}! A confirmation email has been sent to {email}. Please login to continue.')
             return redirect('org_login_start')
     else:
         form = OrganizationDetailsForm()
@@ -1064,6 +1189,14 @@ def org_login_start(request):
                 
                 if org.status == 'Suspended':
                     messages.error(request, 'Your account has been suspended. Please contact support.')
+                    return redirect('org_login_start')
+                    
+                # Check for Pending/Rejected from Role Conflict
+                if org.status in ['Pending', 'PENDING']:
+                    messages.error(request, 'Your account is currently pending admin approval. You will be notified once it is approved.')
+                    return redirect('org_login_start')
+                if org.status in ['Rejected', 'REJECTED']:
+                    messages.error(request, 'Your account request was not approved by the administrator. Please contact support.')
                     return redirect('org_login_start')
 
                 # Generate OTP

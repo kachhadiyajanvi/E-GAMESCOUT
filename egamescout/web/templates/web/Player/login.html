@@ -35,10 +35,28 @@
                 {% endif %}
             </div>
 
+            {% if conflict_email %}
+            <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300" role="alert">
+              <span class="font-medium">Conflict Detected!</span> {{ conflict_message }}
+            </div>
+            
+            <div class="flex gap-4">
+                <a href="{% url 'auth_login' %}" 
+                   class="w-1/2 py-4 bg-gray-600 hover:bg-gray-500 text-white text-center font-display font-bold uppercase tracking-wider rounded transition-colors group-hover:shadow-[0_0_20px_rgba(156,163,175,0.4)] block">
+                    Cancel Registration
+                </a>
+                
+                <button type="submit" formaction="{% url 'player_force_register' %}" formmethod="post"
+                    class="w-1/2 py-4 bg-yellow-500 hover:bg-yellow-400 text-black font-display font-bold uppercase tracking-wider rounded transition-colors group-hover:shadow-[0_0_20px_rgba(234,179,8,0.4)]">
+                    Force Register Request
+                </button>
+            </div>
+            {% else %}
             <button type="submit"
                 class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded transition-colors group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)]">
                 {% if is_register %}Continue{% else %}Send Security Code{% endif %}
             </button>
+            {% endif %}
         </form>
 
         <div class="mt-6 text-center text-xs text-gray-500">

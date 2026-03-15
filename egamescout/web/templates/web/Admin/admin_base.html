@@ -164,6 +164,14 @@
                 {% endif %}
             </a>
 
+            <!-- Role Conflicts Link -->
+            <a href="{% url 'admin_role_conflicts' %}"
+                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_role_conflicts' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+                <i
+                    class="fa-solid fa-user-shield w-5 text-center {% if request.resolver_match.url_name != 'admin_role_conflicts' %}group-hover:text-amber-500{% endif %} transition-colors"></i>
+                <span class="font-bold tracking-wider text-sm">Role Conflicts</span>
+            </a>
+
             <!-- Bidding Link -->
             <a href="{% url 'admin_bidding_dashboard' %}"
                 class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'bidding' in request.resolver_match.url_name %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">

@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession
+from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession, RoleConflictRequest
 from django.db.models import Count, Sum, Q, Max
 from django.utils import timezone
 from datetime import datetime, time, timedelta
@@ -1304,3 +1304,74 @@ def admin_delete_archived_tournament(request, tournament_id):
         tournament.delete()
         messages.success(request, f"Tournament '{name}' has been permanently deleted.")
     return redirect('admin_archive_actions')
+
+
+# --- Role Conflict Requests ---
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_role_conflicts(request):
+    """View to list all role conflict requests."""
+    conflict_requests = RoleConflictRequest.objects.all().order_by('-created_at')
+    return render(request, 'web/Admin/admin_role_conflicts.html', {
+        'conflict_requests': conflict_requests
+    })
+
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_approve_conflict(request, request_id):
+    """Approve a role conflict request and activate the corresponding account."""
+    conflict_req = get_object_or_404(RoleConflictRequest, id=request_id)
+    
+    if request.method == 'POST':
+        conflict_req.request_status = 'Approved'
+        conflict_req.save()
+        
+        # Activate the corresponding account
+        if conflict_req.requested_role == 'Player':
+            try:
+                player = Player.objects.get(email=conflict_req.email)
+                player.status = 'ACTIVE'
+                player.save()
+                messages.success(request, f"Player account for '{conflict_req.email}' has been approved and activated.")
+            except Player.DoesNotExist:
+                messages.error(request, f"Could not find Player account for '{conflict_req.email}'.")
+        elif conflict_req.requested_role == 'Organization':
+            try:
+                org = Organization.objects.get(Organization_Email=conflict_req.email)
+                org.status = 'Active'
+                org.save()
+                messages.success(request, f"Organization account for '{conflict_req.email}' has been approved and activated.")
+            except Organization.DoesNotExist:
+                messages.error(request, f"Could not find Organization account for '{conflict_req.email}'.")
+        
+    return redirect('admin_role_conflicts')
+
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_reject_conflict(request, request_id):
+    """Reject a role conflict request and mark the corresponding account as rejected."""
+    conflict_req = get_object_or_404(RoleConflictRequest, id=request_id)
+
+    if request.method == 'POST':
+        conflict_req.request_status = 'Rejected'
+        conflict_req.save()
+        
+        # Reject the corresponding account
+        if conflict_req.requested_role == 'Player':
+            try:
+                player = Player.objects.get(email=conflict_req.email)
+                player.status = 'REJECTED'
+                player.save()
+                messages.success(request, f"Player account for '{conflict_req.email}' has been rejected.")
+            except Player.DoesNotExist:
+                messages.error(request, f"Could not find Player account for '{conflict_req.email}'.")
+        elif conflict_req.requested_role == 'Organization':
+            try:
+                org = Organization.objects.get(Organization_Email=conflict_req.email)
+                org.status = 'Rejected'
+                org.save()
+                messages.success(request, f"Organization account for '{conflict_req.email}' has been rejected.")
+            except Organization.DoesNotExist:
+                messages.error(request, f"Could not find Organization account for '{conflict_req.email}'.")
+
+    return redirect('admin_role_conflicts')

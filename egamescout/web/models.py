@@ -18,6 +18,7 @@ class Organization(models.Model):
         ('Active', 'Active'),
         ('Suspended', 'Suspended'),
         ('Pending', 'Pending'),
+        ('Rejected', 'Rejected'),
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Active')
     is_active_account = models.BooleanField(default=True)
@@ -119,6 +120,7 @@ class Player(models.Model):
         ('PENDING', 'Pending'),
         ('ACTIVE', 'Active'),
         ('SUSPENDED', 'Suspended'),
+        ('REJECTED', 'Rejected'),
     ]
 
     full_name = models.CharField(max_length=255)
@@ -416,3 +418,18 @@ class UserSession(models.Model):
         
     def __str__(self):
         return f"{self.user_type} session ({self.user_id})"
+
+class RoleConflictRequest(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
+    email = models.EmailField()
+    requested_role = models.CharField(max_length=20) # 'Player' or 'Organization'
+    existing_role = models.CharField(max_length=20) # 'Organization' or 'Player'
+    request_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.email} - {self.requested_role} Request"
