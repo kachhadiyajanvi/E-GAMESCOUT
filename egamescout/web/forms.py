@@ -307,15 +307,17 @@ class AddPlayerForm(forms.Form):
     name = forms.CharField(
         label='Player Full Name',
         max_length=255,
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
-            'placeholder': 'Full name (required only for external players)',
+            'placeholder': 'Enter player full name',
+            'required': 'required'
         })
     )
     email = forms.EmailField(
         label='Player Email',
         max_length=100,
+        required=True,
         widget=forms.EmailInput(attrs={
             'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
             'placeholder': 'Enter player email address',
@@ -324,10 +326,25 @@ class AddPlayerForm(forms.Form):
     )
     game_id = forms.CharField(
         label='Game ID (UID)',
-        max_length=50,
+        max_length=12,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
-            'placeholder': 'Enter player Game ID',
-            'required': 'required'
+            'placeholder': 'Enter 10-12 character Game ID',
+            'required': 'required',
+            'pattern': '.{10,12}',
+            'title': 'Game ID must be between 10 and 12 characters.'
         })
     )
+
+    def clean_game_id(self):
+        game_id = self.cleaned_data.get('game_id')
+        if not game_id:
+            raise forms.ValidationError("Game ID is required.")
+        
+        game_id_str = str(game_id).strip()
+        
+        if len(game_id_str) < 10 or len(game_id_str) > 12:
+            raise forms.ValidationError("Game ID must be between 10 and 12 characters.")
+            
+        return game_id_str
