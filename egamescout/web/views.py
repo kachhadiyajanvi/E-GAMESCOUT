@@ -651,15 +651,21 @@ def auth_register_details(request):
                 # If this player was added to an org's roster via external invite,
                 # link their newly created Player record to the OrganizationPlayer entry.
                 from .models import OrganizationPlayer
-                org_player_entry = OrganizationPlayer.objects.filter(email__iexact=email).first()
-                if org_player_entry:
+                org_player_entries = OrganizationPlayer.objects.filter(email__iexact=email)
+
+                # Flag to ensure we only set primary organization once (to the first invitee)
+                primary_org_set = False
+
+                for org_player_entry in org_player_entries:
                     org_player_entry.player = player
                     org_player_entry.status_label = 'Registered'
                     org_player_entry.save()
 
-                    # Also set the player's organization FK
-                    player.organization = org_player_entry.organization
-                    player.save(update_fields=['organization'])
+                    if not primary_org_set:
+                        # Also set the player's organization FK (primary organization)
+                        player.organization = org_player_entry.organization
+                        player.save(update_fields=['organization'])
+                        primary_org_set = True
 
                     # Notify the org that the external player has completed registration
                     OrganizationNotification.objects.create(
@@ -1863,6 +1869,7 @@ def org_delete_account(request):
 # --- Tournament Management ---
 
 @login_required_organization
+@login_required_organization
 def tournament_list(request):
     """Display list of tournaments for the organization"""
     org_id = request.session.get('organizer_id')
@@ -1918,6 +1925,7 @@ def publish_previous_tournament(request, history_id):
     # assume they meant that page or the tournament history list. We will redirect to scorecard_tool.
     return redirect('scorecard_tool')
 
+@login_required_organization
 @login_required_organization
 def tournament_history(request):
     """Display list of completed tournaments for the organization"""
@@ -2034,6 +2042,7 @@ def tournament_update(request, tournament_id):
     return render(request, 'web/Organization/org_tournament_form.html', {'org': org, 'form': form, 'action': 'Update', 'tournament': tournament})
 
 @login_required_organization
+@login_required_organization
 def tournament_detail(request, tournament_id):
     """Display full details of a specific tournament"""
     org_id = request.session.get('organizer_id')
@@ -2134,20 +2143,24 @@ def tournament_delete(request, tournament_id):
 @login_required_organization
 def tournament_participants(request, tournament_id):
     """View to list participants (organizations) of a tournament"""
-    print(f"DEBUG: tournament_participants called for ID {tournament_id}")
-    print(f"DEBUG: Session keys: {request.session.keys()}")
-    print(f"DEBUG: organizer_id in session: {request.session.get('organizer_id')}")
     
     org_id = request.session.get('organizer_id')
+    # No need to check for org_id manually due to decorator, but keeping for safety
     if not org_id:
-        print("DEBUG: No org_id, redirecting to login")
         return redirect('org_login_start')
     
     org = get_object_or_404(Organization, id=org_id)
-    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id, Organization_Name=org)
+    tournament = get_object_or_404(Tournament, Tournament_ID=tournament_id)
+    
+    # Permission Check: Must be Owner OR a Participant OR logic for public visibility
+    is_owner = (tournament.Organization_Name == org)
+    is_participant = tournament.bidders.filter(organization=org).exists()
+    
+    if not (is_owner or is_participant or tournament.is_published):
+        messages.error(request, "You do not have permission to view participants for this tournament.")
+        return redirect('organizer_dashboard')
     
     # Fetch Bidders (Participants)
-    # Note: 'bidders' related_name on TournamentBidder model refers to the relation from Tournament to TournamentBidder
     bidders = tournament.bidders.all().select_related('organization').order_by('joined_at')
     
     return render(request, 'web/Organization/org_tournament_participants.html', {
@@ -2471,17 +2484,23 @@ def org_upcoming_tournaments(request):
         
     org = get_object_or_404(Organization, id=org_id)
     
-    # Published upcoming tournaments
+    # 1. Published upcoming tournaments (Active)
     tournaments = Tournament.objects.filter(
         Status__in=['Scheduled', 'Ongoing'],
         is_published=True,
         is_archived=False
     ).order_by('start_date')
 
-    # Coming soon - unpublished tournaments
+    # 2. Coming soon - unpublished tournaments ? No.
+    # Logic Correction: Only show published tournaments in the future as "Coming Soon".
+    # Showing other people's Unpublished Drafts is wrong.
+    
+    start_buffer = timezone.now() + datetime.timedelta(days=7)
     coming_soon = Tournament.objects.filter(
-        is_published=False,
-        is_archived=False
+        Status='Scheduled',
+        is_published=True,
+        is_archived=False,
+        start_date__gt=start_buffer
     ).order_by('start_date')
 
     # Bidding system removed - no joined_tournament_ids
@@ -2620,6 +2639,7 @@ def org_bidding_dashboard(request):
             'season_name': active_season.name,
             'start_date': active_season.start_date,
             'end_date': active_season.end_date,
+            'auto_start': active_season.auto_start,
         }
     elif next_season:
         bidding_status = {
@@ -2688,6 +2708,7 @@ def player_bidding_dashboard(request):
             'season_name': active_season.name,
             'start_date': active_season.start_date,
             'end_date': active_season.end_date,
+            'auto_start': active_season.auto_start,
         }
     elif next_season:
         bidding_status = {
@@ -2719,7 +2740,10 @@ def player_bidding_dashboard(request):
     highest_bid = all_bids.order_by('-amount').first()
     highest_bid_amount = highest_bid.amount if highest_bid else 0
     
-    auction_status = "Available"
+    auction_status = "Available for Offers"
+    if not (active_season and active_season.is_active):
+        auction_status = "Awaiting Auction Start"
+
     if highest_accepted:
         auction_status = f"Sold to {highest_accepted.organization.Organization_Name} for ₹{highest_accepted.amount}"
     elif in_negotiation:
@@ -2990,31 +3014,34 @@ def player_negotiate_bid(request, bid_id):
         
         try:
             amount = Decimal(counter_amount)
-        except:
-             messages.error(request, "Invalid counter amount.")
-             return redirect('player_bidding_dashboard')
+            if amount <= 0:
+                raise ValueError("Amount must be positive.")
 
-        # Create Negotiation
-        Negotiation.objects.create(
-            bid=bid,
-            organization=bid.organization,
-            counter_amount=amount,
-            message=message
-        )
-        
-        # Update Bid Status
-        bid.status = 'Negotiation'
-        bid.save()
-        
-        # Notify Organization
-        OrganizationNotification.objects.create(
-            recipient=bid.organization,
-            message=f"{bid.player.full_name} wants to negotiate. Counter Offer: {amount}",
-            notification_type='BID_NEGOTIATION'
-        )
-        
-        messages.success(request, "Counter offer sent to organization.")
-        return redirect('player_bidding_dashboard')
+            # Create Negotiation
+            Negotiation.objects.create(
+                bid=bid,
+                organization=bid.organization,
+                counter_amount=amount,
+                message=message
+            )
+            
+            # Update Bid Status
+            bid.status = 'Negotiation'
+            bid.save()
+            
+            # Notify Organization
+            OrganizationNotification.objects.create(
+                recipient=bid.organization,
+                message=f"{bid.player.full_name} wants to negotiate. Counter Offer: {amount}",
+                notification_type='BID_NEGOTIATION'
+            )
+            
+            messages.success(request, "Counter offer sent to organization.")
+            return redirect('player_bidding_dashboard')
+
+        except (ValueError, TypeError, Exception) as e: # Catch all including decimal conversion error
+             messages.error(request, f"Invalid counter amount: {str(e)}")
+             return redirect('player_bidding_dashboard')
     
     return redirect('player_bidding_dashboard')
 

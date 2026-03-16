@@ -167,7 +167,56 @@
         </div>
         {% endif %}
 
+        <!-- Bidding Pre-start Countdown View -->
+        <div id="bidding-not-started-view" class="hidden flex-col items-center justify-center p-12 bg-black/40 border border-white/5 rounded-2xl min-h-[400px] mb-6">
+            <div class="w-20 h-20 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+                <i class="fa-solid fa-hourglass-half text-4xl text-blue-400 animate-pulse"></i>
+            </div>
+            <h2 class="font-display font-black text-3xl md:text-4xl text-white tracking-widest uppercase mb-4 text-center" id="not-started-title">Bidding Has Not Started Yet</h2>
+            <p class="text-white/50 text-sm md:text-base font-mono mb-8 text-center max-w-lg" id="not-started-desc">
+                {% if bidding_status.auto_start == False %}
+                    This bidding season requires an admin to start it manually. Please wait for the auction to begin.
+                {% else %}
+                    The bidding season will officially begin on <span class="text-blue-400 font-bold">{{ bidding_status.start_date|date:"F d, Y - h:i A" }}</span>. Please wait until the countdown finishes to participate.
+                {% endif %}
+            </p>
+
+            <!-- Bidding Details Summary -->
+            <div class="mb-8 flex flex-wrap justify-center gap-4">
+                <div class="px-5 py-2.5 rounded-full bg-blue-500/10 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)] flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-blue-400"></i>
+                    <span class="text-xs font-bold text-blue-300 uppercase tracking-widest">{{ bidding_status.season_name }}</span>
+                </div>
+                <div class="px-5 py-2.5 rounded-full bg-green-500/10 border border-green-500/20 flex items-center gap-2">
+                    <i class="fa-solid fa-user-check text-green-500"></i>
+                    <span class="text-xs font-bold text-green-400 uppercase tracking-widest">{{ auction_status|default:"Awaiting Auction Start" }}</span>
+                </div>
+            </div>
+            <div class="flex items-center justify-center flex-wrap gap-4 text-center">
+                <div class="bg-black/60 border border-white/10 rounded-xl p-4 min-w-[80px]">
+                    <span id="countdown-days" class="block font-display font-black text-3xl text-white">00</span>
+                    <span class="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1 block">Days</span>
+                </div>
+                <div class="text-2xl text-white/20 font-black hidden sm:block">:</div>
+                <div class="bg-black/60 border border-white/10 rounded-xl p-4 min-w-[80px]">
+                    <span id="countdown-hours" class="block font-display font-black text-3xl text-white">00</span>
+                    <span class="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1 block">Hours</span>
+                </div>
+                <div class="text-2xl text-white/20 font-black hidden sm:block">:</div>
+                <div class="bg-black/60 border border-white/10 rounded-xl p-4 min-w-[80px]">
+                    <span id="countdown-minutes" class="block font-display font-black text-3xl text-white">00</span>
+                    <span class="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1 block">Mins</span>
+                </div>
+                <div class="text-2xl text-white/20 font-black hidden sm:block">:</div>
+                <div class="bg-black/60 border border-white/10 rounded-xl p-4 min-w-[80px]">
+                    <span id="countdown-seconds" class="block font-display font-black text-3xl text-blue-400 tabular-nums">00</span>
+                    <span class="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1 block">Secs</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Normal Bidding Sections -->
+        <div id="bidding-active-view" class="hidden flex-col gap-8">
         <!-- 1. ACTIVE BIDS (Pending) - Full Width -->
         <div class="relative">
             <!-- Subtle Grid Background -->
@@ -406,6 +455,7 @@
             {% endif %}
         </div>
         </div> <!-- End Secondary Grid -->
+        </div> <!-- End Bidding Active View -->
         {% endif %}
     </div>
 
@@ -520,6 +570,115 @@
             confirmBtn.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
         }
     });
+
+    // Start Time Logic
+    (function() {
+        const notStartedView = document.getElementById('bidding-not-started-view');
+        const activeView = document.getElementById('bidding-active-view');
+        const autoStart = {{ bidding_status.auto_start|yesno:"true,false" }};
+        const isActiveBackend = {{ bidding_status.is_active|yesno:"true,false" }};
+        const countdownContainer = notStartedView ? notStartedView.querySelector('.flex.items-center.justify-center.flex-wrap.gap-4') : null;
+
+        if (isActiveBackend) {
+            // Already active in backend, show active view immediately
+            if (activeView) {
+                activeView.classList.remove('hidden');
+                activeView.classList.add('flex');
+            }
+            if (notStartedView) {
+                notStartedView.classList.add('hidden');
+                notStartedView.classList.remove('flex');
+            }
+            return;
+        }
+
+        {% if bidding_status and bidding_status.start_date %}
+        const startTimeStr = "{{ bidding_status.start_date|date:'c' }}";
+        const startTime = new Date(startTimeStr).getTime();
+        
+        function updateStartCountdown() {
+            if (isActiveBackend) return; // if it was marked active server side, we don't need UI countdown
+            
+            const now = new Date().getTime();
+            const diff = startTime - now;
+            
+            if (diff > 0) {
+                if (notStartedView) {
+                    notStartedView.classList.remove('hidden');
+                    notStartedView.classList.add('flex');
+                }
+                if (activeView) {
+                    activeView.classList.add('hidden');
+                    activeView.classList.remove('flex');
+                }
+                
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                const elD = document.getElementById('countdown-days');
+                const elH = document.getElementById('countdown-hours');
+                const elM = document.getElementById('countdown-minutes');
+                const elS = document.getElementById('countdown-seconds');
+                
+                if (elD) elD.textContent = String(d).padStart(2, '0');
+                if (elH) elH.textContent = String(h).padStart(2, '0');
+                if (elM) elM.textContent = String(m).padStart(2, '0');
+                if (elS) elS.textContent = String(s).padStart(2, '0');
+            } else {
+                if (autoStart) {
+                    // Auto switch if autoStart is true
+                    if (notStartedView) {
+                        notStartedView.classList.add('hidden');
+                        notStartedView.classList.remove('flex');
+                    }
+                    if (activeView) {
+                        activeView.classList.remove('hidden');
+                        activeView.classList.add('flex'); // Main wrapper uses flex
+                    }
+                } else {
+                    // Manual start required, just show waiting text and hide countdown
+                    if (notStartedView) {
+                        notStartedView.classList.remove('hidden');
+                        notStartedView.classList.add('flex');
+                        const desc = document.getElementById('not-started-desc');
+                        if (desc) desc.textContent = "Waiting for an administrator to manually start this bidding season.";
+                    }
+                    if (countdownContainer) {
+                        countdownContainer.classList.add('hidden');
+                    }
+                    if (activeView) {
+                        activeView.classList.add('hidden');
+                        activeView.classList.remove('flex');
+                    }
+                }
+            }
+        }
+        setInterval(updateStartCountdown, 1000);
+        updateStartCountdown();
+        {% else %}
+        // Fallback if no start date
+        if (activeView && isActiveBackend) {
+            activeView.classList.remove('hidden');
+            activeView.classList.add('flex');
+            if (notStartedView) {
+                notStartedView.classList.add('hidden');
+                notStartedView.classList.remove('flex');
+            }
+        } else {
+             if (notStartedView) {
+                notStartedView.classList.remove('hidden');
+                notStartedView.classList.add('flex');
+                if (countdownContainer) countdownContainer.classList.add('hidden');
+            }
+            if (activeView) {
+                activeView.classList.add('hidden');
+                activeView.classList.remove('flex');
+            }
+        }
+        {% endif %}
+    })();
 
     (function() {
         const el = document.getElementById('playerPageCountdown');
