@@ -2632,7 +2632,12 @@ def org_bidding_dashboard(request):
     active_season = BiddingSeason.objects.filter(is_active=True).first()
     
     # Build bidding_status for the template countdown banner
-    next_season = BiddingSeason.objects.filter(is_active=False, start_date__isnull=False).order_by('start_date').first()
+    # Get upcoming (non-active) seasons that start today or in the future, ordered by nearest start date
+    now = timezone.now()
+    upcoming_seasons = BiddingSeason.objects.filter(
+        is_active=False, start_date__gte=now
+    ).order_by('start_date')
+    next_season = upcoming_seasons.first()
     if active_season:
         bidding_status = {
             'is_active': True,
@@ -2644,6 +2649,10 @@ def org_bidding_dashboard(request):
     elif next_season:
         bidding_status = {
             'is_active': False,
+            'season_name': next_season.name,
+            'start_date': next_season.start_date,
+            'end_date': next_season.end_date,
+            'auto_start': next_season.auto_start,
             'next_season_start': next_season.start_date,
         }
     else:
@@ -2679,6 +2688,7 @@ def org_bidding_dashboard(request):
         'org': org,
         'active_season': active_season,
         'bidding_status': bidding_status,
+        'upcoming_seasons': upcoming_seasons,
         'wallet_balance': org.coins,
         'available_players': available_players,
         'active_bids': active_bids,
@@ -2701,7 +2711,12 @@ def player_bidding_dashboard(request):
     active_season = BiddingSeason.objects.filter(is_active=True).first()
     
     # Build bidding_status for the template countdown banner
-    next_season = BiddingSeason.objects.filter(is_active=False, start_date__isnull=False).order_by('start_date').first()
+    # Get upcoming (non-active) seasons that start today or in the future, ordered by nearest start date
+    now = timezone.now()
+    upcoming_seasons = BiddingSeason.objects.filter(
+        is_active=False, start_date__gte=now
+    ).order_by('start_date')
+    next_season = upcoming_seasons.first()
     if active_season:
         bidding_status = {
             'is_active': True,
@@ -2713,6 +2728,10 @@ def player_bidding_dashboard(request):
     elif next_season:
         bidding_status = {
             'is_active': False,
+            'season_name': next_season.name,
+            'start_date': next_season.start_date,
+            'end_date': next_season.end_date,
+            'auto_start': next_season.auto_start,
             'next_season_start': next_season.start_date,
         }
     else:
@@ -2753,6 +2772,7 @@ def player_bidding_dashboard(request):
         'player': player,
         'active_season': active_season,
         'bidding_status': bidding_status,
+        'upcoming_seasons': upcoming_seasons,
         'active_bids': active_bids,
         'negotiation_bids': negotiation_bids,
         'rejected_bids': rejected_bids,
