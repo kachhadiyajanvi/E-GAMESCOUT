@@ -26,6 +26,45 @@
             {% csrf_token %}
 
             <div class="md:col-span-2">
+                {% if external_name %}
+                <div class="mb-6 bg-[rgba(69,182,254,0.05)] border border-[rgba(69,182,254,0.2)] rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-full bg-accent-cyan/20 flex items-center justify-center border border-accent-cyan/50 text-accent-cyan">
+                            <i class="fa-solid fa-id-badge text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-accent-cyan font-display font-bold text-sm tracking-wider uppercase">Choose Profile Name</h3>
+                            <p class="text-xs text-gray-400">Select how your name will appear on the platform.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="relative flex items-center p-3 cursor-pointer rounded-lg border border-white/10 hover:bg-white/5 transition-colors group">
+                            <input type="radio" name="name_preference" value="aadhar" class="peer sr-only " checked>
+                            <div class="w-4 h-4 rounded-full border border-gray-500 mr-3 peer-checked:border-accent-cyan peer-checked:border-[4px] transition-all"></div>
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase tracking-wider mb-0.5 font-bold">Aadhar Name</p>
+                                <p class="text-white text-sm font-semibold truncate">{{ aadhar_name }}</p>
+                            </div>
+                            <div class="absolute inset-0 rounded-lg border border-transparent peer-checked:border-accent-cyan/50 pointer-events-none transition-colors"></div>
+                        </label>
+                        
+                        <label class="relative flex items-center p-3 cursor-pointer rounded-lg border border-white/10 hover:bg-white/5 transition-colors group">
+                            <input type="radio" name="name_preference" value="external" class="peer sr-only">
+                            <div class="w-4 h-4 rounded-full border border-gray-500 mr-3 peer-checked:border-accent-cyan peer-checked:border-[4px] transition-all"></div>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-0.5 font-bold">Invited Name <span class="text-[10px] bg-accent-cyan/20 text-accent-cyan px-1.5 py-0.5 rounded ml-1">Org</span></p>
+                                <p class="text-white text-sm font-semibold truncate" id="js-external-name">{{ external_name }}</p>
+                            </div>
+                            <div class="absolute inset-0 rounded-lg border border-transparent peer-checked:border-accent-cyan/50 pointer-events-none transition-colors"></div>
+                        </label>
+                    </div>
+                </div>
+                <!-- Hidden inputs to store the actual name strings for JS -->
+                <input type="hidden" id="raw_aadhar_name" value="{{ aadhar_name }}">
+                <input type="hidden" id="raw_external_name" value="{{ external_name }}">
+                {% endif %}
+
                 <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Full Name</label>
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-accent-cyan transition-colors">
@@ -146,6 +185,25 @@ document.addEventListener('DOMContentLoaded', function () {
     const termsError = document.getElementById('terms-error-player');
     const submitBtn = document.getElementById('submit-btn-player');
     const termsIcon = document.getElementById('terms-icon-player');
+
+    // Name toggle logic for invited players
+    const nameRadios = document.querySelectorAll('input[name="name_preference"]');
+    const rawAadharInput = document.getElementById('raw_aadhar_name');
+    const rawExternalInput = document.getElementById('raw_external_name');
+
+    if (nameRadios.length > 0 && rawAadharInput && rawExternalInput) {
+        nameRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'aadhar') {
+                    nameInput.value = rawAadharInput.value;
+                } else {
+                    nameInput.value = rawExternalInput.value;
+                }
+                // Trigger validation logic for name input
+                nameInput.dispatchEvent(new Event('input'));
+            });
+        });
+    }
 
     if (termsCheck && submitBtn) {
         termsCheck.addEventListener('change', function () {

@@ -529,6 +529,26 @@ def auth_verify_otp(request):
         
     return render(request, 'web/Player/verify_otp.html', {'form': form, 'email': email})
 
+def auth_register_invite(request, token):
+    """Special entry point for players clicking 'Complete Registration' from an invite email."""
+    from .models import ExternalPlayerInvite
+    try:
+        invite = ExternalPlayerInvite.objects.get(token=token)
+        # Verify the invite is accepted
+        if invite.status != 'ACCEPTED':
+            messages.error(request, 'This invite has not been accepted yet.')
+            return redirect('index')
+            
+        # Set the session as if they logged in with OTP
+        request.session['auth_email'] = invite.email
+        request.session['otp_verified'] = True
+        
+        messages.success(request, f'Welcome back, {invite.name}! Please upload your Aadhar to complete registration.')
+        return redirect('auth_register_upload')
+    except ExternalPlayerInvite.DoesNotExist:
+        messages.error(request, 'Invalid or expired registration link.')
+        return redirect('index')
+
 
 def auth_register_upload(request):
     """Step 1: Upload Aadhar Card"""
@@ -593,6 +613,15 @@ def auth_register_details(request):
         messages.warning(request, "Please upload your Aadhar Card first.")
         return redirect('auth_register_upload')
         
+    # Look for External Player Data (Invited by Organization)
+    external_name = None
+    external_uid = None
+    from .models import OrganizationPlayer
+    org_player = OrganizationPlayer.objects.filter(email__iexact=email).first()
+    if org_player:
+        external_name = org_player.name
+        external_uid = org_player.game_id
+        
     if request.method == 'POST':
         form = PlayerRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
@@ -617,7 +646,29 @@ def auth_register_details(request):
             else:
                 player.status = 'ACTIVE'
                 player.save()
-                
+
+                # --- Link External Invite Roster Entry ---
+                # If this player was added to an org's roster via external invite,
+                # link their newly created Player record to the OrganizationPlayer entry.
+                from .models import OrganizationPlayer
+                org_player_entry = OrganizationPlayer.objects.filter(email__iexact=email).first()
+                if org_player_entry:
+                    org_player_entry.player = player
+                    org_player_entry.status_label = 'Registered'
+                    org_player_entry.save()
+
+                    # Also set the player's organization FK
+                    player.organization = org_player_entry.organization
+                    player.save(update_fields=['organization'])
+
+                    # Notify the org that the external player has completed registration
+                    OrganizationNotification.objects.create(
+                        recipient=org_player_entry.organization,
+                        message=f"{player.full_name} ({player.email}) has completed their E-GameScout registration and is now active on your roster.",
+                        notification_type='PLAYER_REGISTERED'
+                    )
+                # -----------------------------------------
+
                 # Send Welcome Email
                 try:
                     subject = 'Welcome to E-Game Scout - Journey Started'
@@ -781,7 +832,15 @@ def player_profile(request):
     else:
         form = PlayerProfileForm(instance=player)
         
-    return render(request, 'web/Player/profile.html', {'player': player, 'form': form})
+    # Check if this player was added by an organization via external invite
+    from .models import ExternalPlayerInvite
+    invite = ExternalPlayerInvite.objects.filter(
+        email__iexact=player.email,
+        status='ACCEPTED'
+    ).select_related('organization').first()
+    invited_by_org = invite.organization if invite else None
+
+    return render(request, 'web/Player/profile.html', {'player': player, 'form': form, 'invited_by_org': invited_by_org})
 
 def player_deactivate_account(request):
     player_id = request.session.get('player_id')
@@ -2244,7 +2303,8 @@ def accept_player_invite(request, token):
     try:
         from django.core.mail import send_mail
         from django.template.loader import render_to_string
-        register_url = request.build_absolute_uri('/player/register/')
+        from django.urls import reverse
+        register_url = request.build_absolute_uri(reverse('auth_register_invite', args=[invite.token]))
         reg_html = render_to_string('web/emails/player_registration_prompt.html', {
             'org': invite.organization,
             'invite': invite,

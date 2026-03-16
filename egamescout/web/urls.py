@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import RedirectView
 from web import views, admin_views
 
 urlpatterns = [
@@ -71,6 +72,10 @@ urlpatterns = [
     path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
     path('auth/register/force/', views.player_force_register, name='player_force_register'),
     path('auth/register/cancel/', views.cancel_register, name='cancel_register'),
+    
+    # Backward compatibility redirect for old invite emails
+    path('player/register/', RedirectView.as_view(pattern_name='auth_register_upload', permanent=True)),
+    
     # Organization Player Management Routing
     path('organization/my-players/', views.my_players, name='my_players_legacy'),
     path('organization/add-player/', views.org_add_player, name='org_add_player'),

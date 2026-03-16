@@ -163,15 +163,30 @@
                         <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-1">Team / Organization</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500"><i class="fa-solid fa-users"></i></div>
-                            <div class="cyber-input w-full rounded-lg pl-11 pr-4 py-3 opacity-70 cursor-not-allowed {% if not player.organization %}border-dashed{% endif %}">
+                            <div class="cyber-input w-full rounded-lg pl-11 pr-4 py-3 opacity-70 cursor-not-allowed {% if not player.organization %}border-dashed{% endif %} flex flex-col justify-center gap-0.5">
                                 {% if player.organization %}
-                                    <span class="text-sm font-bold text-brand-light">{{ player.organization.Organization_Name }}</span>
+                                    {# Has an org linked directly #}
+                                    <span class="text-sm font-bold text-brand-light leading-tight">{{ player.organization.Organization_Name }}</span>
+                                    {% if invited_by_org %}
+                                        <span class="text-[10px] text-accent-cyan/80 font-semibold flex items-center gap-1 leading-tight">
+                                            <i class="fa-solid fa-user-plus text-[9px]"></i>
+                                            Registered by <span class="text-accent-cyan font-bold ml-0.5">{{ invited_by_org.Organization_Name }}</span>
+                                        </span>
+                                    {% endif %}
+                                {% elif invited_by_org %}
+                                    {# No org linked but was added via external invite — show that as primary #}
+                                    <span class="text-sm font-bold text-accent-cyan leading-tight">
+                                        Registered by {{ invited_by_org.Organization_Name }}
+                                    </span>
                                 {% else %}
-                                    <span class="text-sm font-bold text-gray-500 italic">Free Agent (None)</span>
+                                    {# Pure free agent #}
+                                    <span class="text-sm font-bold text-gray-500 italic leading-tight">Free Agent (None)</span>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
+
+
 
 
                     
