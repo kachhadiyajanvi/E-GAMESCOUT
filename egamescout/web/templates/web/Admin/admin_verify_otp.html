@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EGAME SCOUT | SECURE ADMIN LOGIN</title>
+    <title>EGAME SCOUT | VERIFY OTP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
@@ -79,67 +79,56 @@
         <div class="w-full flex flex-col items-center justify-center mb-8">
             <div
                 class="w-16 h-16 rounded-xl bg-black flex items-center justify-center shadow-[0_0_15px_rgba(0,243,255,0.1)] relative z-10 border border-brand-blue/20 mb-4">
-                <img src="{% static 'web/images/logo.png' %}" alt="Logo"
-                    class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(0,243,255,0.6)]">
+                <i class="fa-solid fa-shield-halved text-brand-blue text-2xl drop-shadow-[0_0_8px_rgba(0,243,255,0.6)]"></i>
             </div>
 
             <div class="text-center w-full">
-                <h1 class="font-display font-black text-2xl tracking-[0.15em] mb-1">
-                    <span class="text-white">EGAME</span><span class="text-brand-blue">SCOUT</span>
+                <h1 class="font-display font-black text-xl tracking-[0.1em] mb-1">
+                    <span class="text-white">SECURITY</span> <span class="text-brand-blue">CHECK</span>
                 </h1>
-                <h2 class="font-display font-medium text-[10px] text-white/50 tracking-[0.4em] uppercase">Administrator
-                </h2>
+                <p class="text-[13px] text-white/50 tracking-wide mt-2">Enter the 6-digit verification code sent to your email.</p>
             </div>
         </div>
 
         <!-- Form -->
-        <form method="post" class="space-y-5 w-full relative z-20">
+        <form method="post" class="space-y-6 w-full relative z-20">
             {% csrf_token %}
 
-            <!-- Email Input -->
+            <!-- OTP Input -->
             <div class="relative group input-glow rounded-lg transition-all duration-300">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <i
-                        class="fa-regular fa-envelope text-white/30 group-focus-within:text-brand-blue transition-colors text-sm"></i>
+                    <i class="fa-solid fa-key text-white/30 group-focus-within:text-brand-blue transition-colors text-sm"></i>
                 </div>
-                <input type="email" name="email"
-                    class="w-full bg-black/60 border border-white/10 rounded-lg pl-11 pr-4 py-3.5 text-white font-semibold focus:outline-none placeholder-transparent peer text-sm tracking-wide"
-                    placeholder="Email Address" required>
+                <!-- 
+                    Using type="text" and inputmode="numeric" provides the correct keyboard on mobile,
+                    while allowing us to style it nicely without increment arrows that type="number" introduces.
+                -->
+                <input type="text" inputmode="numeric" pattern="[0-9]{6}" name="otp" maxlength="6"
+                    class="w-full bg-black/60 border border-white/10 rounded-lg pl-11 pr-4 py-4 text-center text-brand-blue font-display text-2xl tracking-[0.5em] focus:outline-none placeholder-transparent peer"
+                    placeholder="000000" required autocomplete="one-time-code">
                 <label
-                    class="absolute left-11 top-3.5 text-white/40 text-[13px] font-medium transition-all peer-focus:-translate-y-6 peer-focus:-translate-x-8 peer-focus:text-[10px] peer-focus:text-brand-blue peer-focus:tracking-widest peer-focus:bg-brand-dark peer-focus:px-2 peer-focus:rounded peer-[:not(:placeholder-shown)]:-translate-y-6 peer-[:not(:placeholder-shown)]:-translate-x-8 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:text-gray-400 peer-[:not(:placeholder-shown)]:bg-brand-dark peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:tracking-widest pointer-events-none uppercase">
-                    Email Address
+                    class="absolute left-1/2 -translate-x-1/2 top-4 text-white/40 text-[13px] font-medium transition-all peer-focus:-translate-y-7 peer-focus:text-[10px] peer-focus:text-brand-blue peer-focus:tracking-widest peer-focus:bg-brand-dark peer-focus:px-2 peer-focus:rounded peer-[:not(:placeholder-shown)]:-translate-y-7 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:text-gray-400 peer-[:not(:placeholder-shown)]:bg-brand-dark peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:tracking-widest pointer-events-none uppercase">
+                    Verification Code
                 </label>
-            </div>
-
-            <!-- Password Input -->
-            <div class="relative group input-glow rounded-lg transition-all duration-300">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <i
-                        class="fa-solid fa-lock text-white/30 group-focus-within:text-brand-blue transition-colors text-sm"></i>
-                </div>
-                <input type="password" name="password" id="passwordInput"
-                    class="w-full bg-black/60 border border-white/10 rounded-lg pl-11 pr-11 py-3.5 text-white font-semibold focus:outline-none placeholder-transparent peer text-sm tracking-wide"
-                    placeholder="Password" required>
-                <label
-                    class="absolute left-11 top-3.5 text-white/40 text-[13px] font-medium transition-all peer-focus:-translate-y-6 peer-focus:-translate-x-8 peer-focus:text-[10px] peer-focus:text-brand-blue peer-focus:tracking-widest peer-focus:bg-brand-dark peer-focus:px-2 peer-focus:rounded peer-[:not(:placeholder-shown)]:-translate-y-6 peer-[:not(:placeholder-shown)]:-translate-x-8 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:text-gray-400 peer-[:not(:placeholder-shown)]:bg-brand-dark peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:tracking-widest pointer-events-none uppercase">
-                    Passcode
-                </label>
-                <button type="button" id="togglePassword"
-                    class="absolute inset-y-0 right-0 pr-4 flex items-center text-white/20 hover:text-brand-blue transition-colors focus:outline-none">
-                    <i class="fa-solid fa-eye-slash text-sm"></i>
-                </button>
             </div>
 
             <!-- Submit Button -->
             <button type="submit"
-                class="w-full mt-8 relative overflow-hidden rounded-lg bg-brand-blue/10 border border-brand-blue/30 group/btn transition-all duration-300 hover:bg-brand-blue/20 hover:border-brand-blue hover:shadow-[0_0_20px_rgba(0,243,255,0.2)]">
+                class="w-full relative overflow-hidden rounded-lg bg-brand-blue/10 border border-brand-blue/30 group/btn transition-all duration-300 hover:bg-brand-blue/20 hover:border-brand-blue hover:shadow-[0_0_20px_rgba(0,243,255,0.2)]">
                 <div class="py-3.5 px-6 flex items-center justify-center gap-3">
                     <span
-                        class="font-display font-semibold uppercase tracking-[0.15em] text-sm text-brand-blue transition-colors">AUTHORIZE</span>
+                        class="font-display font-semibold uppercase tracking-[0.15em] text-sm text-brand-blue transition-colors">VERIFY IDENTITY</span>
                     <i
-                        class="fa-solid fa-arrow-right-to-bracket text-brand-blue text-sm transition-transform group-hover/btn:translate-x-1"></i>
+                        class="fa-solid fa-fingerprint text-brand-blue text-sm transition-transform group-hover/btn:scale-110"></i>
                 </div>
             </button>
+            
+            <!-- Back to Login -->
+            <div class="text-center pt-2">
+                <a href="{% url 'admin_login' %}" class="text-[12px] text-white/40 hover:text-brand-blue uppercase tracking-widest transition-colors">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Return to Login
+                </a>
+            </div>
         </form>
 
     </div>
@@ -148,18 +137,6 @@
     <div id="toast-container" class="fixed top-8 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
 
     <script>
-        // Password Toggle
-        const toggleBtn = document.getElementById('togglePassword');
-        const passInput = document.getElementById('passwordInput');
-
-        toggleBtn.addEventListener('click', () => {
-            const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passInput.setAttribute('type', type);
-            const icon = toggleBtn.querySelector('i');
-            icon.classList.toggle('fa-eye');
-            icon.classList.toggle('fa-eye-slash');
-        });
-
         // Toast Notifications
         function showToast(message, tags) {
             const container = document.getElementById('toast-container');

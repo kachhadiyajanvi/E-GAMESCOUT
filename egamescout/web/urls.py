@@ -93,6 +93,7 @@ urlpatterns = [
 
     # Admin Portal
     path('admin/login/', admin_views.admin_login, name='admin_login'),
+    path('admin/login/verify-otp/', admin_views.admin_verify_otp, name='admin_verify_otp'),
     path('admin/logout/', admin_views.admin_logout, name='admin_logout'),
     path('admin/', admin_views.admin_dashboard, name='admin_dashboard'),
     path('admin/players/', admin_views.admin_players_detail, name='admin_players_detail'),
@@ -106,6 +107,8 @@ urlpatterns = [
     path('admin/tournaments/delete/<int:tournament_id>/', admin_views.admin_delete_tournament, name='admin_delete_tournament'),
     path('admin/tournaments/edit/<int:tournament_id>/', admin_views.admin_edit_tournament, name='admin_edit_tournament'),
     path('admin/profile/', admin_views.admin_profile, name='admin_profile'),
+    path('admin/profile/change-password/', admin_views.admin_change_password_request, name='admin_change_password_request'),
+    path('admin/profile/change-password/verify/', admin_views.admin_change_password_verify, name='admin_change_password_verify'),
     path('admin/analytics/', admin_views.admin_analytics, name='admin_analytics'),
     path('admin/settings/', admin_views.admin_settings, name='admin_settings'),
     
