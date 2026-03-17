@@ -14,7 +14,7 @@ class OrganizationEmailForm(forms.Form):
 
     def clean_organization_email(self):
         email = self.cleaned_data.get('organization_email')
-        if Organization.objects.filter(Organization_Email=email).exists():
+        if Organization.objects.filter(Organization_Email=email, is_archived=False).exists():
             raise forms.ValidationError("This email is already registered.")
         return email
 
@@ -164,7 +164,7 @@ class PlayerRegistrationForm(forms.ModelForm):
         if not aadhar:
              raise forms.ValidationError("Aadhar Number is required.")
         # Check uniqueness (though model handles it, nice to have custom error)
-        if Player.objects.filter(aadhar_number=aadhar).exists():
+        if Player.objects.filter(aadhar_number=aadhar, is_archived=False).exists():
              raise forms.ValidationError("This Aadhar Number is already registered.")
         return aadhar
 

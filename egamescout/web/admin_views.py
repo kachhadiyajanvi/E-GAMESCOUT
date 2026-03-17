@@ -235,8 +235,18 @@ def admin_tournaments_detail(request):
 def admin_delete_organization(request, org_id):
     org = get_object_or_404(Organization, id=org_id)
     if request.method == 'POST':
+        # Soft delete logic
         org.is_archived = True
-        org.archived_at = timezone.now()
+        archived_time = timezone.now()
+        org.archived_at = archived_time
+        org.status = 'Suspended'
+        org.is_active_account = False
+        
+        # Free up unique constraints
+        timestamp_str = archived_time.strftime("%Y%m%d%H%M%S")
+        org.Organization_Email = f"archived_{timestamp_str}_{org.Organization_Email}"[:50]
+        org.Organization_UserName = f"archived_{timestamp_str}_{org.Organization_UserName}"[:30]
+        
         org.save()
         messages.success(request, f'Organization "{org.Organization_Name}" has been deleted.')
         return redirect('admin_organization_detail')
@@ -318,10 +328,20 @@ def admin_delete_player(request, player_id):
         
         with transaction.atomic():
             player.is_archived = True
-            player.archived_at = timezone.now()
+            archived_time = timezone.now()
+            player.archived_at = archived_time
             player.is_active_account = False
             player.status = 'SUSPENDED'
             
+            # Free up unique constraints
+            timestamp_str = archived_time.strftime("%Y%m%d%H%M%S")
+            player.email = f"archived_{timestamp_str}_{player.email}"[:254]
+            player.uid = f"archived_{timestamp_str}_{player.uid}"[:50]
+            if player.username:
+                player.username = f"archived_{timestamp_str}_{player.username}"[:50]
+            if player.aadhar_number:
+                player.aadhar_number = f"archived_{timestamp_str}_{player.aadhar_number}"[:20]
+                            
             # Handle Organization Removal (Admin Action)
             if player.organization:
                 org = player.organization
