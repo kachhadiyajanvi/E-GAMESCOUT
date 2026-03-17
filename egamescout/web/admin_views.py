@@ -871,9 +871,11 @@ def admin_start_bidding_season(request):
         # Admin Wallet Distribution (Feature #1)
         bidding_budget = request.POST.get('bidding_budget')
         
-        # Ensure no other active seasons
-        BiddingSeason.objects.filter(is_active=True).update(is_active=False)
-        
+        # Check if there's already an active season
+        if BiddingSeason.objects.filter(is_active=True).exists():
+            messages.error(request, "A bidding season is already active. Please end or pause it before starting a new one.")
+            return redirect('admin_bidding_dashboard')
+
         start_dt = timezone.now()
         if start_date_str:
             try:
@@ -882,49 +884,56 @@ def admin_start_bidding_season(request):
             except ValueError:
                 pass
 
-        season = BiddingSeason.objects.create(
-            name=name,
-            auto_start=False,
-            is_active=True,
-            start_date=start_dt
-        )
-        
-        if end_date_str:
-            try:
-                naive_dt = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M')
-                season.end_date = timezone.make_aware(naive_dt)
-                season.save()
-            except ValueError:
-                pass
-                
-        # Distribute Coins Logic
-        if bidding_budget:
-            try:
-                budget_amount = Decimal(bidding_budget)
-                if budget_amount > 0:
-                    orgs = Organization.objects.filter(status='Active', is_active_account=True)
-                    count = 0
-                    for org in orgs:
-                        org.coins = budget_amount
-                        org.save()
-                        
-                        # create transaction record for history
-                        Transaction.objects.create(
-                            recipient=org,
-                            amount=budget_amount,
-                            transaction_type='ADMIN_GRANT',
-                            description=f"Initial Bidding Budget for {season.name}"
-                        )
-                        count += 1
-                    BiddingSeasonLog.objects.create(season=season, action='START', message=f"Bidding Started with Budget: {budget_amount} distributed to {count} organizations.")
-                else:
-                     BiddingSeasonLog.objects.create(season=season, action='START', message="Bidding Manually Started by Admin (Zero Budget)")
-            except Exception as e:
-                messages.error(request, f"Error distributing budget: {str(e)}")
-        else:
-            BiddingSeasonLog.objects.create(season=season, action='START', message="Bidding Manually Started by Admin")
+        try:
+            season = BiddingSeason.objects.create(
+                name=name,
+                auto_start=False,
+                is_active=True,
+                start_date=start_dt
+            )
             
-        messages.success(request, f"Bidding Season '{season.name}' started successfully.")
+            if end_date_str:
+                try:
+                    naive_dt = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M')
+                    season.end_date = timezone.make_aware(naive_dt)
+                    season.save()
+                except ValueError:
+                    pass
+                    
+            # Distribute Coins Logic
+            if bidding_budget:
+                try:
+                    budget_amount = Decimal(bidding_budget)
+                    if budget_amount > 0:
+                        orgs = Organization.objects.filter(status='Active', is_active_account=True)
+                        count = 0
+                        for org in orgs:
+                            org.coins = budget_amount
+                            org.save()
+                            
+                            # create transaction record for history
+                            Transaction.objects.create(
+                                recipient=org,
+                                amount=budget_amount,
+                                transaction_type='ADMIN_GRANT',
+                                description=f"Initial Bidding Budget for {season.name}"
+                            )
+                            count += 1
+                        BiddingSeasonLog.objects.create(season=season, action='START', message=f"Bidding Started with Budget: {budget_amount} distributed to {count} organizations.")
+                    else:
+                         BiddingSeasonLog.objects.create(season=season, action='START', message="Bidding Manually Started by Admin (Zero Budget)")
+                except Exception as e:
+                    season.delete() # Rollback creation if budget distribution fails
+                    messages.error(request, f"Error distributing budget: {str(e)}")
+                    return redirect('admin_bidding_dashboard')
+            else:
+                BiddingSeasonLog.objects.create(season=season, action='START', message="Bidding Manually Started by Admin")
+                
+            messages.success(request, f"Bidding Season '{season.name}' started successfully.")
+        except ValidationError as e:
+            messages.error(request, f"Validation Error: {', '.join(e.messages)}")
+        except Exception as e:
+            messages.error(request, f"Error starting bidding season: {str(e)}")
     return redirect('admin_bidding_dashboard')
 
 @user_passes_test(is_superuser, login_url='admin_login')
@@ -950,6 +959,7 @@ def admin_end_bidding_season(request):
             season = BiddingSeason.objects.filter(is_active=True).first()
         if season:
             season.is_active = False
+            season.end_date = timezone.now()
             season.save()
             BiddingSeasonLog.objects.create(season=season, action='END', message="Bidding Ended by Admin")
             
@@ -1323,55 +1333,72 @@ def admin_approve_conflict(request, request_id):
     conflict_req = get_object_or_404(RoleConflictRequest, id=request_id)
     
     if request.method == 'POST':
-        conflict_req.request_status = 'Approved'
-        conflict_req.save()
-        
-        # Activate the corresponding account
+        if conflict_req.request_status == 'Approved':
+            messages.info(request, "This request is already approved.")
+            return redirect('admin_role_conflicts')
+
+        payload = conflict_req.request_data or {}
+            
+        # Create and Activate the account
         if conflict_req.requested_role == 'Player':
-            try:
-                player = Player.objects.get(email=conflict_req.email)
-                player.status = 'ACTIVE'
-                player.save()
-                messages.success(request, f"Player account for '{conflict_req.email}' has been approved and activated.")
-            except Player.DoesNotExist:
-                messages.error(request, f"Could not find Player account for '{conflict_req.email}'.")
+            if Player.objects.filter(email=conflict_req.email).exists():
+                messages.error(request, f"Player account for '{conflict_req.email}' already exists.")
+            else:
+                try:
+                    Player.objects.create(
+                        email=conflict_req.email,
+                        full_name=payload.get('full_name', ''),
+                        phone_number=payload.get('phone_number', ''),
+                        in_game_name=payload.get('in_game_name', ''),
+                        game_id=payload.get('game_id', ''),
+                        date_of_birth=payload.get('date_of_birth') or None,
+                        age=payload.get('age', 18),
+                        aadhar_number=payload.get('aadhar_number', ''),
+                        bio=payload.get('bio', ''),
+                        social_links=payload.get('social_links', ''),
+                        profile_picture=payload.get('profile_picture', ''),
+                        status='ACTIVE'
+                    )
+                    conflict_req.request_status = 'Approved'
+                    conflict_req.save()
+                    messages.success(request, f"Player account for '{conflict_req.email}' created and activated.")
+                except Exception as e:
+                    messages.error(request, f"Failed to create Player: {str(e)}")
+                    
         elif conflict_req.requested_role == 'Organization':
-            try:
-                org = Organization.objects.get(Organization_Email=conflict_req.email)
-                org.status = 'Active'
-                org.save()
-                messages.success(request, f"Organization account for '{conflict_req.email}' has been approved and activated.")
-            except Organization.DoesNotExist:
-                messages.error(request, f"Could not find Organization account for '{conflict_req.email}'.")
+            if Organization.objects.filter(Organization_Email=conflict_req.email).exists():
+                messages.error(request, f"Organization account for '{conflict_req.email}' already exists.")
+            else:
+                try:
+                    org = Organization.objects.create(
+                        Organization_Email=conflict_req.email,
+                        Organization_Name=payload.get('Organization_Name', ''),
+                        Organization_UserName=payload.get('Organization_UserName', ''),
+                        Organization_Contact=int(payload.get('Organization_Contact', 0)) if payload.get('Organization_Contact') else 0,
+                        status='Active'
+                    )
+                    # Restore profile photo if saved
+                    photo_path = payload.get('profile_photo', '')
+                    if photo_path:
+                        org.profile_photo = photo_path
+                        org.save()
+                    conflict_req.request_status = 'Approved'
+                    conflict_req.save()
+                    messages.success(request, f"Organization account for '{conflict_req.email}' created and activated.")
+                except Exception as e:
+                    messages.error(request, f"Failed to create Organization: {str(e)}")
         
     return redirect('admin_role_conflicts')
 
 
 @user_passes_test(is_superuser, login_url='/admin/login/')
 def admin_reject_conflict(request, request_id):
-    """Reject a role conflict request and mark the corresponding account as rejected."""
+    """Reject a role conflict request."""
     conflict_req = get_object_or_404(RoleConflictRequest, id=request_id)
 
     if request.method == 'POST':
         conflict_req.request_status = 'Rejected'
         conflict_req.save()
-        
-        # Reject the corresponding account
-        if conflict_req.requested_role == 'Player':
-            try:
-                player = Player.objects.get(email=conflict_req.email)
-                player.status = 'REJECTED'
-                player.save()
-                messages.success(request, f"Player account for '{conflict_req.email}' has been rejected.")
-            except Player.DoesNotExist:
-                messages.error(request, f"Could not find Player account for '{conflict_req.email}'.")
-        elif conflict_req.requested_role == 'Organization':
-            try:
-                org = Organization.objects.get(Organization_Email=conflict_req.email)
-                org.status = 'Rejected'
-                org.save()
-                messages.success(request, f"Organization account for '{conflict_req.email}' has been rejected.")
-            except Organization.DoesNotExist:
-                messages.error(request, f"Could not find Organization account for '{conflict_req.email}'.")
+        messages.success(request, f"Conflict request for '{conflict_req.email}' has been rejected.")
 
     return redirect('admin_role_conflicts')

@@ -429,6 +429,7 @@ class RoleConflictRequest(models.Model):
     requested_role = models.CharField(max_length=20) # 'Player' or 'Organization'
     existing_role = models.CharField(max_length=20) # 'Organization' or 'Player'
     request_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    request_data = models.JSONField(null=True, blank=True, help_text="Stores registration payload pending approval")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

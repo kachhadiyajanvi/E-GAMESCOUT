@@ -10,7 +10,35 @@
             <p class="text-gray-400 text-sm">Create an Organization Account</p>
         </div>
 
-        <!-- Form -->
+        {% if conflict_email %}
+        <!-- Role Conflict UI -->
+        <div class="mb-6 p-4 rounded-xl border border-yellow-500/40 bg-yellow-500/10">
+            <div class="flex items-start gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-yellow-400 text-xl mt-0.5"></i>
+                <div>
+                    <p class="text-yellow-300 font-bold text-sm mb-1">Email Already Registered</p>
+                    <p class="text-yellow-200/80 text-xs">{{ conflict_message }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <form method="post" action="{% url 'org_force_register' %}">
+                {% csrf_token %}
+                <button type="submit"
+                    class="w-full py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-display font-bold uppercase tracking-wider rounded transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-gavel text-sm"></i>
+                    Request Admin Approval
+                </button>
+            </form>
+            <a href="{% url 'org_register_start' %}"
+                class="block w-full py-3 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-bold uppercase tracking-wider rounded transition-colors text-center text-sm">
+                Cancel
+            </a>
+        </div>
+
+        {% else %}
+        <!-- Normal Registration Form -->
         <form method="post" class="space-y-6">
             {% csrf_token %}
 
@@ -26,6 +54,7 @@
                 Send OTP
             </button>
         </form>
+        {% endif %}
 
         <div class="mt-6 text-center text-xs text-gray-500">
             Already registered? <a href="{% url 'org_login_start' %}" class="text-accent-cyan hover:underline">Log in

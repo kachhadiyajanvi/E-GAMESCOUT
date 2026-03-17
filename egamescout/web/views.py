@@ -16,6 +16,7 @@ from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
 from django.core.serializers.json import DjangoJSONEncoder
 from decimal import Decimal
+from datetime import datetime, timedelta
 import random
 import time
 import json
@@ -364,6 +365,16 @@ def auth_login(request):
             # --- Conflict Detection (If Registering as Player) ---
             if is_register:
                 if Organization.objects.filter(Organization_Email=email).exists():
+                    # Check if a conflict request already exists
+                    from .models import RoleConflictRequest
+                    existing_req = RoleConflictRequest.objects.filter(email=email, requested_role='Player').order_by('-created_at').first()
+                    if existing_req and existing_req.request_status == 'Pending':
+                        messages.warning(request, "You already have a pending admin approval request for this email. Please wait for the administrator to review it.")
+                        return redirect('auth_login')
+                    elif existing_req and existing_req.request_status == 'Approved':
+                        messages.info(request, "Your registration request has already been approved. Please login.")
+                        return redirect('auth_login')
+                    
                     request.session['conflict_email'] = email
                     return render(request, 'web/Player/login.html', {
                         'form': form,
@@ -380,6 +391,17 @@ def auth_login(request):
             # Logic Branching
             if not is_register: # LOGIN FLOW
                 if not player_exists:
+                    # Check for Pending/Rejected from Role Conflict
+                    from .models import RoleConflictRequest
+                    conflict_req = RoleConflictRequest.objects.filter(email=email, requested_role='Player').order_by('-created_at').first()
+                    if conflict_req:
+                        if conflict_req.request_status == 'Pending':
+                            messages.warning(request, "Your registration request is currently under review by an administrator.")
+                            return redirect('auth_login')
+                        elif conflict_req.request_status == 'Rejected':
+                            messages.error(request, "Your registration request was rejected by the administrator.")
+                            return redirect('auth_login')
+                    
                     messages.error(request, "This email is not registered. Please Register first.")
                     # return redirect(f"{request.path}?action=register") # Removed redirect as requested
                     return redirect('auth_login') # Refresh to show message
@@ -631,15 +653,44 @@ def auth_register_details(request):
             
             # Handle Force Register Logic
             if request.session.get('is_force_register'):
-                player.status = 'PENDING'
-                player.save()
+                # 1. Do NOT save the player. Just collect the exact data we need to create them later.
+                # Since Player model has an ImageField (aadhar_card), we must save the image file during this step
+                # or store the path so we don't lose the upload. `form.save(commit=False)` already put the file in memory.
+                # However, to be safe, we will just save the player instance as PENDING in DB, 
+                # OR we serialize the non-file fields and save as JSON. 
+                # Let's save the file explicitly and keep the path in JSON.
+                
+                # We need to save the uploaded image manually or let form save it.
+                # But the user specifically requested "Do NOT create the actual user account yet OR mark it as Pending."
+                handle_upload = request.FILES.get('profile_picture')
+                profile_pic_path = ""
+                if handle_upload:
+                    from django.core.files.storage import FileSystemStorage
+                    fs = FileSystemStorage()
+                    filename = fs.save(handle_upload.name, handle_upload)
+                    profile_pic_path = fs.url(filename)
+                
+                request_payload = {
+                    'email': email,
+                    'full_name': player.full_name,
+                    'phone_number': player.phone_number,
+                    'in_game_name': player.in_game_name,
+                    'game_id': player.game_id,
+                    'date_of_birth': player.date_of_birth.strftime('%Y-%m-%d') if player.date_of_birth else '',
+                    'age': player.age,
+                    'aadhar_number': player.aadhar_number,
+                    'bio': player.bio,
+                    'social_links': player.social_links,
+                    'profile_picture': profile_pic_path,
+                }
                 
                 # Create Conflict Request
                 from .models import RoleConflictRequest
                 RoleConflictRequest.objects.create(
                     email=email,
                     requested_role='Player',
-                    existing_role='Organization'
+                    existing_role='Organization',
+                    request_data=request_payload
                 )
                 
                 messages.success(request, f"Registration request submitted. Because this email is already registered as an Organization, your Player account ({player.full_name}) is pending admin approval. You will not be able to log in until approved.")
@@ -752,6 +803,8 @@ def player_dashboard(request):
     # 1. Scheduled Tournaments
     calendar_tournaments = Tournament.objects.filter(
         Status__in=['Scheduled', 'Ongoing'],
+        is_published=True,
+        approval_status='APPROVED',
         start_date__isnull=False
     ).values('Name', 'start_date', 'Status', 'Tournament_ID')
 
@@ -787,8 +840,16 @@ def player_dashboard(request):
             })
 
     # Bidding system removed - show all scheduled/ongoing tournaments
-    active_tournaments = Tournament.objects.filter(Status='Ongoing')[:5]
-    upcoming_tournaments_list = Tournament.objects.filter(Status='Scheduled')[:5]
+    active_tournaments = Tournament.objects.filter(
+        Status='Ongoing',
+        is_published=True,
+        approval_status='APPROVED'
+    )[:5]
+    upcoming_tournaments_list = Tournament.objects.filter(
+        Status='Scheduled',
+        is_published=True,
+        approval_status='APPROVED'
+    )[:5]
     
     # Calculate Dynamic Stats
     total_tournaments_joined = 0
@@ -1084,6 +1145,16 @@ def org_register_start(request):
             
             # --- Conflict Detection ---
             if Player.objects.filter(email=email).exists():
+                # Check if a conflict request already exists
+                from .models import RoleConflictRequest
+                existing_req = RoleConflictRequest.objects.filter(email=email, requested_role='Organization').order_by('-created_at').first()
+                if existing_req and existing_req.request_status == 'Pending':
+                    messages.warning(request, "You already have a pending admin approval request for this email. Please wait for the administrator to review it.")
+                    return redirect('org_register_start')
+                elif existing_req and existing_req.request_status == 'Approved':
+                    messages.info(request, "Your registration request has already been approved. Please login.")
+                    return redirect('org_login_start')
+                
                 request.session['conflict_email'] = email
                 return render(request, 'web/Organization/org_register_start.html', {
                     'form': form,
@@ -1187,18 +1258,35 @@ def org_register_details(request):
             
             # Handle Force Register Logic
             if request.session.get('is_force_register'):
-                org.status = 'Pending'
-                org.save()
+                # 1. Do NOT save the organization yet. Just collect the exact data to create them later.
+                
+                # We need to save the uploaded image manually to keep the file since we are not saving the org instance.
+                handle_upload = request.FILES.get('profile_photo')
+                profile_photo_path = ""
+                if handle_upload:
+                    from django.core.files.storage import FileSystemStorage
+                    fs = FileSystemStorage(location='media/organization_profiles/')
+                    filename = fs.save(handle_upload.name, handle_upload)
+                    profile_photo_path = 'organization_profiles/' + filename
+                
+                request_payload = {
+                    'Organization_Email': email,
+                    'Organization_Name': org.Organization_Name,
+                    'Organization_UserName': org.Organization_UserName,
+                    'Organization_Contact': str(org.Organization_Contact),
+                    'profile_photo': profile_photo_path,
+                }
                 
                 # Create Conflict Request
                 from .models import RoleConflictRequest
                 RoleConflictRequest.objects.create(
                     email=email,
                     requested_role='Organization',
-                    existing_role='Player'
+                    existing_role='Player',
+                    request_data=request_payload
                 )
                 
-                messages.success(request, f'Registration successful. However, because this email is already registered as a Player, your Organization account ({org.Organization_Name}) is pending admin approval. You will not be able to log in until approved.')
+                messages.success(request, f'Registration request submitted. Because this email is already registered as a Player, your Organization account ({org.Organization_Name}) is pending admin approval. You will not be able to log in until approved.')
             else:
                 org.status = 'Active'
                 org.save()
@@ -1286,6 +1374,16 @@ def org_login_start(request):
                 
                 return redirect('org_login_otp')
             except Organization.DoesNotExist:
+                # Check if there's a pending/rejected conflict request before showing generic error
+                from .models import RoleConflictRequest
+                conflict_req = RoleConflictRequest.objects.filter(email=email, requested_role='Organization').order_by('-created_at').first()
+                if conflict_req:
+                    if conflict_req.request_status == 'Pending':
+                        messages.warning(request, 'Your registration request is currently under review by an administrator. You will be notified once it is approved.')
+                        return redirect('org_login_start')
+                    elif conflict_req.request_status == 'Rejected':
+                        messages.error(request, 'Your registration request was rejected by the administrator. Please contact support.')
+                        return redirect('org_login_start')
                 messages.error(request, 'Email not found. Please register.')
     else:
         form = OrganizationEmailForm()
@@ -1991,20 +2089,12 @@ def tournament_create(request):
             tournament = form.save(commit=False)
             tournament.Organization_Name = org
             
-            # Start New Logic: Automatically submit for approval on creation
-            tournament.approval_status = 'PENDING'
+            # Start New Logic: Set to DRAFT initially
+            tournament.approval_status = 'DRAFT'
             tournament.save()
-            
-            # Notify Admin
-            from .models import AdminNotification
-            AdminNotification.objects.create(
-                message=f"New tournament '{tournament.Name}' created and submitted for approval by {org.Organization_Name}.",
-                notification_type='TOURNAMENT',
-                link='/admin/tournament/approvals/'
-            )
             # End New Logic
             
-            messages.success(request, f'Tournament "{tournament.Name}" created and submitted for admin approval!')
+            messages.success(request, f'Tournament "{tournament.Name}" saved as DRAFT.')
             return redirect('tournament_list')
         else:
             messages.error(request, "Please correct the errors below.")
@@ -2156,8 +2246,8 @@ def tournament_participants(request, tournament_id):
     is_owner = (tournament.Organization_Name == org)
     is_participant = tournament.bidders.filter(organization=org).exists()
     
-    if not (is_owner or is_participant or tournament.is_published):
-        messages.error(request, "You do not have permission to view participants for this tournament.")
+    if not (is_owner or is_participant or (tournament.is_published and tournament.approval_status == 'APPROVED')):
+        messages.error(request, "You do not have permission to view participants of this tournament.")
         return redirect('organizer_dashboard')
     
     # Fetch Bidders (Participants)
@@ -2484,23 +2574,12 @@ def org_upcoming_tournaments(request):
         
     org = get_object_or_404(Organization, id=org_id)
     
-    # 1. Published upcoming tournaments (Active)
+    # 1. Published upcoming tournaments (Active) - only admin-approved ones
     tournaments = Tournament.objects.filter(
         Status__in=['Scheduled', 'Ongoing'],
         is_published=True,
+        approval_status='APPROVED',
         is_archived=False
-    ).order_by('start_date')
-
-    # 2. Coming soon - unpublished tournaments ? No.
-    # Logic Correction: Only show published tournaments in the future as "Coming Soon".
-    # Showing other people's Unpublished Drafts is wrong.
-    
-    start_buffer = timezone.now() + datetime.timedelta(days=7)
-    coming_soon = Tournament.objects.filter(
-        Status='Scheduled',
-        is_published=True,
-        is_archived=False,
-        start_date__gt=start_buffer
     ).order_by('start_date')
 
     # Bidding system removed - no joined_tournament_ids
@@ -2510,7 +2589,6 @@ def org_upcoming_tournaments(request):
     
     return render(request, 'web/Organization/org_upcoming_list.html', {
         'tournaments': tournaments,
-        'coming_soon': coming_soon,
         'org': org,
         'joined_tournament_ids': joined_tournament_ids
     })
@@ -2570,10 +2648,11 @@ def player_upcoming_tournaments(request):
         
     player = get_object_or_404(Player, id=player_id)
     
-    # Get all upcoming published tournaments from all organizations
+    # Get all upcoming published and admin-approved tournaments from all organizations
     tournaments = Tournament.objects.filter(
         Status__in=['Scheduled', 'Ongoing'],
-        is_published=True
+        is_published=True,
+        approval_status='APPROVED'
     ).order_by('start_date')
     
     return render(request, 'web/Player/player_upcoming_list.html', {'tournaments': tournaments, 'player': player})
@@ -2633,11 +2712,14 @@ def org_bidding_dashboard(request):
     
     # Build bidding_status for the template countdown banner
     # Get upcoming (non-active) seasons that start today or in the future, ordered by nearest start date
+    # Also exclude seasons that have already ended
     now = timezone.now()
     upcoming_seasons = BiddingSeason.objects.filter(
-        is_active=False, start_date__gte=now
+        is_active=False
+    ).exclude(
+        end_date__lt=now
     ).order_by('start_date')
-    next_season = upcoming_seasons.first()
+    next_season = upcoming_seasons.filter(start_date__gte=now).first()
     if active_season:
         bidding_status = {
             'is_active': True,
@@ -2712,11 +2794,14 @@ def player_bidding_dashboard(request):
     
     # Build bidding_status for the template countdown banner
     # Get upcoming (non-active) seasons that start today or in the future, ordered by nearest start date
+    # Also exclude seasons that have already ended
     now = timezone.now()
     upcoming_seasons = BiddingSeason.objects.filter(
-        is_active=False, start_date__gte=now
+        is_active=False
+    ).exclude(
+        end_date__lt=now
     ).order_by('start_date')
-    next_season = upcoming_seasons.first()
+    next_season = upcoming_seasons.filter(start_date__gte=now).first()
     if active_season:
         bidding_status = {
             'is_active': True,
