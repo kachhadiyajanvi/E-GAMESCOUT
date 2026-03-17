@@ -11,7 +11,7 @@ urlpatterns = [
     
     # Organization Registration
     path('organization/register/', views.org_register_start, name='org_register_start'),
-    path('organization/register/force/', views.org_force_register, name='org_force_register'),
+
     path('organization/register/otp/', views.org_register_otp, name='org_register_otp'),
     path('organization/register/details/', views.org_register_details, name='org_register_details'),
     
@@ -48,9 +48,6 @@ urlpatterns = [
     path('organization/tournaments/<int:tournament_id>/edit/', views.tournament_update, name='tournament_update'),
     path('organization/tournaments/<int:tournament_id>/delete/', views.tournament_delete, name='tournament_delete'),
     path('organization/tournaments/<int:tournament_id>/participants/', views.tournament_participants, name='tournament_participants'),
-
-    
-
     # Utilities
     path('organization/resend-otp/', views.resend_otp, name='resend_otp'),
     path('auth/login/', views.auth_login, name='auth_login'),
@@ -70,7 +67,7 @@ urlpatterns = [
     path('auth/verify/', views.auth_verify_otp, name='auth_verify_otp'),
     path('auth/register/upload/', views.auth_register_upload, name='auth_register_upload'),
     path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
-    path('auth/register/force/', views.player_force_register, name='player_force_register'),
+
     path('auth/register/cancel/', views.cancel_register, name='cancel_register'),
     
     # Backward compatibility redirect for old invite emails

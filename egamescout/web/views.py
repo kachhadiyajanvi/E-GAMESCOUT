@@ -360,28 +360,13 @@ def auth_login(request):
         form = EmailLoginForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            player_exists = Player.objects.filter(email=email).exists()
+            player_exists = Player.objects.filter(email=email, is_archived=False).exists()
             
             # --- Conflict Detection (If Registering as Player) ---
             if is_register:
-                if Organization.objects.filter(Organization_Email=email).exists():
-                    # Check if a conflict request already exists
-                    from .models import RoleConflictRequest
-                    existing_req = RoleConflictRequest.objects.filter(email=email, requested_role='Player').order_by('-created_at').first()
-                    if existing_req and existing_req.request_status == 'Pending':
-                        messages.warning(request, "You already have a pending admin approval request for this email. Please wait for the administrator to review it.")
-                        return redirect('auth_login')
-                    elif existing_req and existing_req.request_status == 'Approved':
-                        messages.info(request, "Your registration request has already been approved. Please login.")
-                        return redirect('auth_login')
-                    
-                    request.session['conflict_email'] = email
-                    return render(request, 'web/Player/login.html', {
-                        'form': form,
-                        'is_register': True,
-                        'conflict_email': email,
-                        'conflict_message': "This email is already registered as an Organization. If you still want to create a Player account with this email, you must request admin approval."
-                    })
+                if Organization.objects.filter(Organization_Email=email, is_archived=False).exists():
+                    messages.error(request, "This email is already used for an Organization.")
+                    return redirect('auth_login')
             # -----------------------------------------------------
             
             # Clear any previous conflict state
@@ -467,20 +452,6 @@ def auth_login(request):
         'conflict_email': request.session.get('conflict_email')
     })
     
-def player_force_register(request):
-    """Bypasses normal check, saves the conflict email, and proceeds to Aadhar step."""
-    email = request.session.get('conflict_email')
-    if not email:
-        return redirect('auth_login')
-        
-    if request.method == 'POST':
-        request.session['auth_email'] = email
-        request.session['is_force_register'] = True
-        request.session['otp_verified'] = True # Mock OTP verification to skip directly to Aadhar upload
-        return redirect('auth_register_upload')
-        
-    return redirect('auth_login')
-
 
 def cancel_register(request):
     """Clears all registration session data and redirects to login cleanly."""
@@ -651,95 +622,51 @@ def auth_register_details(request):
             player.email = email
             player.age = reg_data.get('age', 18) # Default 18 if somehow missing, but step 1 checks it
             
-            # Handle Force Register Logic
-            if request.session.get('is_force_register'):
-                # 1. Do NOT save the player. Just collect the exact data we need to create them later.
-                # Since Player model has an ImageField (aadhar_card), we must save the image file during this step
-                # or store the path so we don't lose the upload. `form.save(commit=False)` already put the file in memory.
-                # However, to be safe, we will just save the player instance as PENDING in DB, 
-                # OR we serialize the non-file fields and save as JSON. 
-                # Let's save the file explicitly and keep the path in JSON.
-                
-                # We need to save the uploaded image manually or let form save it.
-                # But the user specifically requested "Do NOT create the actual user account yet OR mark it as Pending."
-                handle_upload = request.FILES.get('profile_picture')
-                profile_pic_path = ""
-                if handle_upload:
-                    from django.core.files.storage import FileSystemStorage
-                    fs = FileSystemStorage()
-                    filename = fs.save(handle_upload.name, handle_upload)
-                    profile_pic_path = fs.url(filename)
-                
-                request_payload = {
-                    'email': email,
-                    'full_name': player.full_name,
-                    'phone_number': player.phone_number,
-                    'in_game_name': player.in_game_name,
-                    'game_id': player.game_id,
-                    'date_of_birth': player.date_of_birth.strftime('%Y-%m-%d') if player.date_of_birth else '',
-                    'age': player.age,
-                    'aadhar_number': player.aadhar_number,
-                    'bio': player.bio,
-                    'social_links': player.social_links,
-                    'profile_picture': profile_pic_path,
-                }
-                
-                # Create Conflict Request
-                from .models import RoleConflictRequest
-                RoleConflictRequest.objects.create(
-                    email=email,
-                    requested_role='Player',
-                    existing_role='Organization',
-                    request_data=request_payload
+            player.status = 'ACTIVE'
+            player.save()
+
+            # --- Link External Invite Roster Entry ---
+            # If this player was added to an org's roster via external invite,
+            # link their newly created Player record to the OrganizationPlayer entry.
+            from .models import OrganizationPlayer
+            org_player_entries = OrganizationPlayer.objects.filter(email__iexact=email)
+
+            # Flag to ensure we only set primary organization once (to the first invitee)
+            primary_org_set = False
+
+            for org_player_entry in org_player_entries:
+                org_player_entry.player = player
+                org_player_entry.status_label = 'Registered'
+                org_player_entry.save()
+
+                if not primary_org_set:
+                    # Also set the player's organization FK (primary organization)
+                    player.organization = org_player_entry.organization
+                    player.save(update_fields=['organization'])
+                    primary_org_set = True
+
+                # Notify the org that the external player has completed registration
+                OrganizationNotification.objects.create(
+                    recipient=org_player_entry.organization,
+                    message=f"{player.full_name} ({player.email}) has completed their E-GameScout registration and is now active on your roster.",
+                    notification_type='PLAYER_REGISTERED'
                 )
+            # -----------------------------------------
+
+            # Send Welcome Email
+            try:
+                subject = 'Welcome to E-Game Scout - Journey Started'
+                html_content = render_to_string('web/emails/welcome.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+                text_content = strip_tags(html_content)
                 
-                messages.success(request, f"Registration request submitted. Because this email is already registered as an Organization, your Player account ({player.full_name}) is pending admin approval. You will not be able to log in until approved.")
-            else:
-                player.status = 'ACTIVE'
-                player.save()
-
-                # --- Link External Invite Roster Entry ---
-                # If this player was added to an org's roster via external invite,
-                # link their newly created Player record to the OrganizationPlayer entry.
-                from .models import OrganizationPlayer
-                org_player_entries = OrganizationPlayer.objects.filter(email__iexact=email)
-
-                # Flag to ensure we only set primary organization once (to the first invitee)
-                primary_org_set = False
-
-                for org_player_entry in org_player_entries:
-                    org_player_entry.player = player
-                    org_player_entry.status_label = 'Registered'
-                    org_player_entry.save()
-
-                    if not primary_org_set:
-                        # Also set the player's organization FK (primary organization)
-                        player.organization = org_player_entry.organization
-                        player.save(update_fields=['organization'])
-                        primary_org_set = True
-
-                    # Notify the org that the external player has completed registration
-                    OrganizationNotification.objects.create(
-                        recipient=org_player_entry.organization,
-                        message=f"{player.full_name} ({player.email}) has completed their E-GameScout registration and is now active on your roster.",
-                        notification_type='PLAYER_REGISTERED'
-                    )
-                # -----------------------------------------
-
-                # Send Welcome Email
-                try:
-                    subject = 'Welcome to E-Game Scout - Journey Started'
-                    html_content = render_to_string('web/emails/welcome.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
-                    text_content = strip_tags(html_content)
-                    
-                    msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-                    msg.attach_alternative(html_content, "text/html")
-                    msg.send()
-                    print(f"DEBUG: Welcome email sent to {email}")
-                except Exception as e:
-                    print(f"ERROR: Failed to send welcome email: {e}")
-                    
-                messages.success(request, f"Registration Complete! Welcome {player.full_name}. Please Login.")
+                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()
+                print(f"DEBUG: Welcome email sent to {email}")
+            except Exception as e:
+                print(f"ERROR: Failed to send welcome email: {e}")
+                
+            messages.success(request, f"Registration Complete! Welcome {player.full_name}. Please Login.")
 
             # Clear session
             if 'auth_email' in request.session: del request.session['auth_email']
@@ -1011,7 +938,71 @@ def player_delete_account(request):
         except Player.DoesNotExist:
             request.session.flush()
             return redirect('auth_login')
-        player.delete()
+            
+        with transaction.atomic():
+            # Soft delete logic
+            player.is_archived = True
+            archived_time = timezone.now()
+            player.archived_at = archived_time
+            player.status = 'SUSPENDED'
+            player.is_active_account = False
+            
+            # Free up unique constraints
+            timestamp_str = archived_time.strftime("%Y%m%d%H%M%S")
+            player.email = f"archived_{timestamp_str}_{player.email}"[:254]
+            player.uid = f"archived_{timestamp_str}_{player.uid}"[:50]
+            if player.username:
+                player.username = f"archived_{timestamp_str}_{player.username}"[:50]
+            if player.aadhar_number:
+                player.aadhar_number = f"archived_{timestamp_str}_{player.aadhar_number}"[:20]
+                
+            # Handle Organization Removal
+            if player.organization:
+                org = player.organization
+                
+                # Remove from Org Roster
+                OrganizationPlayer.objects.filter(player=player, organization=org).delete()
+                
+                # Notify Organization
+                OrganizationNotification.objects.create(
+                    recipient=org,
+                    message=f"Player {player.full_name} has deactivated their account and left the organization.",
+                    notification_type='PLAYER_LEFT'
+                )
+                
+                # Unlink Player
+                player.organization = None
+                
+            player.save()
+            
+            # Handle Active Bids (Refund & Cancel)
+            active_bids = Bid.objects.filter(player=player, status__in=['Pending', 'Negotiation'])
+            for bid in active_bids:
+                org = bid.organization
+                
+                # Refund Amount
+                org.coins += bid.amount
+                org.save()
+                
+                # Log Transaction
+                Transaction.objects.create(
+                    recipient=org,
+                    amount=bid.amount,
+                    transaction_type='BID_REFUND',
+                    description=f"Bid details cancelled due to player deactivation: {player.full_name}"
+                )
+                
+                # Notify Organization
+                OrganizationNotification.objects.create(
+                    recipient=org,
+                    message=f"Bid for {player.full_name} cancelled. Player deactivated account.",
+                    notification_type='BID_CANCELLED'
+                )
+                
+                # Update Bid Status
+                bid.status = 'Rejected' # Or Cancelled if available
+                bid.save()
+                
         request.session.flush()
         messages.success(request, 'Your account has been permanently deleted.')
         return redirect('index')
@@ -1144,23 +1135,9 @@ def org_register_start(request):
             email = form.cleaned_data['organization_email']
             
             # --- Conflict Detection ---
-            if Player.objects.filter(email=email).exists():
-                # Check if a conflict request already exists
-                from .models import RoleConflictRequest
-                existing_req = RoleConflictRequest.objects.filter(email=email, requested_role='Organization').order_by('-created_at').first()
-                if existing_req and existing_req.request_status == 'Pending':
-                    messages.warning(request, "You already have a pending admin approval request for this email. Please wait for the administrator to review it.")
-                    return redirect('org_register_start')
-                elif existing_req and existing_req.request_status == 'Approved':
-                    messages.info(request, "Your registration request has already been approved. Please login.")
-                    return redirect('org_login_start')
-                
-                request.session['conflict_email'] = email
-                return render(request, 'web/Organization/org_register_start.html', {
-                    'form': form,
-                    'conflict_email': email,
-                    'conflict_message': "This email is already registered as a Player. If you still want to create an Organization account with this email, you must request admin approval."
-                })
+            if Player.objects.filter(email=email, is_archived=False).exists():
+                messages.error(request, 'This email is already used for a Player.')
+                return redirect('org_register_start')
             # ---------------------------
             
             # Clear any previous conflict state
@@ -1199,20 +1176,6 @@ def org_register_start(request):
         'form': form,
         'conflict_email': request.session.get('conflict_email')
     })
-
-def org_force_register(request):
-    """Bypasses normal registration OTP and creates a Pending Organization and a RoleConflictRequest."""
-    email = request.session.get('conflict_email')
-    if not email:
-        return redirect('org_register_start')
-        
-    if request.method == 'POST':
-        # Send them to the normal details form, but mark session so we know it's a forced register
-        request.session['reg_email'] = email
-        request.session['is_force_register'] = True
-        return redirect('org_register_details')
-        
-    return redirect('org_register_start')
 
 def org_register_otp(request):
     if request.session.get('organizer_id'):
@@ -1256,59 +1219,27 @@ def org_register_details(request):
             org = form.save(commit=False)
             org.Organization_Email = email
             
-            # Handle Force Register Logic
-            if request.session.get('is_force_register'):
-                # 1. Do NOT save the organization yet. Just collect the exact data to create them later.
+            org.status = 'Active'
+            org.save()
+            
+            # Send congratulatory email
+            try:
+                subject = 'Welcome to E-Game Scout - Registration Successful!'
+                html_content = render_to_string('web/emails/welcome.html', {
+                    'user': {'username': org.Organization_Name},
+                    'login_url': request.build_absolute_uri('/organization/login/'),
+                    'logo_url': request.build_absolute_uri('/static/web/images/logo.png')
+                })
+                text_content = strip_tags(html_content)
                 
-                # We need to save the uploaded image manually to keep the file since we are not saving the org instance.
-                handle_upload = request.FILES.get('profile_photo')
-                profile_photo_path = ""
-                if handle_upload:
-                    from django.core.files.storage import FileSystemStorage
-                    fs = FileSystemStorage(location='media/organization_profiles/')
-                    filename = fs.save(handle_upload.name, handle_upload)
-                    profile_photo_path = 'organization_profiles/' + filename
+                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()
                 
-                request_payload = {
-                    'Organization_Email': email,
-                    'Organization_Name': org.Organization_Name,
-                    'Organization_UserName': org.Organization_UserName,
-                    'Organization_Contact': str(org.Organization_Contact),
-                    'profile_photo': profile_photo_path,
-                }
-                
-                # Create Conflict Request
-                from .models import RoleConflictRequest
-                RoleConflictRequest.objects.create(
-                    email=email,
-                    requested_role='Organization',
-                    existing_role='Player',
-                    request_data=request_payload
-                )
-                
-                messages.success(request, f'Registration request submitted. Because this email is already registered as a Player, your Organization account ({org.Organization_Name}) is pending admin approval. You will not be able to log in until approved.')
-            else:
-                org.status = 'Active'
-                org.save()
-                
-                # Send congratulatory email
-                try:
-                    subject = 'Welcome to E-Game Scout - Registration Successful!'
-                    html_content = render_to_string('web/emails/welcome.html', {
-                        'user': {'username': org.Organization_Name},
-                        'login_url': request.build_absolute_uri('/organization/login/'),
-                        'logo_url': request.build_absolute_uri('/static/web/images/logo.png')
-                    })
-                    text_content = strip_tags(html_content)
-                    
-                    msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-                    msg.attach_alternative(html_content, "text/html")
-                    msg.send()
-                    
-                    print(f"DEBUG: Registration success email sent to {email}")
-                except Exception as e:
-                    print(f"ERROR: Failed to send registration email: {e}")
-                messages.success(request, f'🎉 Registration successful! Welcome to E-Game Scout, {org.Organization_Name}! A confirmation email has been sent to {email}. Please login to continue.')
+                print(f"DEBUG: Registration success email sent to {email}")
+            except Exception as e:
+                print(f"ERROR: Failed to send registration email: {e}")
+            messages.success(request, f'🎉 Registration successful! Welcome to E-Game Scout, {org.Organization_Name}! A confirmation email has been sent to {email}. Please login to continue.')
 
             # Cleanup registration session
             if 'reg_email' in request.session:
@@ -1955,7 +1886,20 @@ def org_delete_account(request):
         
     if request.method == 'POST':
         org = get_object_or_404(Organization, id=org_id)
-        org.delete()
+        # Soft delete logic
+        org.is_archived = True
+        archived_time = timezone.now()
+        org.archived_at = archived_time
+        org.status = 'Suspended'
+        org.is_active_account = False
+        
+        # Free up unique constraints
+        timestamp_str = archived_time.strftime("%Y%m%d%H%M%S")
+        org.Organization_Email = f"archived_{timestamp_str}_{org.Organization_Email}"[:50]
+        org.Organization_UserName = f"archived_{timestamp_str}_{org.Organization_UserName}"[:30]
+        
+        org.save()
+        
         request.session.flush()
         messages.success(request, 'Organization account deleted successfully.')
         return redirect('index')
