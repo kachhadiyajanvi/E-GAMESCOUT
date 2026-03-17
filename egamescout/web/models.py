@@ -27,6 +27,7 @@ class Organization(models.Model):
     has_seen_player_setup_popup = models.BooleanField(default=False)
     last_player_reminder_date = models.DateField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)
+    organization_signature = models.ImageField(upload_to='organization_signatures/', null=True, blank=True)
     CreatedAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -420,3 +421,19 @@ class UserSession(models.Model):
         return f"{self.user_type} session ({self.user_id})"
 
 
+    def __str__(self):
+        return f"{self.email} - {self.requested_role} Request"
+
+class Contract(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='contracts')
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='contracts')
+    salary = models.DecimalField(max_digits=12, decimal_places=2)
+    responsibilities = models.TextField()
+    sponsor_promotion = models.TextField()
+    duration = models.CharField(max_length=100) # e.g., "1 Year", "6 Months"
+    termination_rules = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_saved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Contract: {self.organization.Organization_Name} - {self.player.full_name}"

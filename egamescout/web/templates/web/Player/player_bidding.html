@@ -756,22 +756,18 @@
                     }
                     if (activeView) {
                         activeView.classList.remove('hidden');
-                        activeView.classList.add('flex'); // Main wrapper uses flex
+                        activeView.classList.add('flex'); 
                     }
                 } else {
                     // Manual start required, just show waiting text and hide countdown
                     if (notStartedView) {
                         notStartedView.classList.remove('hidden');
                         notStartedView.classList.add('flex');
-                        const desc = document.getElementById('not-started-desc');
-                        if (desc) desc.textContent = "Waiting for an administrator to manually start this bidding season.";
+                        const desc = document.getElementById('not-started-title');
+                        if (desc) desc.textContent = "Bidding Opening Soon";
                     }
                     if (countdownContainer) {
-                        countdownContainer.classList.add('hidden');
-                    }
-                    if (activeView) {
-                        activeView.classList.add('hidden');
-                        activeView.classList.remove('flex');
+                        // Keep countdown showing if there is a start date
                     }
                 }
             }

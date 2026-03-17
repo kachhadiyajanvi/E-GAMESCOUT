@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contract - {{ contract.player.full_name }}</title>
+    <!-- We'll use system-formal fonts or Google Fonts if non-PDF -->
+    {% if not is_pdf %}
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Montserrat:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% endif %}
+
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'Merriweather', serif;
+            color: #1a1a1a;
+            line-height: 1.6;
+            background: {% if is_pdf %}#ffffff{% else %}#0B0C10{% endif %};
+            padding: {% if is_pdf %}0{% else %}80px 20px{% endif %};
+            margin: 0;
+            background-image: {% if is_pdf %}none{% else %}radial-gradient(circle at 50% 50%, rgba(102, 252, 241, 0.05) 0%, transparent 80%){% endif %};
+        }
+        .a4-container {
+            background: #ffffff;
+            width: {% if is_pdf %}100%{% else %}210mm{% endif %};
+            min-height: {% if is_pdf %}auto{% else %}297mm{% endif %};
+            margin: auto;
+            padding: 2.5cm;
+            box-shadow: {% if is_pdf %}none{% else %}0 30px 100px rgba(0,0,0,0.5), 0 0 50px rgba(102, 252, 241, 0.1){% endif %};
+            position: relative;
+            transform: {% if is_pdf %}none{% else %}scale(1){% endif %};
+            transition: all 0.5s ease;
+        }
+        {% if not is_pdf %}
+        .a4-container:hover {
+            box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 70px rgba(102, 252, 241, 0.2);
+        }
+        {% endif %}
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #1a1a1a;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        .org-name {
+            font-family: 'Raleway', sans-serif;
+            font-weight: 900;
+            font-size: 26px;
+            color: #008080; /* Teal/Cyan color for Organization Name */
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+        .system-branding {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .system-logo {
+            height: 40px;
+            vertical-align: middle;
+        }
+        .system-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: #333;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        .document-title {
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 18px;
+            letter-spacing: 4px;
+            margin-top: 10px;
+        }
+        .section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 14px;
+            border-left: 4px solid #1a1a1a;
+            padding-left: 10px;
+            margin: 25px 0 15px;
+            background: #f9f9f9;
+            padding: 5px 10px;
+        }
+        .content-text {
+            font-size: 12px;
+            text-align: justify;
+            margin-bottom: 15px;
+        }
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            page-break-inside: avoid;
+        }
+        .sig-box {
+            width: 45%;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            text-align: center;
+        }
+        .sig-label {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #666;
+        }
+        .signature-img {
+            max-height: 32px;
+            max-width: 150px;
+            margin-bottom: 5px;
+            object-fit: contain;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            text-align: center;
+            font-size: 10px;
+            color: #777;
+            border-top: 1px solid #eee;
+            clear: both;
+        }
+        .actions-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+        @media print {
+            .actions-bar { display: none; }
+            body { background: white; padding: 0; }
+            .a4-container { box-shadow: none; width: 100%; margin: 0; padding: 0.5cm;}
+        }
+    </style>
+</head>
+<body>
+
+    {% if not is_pdf %}
+    <div class="actions-bar no-print">
+        <a href="{% url 'org_contract_list' %}" class="bg-gray-800 text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-black transition-all text-center">
+             &larr; Back to List
+        </a>
+        <a href="{% url 'org_export_contract_pdf' contract.id %}" class="bg-red-600 text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-red-700 transition-all text-center">
+            Download PDF
+        </a>
+        <a href="{% url 'org_send_contract_to_player' contract.id %}" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-blue-700 transition-all text-center">
+            Send to Player
+        </a>
+        {% if not contract.is_saved %}
+        <a href="{% url 'org_save_contract' contract.id %}" class="bg-green-600 text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-green-700 transition-all text-center">
+            Save & Finalize
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="a4-container">
+        <!-- System Branding Header -->
+        <div class="system-branding">
+            <div style="float: left;">
+                <img src="{% static 'web/images/logo.png' %}" class="system-logo" alt="Logo">
+                <span class="system-name">E-GAMESCOUT</span>
+            </div>
+            <div style="float: right; font-size: 10px; color: #999; text-transform: uppercase; margin-top: 15px;">
+                Official Professional Contract
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+
+        <div class="header">
+            <div class="org-name">{{ org.Organization_Name }}</div>
+            <div class="document-title">PROFESSIONAL RECRUITMENT CONTRACT</div>
+        </div>
+
+        <div class="content-text" style="font-size: 13px; line-height: 1.8; margin-bottom: 30px;">
+            This Professional Services Agreement (the "Agreement") is made and entered into this <strong>{{ contract.created_at|date:"jS" }} day of {{ contract.created_at|date:"F, Y" }}</strong>,
+            <br><br>
+            <strong>BY AND BETWEEN:</strong>
+            <br>
+            <span style="font-size: 16px; font-weight: bold;">{{ org.Organization_Name }}</span>, a professional esports organization having its principal place of operation as registered (hereinafter referred to as the <strong>"Organization"</strong>),
+            <br><br>
+            <strong>AND:</strong>
+            <br>
+            <span style="font-size: 16px; font-weight: bold;">{{ contract.player.full_name }}</span>, an individual professional esports athlete (hereinafter referred to as the <strong>"Player"</strong>).
+        </div>
+
+        <p class="content-text">
+            WHEREAS, the Organization is engaged in the business of professional competitive gaming and desires to retain the services of the Player; and WHEREAS, the Player possesses specialized skills and reputation in esports and desires to provide services to the Organization under the terms and conditions set forth herein.
+        </p>
+
+        <div class="section-title">1. SCOPE OF SERVICES</div>
+        <div class="content-text">
+            {{ contract.responsibilities|linebreaksbr }}
+        </div>
+
+        <div class="section-title">2. COMPENSATION</div>
+        <div class="content-text">
+            The Organization agrees to pay the Player an annual salary of <strong>₹{{ contract.salary }}</strong>. This compensation shall be payable in accordance with the Organization's standard payroll practices.
+        </div>
+
+        <div class="section-title">3. SPONSORSHIP & PROMOTION</div>
+        <div class="content-text">
+            The Player acknowledges and agrees to the following sponsorship and promotional requirements:
+            <br>
+            {{ contract.sponsor_promotion|linebreaksbr }}
+        </div>
+
+        <div class="section-title">4. TERM & DURATION</div>
+        <div class="content-text">
+            The term of this Agreement shall be <strong>{{ contract.duration }}</strong>, unless terminated earlier in accordance with the provisions set forth herein.
+        </div>
+
+        <div class="section-title">5. TERMINATION RULES</div>
+        <div class="content-text">
+            {{ contract.termination_rules|linebreaksbr }}
+        </div>
+
+        <div class="section-title">6. CONFIDENTIALITY</div>
+        <div class="content-text">
+            The Player shall maintain the strict confidentiality of all non-public information concerning the Organization’s business, strategies, and internal affairs. This obligation shall survive the termination of this Agreement for a period of two (2) years.
+        </div>
+
+        <div class="section-title">7. INDEPENDENT CONTRACTOR</div>
+        <div class="content-text">
+            The Player is engaged as an independent contractor. Nothing in this Agreement shall be construed to create an employer-employee relationship, partnership, or joint venture between the parties.
+        </div>
+
+        <div class="section-title">8. GOVERNING LAW</div>
+        <div class="content-text">
+            This Agreement shall be governed by and construed in accordance with the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the exclusive jurisdiction of the courts located in the Organization's primary place of registration.
+        </div>
+
+        <div class="signature-section">
+            <div class="sig-box">
+                {% if org.organization_signature %}
+                <img src="{{ org.organization_signature.url }}" class="signature-img" alt="Org Signature">
+                {% else %}
+                <div style="height: 60px;"></div>
+                {% endif %}
+                <div class="sig-label">Authorized Signatory</div>
+                <div style="font-size: 13px; font-weight: bold; color: #111;">{{ org.Organization_Name }}</div>
+            </div>
+            <div class="sig-box">
+                <div style="height: 60px;"></div>
+                <div class="sig-label">Player Signature</div>
+                <div style="font-size: 12px; font-weight: bold;">{{ contract.player.full_name }}</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            This is a system-based digital contract. Reference ID: CTR-{{ contract.id|stringformat:"04d" }}
+        </div>
+    </div>
+
+</body>
+</html>

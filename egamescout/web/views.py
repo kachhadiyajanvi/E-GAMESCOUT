@@ -20,19 +20,20 @@ from datetime import datetime, timedelta
 import random
 import time
 import json
+import os
 
 from web.forms import (
     OrganizationEmailForm, OTPForm, OrganizationDetailsForm,
     OrganizationLoginForm, OrganizationPhotoForm, TournamentForm,
     EmailLoginForm, OTPVerifyForm, AadharUploadForm,
-    PlayerRegistrationForm, PlayerProfileForm
+    PlayerRegistrationForm, PlayerProfileForm, ContractForm, OrganizationSignatureForm
 )
 from web.models import (
     Organization, Tournament, TournamentBidder, Player, 
     Transaction, OrganizationPlayer, ExternalPlayerInvite, PlayerNotification,
     AdminNotification, BiddingSeason, BiddingSeasonLog, Bid, Negotiation,
     SystemSettings, PlayerTask, OrganizationNotification, UserSession, ScorecardAnalysis,
-    PreviousTournament, TournamentTeam, TournamentScorecard
+    PreviousTournament, TournamentTeam, TournamentScorecard, Contract
 )
 from web.decorators import login_required_organization
 from web.auth_services import handle_secure_login, handle_secure_logout
@@ -2636,6 +2637,19 @@ def org_bidding_dashboard(request):
     
     active_season = BiddingSeason.objects.filter(is_active=True).first()
     
+    # Check if there is any active season for player visibility
+    if not active_season:
+        # Check for auto-start seasons that should be active
+        now = timezone.now()
+        active_season = BiddingSeason.objects.filter(
+            auto_start=True,
+            start_date__lte=now,
+            end_date__gte=now
+        ).first()
+        if active_season and not active_season.is_active:
+             active_season.is_active = True
+             active_season.save()
+    
     # Build bidding_status for the template countdown banner
     # Get upcoming (non-active) seasons that start today or in the future, ordered by nearest start date
     # Also exclude seasons that have already ended
@@ -2717,6 +2731,18 @@ def player_bidding_dashboard(request):
         
     player = get_object_or_404(Player, id=player_id)
     active_season = BiddingSeason.objects.filter(is_active=True).first()
+    
+    # Check if there is any active season
+    if not active_season:
+        now = timezone.now()
+        active_season = BiddingSeason.objects.filter(
+            auto_start=True,
+            start_date__lte=now,
+            end_date__gte=now
+        ).first()
+        if active_season and not active_season.is_active:
+             active_season.is_active = True
+             active_season.save()
     
     # Build bidding_status for the template countdown banner
     # Get upcoming (non-active) seasons that start today or in the future, ordered by nearest start date
@@ -3305,3 +3331,194 @@ def check_username(request):
         return JsonResponse({'available': False})
         
     return JsonResponse({'available': True})
+
+
+@login_required_organization
+def org_contract_list(request):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    contracts = Contract.objects.filter(organization=org).order_by('-created_at')
+    return render(request, 'web/Organization/org_contracts_list.html', {
+        'org': org,
+        'contracts': contracts
+    })
+
+@login_required_organization
+def org_create_contract(request):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    
+    if request.method == 'POST':
+        contract_form = ContractForm(request.POST, organization=org)
+        sig_form = None
+        if not org.organization_signature:
+            sig_form = OrganizationSignatureForm(request.POST, request.FILES, instance=org)
+            
+        if contract_form.is_valid() and (sig_form is None or sig_form.is_valid()):
+            if sig_form:
+                sig_form.save()
+            
+            contract = contract_form.save(commit=False)
+            contract.organization = org
+            contract.save()
+            messages.success(request, "Contract drafted successfully!")
+            return redirect('org_view_contract', contract_id=contract.id)
+    else:
+        contract_form = ContractForm(organization=org)
+        sig_form = None
+        if not org.organization_signature:
+            sig_form = OrganizationSignatureForm(instance=org)
+            
+    # Fetch accepted bids for this organization's players to show bid price
+    accepted_bids = Bid.objects.filter(
+        organization=org,
+        status='Accepted'
+    ).values('player_id', 'amount')
+    
+    bid_map = {b['player_id']: b['amount'] for b in accepted_bids}
+    
+    players = Player.objects.filter(organization=org)
+    for p in players:
+        p.bid_price = bid_map.get(p.id)
+
+    return render(request, 'web/Organization/org_create_contract.html', {
+        'org': org,
+        'contract_form': contract_form,
+        'sig_form': sig_form,
+        'players': players
+    })
+
+@login_required_organization
+def org_view_contract(request, contract_id):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    contract = get_object_or_404(Contract, id=contract_id, organization=org)
+    
+    return render(request, 'web/Organization/org_contract_document.html', {
+        'org': org,
+        'contract': contract
+    })
+
+@login_required_organization
+def org_save_contract(request, contract_id):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    contract = get_object_or_404(Contract, id=contract_id, organization=org)
+    
+    contract.is_saved = True
+    contract.save()
+    messages.success(request, "Contract saved to history!")
+    return redirect('org_contract_list')
+
+@login_required_organization
+def org_player_contact_page(request):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    players = Player.objects.filter(organization=org)
+    
+    return render(request, 'web/Organization/org_player_contact.html', {
+        'org': org,
+        'players': players
+    })
+
+from io import BytesIO
+from xhtml2pdf import pisa
+from django.http import HttpResponse
+
+def fetch_resources(uri, rel):
+    """
+    Convert HTML URIs to absolute system paths so xhtml2pdf can access those
+    resources on the local file system.
+    """
+    from urllib.parse import urlparse, unquote
+
+    # Unquote the URI to handle spaces and special characters
+    uri = unquote(uri)
+
+    # If it's a full URL, we only want the path part
+    if uri.startswith('http'):
+        uri = urlparse(uri).path
+
+    # Handle media files
+    if uri.startswith(settings.MEDIA_URL):
+        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, "", 1).lstrip('/'))
+    # Handle static files
+    elif uri.startswith(settings.STATIC_URL):
+        # First try STATIC_ROOT
+        path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, "", 1).lstrip('/'))
+    else:
+        return uri
+
+    # Fallback/verification
+    if not os.path.isfile(path):
+        # If static, search in STATICFILES_DIRS
+        if uri.startswith(settings.STATIC_URL):
+            for static_dir in settings.STATICFILES_DIRS:
+                test_path = os.path.join(static_dir, uri.replace(settings.STATIC_URL, "", 1).lstrip('/'))
+                if os.path.isfile(test_path):
+                    return test_path
+        return uri
+    return path
+
+def render_to_pdf(template_src, context_dict={}):
+    template = render_to_string(template_src, context_dict)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(template.encode("UTF-8")), result, link_callback=fetch_resources)
+    if not pdf.err:
+        return result.getvalue()
+    return None
+
+@login_required_organization
+def org_export_contract_pdf(request, contract_id):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    contract = get_object_or_404(Contract, id=contract_id, organization=org)
+    
+    pdf = render_to_pdf('web/Organization/org_contract_document.html', {
+        'org': org,
+        'contract': contract,
+        'is_pdf': True
+    })
+    
+    if pdf:
+        response = HttpResponse(pdf, content_type='application/pdf')
+        filename = f"Contract_{contract.player.full_name}_{contract.id}.pdf"
+        content = f"attachment; filename={filename}"
+        response['Content-Disposition'] = content
+        return response
+    return HttpResponse("Error generating PDF", status=400)
+
+@login_required_organization
+def org_send_contract_to_player(request, contract_id):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    contract = get_object_or_404(Contract, id=contract_id, organization=org)
+    
+    player_email = contract.player.email
+    if not player_email:
+        messages.error(request, "Player email not found!")
+        return redirect('org_view_contract', contract_id=contract.id)
+        
+    pdf = render_to_pdf('web/Organization/org_contract_document.html', {
+        'org': org,
+        'contract': contract,
+        'is_pdf': True
+    })
+    
+    if pdf:
+        subject = f"Official Contract from {org.Organization_Name}"
+        message = f"Hello {contract.player.full_name},\n\nPlease find the attached contract for your review."
+        email = EmailMultiAlternatives(
+            subject, 
+            message, 
+            settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com', 
+            [player_email]
+        )
+        email.attach(f"Contract_{org.Organization_Name}.pdf", pdf, 'application/pdf')
+        email.send()
+        
+        messages.success(request, f"Contract sent to {contract.player.full_name} ({player_email}) successfully!")
+    else:
+        messages.error(request, "Failed to generate PDF for email attachment.")
+        
+    return redirect('org_view_contract', contract_id=contract.id)

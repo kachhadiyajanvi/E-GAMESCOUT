@@ -1,0 +1,220 @@
+{% extends 'web/Organization/dashboard_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto p-8 max-w-4xl">
+    <!-- Breadcrumb -->
+    <nav class="page-breadcrumb mb-8">
+        <a href="{% url 'index' %}" class="breadcrumb-link">
+            <i class="fa-solid fa-home text-xs"></i>
+            <span>Home</span>
+        </a>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator mx-2 text-gray-600"></i>
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">Organization</a>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator mx-2 text-gray-600"></i>
+        <a href="{% url 'org_contract_list' %}" class="breadcrumb-link">Contracts</a>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator mx-2 text-gray-600"></i>
+        <span class="breadcrumb-active text-accent-cyan font-bold">New Contract</span>
+    </nav>
+
+    <div class="glass-panel p-10 rounded-3xl border border-white/5 bg-black/40 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+        <!-- Background Decoration -->
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-accent-cyan/5 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <div class="relative z-10">
+            <div class="mb-10 text-center">
+                <div class="w-16 h-16 rounded-2xl bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center mx-auto mb-6 shadow-[0_0_20px_rgba(102,252,241,0.2)]">
+                    <i class="fa-solid fa-file-pen text-2xl text-accent-cyan"></i>
+                </div>
+                <h2 class="text-3xl font-display font-black text-white tracking-widest uppercase">Draft <span class="text-accent-cyan">New Contract</span></h2>
+                <p class="text-brand-light/40 mt-2 text-sm font-medium">Standard legal agreement for professional recruits</p>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" class="space-y-8">
+                {% csrf_token %}
+
+                <!-- Section: Player Selection -->
+                <div class="space-y-4">
+                    <label class="block text-[10px] font-black uppercase tracking-[0.2em] text-accent-cyan/60 ml-1">1. RECIPIENT IDENTITY</label>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-user-tag text-accent-cyan/40 group-focus-within:text-accent-cyan transition-colors"></i>
+                            </div>
+                            {{ contract_form.player }}
+                        </div>
+                        <div id="bid-price-info" class="mt-2 p-3 rounded-xl bg-accent-cyan/5 border border-accent-cyan/20 hidden">
+                            <p class="text-[10px] text-accent-cyan font-black uppercase tracking-widest">Winning Bid Amount</p>
+                            <p class="text-xl font-display font-bold text-white" id="bid-amount-display">₹0.00</p>
+                        </div>
+                    </div>
+                    {% if contract_form.player.errors %}
+                        <p class="text-red-400 text-[10px] mt-1 ml-1 font-bold">{{ contract_form.player.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Section: Financials & Duration -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <label class="block text-[10px] font-black uppercase tracking-[0.2em] text-accent-cyan/60 ml-1">2. REMUNERATION (ANNUAL)</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <span class="text-accent-cyan font-bold">₹</span>
+                            </div>
+                            <input type="number" name="salary" placeholder="Amount in INR" required
+                                   class="w-full bg-[#0B0C10]/50 border border-white/5 rounded-xl py-4 pl-10 pr-4 text-white focus:outline-none focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/20 transition-all font-mono">
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <label class="block text-[10px] font-black uppercase tracking-[0.2em] text-accent-cyan/60 ml-1">3. TERM DURATION</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-calendar-alt text-brand-light/20 group-focus-within:text-accent-cyan transition-colors"></i>
+                            </div>
+                            <input type="text" name="duration" placeholder="e.g., 2 Years, Until Dec 2026" required
+                                   class="w-full bg-[#0B0C10]/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/20 transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Detailed Clauses -->
+                <div class="space-y-6">
+                    <div class="space-y-4">
+                        <label class="block text-[10px] font-black uppercase tracking-[0.2em] text-accent-cyan/60 ml-1">4. CORE RESPONSIBILITIES</label>
+                        {{ contract_form.responsibilities }}
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <label class="block text-[10px] font-black uppercase tracking-[0.2em] text-accent-cyan/60 ml-1">5. SPONSORSHIP & PROMOTION</label>
+                        {{ contract_form.sponsor_promotion }}
+                    </div>
+
+                    <div class="space-y-4">
+                        <label class="block text-[10px] font-black uppercase tracking-[0.2em] text-accent-cyan/60 ml-1">6. TERMINATION PROTOCOL</label>
+                        {{ contract_form.termination_rules }}
+                    </div>
+                </div>
+
+                <!-- Section: Signature Block (Conditional) -->
+                {% if sig_form %}
+                <div class="p-8 rounded-2xl bg-accent-cyan/5 border border-dashed border-accent-cyan/30 mt-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-accent-cyan/10 flex items-center justify-center">
+                            <i class="fa-solid fa-signature text-accent-cyan"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-white font-bold text-sm tracking-wide">ORGANIZATION SIGNATURE</h4>
+                            <p class="text-[10px] text-accent-cyan/60 uppercase font-black">Requires initial setup</p>
+                        </div>
+                    </div>
+                    <p class="text-brand-light/50 text-xs mb-4">Please upload a clear image of your official scanned signature. This will be automatically applied to all future contracts generated by your organization.</p>
+                    <div class="relative">
+                        {{ sig_form.organization_signature }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="pt-10 flex gap-4">
+                    <button type="submit" 
+                            class="flex-1 py-4 bg-accent-cyan text-brand-dark font-display font-black text-sm tracking-[0.2em] uppercase rounded-2xl hover:bg-white hover:shadow-[0_0_30px_rgba(102,252,241,0.5)] transition-all duration-300 transform hover:-translate-y-1">
+                        GENERATE OFFICIAL DRAFT <i class="fa-solid fa-shield-halved ml-2"></i>
+                    </button>
+                    <a href="{% url 'org_contract_list' %}" 
+                       class="px-10 py-4 bg-white/5 border border-white/10 text-brand-light font-display font-bold text-sm tracking-widest uppercase rounded-2xl hover:bg-white/10 transition-all flex items-center">
+                        CANCEL
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling for the Django form fields to match premium look */
+    select, textarea {
+        width: 100% !important;
+        background: rgba(11, 12, 16, 0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-radius: 0.75rem !important;
+        padding: 1rem 1rem 1rem 3rem !important;
+        color: white !important;
+        transition: all 0.3s ease !important;
+    }
+    textarea {
+        padding-left: 1rem !important;
+        min-height: 120px !important;
+    }
+    select:focus, textarea:focus {
+        border-color: rgba(102, 252, 241, 0.5) !important;
+        outline: none !important;
+        box-shadow: 0 0 15px rgba(102, 252, 241, 0.1) !important;
+    }
+    input[type="file"] {
+        color: rgba(197, 198, 199, 0.5);
+        font-size: 0.75rem;
+    }
+    input[type="file"]::file-selector-button {
+        background: rgba(102, 252, 241, 0.1);
+        border: 1px solid rgba(102, 252, 241, 0.2);
+        color: #66FCF1;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        margin-right: 1rem;
+        cursor: pointer;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: all 0.3s ease;
+    }
+    input[type="file"]::file-selector-button:hover {
+        background: #66FCF1;
+        color: #0B0C10;
+    }
+
+    /* Added Bidding Info Styling */
+    #bid-price-info {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Override Select for Theme consistency */
+    select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2366FCF1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1.5em;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const playerSelect = document.querySelector('select[name="player"]');
+        const bidInfo = document.getElementById('bid-price-info');
+        const bidDisplay = document.getElementById('bid-amount-display');
+
+        playerSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const text = selectedOption.text;
+            
+            if (text.includes('Bid Price: ₹')) {
+                const amount = text.split('Bid Price: ₹')[1];
+                bidDisplay.textContent = '₹' + amount;
+                bidInfo.classList.remove('hidden');
+            } else {
+                bidInfo.classList.add('hidden');
+            }
+        });
+
+        // Trigger on load if edit mode (though form is usually empty for new)
+        if (playerSelect.value) {
+            playerSelect.dispatchEvent(new Event('change'));
+        }
+    });
+</script>
+{% endblock %}

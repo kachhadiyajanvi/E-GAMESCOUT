@@ -1,0 +1,77 @@
+{% extends 'web/Organization/dashboard_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto p-8">
+    <!-- Breadcrumb -->
+    <nav class="page-breadcrumb mb-8">
+        <a href="{% url 'index' %}" class="breadcrumb-link">
+            <i class="fa-solid fa-home text-xs"></i>
+            <span>Home</span>
+        </a>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator mx-2 text-gray-600"></i>
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">Organization</a>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator mx-2 text-gray-600"></i>
+        <span class="breadcrumb-active text-accent-cyan font-bold">Player Contact Directory</span>
+    </nav>
+
+    <div class="page-header flex justify-between items-center mb-10">
+        <div class="page-title-group flex items-center gap-4">
+            <div class="page-title-decorator w-2 h-12 bg-accent-cyan rounded-full shadow-[0_0_15px_rgba(102,252,241,0.5)]"></div>
+            <div>
+                <h1 class="page-title text-4xl font-display font-black tracking-tighter text-white">
+                    PLAYER <span class="text-accent-cyan">DIRECTORY</span>
+                </h1>
+                <p class="page-subtitle text-brand-light/40 font-medium tracking-wide">Emergency contacts and communication hub</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for player in players %}
+        <div class="glass-panel p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-300 group relative overflow-hidden">
+            <!-- Glow Effect -->
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-accent-cyan/5 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            
+            <div class="flex items-start gap-4 mb-6">
+                <div class="w-14 h-14 rounded-xl bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                    <i class="fa-solid fa-user-circle text-2xl text-accent-cyan"></i>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold tracking-wide text-lg">{{ player.full_name }}</h3>
+                    <p class="text-[10px] text-accent-cyan/60 uppercase font-black tracking-widest">{{ player.uid }}</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-black/20 border border-white/5 hover:border-white/20 transition-all">
+                    <i class="fa-solid fa-envelope text-brand-light/20 w-4 text-center"></i>
+                    <span class="text-xs text-brand-light/60 font-mono">{{ player.email }}</span>
+                </div>
+                <!-- Showing mobile number -->
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-black/20 border border-white/5 hover:border-white/20 transition-all">
+                    <i class="fa-solid fa-phone text-brand-light/20 w-4 text-center"></i>
+                    <span class="text-xs text-brand-light/60 font-mono">{{ player.mobile_no|default:"[NOT PROVIDED]" }}</span>
+                </div>
+            </div>
+
+            <div class="mt-8 flex gap-2">
+                <a href="mailto:{{ player.email }}" class="flex-1 py-2.5 bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan rounded-lg text-[10px] font-black uppercase tracking-widest text-center hover:bg-accent-cyan hover:text-brand-dark transition-all">
+                    EMAIL PLAYER
+                </a>
+                <a href="{% url 'org_create_contract' %}?player={{ player.id }}" class="px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-all" title="Draft Contract">
+                    <i class="fa-solid fa-file-signature"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-20 text-center glass-panel border border-dashed border-white/10 rounded-3xl">
+            <i class="fa-solid fa-users-slash text-4xl text-brand-light/10 mb-4"></i>
+            <h3 class="text-white font-bold">NO PLAYERS ON ROSTER</h3>
+            <p class="text-brand-light/40 text-sm mt-2">Recruit players to see their contact information here.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

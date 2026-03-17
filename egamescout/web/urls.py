@@ -145,6 +145,15 @@ urlpatterns = [
     path('organization/notifications/delete/<int:notification_id>/', views.delete_notification, name='delete_notification'),
     path('organization/notifications/', views.org_notifications, name='org_notifications'),
 
+    # Contract Management
+    path('organization/contracts/', views.org_contract_list, name='org_contract_list'),
+    path('organization/contracts/create/', views.org_create_contract, name='org_create_contract'),
+    path('organization/contracts/<int:contract_id>/view/', views.org_view_contract, name='org_view_contract'),
+    path('organization/contracts/<int:contract_id>/save/', views.org_save_contract, name='org_save_contract'),
+    path('organization/contracts/<int:contract_id>/export/', views.org_export_contract_pdf, name='org_export_contract_pdf'),
+    path('organization/contracts/<int:contract_id>/send/', views.org_send_contract_to_player, name='org_send_contract_to_player'),
+    path('organization/player-contacts/', views.org_player_contact_page, name='org_player_contact_page'),
+
     # Admin Notifications API
     path('admin/api/notifications/', admin_views.get_notifications, name='get_notifications'),
     path('admin/api/notifications/read/<int:notif_id>/', admin_views.mark_notification_read, name='mark_notification_read'),
