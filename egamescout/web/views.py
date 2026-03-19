@@ -1084,10 +1084,29 @@ def public_tournaments(request):
     })
 
 def public_previous_tournaments(request):
-    """Public view for all historic/previous tournaments"""
-    tournaments = PreviousTournament.objects.filter(published=True).order_by('-date')
+    """Public view for all historic/previous tournaments with search and pagination"""
+    query = request.GET.get('q', '')
+    
+    tournaments = PreviousTournament.objects.filter(published=True).select_related('organization')
+    
+    if query:
+        tournaments = tournaments.filter(
+            models.Q(tournament_name__icontains=query) |
+            models.Q(game_name__icontains=query) |
+            models.Q(winner_team__icontains=query) |
+            models.Q(organization__Organization_Name__icontains=query)
+        )
+        
+    tournaments = tournaments.order_by('-date')
+    
+    from django.core.paginator import Paginator
+    paginator = Paginator(tournaments, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'web/public_previous_tournaments.html', {
-        'tournaments': tournaments
+        'tournaments': page_obj,
+        'query': query
     })
 
 def tournament_history_detail(request, tournament_id):
@@ -1097,16 +1116,30 @@ def tournament_history_detail(request, tournament_id):
     scorecards = tournament.scorecards.all().order_by('match_number')
     
     # Extract unique organizations from the teams for the Org Grid
-    organizations = set()
+    org_names = set()
     for team in teams:
         if team.organization:
-            organizations.add(team.organization)
+            org_names.add(team.organization)
             
+    # Match organization strings against actual Database Organizations
+    from web.models import Organization
+    actual_organizations = []
+    unlinked_organizations = []
+    
+    if org_names:
+        actual_organizations = Organization.objects.filter(Organization_Name__in=org_names, is_archived=False)
+        actual_org_names = set(org.Organization_Name for org in actual_organizations)
+        
+        for name in org_names:
+            if name not in actual_org_names:
+                unlinked_organizations.append(name)
+                
     return render(request, 'web/tournament_history_detail.html', {
         'tournament': tournament,
         'teams': teams,
         'scorecards': scorecards,
-        'organizations': list(organizations),
+        'actual_organizations': actual_organizations,
+        'unlinked_organizations': unlinked_organizations,
     })
 
 # --- Registration Flow ---
@@ -1582,6 +1615,18 @@ def scorecard_tool(request):
             
         image_file = request.FILES['scorecard_image']
         
+        # 0. Validate File Type and Size
+        import os
+        valid_extensions = ['.jpg', '.jpeg', '.png', '.webp']
+        ext = os.path.splitext(image_file.name)[1].lower()
+        if ext not in valid_extensions:
+            messages.error(request, 'Invalid file type. Only JPG, PNG, and WEBP images are allowed.')
+            return redirect('scorecard_tool')
+        
+        if image_file.size > 5 * 1024 * 1024: # 5MB limit
+            messages.error(request, 'File is too large. Maximum allowed size is 5MB.')
+            return redirect('scorecard_tool')
+        
         # 1. Create initial record
         analysis = ScorecardAnalysis.objects.create(
             organization=org,
@@ -1589,213 +1634,219 @@ def scorecard_tool(request):
             ai_provider='pending',
             summary_text='Analyzing...'
         )
+        import threading
+        threading.Thread(target=run_scorecard_analysis_thread, args=(analysis.id, org.id)).start()
         
-        try:
-            # Prepare Prompt
-            user_prompt = """
-            Act as a professional esports journalist and data analyst. Analyze the provided standings image from a BGMI tournament. 
-            Extract the data and write a detailed, narrative-style report.
-
-            You MUST return a pure JSON object (no markdown formatting, no backticks, just the raw JSON string) with the following structure:
-            {
-                "tournament_name": "Extracted Name or 'Unknown Tournament'",
-                "winner_team": "Name of Rank 1 Team",
-                "runner_up_team": "Name of Rank 2 Team",
-                "teams": [
-                    {
-                        "rank": 1,
-                        "team_name": "Team A",
-                        "points": 150
-                    }
-                ],
-                "analysis_report": "Your detailed narrative report explaining how the leaderboard unfolded, highlighting the championship-winning team’s consistency, the close title race among the top teams, mid-table performances, and struggles of the lower-ranked teams, using only the visible data. Convert statistics into match-like insights, avoid inventing players or events, and conclude with an overall verdict on the competitiveness.",
-                "match_number": 1
-            }
-            """
-            
-            # Providers Config - Multiple Gemini keys with Groq fallback
-            providers = []
-            
-            # Add all Gemini API keys
-            if hasattr(settings, 'GEMINI_API_KEYS') and settings.GEMINI_API_KEYS:
-                for i, key in enumerate(settings.GEMINI_API_KEYS):
-                    providers.append({"type": "gemini", "key": key, "index": i+1})
-            elif settings.GEMINI_API_KEY:
-                # Fallback for single key
-                providers.append({"type": "gemini", "key": settings.GEMINI_API_KEY, "index": 1})
-            
-            # Add Groq as final fallback
-            if settings.GROQ_API_KEY:
-                providers.append({"type": "groq", "key": settings.GROQ_API_KEY})
-                
-            if not providers:
-                analysis.summary_text = "Error: No API keys configured. Please contact admin."
-                analysis.ai_provider = 'failed'
-                analysis.save()
-                messages.error(request, 'AI Configuration Missing.')
-                return redirect('scorecard_tool')
-
-            response_text = None
-            used_provider = None
-            
-            # File path for AI reading
-            file_path = analysis.image.path
-
-            # AI Logic Loop - Try each provider in order
-            for provider in providers:
-                try:
-                    if provider['type'] == 'gemini':
-                        from google import genai
-                        key_index = provider.get('index', 1)
-                        print(f"DEBUG: Attempting Gemini API Key #{key_index}...")
-                        client = genai.Client(api_key=provider['key'])
-                        
-                        # Upload file and generate content
-                        uploaded_file = client.files.upload(file_path)
-                        
-                        response = client.models.generate_content(
-                            model='gemini-2.5-flash',
-                            contents=[user_prompt, uploaded_file]
-                        )
-                        response_text = response.text
-                        used_provider = f'gemini_key_{key_index}'
-                        print(f"SUCCESS: Gemini API Key #{key_index} worked!")
-                        
-                    elif provider['type'] == 'groq':
-                        import os
-                        file_extension = os.path.splitext(file_path)[1].lower()
-                        mime_type = 'image/jpeg'
-                        if file_extension == '.png':
-                            mime_type = 'image/png'
-                        elif file_extension == '.webp':
-                            mime_type = 'image/webp'
-                        
-                        with open(file_path, "rb") as f:
-                            encoded_string = base64.b64encode(f.read()).decode('utf-8')
-                        
-                        headers = {
-                            "Authorization": f"Bearer {provider['key']}",
-                            "Content-Type": "application/json"
-                        }
-                        payload = {
-                            "messages": [
-                                {
-                                    "role": "user",
-                                    "content": [
-                                        {"type": "text", "text": user_prompt},
-                                        {
-                                            "type": "image_url",
-                                            "image_url": {
-                                                "url": f"data:{mime_type};base64,{encoded_string}",
-                                            },
-                                        },
-                                    ],
-                                }
-                            ],
-                            "model": "meta-llama/llama-4-scout-17b-16e-instruct",
-                        }
-                        import requests
-                        groq_resp = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload, timeout=60)
-                        groq_resp.raise_for_status()
-                        response_text = groq_resp.json()["choices"][0]["message"]["content"]
-                        used_provider = 'groq'
-
-                    if response_text:
-                        break
-                        
-                except Exception as e:
-                    provider_name = provider['type']
-                    if provider['type'] == 'gemini':
-                        provider_name = f"Gemini Key #{provider.get('index', 1)}"
-                    print(f"AI Provider {provider_name} Error: {e}")
-                    continue
-            
-            if response_text:
-                # Clean up response text if the model returned markdown
-                cleaned_text = response_text.strip()
-                if cleaned_text.startswith("```json"):
-                    cleaned_text = cleaned_text[7:]
-                if cleaned_text.endswith("```"):
-                    cleaned_text = cleaned_text[:-3]
-                
-                try:
-                    data = json.loads(cleaned_text.strip())
-                    
-                    analysis.summary_text = data.get("analysis_report", "Analysis generated successfully.")
-                    analysis.ai_provider = used_provider
-                    analysis.save()
-                    
-                    # Store in Previous Tournament History
-                    pt_name = data.get("tournament_name", "Unknown Tournament")
-                    
-                    # Create or Get the overall Tournament Record
-                    prev_tournament, created = PreviousTournament.objects.get_or_create(
-                        tournament_name=pt_name,
-                        organization=org,
-                        defaults={
-                            'winner_team': data.get("winner_team", ""),
-                            'runner_up_team': data.get("runner_up_team", ""),
-                            'description': data.get("analysis_report", "")[:200] + "...",
-                            'published': False
-                        }
-                    )
-                    
-                    # Save Match Scorecard
-                    match_data_json = {
-                        "teams": data.get("teams", [])
-                    }
-                    TournamentScorecard.objects.create(
-                        tournament=prev_tournament,
-                        match_number=data.get("match_number", 1),
-                        match_data=match_data_json,
-                        ai_analysis=data.get("analysis_report", "")
-                    )
-                    
-                    # If this is a newly created tournament, add the teams
-                    if created:
-                        for team_data in data.get("teams", []):
-                            TournamentTeam.objects.create(
-                                tournament=prev_tournament,
-                                team_name=team_data.get("team_name", "Unknown"),
-                                placement=team_data.get("rank", 99),
-                                points=team_data.get("points", 0)
-                            )
-                            
-                    messages.success(request, 'Analysis Complete and added to Tournament History Workflow!')
-
-                except json.JSONDecodeError as e:
-                    print(f"JSON Parse Error: {e} - Raw output: {response_text}")
-                    analysis.summary_text = "Analysis succeeded but format was invalid. Saved raw output:\n\n" + response_text
-                    analysis.ai_provider = used_provider
-                    analysis.save()
-                    messages.warning(request, 'Analysis complete, but data formatting failed.')
-
-            else:
-                analysis.summary_text = "Analysis failed. Please try again later."
-                analysis.ai_provider = 'failed'
-                analysis.save()
-                messages.error(request, 'AI Analysis Failed.')
-
-        except Exception as e:
-            print(f"Critical Error: {e}")
-            messages.error(request, f"System Error: {e}")
-            
+        messages.success(request, 'Analysis started in the background. Please refresh in a moment to see results.')
         return redirect('scorecard_tool')
 
-    # GET Request: Show history
-    history = ScorecardAnalysis.objects.filter(organization=org).order_by('-created_at')
-    
-    # Get unpublished tournaments that can be reviewed and published
-    unpublished_tournaments = PreviousTournament.objects.filter(
-        organization=org, 
-        published=False
+    # GET Request: Show history AND cleanup stale 'pending' tasks
+    from datetime import timedelta
+    from django.utils import timezone
+    stale_threshold = timezone.now() - timedelta(minutes=10)
+    stale_records = ScorecardAnalysis.objects.filter(organization=org, ai_provider='pending', created_at__lt=stale_threshold)
+    for stale in stale_records:
+        stale.ai_provider = 'failed'
+        stale.summary_text = 'Analysis timed out.'
+        stale.save()
+
+    from django.core.paginator import Paginator
+    history_list = ScorecardAnalysis.objects.filter(organization=org).order_by('-created_at')
+    paginator = Paginator(history_list, 10)
+    page_number = request.GET.get('page')
+    history = paginator.get_page(page_number)
+
+    # Get all workflow tournaments to show in the tool
+    all_previous_tournaments = PreviousTournament.objects.filter(
+        organization=org
     ).order_by('-date')
     
     return render(request, 'web/Organization/org_scorecard_tool.html', {
         'org': org, 
         'history': history,
-        'unpublished_tournaments': unpublished_tournaments
+        'all_previous_tournaments': all_previous_tournaments
     })
+
+@login_required_organization
+def retry_scorecard_analysis(request, analysis_id):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    analysis = get_object_or_404(ScorecardAnalysis, id=analysis_id, organization=org)
+    
+    analysis.ai_provider = 'pending'
+    analysis.summary_text = 'Retrying Analysis...'
+    analysis.save()
+    
+    import threading
+    threading.Thread(target=run_scorecard_analysis_thread, args=(analysis.id, org.id)).start()
+    messages.success(request, 'Analysis retry started in the background.')
+    return redirect('scorecard_tool')
+
+@login_required_organization
+def delete_scorecard_analysis(request, analysis_id):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    analysis = get_object_or_404(ScorecardAnalysis, id=analysis_id, organization=org)
+    
+    if request.method == 'POST':
+        analysis.delete()
+        messages.success(request, 'Analysis record deleted successfully.')
+    return redirect('scorecard_tool')
+
+def run_scorecard_analysis_thread(analysis_id, org_id):
+    import json, base64, os
+    from django.conf import settings
+    from django.utils import timezone
+    from web.models import ScorecardAnalysis, PreviousTournament, TournamentScorecard, TournamentTeam, Organization
+    
+    try:
+        analysis = ScorecardAnalysis.objects.get(id=analysis_id)
+        org = Organization.objects.get(id=org_id)
+    except Exception:
+        return
+        
+    try:
+        user_prompt = """
+        Act as a professional esports journalist and data analyst. Analyze the provided standings image from an esports tournament. 
+        Extract the data and write a detailed, narrative-style report.
+
+        You MUST return a pure JSON object (no markdown formatting, no backticks, just the raw JSON string) with the following structure:
+        {
+            "tournament_name": "Extracted Name or 'Unknown Tournament'",
+            "tournament_date": "YYYY-MM-DD (extract if visible on image, otherwise null)",
+            "game_name": "Name of the game (e.g., BGMI, Free Fire, Valorant, or extracted from image)",
+            "winner_team": "Name of Rank 1 Team",
+            "runner_up_team": "Name of Rank 2 Team",
+            "teams": [
+                {
+                    "rank": 1,
+                    "team_name": "Team A",
+                    "points": 150
+                }
+            ],
+            "analysis_report": "Your detailed narrative report explaining how the leaderboard unfolded, highlighting the championship-winning team’s consistency, the close title race among the top teams, mid-table performances, and struggles of the lower-ranked teams, using only the visible data. Convert statistics into match-like insights, avoid inventing players or events, and conclude with an overall verdict on the competitiveness.",
+            "match_number": 1
+        }
+        """
+        
+        providers = []
+        if hasattr(settings, 'GEMINI_API_KEYS') and settings.GEMINI_API_KEYS:
+            for i, key in enumerate(settings.GEMINI_API_KEYS):
+                providers.append({"type": "gemini", "key": key, "index": i+1})
+        elif getattr(settings, 'GEMINI_API_KEY', None):
+            providers.append({"type": "gemini", "key": settings.GEMINI_API_KEY, "index": 1})
+        
+        if getattr(settings, 'GROQ_API_KEY', None):
+            providers.append({"type": "groq", "key": settings.GROQ_API_KEY})
+            
+        if not providers:
+            analysis.summary_text = "Error: No API keys configured. Please contact admin."
+            analysis.ai_provider = 'failed'
+            analysis.save()
+            return
+            
+        response_text = None
+        used_provider = None
+        file_path = analysis.image.path
+        
+        # AI Logic Loop
+        for provider in providers:
+            try:
+                if provider['type'] == 'gemini':
+                    from google import genai
+                    key_index = provider.get('index', 1)
+                    print(f"DEBUG: Attempting Gemini API Key #{key_index}...")
+                    client = genai.Client(api_key=provider['key'])
+                    uploaded_file = client.files.upload(file_path)
+                    response = client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents=[user_prompt, uploaded_file]
+                    )
+                    response_text = response.text
+                    used_provider = f'gemini_key_{key_index}'
+                    print(f"SUCCESS: Gemini API Key #{key_index} worked!")
+                elif provider['type'] == 'groq':
+                    file_extension = os.path.splitext(file_path)[1].lower()
+                    mime_type = 'image/jpeg'
+                    if file_extension == '.png': mime_type = 'image/png'
+                    elif file_extension == '.webp': mime_type = 'image/webp'
+                    
+                    with open(file_path, "rb") as f:
+                        encoded_string = base64.b64encode(f.read()).decode('utf-8')
+                        
+                    headers = {"Authorization": f"Bearer {provider['key']}", "Content-Type": "application/json"}
+                    payload = {
+                        "messages": [{"role": "user", "content": [{"type": "text", "text": user_prompt}, {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{encoded_string}"}}]}],
+                        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+                    }
+                    import requests
+                    groq_resp = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload, timeout=60)
+                    groq_resp.raise_for_status()
+                    response_text = groq_resp.json()["choices"][0]["message"]["content"]
+                    used_provider = 'groq'
+                    
+                if response_text:
+                    break
+            except Exception as e:
+                provider_name = provider['type']
+                if provider['type'] == 'gemini': provider_name = f"Gemini Key #{provider.get('index', 1)}"
+                print(f"AI Provider {provider_name} Error: {e}")
+                continue
+                
+        if response_text:
+            cleaned_text = response_text.strip()
+            if cleaned_text.startswith("```json"): cleaned_text = cleaned_text[7:]
+            if cleaned_text.endswith("```"): cleaned_text = cleaned_text[:-3]
+            try:
+                data = json.loads(cleaned_text.strip())
+                analysis.summary_text = data.get("analysis_report", "Analysis generated successfully.")
+                analysis.ai_provider = used_provider
+                analysis.save()
+                
+                pt_name = data.get("tournament_name", "Unknown Tournament")
+                defaults_dict = {
+                    'winner_team': data.get("winner_team", ""),
+                    'runner_up_team': data.get("runner_up_team", ""),
+                    'description': data.get("analysis_report", "")[:200] + "...",
+                    'published': False
+                }
+                if data.get("tournament_date"): defaults_dict['date'] = data.get("tournament_date")
+                if data.get("game_name"): defaults_dict['game_name'] = data.get("game_name")
+                
+                prev_tournament, created = PreviousTournament.objects.get_or_create(
+                    tournament_name=pt_name,
+                    organization=org,
+                    defaults=defaults_dict
+                )
+                
+                match_data_json = {"teams": data.get("teams", [])}
+                TournamentScorecard.objects.update_or_create(
+                    tournament=prev_tournament,
+                    match_number=data.get("match_number", 1),
+                    defaults={'match_data': match_data_json, 'ai_analysis': data.get("analysis_report", "")}
+                )
+                
+                if created:
+                    for team_data in data.get("teams", []):
+                        TournamentTeam.objects.create(
+                            tournament=prev_tournament, team_name=team_data.get("team_name", "Unknown"),
+                            placement=team_data.get("rank", 99), points=team_data.get("points", 0)
+                        )
+            except json.JSONDecodeError as e:
+                print(f"JSON Parse Error: {e} - Raw output: {response_text}")
+                analysis.summary_text = "Analysis succeeded but format was invalid. Saved raw output:\n\n" + response_text
+                analysis.ai_provider = used_provider
+                analysis.save()
+        else:
+            analysis.summary_text = "Analysis failed. Please try again later."
+            analysis.ai_provider = 'failed'
+            analysis.save()
+            
+    except Exception as e:
+        print(f"Critical Error in thread: {e}")
+        analysis.summary_text = f"System Error: {e}"
+        analysis.ai_provider = 'failed'
+        analysis.save()
 
 # --- Profile Management ---
 
@@ -1937,8 +1988,12 @@ def tournament_list(request):
 @login_required_organization
 def publish_previous_tournament(request, history_id):
     """Toggle the published state of a PreviousTournament"""
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    
     if request.method == 'POST':
-        pt = get_object_or_404(PreviousTournament, id=history_id)
+        # Enforce that the organization publishing it actually owns it
+        pt = get_object_or_404(PreviousTournament, id=history_id, organization=org)
         pt.published = not pt.published
         pt.save()
         status = "published" if pt.published else "unpublished"
@@ -1950,6 +2005,34 @@ def publish_previous_tournament(request, history_id):
     return redirect('scorecard_tool')
 
 @login_required_organization
+def edit_previous_tournament(request, pt_id):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    pt = get_object_or_404(PreviousTournament, id=pt_id, organization=org)
+    
+    if request.method == 'POST':
+        pt.tournament_name = request.POST.get('tournament_name', pt.tournament_name)
+        pt.game_name = request.POST.get('game_name', pt.game_name)
+        pt.winner_team = request.POST.get('winner_team', pt.winner_team)
+        pt.runner_up_team = request.POST.get('runner_up_team', pt.runner_up_team)
+        pt.description = request.POST.get('description', pt.description)
+        
+        date_str = request.POST.get('date')
+        if date_str:
+            pt.date = date_str
+            
+        if 'cover_image' in request.FILES:
+            pt.cover_image = request.FILES['cover_image']
+            
+        pt.save()
+        messages.success(request, 'Tournament metadata updated successfully.')
+        return redirect('scorecard_tool')
+        
+    return render(request, 'web/Organization/org_previous_tournament_edit.html', {
+        'org': org,
+        'tournament': pt
+    })
+
 @login_required_organization
 def tournament_history(request):
     """Display list of completed tournaments for the organization"""

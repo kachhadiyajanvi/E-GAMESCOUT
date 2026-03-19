@@ -1,6 +1,19 @@
 {% extends 'web/base.html' %}
 {% load static %}
 
+{% block extra_head %}
+    <meta property="og:title" content="{{ tournament.tournament_name }} | E-Game Scout">
+    <meta property="og:description" content="{{ tournament.description|default:'View the results and match history of this esports tournament.'|truncatechars:150 }}">
+    {% if tournament.cover_image %}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ tournament.cover_image.url }}">
+    {% else %}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'web/images/logo.png' %}">
+    {% endif %}
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+{% endblock %}
+
 {% block content %}
 <main class="min-h-screen pt-24 pb-16 px-4 md:px-8 bg-black relative">
     <!-- Grid Background -->
@@ -56,6 +69,16 @@
                                 <i class="fa-solid fa-users mr-2"></i>
                                 {{ teams|length }}
                             </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 flex-1 min-w-[150px] justify-start md:justify-end">
+                            <span class="text-xs text-gray-500 font-mono tracking-widest uppercase mr-2 hidden md:inline">Share:</span>
+                            <a href="https://twitter.com/intent/tweet?text={{ tournament.tournament_name|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-[#1DA1F2]/10 text-[#1DA1F2] border border-[#1DA1F2]/30 flex items-center justify-center hover:bg-[#1DA1F2] hover:text-white transition-all hover:shadow-[0_0_15px_rgba(29,161,242,0.5)]">
+                                <i class="fa-brands fa-twitter"></i>
+                            </a>
+                            <a href="https://api.whatsapp.com/send?text={{ tournament.tournament_name|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 flex items-center justify-center hover:bg-[#25D366] hover:text-white transition-all hover:shadow-[0_0_15px_rgba(37,211,102,0.5)]">
+                                <i class="fa-brands fa-whatsapp text-lg"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -140,7 +163,7 @@
                             </div>
                             
                             <div class="prose prose-invert prose-sm max-w-none text-gray-400 line-clamp-2">
-                                {{ match.ai_analysis|truncatechars:150 }}
+                                {{ match.ai_analysis|force_escape|truncatechars:150 }}
                             </div>
                         </div>
 
@@ -168,7 +191,7 @@
                                         <div class="prose prose-invert max-w-none text-gray-300 font-mono text-sm leading-relaxed p-4 bg-black/40 rounded-lg border border-white/5 relative selection:bg-accent-cyan selection:text-black">
                                             <!-- Scanline effect for terminal look -->
                                             <div class="absolute inset-0 bg-[linear-gradient(rgba(102,252,241,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(102,252,241,0.03)_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none rounded-lg"></div>
-                                            {{ match.ai_analysis|linebreaks }}
+                                            {{ match.ai_analysis|force_escape|linebreaks }}
                                         </div>
                                     </div>
                                     
@@ -200,17 +223,27 @@
                 <div class="glass-card rounded-xl border border-white/10 p-6 bg-[#0F1115]">
                     <h3 class="text-sm font-bold text-white uppercase tracking-widest mb-4 pb-2 border-b border-white/10 flex items-center justify-between">
                         <span><i class="fa-solid fa-building text-gray-400 mr-2"></i> Organizations</span>
-                        <span class="text-accent-cyan">{{ organizations|length }}</span>
+                        <span class="text-accent-cyan">{{ actual_organizations|length|add:unlinked_organizations|length }}</span>
                     </h3>
                     
                     <div class="flex flex-wrap gap-2">
-                        {% for org in organizations %}
-                        <span class="px-3 py-1.5 bg-black/50 border border-white/5 rounded text-xs text-gray-300 font-bold hover:border-accent-cyan/50 hover:text-accent-cyan transition-colors cursor-default">
+                        <!-- Verified Organizations -->
+                        {% for org in actual_organizations %}
+                        <span class="px-3 py-1.5 bg-accent-cyan/10 border border-accent-cyan/30 rounded text-xs text-accent-cyan font-bold cursor-default flex items-center gap-1 shadow-[0_0_10px_rgba(102,252,241,0.1)]" title="Verified E-Game Scout Organization">
+                            <i class="fa-solid fa-circle-check"></i> {{ org.Organization_Name }}
+                        </span>
+                        {% endfor %}
+                        
+                        <!-- Unverified / Auto-extracted Organizations -->
+                        {% for org in unlinked_organizations %}
+                        <span class="px-3 py-1.5 bg-black/50 border border-white/5 rounded text-xs text-gray-400 font-bold hover:text-white transition-colors cursor-default" title="Auto-extracted by AI">
                             {{ org }}
                         </span>
-                        {% empty %}
-                        <p class="text-gray-500 text-xs italic">No associated organizations found.</p>
                         {% endfor %}
+                        
+                        {% if not actual_organizations and not unlinked_organizations %}
+                        <p class="text-gray-500 text-xs italic">No associated organizations found.</p>
+                        {% endif %}
                     </div>
                 </div>
                 

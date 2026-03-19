@@ -33,6 +33,9 @@ urlpatterns = [
     
     # Tools
     path('organization/tools/scorecard/', views.scorecard_tool, name='scorecard_tool'),
+    path('organization/tools/scorecard/retry/<int:analysis_id>/', views.retry_scorecard_analysis, name='retry_scorecard_analysis'),
+    path('organization/tools/scorecard/delete/<int:analysis_id>/', views.delete_scorecard_analysis, name='delete_scorecard_analysis'),
+    path('organization/tools/scorecard/edit/<int:pt_id>/', views.edit_previous_tournament, name='edit_previous_tournament'),
     
     # Tournament Management
     path('organization/tournaments/', views.tournament_list, name='tournament_list'),

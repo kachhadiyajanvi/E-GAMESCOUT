@@ -68,28 +68,35 @@
             </div>
 
             <div class="prose prose-invert prose-sm max-w-none text-gray-300">
-                {{ history.first.summary_text|linebreaks }}
+                {{ history.first.summary_text|force_escape|linebreaks }}
             </div>
         </div>
         {% endif %}
 
-        <!-- Unpublished Tournaments -->
-        {% if unpublished_tournaments %}
+        <!-- All Previous Tournaments -->
+        {% if all_previous_tournaments %}
         <div class="glass-card p-6 rounded-xl border border-yellow-500/30 mt-6 bg-yellow-500/5">
             <div class="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
-                <h3 class="font-display font-bold text-white"><i class="fa-solid fa-clock text-yellow-500 mr-2"></i> PENDING PUBLICATION</h3>
+                <h3 class="font-display font-bold text-white"><i class="fa-solid fa-clock text-yellow-500 mr-2"></i> TOURNAMENT HISTORY WORKFLOW</h3>
             </div>
             <div class="space-y-4">
-                {% for pt in unpublished_tournaments %}
+                {% for pt in all_previous_tournaments %}
                 <div class="bg-black/40 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-white/5 hover:border-white/10 transition-colors">
                     <div>
                         <h4 class="font-bold text-accent-cyan uppercase tracking-wide">{{ pt.tournament_name }}</h4>
                         <p class="text-xs text-gray-400 mt-1"><i class="fa-regular fa-calendar mr-1"></i> {{ pt.date|date:"M d, Y" }} | <i class="fa-solid fa-crown text-yellow-500 mx-1"></i> {{ pt.winner_team|default:"TBD" }}</p>
                     </div>
-                    <form action="{% url 'publish_previous_tournament' pt.id %}" method="post">
+                    <form action="{% url 'publish_previous_tournament' pt.id %}" method="post" class="flex gap-2" {% if pt.published %}onsubmit="return confirm('Are you sure you want to unpublish this tournament? It will be removed from the public index.');"{% endif %}>
                         {% csrf_token %}
-                        <button type="submit" class="bg-accent-cyan text-brand-dark font-bold py-2 px-4 rounded text-xs uppercase tracking-widest hover:bg-white transition-all hover:shadow-[0_0_15px_rgba(102,252,241,0.5)]">
-                            <i class="fa-solid fa-bullhorn mr-1"></i> Publish to Index
+                        <a href="{% url 'edit_previous_tournament' pt.id %}" class="bg-gray-800 text-white font-bold py-2 px-4 rounded text-xs uppercase tracking-widest hover:bg-gray-700 transition-all border border-gray-700">
+                            <i class="fa-solid fa-pen mr-1"></i> Edit
+                        </a>
+                        <button type="submit" class="{% if pt.published %}bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500 hover:text-white{% else %}bg-accent-cyan text-brand-dark hover:bg-white{% endif %} font-bold py-2 px-4 rounded text-xs uppercase tracking-widest transition-all">
+                            {% if pt.published %}
+                            <i class="fa-solid fa-eye-slash mr-1"></i> Unpublish
+                            {% else %}
+                            <i class="fa-solid fa-bullhorn mr-1"></i> Publish
+                            {% endif %}
                         </button>
                     </form>
                 </div>
@@ -122,8 +129,17 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-start mb-1">
                             <span class="text-xs font-bold text-white truncate">Analysis #{{ item.id }}</span>
+                            {% if item.ai_provider == 'failed' %}
+                            <a href="{% url 'retry_scorecard_analysis' item.id %}" class="text-[10px] text-accent-cyan hover:underline bg-accent-cyan/10 px-2 py-0.5 rounded border border-accent-cyan/20">Retry</a>
+                            {% elif item.ai_provider == 'pending' %}
+                            <span class="text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20">Analyzing <i class="fa-solid fa-spinner fa-spin ms-1"></i></span>
+                            {% endif %}
+                            <form action="{% url 'delete_scorecard_analysis' item.id %}" method="POST" class="inline m-0 p-0 ml-2" onsubmit="return confirm('Delete this analysis record?');">
+                                {% csrf_token %}
+                                <button type="submit" class="text-gray-500 hover:text-red-500 transition-colors bg-transparent border-0"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                            </form>
                         </div>
-                        <p class="text-xs text-gray-400 line-clamp-2">{{ item.summary_text }}</p>
+                        <p class="text-xs text-gray-400 line-clamp-2">{{ item.summary_text|force_escape }}</p>
                         <p class="text-[10px] text-gray-600 mt-2 text-right">{{ item.created_at|date:"M d, H:i" }}</p>
                     </div>
                 </div>
@@ -133,6 +149,23 @@
                 No analysis history yet.
             </div>
             {% endfor %}
+            {% if history.has_other_pages %}
+            <div class="flex justify-between items-center mt-4 border-t border-white/10 pt-4">
+                {% if history.has_previous %}
+                <a href="?page={{ history.previous_page_number }}" class="text-xs text-accent-cyan hover:underline"><i class="fa-solid fa-chevron-left mr-1"></i>Prev</a>
+                {% else %}
+                <span class="text-xs text-gray-600"><i class="fa-solid fa-chevron-left mr-1"></i>Prev</span>
+                {% endif %}
+                
+                <span class="text-xs text-gray-400">Page {{ history.number }} of {{ history.paginator.num_pages }}</span>
+                
+                {% if history.has_next %}
+                <a href="?page={{ history.next_page_number }}" class="text-xs text-accent-cyan hover:underline">Next<i class="fa-solid fa-chevron-right ml-1"></i></a>
+                {% else %}
+                <span class="text-xs text-gray-600">Next<i class="fa-solid fa-chevron-right ml-1"></i></span>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

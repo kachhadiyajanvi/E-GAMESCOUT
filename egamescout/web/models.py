@@ -205,7 +205,9 @@ class PreviousTournament(models.Model):
     """Stores history of past tournaments for the Index page."""
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='previous_tournaments', null=True, blank=True)
     tournament_name = models.CharField(max_length=255)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(default=timezone.now)
+    game_name = models.CharField(max_length=100, blank=True, null=True)
+    cover_image = models.ImageField(upload_to='previous_tournaments/covers/', null=True, blank=True)
     winner_team = models.CharField(max_length=255, blank=True, null=True)
     runner_up_team = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
