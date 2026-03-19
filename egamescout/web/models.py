@@ -425,8 +425,6 @@ class UserSession(models.Model):
         return f"{self.user_type} session ({self.user_id})"
 
 
-    def __str__(self):
-        return f"{self.email} - {self.requested_role} Request"
 
 class Contract(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='contracts')

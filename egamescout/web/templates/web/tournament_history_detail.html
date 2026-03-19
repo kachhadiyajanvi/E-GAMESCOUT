@@ -140,81 +140,139 @@
                     <div class="flex items-center gap-3 mb-6">
                         <h2 class="text-2xl font-display font-bold text-white uppercase"><i class="fa-solid fa-gamepad text-accent-pink mr-2"></i> Match History</h2>
                         <div class="flex-1 h-px bg-gradient-to-r from-accent-pink/50 to-transparent"></div>
+                        {% if scorecards %}
+                        <span class="text-[10px] font-mono text-gray-500 bg-white/5 border border-white/10 px-3 py-1 rounded-full">{{ scorecards|length }} match{{ scorecards|length|pluralize:"es" }}</span>
+                        {% endif %}
                     </div>
 
-                    <div class="space-y-4">
+                    <div class="space-y-5">
                         {% for match in scorecards %}
-                        <div class="glass-card rounded-xl border border-white/10 p-6 bg-brand-dark/80 hover:border-white/20 transition-colors">
-                            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-4 pb-4 border-b border-white/5">
+                        <div class="glass-card rounded-xl border border-white/10 overflow-hidden bg-brand-dark/80 hover:border-white/20 transition-all duration-300 group" id="match-{{ match.id }}">
+                            
+                            <!-- Match Header -->
+                            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-5 border-b border-white/8 bg-black/30">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 bg-black/60 rounded flex items-center justify-center font-display font-bold text-xl text-accent-cyan shadow-[inset_0_0_10px_rgba(102,252,241,0.2)]">
-                                        M{{ match.match_number }}
+                                    <!-- Match Number Badge -->
+                                    <div class="w-14 h-14 bg-black/60 rounded-xl flex flex-col items-center justify-center border border-accent-cyan/20 shadow-[0_0_12px_rgba(102,252,241,0.1)] flex-shrink-0">
+                                        <span class="text-[9px] text-accent-cyan/60 font-mono uppercase tracking-widest">MATCH</span>
+                                        <span class="text-xl font-display font-bold text-accent-cyan leading-none">#{{ match.match_number }}</span>
                                     </div>
                                     <div>
-                                        <span class="text-[10px] text-gray-500 font-mono tracking-widest uppercase block">Scorecard</span>
-                                        <h3 class="font-bold text-white">Match #{{ match.match_number }} Results</h3>
+                                        <h3 class="font-bold text-white text-base">Match {{ match.match_number }} — Standings</h3>
+                                        {% if match.match_data.teams %}
+                                        <p class="text-[10px] text-gray-500 mt-0.5 font-mono">
+                                            <i class="fa-solid fa-users mr-1"></i>{{ match.match_data.teams|length }} teams &nbsp;·&nbsp;
+                                            {% with winner=match.match_data.teams.0 %}
+                                            <i class="fa-solid fa-crown text-yellow-500 mr-1"></i>{{ winner.team_name }}
+                                            {% endwith %}
+                                        </p>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 
-                                <button onclick="openScorecardModal('{{ match.id }}')" 
-                                        class="text-[10px] font-mono uppercase tracking-widest px-4 py-2 border border-accent-cyan/50 text-accent-cyan hover:bg-accent-cyan hover:text-black hover:shadow-[0_0_15px_rgba(102,252,241,0.5)] transition-all rounded">
-                                    <i class="fa-solid fa-magnifying-glass mr-1"></i> View Details
+                                <!-- Toggle Button -->
+                                <button onclick="toggleMatch('{{ match.id }}')" 
+                                        class="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest px-4 py-2 border border-white/10 text-gray-400 hover:border-accent-cyan/50 hover:text-accent-cyan transition-all rounded-lg" 
+                                        id="btn-{{ match.id }}">
+                                    <i class="fa-solid fa-table-list mr-1"></i> View Scoreboard
+                                    <i class="fa-solid fa-chevron-down text-[8px] transition-transform duration-300" id="chevron-{{ match.id }}"></i>
                                 </button>
                             </div>
                             
-                            <div class="prose prose-invert prose-sm max-w-none text-gray-400 line-clamp-2">
-                                {{ match.ai_analysis|force_escape|truncatechars:150 }}
-                            </div>
-                        </div>
+                            <!-- Collapsible Body -->
+                            <div id="body-{{ match.id }}" class="hidden">
+                                
+                                <!-- Scorecard Image + Summary Strip -->
+                                {% with analysis=ai_analyses|slice:forloop.counter|last %}
+                                {% if analysis and analysis.image %}
+                                <div class="flex flex-col sm:flex-row gap-5 p-5 border-b border-white/5 bg-black/20">
+                                    <!-- Image Thumbnail -->
+                                    <div class="flex-shrink-0">
+                                        <a href="{{ analysis.image.url }}" target="_blank" title="View full scorecard image" 
+                                           class="block w-full sm:w-44 h-32 rounded-lg overflow-hidden border border-white/10 hover:border-accent-cyan/50 transition-all group/img relative">
+                                            <img src="{{ analysis.image.url }}" alt="Match {{ match.match_number }} Scorecard"
+                                                 class="w-full h-full object-cover opacity-80 group-hover/img:opacity-100 group-hover/img:scale-105 transition-all duration-500">
+                                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm">
+                                                <i class="fa-solid fa-magnifying-glass-plus text-white text-lg drop-shadow"></i>
+                                            </div>
+                                        </a>
+                                        <p class="text-[9px] text-gray-600 font-mono mt-1.5 text-center">Original Scorecard</p>
+                                    </div>
+                                    <!-- AI Summary -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i class="fa-solid fa-robot text-accent-cyan text-[10px]"></i>
+                                            <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">AI Summary</span>
+                                            <span class="text-[8px] font-mono text-gray-700 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">{{ analysis.ai_provider }}</span>
+                                        </div>
+                                        <p class="text-gray-300 text-sm leading-relaxed">{{ analysis.summary_text|truncatechars:400 }}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endwith %}
 
-                        <!-- 5. Scorecard Modal for each match -->
-                        <div id="scorecard-modal-{{ match.id }}" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-                            <!-- Backdrop -->
-                            <div class="absolute inset-0 bg-black/90 backdrop-blur-sm pointer-events-none transition-opacity" onclick="closeScorecardModal('{{ match.id }}')"></div>
-                            
-                            <!-- Modal Content -->
-                            <div class="relative glass-card border border-white/10 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden bg-brand-dark shadow-[0_0_50px_rgba(0,0,0,0.8)] pointer-events-auto transform transition-transform scale-95 opacity-0 duration-300" id="modal-content-{{ match.id }}">
-                                
-                                <div class="p-6 border-b border-white/10 flex justify-between items-center bg-black/40">
-                                    <h3 class="text-xl font-display font-bold text-white uppercase tracking-widest">
-                                        <i class="fa-solid fa-terminal text-accent-cyan mr-2"></i> Match {{ match.match_number }} Analysis
-                                    </h3>
-                                    <button onclick="closeScorecardModal('{{ match.id }}')" class="text-gray-500 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">
-                                        <i class="fa-solid fa-times"></i>
-                                    </button>
+                                {% if match.match_data.teams %}
+                                <!-- Standings Table -->
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr class="bg-black/50 text-[9px] font-mono tracking-widest text-gray-600 uppercase border-b border-white/5">
+                                                <th class="px-5 py-3 font-normal w-16 text-center">Rank</th>
+                                                <th class="px-5 py-3 font-normal">Team Name</th>
+                                                <th class="px-5 py-3 font-normal text-right">Points</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for team in match.match_data.teams %}
+                                            <tr class="border-b border-white/5 hover:bg-white/3 transition-colors">
+                                                <td class="px-5 py-3 text-center">
+                                                    {% if team.rank == 1 %}
+                                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-bold text-xs shadow-[0_0_8px_rgba(234,179,8,0.2)]">1</span>
+                                                    {% elif team.rank == 2 %}
+                                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-400/10 border border-gray-400/30 text-gray-300 font-bold text-xs">2</span>
+                                                    {% elif team.rank == 3 %}
+                                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700/10 border border-amber-700/30 text-amber-600 font-bold text-xs">3</span>
+                                                    {% else %}
+                                                        <span class="text-gray-600 font-mono text-xs">#{{ team.rank }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="px-5 py-3">
+                                                    <span class="font-semibold text-sm {% if team.rank == 1 %}text-white{% else %}text-gray-300{% endif %}">{{ team.team_name }}</span>
+                                                </td>
+                                                <td class="px-5 py-3 text-right">
+                                                    <span class="font-mono font-bold text-sm {% if team.rank == 1 %}text-accent-pink{% else %}text-gray-400{% endif %}">{{ team.points }}</span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
                                 </div>
+                                {% endif %}
                                 
-                                <div class="overflow-y-auto p-6 md:p-8 space-y-8 flex-1">
-                                    <!-- AI Analysis Section -->
-                                    <div>
-                                        <h4 class="text-[10px] font-mono text-accent-pink tracking-widest uppercase mb-3"><i class="fa-solid fa-robot mr-1"></i> AI Generated Report</h4>
-                                        <div class="prose prose-invert max-w-none text-gray-300 font-mono text-sm leading-relaxed p-4 bg-black/40 rounded-lg border border-white/5 relative selection:bg-accent-cyan selection:text-black">
-                                            <!-- Scanline effect for terminal look -->
-                                            <div class="absolute inset-0 bg-[linear-gradient(rgba(102,252,241,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(102,252,241,0.03)_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none rounded-lg"></div>
-                                            {{ match.ai_analysis|force_escape|linebreaks }}
-                                        </div>
+                                <!-- AI Report -->
+                                {% if match.ai_analysis %}
+                                <div class="p-5 border-t border-white/5 bg-black/20">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <i class="fa-solid fa-robot text-accent-cyan text-xs"></i>
+                                        <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">AI Match Report</span>
                                     </div>
-                                    
-                                    <!-- Optional Raw Data Parsing -->
-                                    {% if match.match_data %}
-                                    <div>
-                                        <h4 class="text-[10px] font-mono text-gray-500 tracking-widest uppercase mb-3"><i class="fa-solid fa-database mr-1"></i> Raw Data Extract</h4>
-                                        <div class="bg-black/60 rounded-lg p-4 font-mono text-xs text-gray-400 overflow-x-auto border border-white/5">
-                                            <pre>{{ match.match_data|pprint }}</pre>
-                                        </div>
+                                    <div class="text-gray-400 text-sm leading-relaxed font-mono bg-black/30 rounded-lg p-4 border border-white/5 relative overflow-hidden">
+                                        <div class="absolute inset-0 bg-[linear-gradient(rgba(102,252,241,0.02)_1px,transparent_1px)] bg-[size:100%_20px] pointer-events-none"></div>
+                                        {{ match.ai_analysis|force_escape|linebreaks }}
                                     </div>
-                                    {% endif %}
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
                         {% empty %}
                         <div class="text-center py-12 border border-dashed border-white/10 rounded-xl bg-black/20">
-                            <i class="fa-solid fa-file-invoice text-4xl text-gray-700 mb-3"></i>
+                            <i class="fa-solid fa-file-invoice text-4xl text-gray-700 mb-3 block"></i>
                             <p class="text-gray-500 text-sm">No match scorecards published for this tournament yet.</p>
                         </div>
                         {% endfor %}
                     </div>
                 </section>
+
             </div>
 
             <!-- Sidebar -->
@@ -269,37 +327,20 @@
 </main>
 
 <script>
-    function openScorecardModal(matchId) {
-        const modal = document.getElementById(`scorecard-modal-${matchId}`);
-        const content = document.getElementById(`modal-content-${matchId}`);
-        const backdrop = modal.querySelector('.bg-black\\/90');
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        
-        // Trigger reflow
-        void modal.offsetWidth;
-        
-        backdrop.classList.add('pointer-events-auto');
-        content.classList.remove('scale-95', 'opacity-0');
-        content.classList.add('scale-100', 'opacity-100');
-        document.body.style.overflow = 'hidden';
-    }
+    function toggleMatch(matchId) {
+        const body = document.getElementById(`body-${matchId}`);
+        const chevron = document.getElementById(`chevron-${matchId}`);
+        const btn = document.getElementById(`btn-${matchId}`);
 
-    function closeScorecardModal(matchId) {
-        const modal = document.getElementById(`scorecard-modal-${matchId}`);
-        const content = document.getElementById(`modal-content-${matchId}`);
-        const backdrop = modal.querySelector('.bg-black\\/90');
-        
-        content.classList.remove('scale-100', 'opacity-100');
-        content.classList.add('scale-95', 'opacity-0');
-        backdrop.classList.remove('pointer-events-auto');
-        
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.style.overflow = '';
-        }, 300);
+        const isOpen = !body.classList.contains('hidden');
+        if (isOpen) {
+            body.classList.add('hidden');
+            chevron.style.transform = 'rotate(0deg)';
+            btn.querySelector('i.fa-table-list') && (btn.innerHTML = btn.innerHTML.replace('Hide', 'View'));
+        } else {
+            body.classList.remove('hidden');
+            chevron.style.transform = 'rotate(180deg)';
+        }
     }
 </script>
 {% endblock %}

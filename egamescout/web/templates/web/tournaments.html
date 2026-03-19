@@ -4,712 +4,250 @@
 
 {% block title %}Upcoming Tournaments | E-Game Scout{% endblock %}
 
-{% block extra_head %}
-<style>
-    /* ── Page & Ambient ── */
-    .page-glow {
-        position: fixed;
-        pointer-events: none;
-        border-radius: 50%;
-        filter: blur(120px);
-        z-index: 0;
-    }
-
-    /* ── Search & Filter Bar ── */
-    .filter-bar {
-        background: rgba(15, 17, 21, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-    }
-
-    .filter-btn {
-        background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        color: rgba(255, 255, 255, 0.5);
-        transition: all 0.2s ease;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-
-    .filter-btn:hover,
-    .filter-btn.active {
-        background: rgba(102, 252, 241, 0.1);
-        border-color: rgba(102, 252, 241, 0.4);
-        color: #66fcf1;
-    }
-
-    .filter-btn.active-yellow {
-        background: rgba(245, 158, 11, 0.1);
-        border-color: rgba(245, 158, 11, 0.4);
-        color: #f59e0b;
-    }
-
-    /* ── Tournament Cards (Active) ── */
-    .t-card {
-        background: linear-gradient(135deg, #0d0f13 0%, #111318 100%);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .t-card::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(ellipse at 0% 0%, rgba(102, 252, 241, 0.04) 0%, transparent 60%);
-        opacity: 0;
-        transition: opacity 0.35s ease;
-        pointer-events: none;
-    }
-
-    .t-card:hover {
-        border-color: rgba(102, 252, 241, 0.3);
-        transform: translateY(-3px);
-        box-shadow: 0 12px 40px rgba(102, 252, 241, 0.07), 0 0 0 1px rgba(102, 252, 241, 0.05);
-    }
-
-    .t-card:hover::before {
-        opacity: 1;
-    }
-
-    /* ── Coming Soon Cards ── */
-    .t-card-soon {
-        background: linear-gradient(135deg, #10110e 0%, #131208 100%);
-        border: 1px solid rgba(245, 158, 11, 0.1);
-        transition: all 0.35s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .t-card-soon::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.6), transparent);
-    }
-
-    .t-card-soon:hover {
-        border-color: rgba(245, 158, 11, 0.25);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(245, 158, 11, 0.05);
-    }
-
-    /* ── Date Badge ── */
-    .date-col {
-        background: rgba(0, 0, 0, 0.25);
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    /* ── Stat Pills ── */
-    .stat-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
-        border-radius: 99px;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    /* ── Verified Badge ── */
-    .verified-badge {
-        background: linear-gradient(135deg, #0e2726, #0b2a2a);
-        border: 1px solid rgba(102, 252, 241, 0.3);
-        color: #66fcf1;
-        box-shadow: 0 0 12px rgba(102, 252, 241, 0.15);
-    }
-
-    /* ── Countdown ── */
-    .countdown-unit {
-        background: rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(245, 158, 11, 0.15);
-        border-radius: 10px;
-        padding: 8px 14px;
-        text-align: center;
-        min-width: 58px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .countdown-unit::after {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.4), transparent);
-    }
-
-    /* ── Register Button ── */
-    .register-btn {
-        background: linear-gradient(135deg, rgba(102, 252, 241, 0.08), rgba(102, 252, 241, 0.03));
-        border: 1px solid rgba(102, 252, 241, 0.25);
-        color: #66fcf1;
-        transition: all 0.25s ease;
-        letter-spacing: 0.08em;
-    }
-
-    .register-btn:hover {
-        background: linear-gradient(135deg, rgba(102, 252, 241, 0.18), rgba(102, 252, 241, 0.08));
-        border-color: rgba(102, 252, 241, 0.6);
-        box-shadow: 0 0 20px rgba(102, 252, 241, 0.2);
-        transform: scale(1.02);
-    }
-
-    /* ── Shimmer Text ── */
-    @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
-
-    .shimmer {
-        background: linear-gradient(90deg, #f59e0b 0%, #fcd34d 40%, #f59e0b 100%);
-        background-size: 200% auto;
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: shimmer 2.5s linear infinite;
-    }
-
-    /* ── Header float in ── */
-    @keyframes floatIn {
-        from { opacity: 0; transform: translateY(24px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .float-in { animation: floatIn 0.7s ease both; }
-    .float-in-2 { animation: floatIn 0.7s 0.15s ease both; }
-    .float-in-3 { animation: floatIn 0.7s 0.3s ease both; }
-
-    /* ── Ongoing pulse ring ── */
-    @keyframes pingSlow {
-        75%, 100% { transform: scale(2); opacity: 0; }
-    }
-
-    .ping-slow {
-        animation: pingSlow 2s cubic-bezier(0,0,0.2,1) infinite;
-    }
-
-    /* ── Search input ── */
-    #searchInput {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        color: white;
-        outline: none;
-        transition: border-color 0.2s;
-    }
-
-    #searchInput:focus {
-        border-color: rgba(102,252,241,0.35);
-    }
-
-    #searchInput::placeholder {
-        color: rgba(255,255,255,0.25);
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<main class="min-h-screen relative overflow-x-hidden">
-
-    <!-- Ambient background glows -->
-    <div class="page-glow w-[700px] h-[700px] bg-cyan-500/5 top-0 right-0"></div>
-    <div class="page-glow w-[500px] h-[500px] bg-blue-600/5 bottom-0 left-0"></div>
-    <div class="page-glow w-[400px] h-[400px] bg-purple-600/4 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-
-    <!-- ── HERO HEADER ── -->
-    <section class="pt-8 pb-4 px-6 md:px-12 text-center relative z-10">
-        <div class="float-in inline-flex items-center gap-1.5 px-3 py-0.5 border border-accent-cyan/30 rounded-full bg-accent-cyan/5 mb-3 text-accent-cyan text-[10px] font-display tracking-widest uppercase shadow-[0_0_10px_rgba(102,252,241,0.1)]">
-            <span class="relative flex h-1.5 w-1.5">
-                <span class="ping-slow absolute inline-flex h-full w-full rounded-full bg-accent-cyan opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-accent-cyan"></span>
-            </span>
-            Live Circuit
-        </div>
-
-        <h1 class="float-in-2 text-2xl md:text-4xl font-display font-black text-white uppercase tracking-wide mb-2 leading-none drop-shadow-lg">
-            Upcoming <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan via-blue-400 to-purple-400">Tournaments</span>
-        </h1>
-
-        <p class="float-in-3 text-white/50 max-w-xl mx-auto text-xs md:text-sm font-light leading-snug mb-4">
-            Compete against the best. Rise through the ranks. Prove your worth on the official E-Game Scout competitive circuit.
-        </p>
-
-        <!-- Stats Row -->
-        <div class="float-in-3 inline-flex flex-wrap justify-center gap-4 text-xs">
-            <div class="flex items-center gap-1.5 text-white/60">
-                <i class="fa-solid fa-bolt text-accent-cyan"></i>
-                <span><span class="text-white font-bold">{{ tournaments|length }}</span> Active</span>
-            </div>
-            <div class="h-3 w-px bg-white/10 self-center hidden sm:block"></div>
-            <div class="flex items-center gap-1.5 text-white/60">
-                <i class="fa-solid fa-hourglass-half text-yellow-400"></i>
-                <span><span class="text-white font-bold">{{ coming_soon|length }}</span> Coming Soon</span>
-            </div>
-            <div class="h-3 w-px bg-white/10 self-center hidden sm:block"></div>
-            <div class="flex items-center gap-1.5 text-white/60">
-                <i class="fa-solid fa-trophy text-purple-400"></i>
-                <span class="text-white font-bold">Prizes &amp; Glory</span>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── FILTER/SEARCH BAR ── -->
-    <section class="px-6 md:px-12 pb-6 relative z-10">
-        <div class="max-w-5xl mx-auto">
-            <div class="filter-bar rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-center">
-                <!-- Search -->
-                <div class="relative flex-1 w-full">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-sm"></i>
-                    <input id="searchInput"
-                        type="text"
-                        placeholder="Search tournaments, organizers..."
-                        class="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm"
-                        oninput="filterCards()"
-                    >
+    <!-- Main Content -->
+    <main class="pt-28 pb-12 px-6 md:px-12 min-h-screen relative overflow-hidden">
+        <!-- Ambient Glows -->
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-accent-cyan/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+        
+        <div class="max-w-7xl mx-auto relative z-10 w-full">
+                <div class="text-center mb-8 animate-fade-in-up">
+                    <h1 class="text-3xl md:text-5xl font-display font-black text-white mb-3 uppercase tracking-wide drop-shadow-xl">
+                        UPCOMING <span class="text-accent-cyan drop-shadow-[0_0_8px_rgba(102,252,241,0.5)]">TOURNAMENTS</span>
+                    </h1>
+                    <p class="text-brand-light/60 max-w-2xl mx-auto text-sm md:text-base font-light leading-relaxed">
+                        Compete against the best. Rise through the ranks. Prove your worth on the official circuit.
+                    </p>
                 </div>
-                <!-- Filter Buttons -->
-                <div class="flex gap-2 flex-wrap justify-center sm:justify-start">
-                    <button class="filter-btn active px-4 py-2 rounded-xl text-xs font-bold uppercase" onclick="setFilter('all', this)">
-                        <i class="fa-solid fa-border-all mr-1"></i> All
-                    </button>
-                    <button class="filter-btn px-4 py-2 rounded-xl text-xs font-bold uppercase" onclick="setFilter('online', this)">
-                        <i class="fa-solid fa-wifi mr-1"></i> Online
-                    </button>
-                    <button class="filter-btn px-4 py-2 rounded-xl text-xs font-bold uppercase" onclick="setFilter('lan', this)">
-                        <i class="fa-solid fa-location-dot mr-1"></i> LAN
-                    </button>
-                    <button class="filter-btn px-4 py-2 rounded-xl text-xs font-bold uppercase" onclick="setFilter('soon', this)">
-                        <span class="shimmer">★</span> Soon
-                    </button>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- ── ACTIVE / SCHEDULED TOURNAMENTS ── -->
-    {% if tournaments %}
-    <section class="px-6 md:px-12 pb-6 relative z-10" id="section-active">
-        <div class="max-w-5xl mx-auto">
-            <!-- Section Header -->
-            <div class="flex items-center gap-3 mb-5">
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="ping-slow absolute inline-flex h-full w-full rounded-full bg-accent-cyan opacity-60"></span>
-                    <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-cyan"></span>
-                </span>
-                <h2 class="text-sm font-display font-bold text-accent-cyan uppercase tracking-[0.2em]">Active &amp; Scheduled</h2>
-                <span class="px-2.5 py-0.5 rounded-full bg-accent-cyan/10 text-accent-cyan text-[11px] font-bold border border-accent-cyan/20">{{ tournaments|length }}</span>
-            </div>
-
-            <div class="grid grid-cols-1 gap-4" id="activeCards">
-                {% for tournament in tournaments %}
-                <div class="t-card rounded-2xl overflow-hidden group tournament-item"
-                     data-name="{{ tournament.Name|lower }}"
-                     data-org="{{ tournament.Organization_Name.Organization_Name|lower }}"
-                     data-type="{% if tournament.is_offline %}lan{% else %}online{% endif %}"
-                     data-section="active">
-
-                    <div class="flex flex-col md:flex-row">
-                        <!-- Date Column -->
-                        <div class="date-col w-full md:w-40 p-6 flex flex-col justify-center items-center text-center flex-shrink-0">
-                            {% if tournament.start_date %}
-                            <span class="text-4xl font-display font-black text-white leading-none mb-1">
-                                {{ tournament.start_date|date:"d" }}
-                            </span>
-                            <span class="text-xs font-display font-bold text-accent-cyan uppercase tracking-widest mb-4">
-                                {{ tournament.start_date|date:"M Y" }}
-                            </span>
-                            {% else %}
-                            <span class="text-2xl font-display font-bold text-gray-500 mb-4">TBD</span>
-                            {% endif %}
-
-                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
-                                {% if tournament.Status == 'Ongoing' %}bg-green-500/15 text-green-400 border border-green-500/25
-                                {% elif tournament.Status == 'Scheduled' %}bg-blue-500/15 text-blue-400 border border-blue-500/25
-                                {% else %}bg-gray-500/15 text-gray-400 border border-gray-500/25{% endif %}">
-                                {% if tournament.Status == 'Ongoing' %}
-                                <span class="inline-block w-1.5 h-1.5 rounded-full bg-green-400 mr-1 animate-pulse"></span>
-                                {% endif %}
-                                {{ tournament.Status }}
-                            </span>
+                <!-- Search & Filters -->
+                <div class="mb-10 max-w-2xl mx-auto">
+                    <form method="GET" class="relative group" onsubmit="event.preventDefault();">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-search text-brand-light/40 group-focus-within:text-accent-cyan transition-colors"></i>
                         </div>
-
-                        <!-- Main Info -->
-                        <div class="flex-1 p-6 md:p-7 flex flex-col justify-center min-w-0">
-                            <!-- Title Row -->
-                            <div class="flex flex-wrap items-start gap-2 mb-2">
-                                <h3 class="text-xl md:text-2xl font-display font-black text-white group-hover:text-accent-cyan transition-colors truncate flex-1 min-w-0">
-                                    {{ tournament.Name }}
-                                </h3>
-                                <div class="flex items-center gap-2 flex-shrink-0">
-                                    <span class="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold border px-2.5 py-1 rounded-lg
-                                        {% if tournament.is_offline %}border-orange-500/30 text-orange-400 bg-orange-500/5
-                                        {% else %}border-blue-500/30 text-blue-400 bg-blue-500/5{% endif %}">
-                                        <i class="{% if tournament.is_offline %}fa-solid fa-location-dot{% else %}fa-solid fa-wifi{% endif %}"></i>
-                                        {% if tournament.is_offline %}LAN{% else %}ONLINE{% endif %}
-                                    </span>
-                                    {% if tournament.approval_status == 'APPROVED' %}
-                                    <span class="verified-badge inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg">
-                                        <i class="fa-solid fa-shield-check"></i> VERIFIED
-                                    </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <!-- Description -->
-                            {% if tournament.description %}
-                            <p class="text-white/40 text-sm mb-5 line-clamp-2 leading-relaxed">
-                                {{ tournament.description|striptags }}
-                            </p>
-                            {% else %}
-                            <div class="mb-5"></div>
-                            {% endif %}
-
-                            <!-- Stats -->
-                            <div class="flex flex-wrap gap-2">
-                                <span class="stat-pill text-yellow-400">
-                                    <i class="fa-solid fa-trophy"></i>
-                                    ₹{{ tournament.PrizePool|floatformat:0|intcomma }}
-                                    <span class="text-white/30 font-normal">PRIZE</span>
-                                </span>
-                                <span class="stat-pill text-accent-cyan">
-                                    <i class="fa-solid fa-users"></i>
-                                    {{ tournament.max_teams }}
-                                    <span class="text-white/30 font-normal">TEAMS</span>
-                                </span>
-                                {% if tournament.end_date %}
-                                <span class="stat-pill text-purple-400">
-                                    <i class="fa-solid fa-flag-checkered"></i>
-                                    {{ tournament.end_date|date:"d M Y" }}
-                                    <span class="text-white/30 font-normal">ENDS</span>
-                                </span>
-                                {% endif %}
-                                <span class="stat-pill text-white/60">
-                                    <i class="fa-solid fa-building"></i>
-                                    {{ tournament.Organization_Name.Organization_Name }}
-                                    {% if tournament.Organization_Name.is_verified %}
-                                    <i class="fa-solid fa-circle-check text-yellow-400" title="Verified"></i>
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Action Column -->
-                        <div class="w-full md:w-40 p-6 flex items-center justify-center border-t md:border-t-0 md:border-l border-white/5 flex-shrink-0 bg-black/20">
-                            {% if player_id and tournament.Tournament_ID in joined_tournament_ids %}
-                            <div class="w-full py-3 px-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 font-display font-bold text-xs tracking-widest text-center">
-                                <i class="fa-solid fa-circle-check mr-1.5"></i> JOINED
-                            </div>
-                            {% else %}
-                            <a href="{% url 'player_dashboard' %}"
-                                class="register-btn w-full py-3 px-4 rounded-xl font-display font-bold text-xs tracking-widest text-center block">
-                                <i class="fa-solid fa-right-to-bracket mr-1.5"></i> REGISTER
-                            </a>
-                            {% endif %}
-                        </div>
+                        <input type="text" id="searchInput" placeholder="Search tournaments, organizers..." onkeyup="filterTournaments()"
+                            class="w-full bg-black/40 border border-white/10 rounded-full py-4 pl-12 pr-4 text-white placeholder:text-gray-500 focus:outline-none focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/50 transition-all font-mono text-sm shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+                    </form>
+                    
+                    <!-- Filters -->
+                    <div class="flex gap-3 flex-wrap justify-center mt-5">
+                        <button class="filter-btn active px-5 py-2 rounded-full text-[11px] font-bold uppercase border border-accent-cyan/40 bg-accent-cyan/10 text-accent-cyan transition-all hover:scale-105" onclick="setFilter('all', this)">
+                            <i class="fa-solid fa-border-all mr-1.5"></i> All
+                        </button>
+                        <button class="filter-btn px-5 py-2 rounded-full text-[11px] font-bold uppercase border border-white/10 bg-black/40 text-gray-400 hover:text-white hover:border-white/30 transition-all hover:scale-105" onclick="setFilter('online', this)">
+                            <i class="fa-solid fa-wifi mr-1.5"></i> Online
+                        </button>
+                        <button class="filter-btn px-5 py-2 rounded-full text-[11px] font-bold uppercase border border-white/10 bg-black/40 text-gray-400 hover:text-white hover:border-white/30 transition-all hover:scale-105" onclick="setFilter('lan', this)">
+                            <i class="fa-solid fa-location-dot mr-1.5"></i> LAN
+                        </button>
+                        <button class="filter-btn px-5 py-2 rounded-full text-[11px] font-bold uppercase border border-white/10 bg-black/40 text-gray-400 hover:text-white hover:border-white/30 transition-all hover:scale-105" onclick="setFilter('soon', this)">
+                            ★ Soon
+                        </button>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-    </section>
-    {% endif %}
 
-    <!-- ── COMING SOON TOURNAMENTS ── -->
-    {% if coming_soon %}
-    <section class="px-6 md:px-12 py-6 relative z-10" id="section-soon">
-        <div class="max-w-5xl mx-auto">
-            <!-- Section Header -->
-            <div class="flex items-center gap-3 mb-5">
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="ping-slow absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-60"></span>
-                    <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-yellow-400"></span>
-                </span>
-                <h2 class="text-sm font-display font-bold text-yellow-400 uppercase tracking-[0.2em]">
-                    <span class="shimmer">Coming Soon</span>
-                </h2>
-                <span class="px-2.5 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 text-[11px] font-bold border border-yellow-500/20">{{ coming_soon|length }}</span>
-                <span class="ml-auto text-xs text-white/20 font-display uppercase tracking-wider hidden sm:block">Pending Publication</span>
-            </div>
-
-            <div class="grid grid-cols-1 gap-4" id="soonCards">
-                {% for t in coming_soon %}
-                <div class="t-card-soon rounded-2xl overflow-hidden tournament-item"
-                     data-name="{{ t.Name|lower }}"
-                     data-org="{{ t.Organization_Name.Organization_Name|lower }}"
-                     data-type="{% if t.is_offline %}lan{% else %}online{% endif %}"
-                     data-section="soon">
-
-                    <div class="flex flex-col md:flex-row">
-                        <!-- Date Column with Countdown -->
-                        <div class="w-full md:w-48 p-4 flex flex-col justify-center items-center text-center flex-shrink-0 bg-black/40 border-r border-yellow-500/10">
-                            {% if t.start_date %}
-                            <div class="coming-soon-countdown mb-3 w-full" data-target="{{ t.start_date|date:'c' }}">
-                                <div class="grid grid-cols-3 gap-1 text-center font-mono">
-                                    <div class="bg-black/40 rounded p-1 border border-white/5">
-                                        <span class="block text-lg font-bold text-white days">00</span>
-                                        <span class="block text-[7px] uppercase text-white/50">Days</span>
-                                    </div>
-                                    <div class="bg-black/40 rounded p-1 border border-white/5">
-                                        <span class="block text-lg font-bold text-white hours">00</span>
-                                        <span class="block text-[7px] uppercase text-white/50">Hrs</span>
-                                    </div>
-                                    <div class="bg-black/40 rounded p-1 border border-white/5">
-                                        <span class="block text-lg font-bold text-white minutes">00</span>
-                                        <span class="block text-[7px] uppercase text-white/50">Min</span>
-                                    </div>
+                {% if tournaments or coming_soon %}
+                <!-- Active Tournaments -->
+                {% if tournaments %}
+                <div class="flex items-center gap-3 mb-6 mt-8" id="activeSectionTitle">
+                    <h2 class="text-xl font-display font-bold text-accent-cyan uppercase tracking-widest">Active & Scheduled</h2>
+                    <span class="px-3 py-1 bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20 rounded-full text-xs font-bold">{{ tournaments|length }}</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="activeTournamentGrid">
+                    {% for tourney in tournaments %}
+                    <div class="glass-card tournament-card rounded-xl border border-white/10 overflow-hidden hover:-translate-y-2 hover:border-accent-cyan/50 hover:shadow-[0_0_30px_rgba(102,252,241,0.15)] transition-all duration-300 group flex flex-col h-full bg-[#0F1115]" data-title="{{ tourney.Name|lower }}" data-org="{{ tourney.Organization_Name.Organization_Name|lower }}" data-type="{% if tourney.is_offline %}lan{% else %}online{% endif %}" data-section="active">
+                        
+                        <!-- Card Header / Banner -->
+                        <div class="relative h-48 overflow-hidden bg-gradient-to-br from-black to-brand-dark flex items-center justify-center border-b border-white/10 group-hover:border-accent-cyan/30 transition-colors">
+                            <div class="absolute inset-0 bg-accent-cyan/5 mix-blend-screen group-hover:bg-accent-cyan/20 transition-colors"></div>
+                            <i class="fa-solid fa-trophy text-6xl text-white/10 group-hover:text-accent-cyan/40 group-hover:scale-110 transition-transform duration-500"></i>
+                            <div class="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.2)_50%)] bg-[length:100%_4px] pointer-events-none"></div>
+                            
+                            <!-- Status Badges -->
+                            <div class="absolute top-4 right-4 flex flex-col items-end gap-2">
+                                <div class="bg-black/60 backdrop-blur border border-white/10 px-3 py-1 rounded text-[10px] font-mono text-accent-cyan tracking-widest uppercase shadow-lg">
+                                    <i class="fa-solid fa-calendar-alt mr-1"></i> {{ tourney.start_date|date:"d M Y" }}
+                                </div>
+                                <div class="bg-accent-cyan/10 backdrop-blur border border-accent-cyan/30 px-3 py-1 rounded text-[8px] font-mono text-white tracking-widest uppercase shadow-lg flex items-center gap-1.5 flex-wrap">
+                                    <i class="fa-solid fa-users text-[10px] text-accent-cyan"></i> {{ tourney.max_teams }} TEAMS
                                 </div>
                             </div>
-                            <span class="text-xs font-display font-bold text-yellow-500 uppercase tracking-widest mb-2">
-                                {{ t.start_date|date:"d M Y" }}
-                            </span>
-                            {% else %}
-                            <i class="fa-solid fa-calendar-question text-3xl text-yellow-700 mb-2"></i>
-                            <span class="text-xs font-display text-yellow-700 uppercase tracking-widest mb-4">TBD</span>
-                            {% endif %}
-
-                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 w-full">
-                                <i class="fa-solid fa-clock mr-1 text-[9px]"></i> Coming Soon
-                            </span>
                         </div>
 
-                        <!-- Info -->
-                        <div class="flex-1 p-6 md:p-7 flex flex-col justify-center min-w-0">
-                            <div class="flex flex-wrap items-start gap-2 mb-2">
-                                <h3 class="text-xl md:text-2xl font-display font-black text-white/90 flex-1 min-w-0 truncate">
+                        <!-- Card Body -->
+                        <div class="p-6 flex-1 flex flex-col justify-between relative z-10">
+                            <div>
+                                <h3 class="font-display font-bold text-xl text-white mb-2 uppercase tracking-wide group-hover:text-accent-cyan transition-colors line-clamp-2">
+                                    {{ tourney.Name }}
+                                </h3>
+                                <p class="text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed h-[42px]">
+                                    {{ tourney.description|striptags|truncatechars:100|default:"No description available." }}
+                                </p>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <!-- Info Box -->
+                                <div class="bg-black/40 border border-white/5 rounded p-3 relative overflow-hidden group/info grid grid-cols-2 gap-2 text-xs font-mono">
+                                    <div class="text-gray-400 uppercase tracking-wider scale-90 origin-left">Prize Pool</div>
+                                    <div class="text-right font-bold text-yellow-400">₹{{ tourney.PrizePool|floatformat:0|intcomma }}</div>
+                                    <div class="text-gray-400 uppercase tracking-wider scale-90 origin-left">Format</div>
+                                    <div class="text-right font-bold text-white">{% if tourney.is_offline %}LAN{% else %}ONLINE{% endif %}</div>
+                                </div>
+                                
+                                <div class="flex items-center text-xs text-gray-500 mb-2 font-mono uppercase tracking-wider">
+                                    <i class="fa-solid fa-building mr-1.5 opacity-50"></i> By: <span class="text-white ml-1">{{ tourney.Organization_Name.Organization_Name }}</span>
+                                </div>
+
+                                {% if player_id and tourney.Tournament_ID in joined_tournament_ids %}
+                                <button class="w-full inline-block text-center py-3 bg-green-500/10 border border-green-500/30 text-green-400 font-bold rounded uppercase tracking-widest text-sm transition-all" disabled>
+                                    <i class="fa-solid fa-check-circle mr-2"></i> Joined
+                                </button>
+                                {% else %}
+                                <a href="{% url 'player_dashboard' %}" 
+                                   class="w-full block text-center py-3 bg-transparent border border-white/20 text-white hover:border-accent-cyan hover:bg-accent-cyan/10 hover:text-accent-cyan font-bold rounded uppercase tracking-widest text-sm transition-all duration-300">
+                                    REGISTER <i class="fa-solid fa-arrow-right ml-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Coming Soon Tournaments -->
+                {% if coming_soon %}
+                <div class="flex items-center gap-3 mb-6 {% if tournaments %}mt-16 pt-8 border-t border-white/10{% endif %}" id="soonSectionTitle">
+                    <h2 class="text-xl font-display font-bold text-yellow-500 uppercase tracking-widest">Coming Soon</h2>
+                    <span class="px-3 py-1 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded-full text-xs font-bold">{{ coming_soon|length }}</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="soonTournamentGrid">
+                    {% for t in coming_soon %}
+                    <div class="glass-card tournament-card rounded-xl border border-white/10 overflow-hidden hover:-translate-y-2 hover:border-yellow-500/50 hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 group flex flex-col h-full bg-[#0F1115]" data-title="{{ t.Name|lower }}" data-org="{{ t.Organization_Name.Organization_Name|lower }}" data-type="{% if t.is_offline %}lan{% else %}online{% endif %}" data-section="soon">
+                        
+                        <!-- Card Header / Banner -->
+                        <div class="relative h-48 overflow-hidden bg-gradient-to-br from-black to-brand-dark flex items-center justify-center border-b border-white/10 group-hover:border-yellow-500/30 transition-colors">
+                            <div class="absolute inset-0 bg-yellow-500/5 mix-blend-screen group-hover:bg-yellow-500/20 transition-colors"></div>
+                            <i class="fa-solid fa-calendar-star text-6xl text-white/10 group-hover:text-yellow-500/40 group-hover:scale-110 transition-transform duration-500"></i>
+                            <div class="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.2)_50%)] bg-[length:100%_4px] pointer-events-none"></div>
+                            
+                            <!-- Badges -->
+                            <div class="absolute top-4 right-4 flex flex-col items-end gap-2">
+                                <div class="bg-black/60 backdrop-blur border border-white/10 px-3 py-1 rounded text-[10px] font-mono text-yellow-500 tracking-widest uppercase shadow-lg">
+                                    <i class="fa-solid fa-clock mr-1"></i> SOON
+                                </div>
+                                {% if t.start_date %}
+                                <div class="bg-yellow-500/10 backdrop-blur border border-yellow-500/30 px-3 py-1 rounded text-[8px] font-mono text-white tracking-widest uppercase shadow-lg">
+                                    OPENS {{ t.start_date|date:"d M Y" }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-6 flex-1 flex flex-col justify-between relative z-10">
+                            <div>
+                                <h3 class="font-display font-bold text-xl text-white mb-2 uppercase tracking-wide group-hover:text-yellow-500 transition-colors line-clamp-2">
                                     {{ t.Name }}
                                 </h3>
-                                <span class="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold border px-2.5 py-1 rounded-lg
-                                    {% if t.is_offline %}border-yellow-700/40 text-yellow-700 bg-yellow-900/10
-                                    {% else %}border-yellow-700/40 text-yellow-700 bg-yellow-900/10{% endif %}">
-                                    <i class="{% if t.is_offline %}fa-solid fa-location-dot{% else %}fa-solid fa-wifi{% endif %}"></i>
-                                    {% if t.is_offline %}LAN{% else %}ONLINE{% endif %}
-                                </span>
+                                <p class="text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed h-[42px]">
+                                    {% if t.description %}{{ t.description|striptags|truncatechars:100 }}{% else %}Full details reveal soon...{% endif %}
+                                </p>
                             </div>
+                            
+                            <div class="space-y-4">
+                                <div class="bg-black/40 border border-white/5 rounded p-3 relative overflow-hidden group/info grid grid-cols-2 gap-2 text-xs font-mono">
+                                    <div class="text-gray-400 uppercase tracking-wider scale-90 origin-left">Est. Prize</div>
+                                    <div class="text-right font-bold text-yellow-500">₹{{ t.PrizePool|floatformat:0|intcomma }}</div>
+                                    <div class="text-gray-400 uppercase tracking-wider scale-90 origin-left">Organizer</div>
+                                    <div class="text-right font-bold text-white truncate" title="{{ t.Organization_Name.Organization_Name }}">{{ t.Organization_Name.Organization_Name|truncatechars:15 }}</div>
+                                </div>
 
-                            {% if t.description %}
-                            <p class="text-yellow-900/80 text-sm mb-5 line-clamp-2 leading-relaxed">{{ t.description|striptags }}</p>
-                            {% else %}
-                            <p class="text-white/20 text-sm mb-5 italic">Full details will be revealed upon publication...</p>
-                            {% endif %}
-
-                            <div class="flex flex-wrap gap-2">
-                                <span class="stat-pill text-yellow-600 border-yellow-900/40 bg-yellow-900/10">
-                                    <i class="fa-solid fa-trophy"></i>
-                                    ₹{{ t.PrizePool|floatformat:0|intcomma }}
-                                    <span class="text-white/20 font-normal">PRIZE</span>
-                                </span>
-                                <span class="stat-pill text-yellow-600 border-yellow-900/40 bg-yellow-900/10">
-                                    <i class="fa-solid fa-users"></i>
-                                    {{ t.max_teams }}
-                                    <span class="text-white/20 font-normal">TEAMS</span>
-                                </span>
-                                {% if t.end_date %}
-                                <span class="stat-pill text-yellow-700 border-yellow-900/40 bg-yellow-900/10">
-                                    <i class="fa-solid fa-flag-checkered"></i>
-                                    {{ t.end_date|date:"d M Y" }}
-                                    <span class="text-white/20 font-normal">ENDS</span>
-                                </span>
-                                {% endif %}
-                                <span class="stat-pill text-yellow-700 border-yellow-900/40 bg-yellow-900/10">
-                                    <i class="fa-solid fa-building"></i>
-                                    {{ t.Organization_Name.Organization_Name }}
-                                    {% if t.Organization_Name.is_verified %}
-                                    <i class="fa-solid fa-circle-check text-yellow-500"></i>
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Notify Column -->
-                        <div class="w-full md:w-44 p-6 flex flex-col items-center justify-center gap-4 flex-shrink-0"
-                             style="background:rgba(0,0,0,0.2); border-top:1px solid rgba(245,158,11,0.08);"
-                             class="md:border-t-0 md:border-l">
-                            {% if t.start_date %}
-                            <div class="text-center">
-                                <p class="text-yellow-700 text-[10px] font-display uppercase tracking-widest mb-1">Opens</p>
-                                <p class="text-yellow-400 font-display font-bold text-xs">{{ t.start_date|date:"d M Y" }}</p>
-                            </div>
-                            {% endif %}
-                            <button class="w-full py-3 px-4 rounded-xl bg-yellow-500/5 border border-yellow-500/15 text-yellow-600/50 font-display font-bold text-xs tracking-widest cursor-not-allowed" disabled>
-                                <i class="fa-solid fa-bell mr-1.5"></i> NOTIFY ME
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Countdown Bar -->
-                    {% if t.start_date %}
-                    <div class="border-t border-yellow-500/8 bg-black/30 px-6 md:px-8 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                        <div class="flex items-center gap-2 text-yellow-600/60">
-                            <i class="fa-regular fa-clock animate-pulse text-xs"></i>
-                            <span class="text-[11px] font-display uppercase tracking-[0.15em]">Tournament Starts In</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="countdown-unit">
-                                <span class="block text-2xl font-display font-black text-yellow-400 leading-none mb-1" id="days-{{ t.Tournament_ID }}">--</span>
-                                <span class="text-[9px] text-yellow-700 uppercase tracking-wider">Days</span>
-                            </div>
-                            <span class="text-yellow-700 font-bold text-lg">:</span>
-                            <div class="countdown-unit">
-                                <span class="block text-2xl font-display font-black text-yellow-400 leading-none mb-1" id="hours-{{ t.Tournament_ID }}">--</span>
-                                <span class="text-[9px] text-yellow-700 uppercase tracking-wider">Hrs</span>
-                            </div>
-                            <span class="text-yellow-700 font-bold text-lg">:</span>
-                            <div class="countdown-unit">
-                                <span class="block text-2xl font-display font-black text-yellow-400 leading-none mb-1" id="mins-{{ t.Tournament_ID }}">--</span>
-                                <span class="text-[9px] text-yellow-700 uppercase tracking-wider">Min</span>
-                            </div>
-                            <span class="text-yellow-700 font-bold text-lg">:</span>
-                            <div class="countdown-unit">
-                                <span class="block text-2xl font-display font-black text-yellow-400 leading-none mb-1" id="secs-{{ t.Tournament_ID }}">--</span>
-                                <span class="text-[9px] text-yellow-700 uppercase tracking-wider">Sec</span>
+                                <button class="w-full inline-block text-center py-3 bg-yellow-500/5 border border-yellow-500/20 text-yellow-500/50 font-bold rounded uppercase tracking-widest text-sm transition-all cursor-not-allowed">
+                                    <i class="fa-solid fa-lock mr-2"></i> PENDING
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <script>
-                        (function () {
-                            var target = new Date("{{ t.start_date|date:'Y-m-d' }}T00:00:00");
-                            var id = "{{ t.Tournament_ID }}";
-                            function update() {
-                                var now = new Date();
-                                var diff = target - now;
-                                if (diff <= 0) {
-                                    ['days','hours','mins','secs'].forEach(function(k){
-                                        document.getElementById(k+'-'+id).textContent = '00';
-                                    });
-                                    return;
-                                }
-                                var d = Math.floor(diff / 86400000);
-                                var h = Math.floor((diff % 86400000) / 3600000);
-                                var m = Math.floor((diff % 3600000) / 60000);
-                                var s = Math.floor((diff % 60000) / 1000);
-                                document.getElementById('days-'+id).textContent   = String(d).padStart(2,'0');
-                                document.getElementById('hours-'+id).textContent  = String(h).padStart(2,'0');
-                                document.getElementById('mins-'+id).textContent   = String(m).padStart(2,'0');
-                                document.getElementById('secs-'+id).textContent   = String(s).padStart(2,'0');
-                            }
-                            update();
-                            setInterval(update, 1000);
-                        })();
-                    </script>
-                    {% endif %}
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-    </section>
-    {% endif %}
+                {% endif %}
 
-    <!-- ── EMPTY STATE ── -->
-    {% if not tournaments and not coming_soon %}
-    <section class="px-6 md:px-12 py-24 relative z-10">
-        <div class="max-w-5xl mx-auto">
-            <div class="text-center py-24 rounded-2xl border border-white/5 bg-black/20 backdrop-blur-sm">
-                <div class="w-24 h-24 mx-auto mb-6 bg-white/5 rounded-full flex items-center justify-center">
-                    <i class="fa-solid fa-calendar-xmark text-4xl text-gray-500"></i>
+                {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-16">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-brand-dark border border-white/10 text-gray-500 mb-6 relative group">
+                        <div class="absolute inset-0 border border-accent-cyan/30 rounded-full animate-ping opacity-20 hidden group-hover:block"></div>
+                        <i class="fa-solid fa-gamepad text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display text-white mb-2">No Tournaments Now</h3>
+                    <p class="text-gray-400">Please check back later for upcoming competitive events.</p>
                 </div>
-                <h3 class="text-2xl font-display font-black text-white mb-3">No Tournaments Yet</h3>
-                <p class="text-white/30 max-w-sm mx-auto">Check back soon. Organizers are preparing the next season of competition.</p>
-            </div>
+                {% endif %}
         </div>
-    </section>
-    {% endif %}
+    </main>
 
-    <div class="pb-16"></div>
-</main>
+    <script>
+        var currentFilter = 'all';
 
-<script>
-    /* ── Dynamic Search + Filter ── */
-    var currentFilter = 'all';
-
-    function setFilter(type, btn) {
-        currentFilter = type;
-        document.querySelectorAll('.filter-btn').forEach(function(b) {
-            b.classList.remove('active', 'active-yellow');
-        });
-        if (type === 'soon') {
-            btn.classList.add('active-yellow');
-        } else {
-            btn.classList.add('active');
-        }
-        filterCards();
-    }
-
-    function filterCards() {
-        var query = document.getElementById('searchInput').value.toLowerCase().trim();
-        var items = document.querySelectorAll('.tournament-item');
-
-        items.forEach(function(card) {
-            var name = card.dataset.name || '';
-            var org  = card.dataset.org  || '';
-            var type = card.dataset.type || '';
-            var section = card.dataset.section || '';
-
-            var matchSearch  = !query || name.includes(query) || org.includes(query);
-            var matchFilter  =
-                currentFilter === 'all'    ||
-                (currentFilter === 'online' && type === 'online' && section === 'active') ||
-                (currentFilter === 'lan'    && type === 'lan'    && section === 'active') ||
-                (currentFilter === 'soon'   && section === 'soon');
-
-            if (matchSearch && matchFilter) {
-                card.style.display = '';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-
-        /* Hide section headers if completely empty */
-        ['section-active', 'section-soon'].forEach(function(id) {
-            var sec = document.getElementById(id);
-            if (!sec) return;
-            var visible = sec.querySelectorAll('.tournament-item:not([style*="display: none"])');
-            sec.style.display = visible.length === 0 ? 'none' : '';
-        });
-    }
-
-    /* ── Coming Soon Countdowns ── */
-    function initCountdowns() {
-        const timers = document.querySelectorAll('.coming-soon-countdown');
-        if (timers.length === 0) return;
-
-        function updateTimers() {
-            const now = new Date();
-            timers.forEach(timer => {
-                const targetStr = timer.getAttribute('data-target');
-                if (!targetStr) return;
-                
-                const target = new Date(targetStr);
-                const diff = target - now;
-
-                if (diff <= 0) {
-                    timer.innerHTML = '<span class="text-xs font-bold text-yellow-500 uppercase tracking-widest">Starting Now!</span>';
-                    return;
-                }
-
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-                const daysEl = timer.querySelector('.days');
-                const hoursEl = timer.querySelector('.hours');
-                const minsEl = timer.querySelector('.minutes');
-
-                if (daysEl) daysEl.innerText = d.toString().padStart(2, '0');
-                if (hoursEl) hoursEl.innerText = h.toString().padStart(2, '0');
-                if (minsEl) minsEl.innerText = m.toString().padStart(2, '0');
+        function setFilter(type, btn) {
+            currentFilter = type;
+            
+            // Reset all buttons
+            document.querySelectorAll('.filter-btn').forEach(function(b) {
+                b.className = "filter-btn px-5 py-2 rounded-full text-[11px] font-bold uppercase border border-white/10 bg-black/40 text-gray-400 hover:text-white hover:border-white/30 transition-all hover:scale-105";
             });
+            
+            // Set active styles based on selection type
+            if (type === 'soon') {
+                btn.className = "filter-btn active px-5 py-2 rounded-full text-[11px] font-bold uppercase border border-yellow-500/40 bg-yellow-500/10 text-yellow-500 transition-all hover:scale-105";
+            } else {
+                btn.className = "filter-btn active px-5 py-2 rounded-full text-[11px] font-bold uppercase border border-accent-cyan/40 bg-accent-cyan/10 text-accent-cyan transition-all hover:scale-105";
+            }
+            
+            filterTournaments();
         }
 
-        setInterval(updateTimers, 1000);
-        updateTimers();
-    }
-    
-    document.addEventListener('DOMContentLoaded', initCountdowns);
-</script>
+        function filterTournaments() {
+            var query = document.getElementById('searchInput');
+            if (!query) return;
+            query = query.value.toLowerCase();
+            
+            var cards = document.querySelectorAll('.tournament-card');
+            cards.forEach(function(card) {
+                var title = card.getAttribute('data-title') || '';
+                var org = card.getAttribute('data-org') || '';
+                var type = card.getAttribute('data-type') || '';
+                var section = card.getAttribute('data-section') || '';
+                
+                var matchSearch = title.includes(query) || org.includes(query);
+                var matchFilter = 
+                    currentFilter === 'all' || 
+                    (currentFilter === 'online' && type === 'online' && section === 'active') ||
+                    (currentFilter === 'lan' && type === 'lan' && section === 'active') ||
+                    (currentFilter === 'soon' && section === 'soon');
+
+                if (matchSearch && matchFilter) {
+                    card.style.display = "flex";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+
+            // Hide/show the section headers if empty
+            var activeTitle = document.getElementById('activeSectionTitle');
+            if (activeTitle) {
+                var visibleActive = document.querySelectorAll('#activeTournamentGrid .tournament-card:not([style*="display: none"])').length;
+                activeTitle.style.display = visibleActive > 0 ? 'flex' : 'none';
+            }
+
+            var soonTitle = document.getElementById('soonSectionTitle');
+            if (soonTitle) {
+                var visibleSoon = document.querySelectorAll('#soonTournamentGrid .tournament-card:not([style*="display: none"])').length;
+                soonTitle.style.display = visibleSoon > 0 ? 'flex' : 'none';
+            }
+        }
+    </script>
 {% endblock %}

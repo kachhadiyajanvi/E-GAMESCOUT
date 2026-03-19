@@ -1101,7 +1101,7 @@ def public_previous_tournaments(request):
 
 def tournament_history_detail(request, tournament_id):
     """Public detail view for a published PreviousTournament"""
-    tournament = get_object_or_404(PreviousTournament, id=tournament_id, published=True)
+    tournament = get_object_or_404(PreviousTournament, id=tournament_id)
     teams = tournament.participating_teams.all().order_by('placement')
     scorecards = tournament.scorecards.all().order_by('match_number')
     
@@ -1130,6 +1130,7 @@ def tournament_history_detail(request, tournament_id):
         'scorecards': scorecards,
         'actual_organizations': actual_organizations,
         'unlinked_organizations': unlinked_organizations,
+        'ai_analyses': list(tournament.ai_analyses.order_by('created_at')),
     })
 
 # --- Registration Flow ---
@@ -1764,18 +1765,18 @@ def run_scorecard_analysis_thread(analysis_id, org_id, selected_tournament_id=No
         for provider in providers:
             try:
                 if provider['type'] == 'gemini':
-                    from google import genai
+                    import google.generativeai as genai_sdk
+                    import PIL.Image
                     key_index = provider.get('index', 1)
                     print(f"DEBUG: Attempting Gemini API Key #{key_index}...")
-                    client = genai.Client(api_key=provider['key'])
-                    uploaded_file = client.files.upload(file_path)
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=[user_prompt, uploaded_file]
-                    )
+                    genai_sdk.configure(api_key=provider['key'])
+                    model_client = genai_sdk.GenerativeModel('gemini-2.0-flash')
+                    img = PIL.Image.open(file_path)
+                    response = model_client.generate_content([user_prompt, img])
                     response_text = response.text
                     used_provider = f'gemini_key_{key_index}'
                     print(f"SUCCESS: Gemini API Key #{key_index} worked!")
+                    
                 elif provider['type'] == 'groq':
                     file_extension = os.path.splitext(file_path)[1].lower()
                     mime_type = 'image/jpeg'
@@ -1812,77 +1813,90 @@ def run_scorecard_analysis_thread(analysis_id, org_id, selected_tournament_id=No
                         response_text = groq_resp.json()["choices"][0]["message"]["content"]
                         used_provider = 'groq'
 
-                    if response_text:
-                        break
-                        
+                if response_text:
+                    break   # Stop trying providers once we get a successful response
+                    
             except Exception as e:
                 provider_name = provider['type']
                 if provider['type'] == 'gemini':
                     provider_name = f"Gemini Key #{provider.get('index', 1)}"
                 print(f"AI Provider {provider_name} Error: {e}")
                 continue
+        
+        # After trying all providers, check if we got a response
+        if response_text:
+            # Clean up response text if the model returned markdown
+            cleaned_text = response_text.strip()
+            if cleaned_text.startswith("```json"):
+                cleaned_text = cleaned_text[7:]
+            if cleaned_text.endswith("```"):
+                cleaned_text = cleaned_text[:-3]
             
-            if response_text:
-                # Clean up response text if the model returned markdown
-                cleaned_text = response_text.strip()
-                if cleaned_text.startswith("```json"):
-                    cleaned_text = cleaned_text[7:]
-                if cleaned_text.endswith("```"):
-                    cleaned_text = cleaned_text[:-3]
+            try:
+                data = json.loads(cleaned_text.strip())
                 
-                try:
-                    data = json.loads(cleaned_text.strip())
-                    
-                    analysis.summary_text = data.get("analysis_report", "Analysis generated successfully.")
-                    analysis.ai_provider = used_provider
-                    analysis.save()
-                    
-                    # Store in Previous Tournament History
-                    pt_name = data.get("tournament_name", "Unknown Tournament")
-                    
-                    # Create or Get the overall Tournament Record
-                    prev_tournament, created = PreviousTournament.objects.get_or_create(
-                        tournament_name=pt_name,
-                        organization=org,
-                        defaults={
-                            'winner_team': data.get("winner_team", ""),
-                            'runner_up_team': data.get("runner_up_team", ""),
-                            'description': data.get("analysis_report", "")[:200] + "...",
-                            'published': False
-                        }
-                    )
-                    
-                    # Save Match Scorecard
-                    match_data_json = {
-                        "teams": data.get("teams", [])
-                    }
-                    TournamentScorecard.objects.create(
-                        tournament=prev_tournament,
-                        match_number=data.get("match_number", 1),
-                        match_data=match_data_json,
-                        ai_analysis=data.get("analysis_report", "")
-                    )
-                    
-                    # If this is a newly created tournament, add the teams
-                    if created:
-                        for team_data in data.get("teams", []):
-                            TournamentTeam.objects.create(
-                                tournament=prev_tournament,
-                                team_name=team_data.get("team_name", "Unknown"),
-                                placement=team_data.get("rank", 99),
-                                points=team_data.get("points", 0)
-                            )
-                            
-                except json.JSONDecodeError as e:
-                    print(f"JSON Parse Error: {e} - Raw output: {response_text}")
-                    analysis.summary_text = "Analysis succeeded but format was invalid. Saved raw output:\n\n" + str(response_text)
-                    analysis.ai_provider = used_provider
-                    analysis.save()
-
-            else:
-                analysis.summary_text = "Analysis failed. Please try again later."
-                analysis.ai_provider = 'failed'
+                analysis.summary_text = data.get("analysis_report", "Analysis generated successfully.")
+                analysis.ai_provider = used_provider
                 analysis.save()
+                
+                # Map the target tournament name based on user selection
+                pt_name = new_tournament_name if (selected_tournament_id == 'new' and new_tournament_name) else data.get("tournament_name", "Unknown Tournament")
+                
+                if selected_tournament_id and selected_tournament_id != 'new':
+                    try:
+                        # If they selected an active tournament, use its strict name
+                        t = Tournament.objects.get(Tournament_ID=selected_tournament_id)
+                        pt_name = t.Name
+                    except Tournament.DoesNotExist:
+                        pass
+                        
+                # Create or Get the overall Tournament Record
+                prev_tournament, created = PreviousTournament.objects.get_or_create(
+                    tournament_name=pt_name,
+                    organization=org,
+                    defaults={
+                        'winner_team': data.get("winner_team", ""),
+                        'runner_up_team': data.get("runner_up_team", ""),
+                        'description': data.get("analysis_report", "")[:200] + "...",
+                        'published': False
+                    }
+                )
+                
+                # Link the ScorecardAnalysis record to the PreviousTournament
+                analysis.tournament = prev_tournament
+                analysis.save()
+                
+                # Save Match Scorecard
+                match_data_json = {
+                    "teams": data.get("teams", [])
+                }
+                TournamentScorecard.objects.create(
+                    tournament=prev_tournament,
+                    match_number=data.get("match_number", 1),
+                    match_data=match_data_json,
+                    ai_analysis=data.get("analysis_report", "")
+                )
+                
+                # If this is a newly created tournament, add the teams
+                if created:
+                    for team_data in data.get("teams", []):
+                        TournamentTeam.objects.create(
+                            tournament=prev_tournament,
+                            team_name=team_data.get("team_name", "Unknown"),
+                            placement=team_data.get("rank", 99),
+                            points=team_data.get("points", 0)
+                        )
+                        
+            except json.JSONDecodeError as e:
+                print(f"JSON Parse Error: {e} - Raw output: {response_text}")
+                analysis.summary_text = "Analysis succeeded but format was invalid. Saved raw output:\n\n" + str(response_text)
+                analysis.ai_provider = used_provider
+                analysis.save()
+
+        else:
+            analysis.summary_text = "Analysis failed. Server configuration or API limits caused failure."
+            analysis.ai_provider = 'failed'
+            analysis.save()
 
     except Exception as e:
         print(f"Critical Error: {e}")
@@ -2050,16 +2064,24 @@ def publish_previous_tournament(request, history_id):
     org = get_object_or_404(Organization, id=org_id)
     
     if request.method == 'POST':
-        # Enforce that the organization publishing it actually owns it
         pt = get_object_or_404(PreviousTournament, id=history_id, organization=org)
         pt.published = not pt.published
         pt.save()
         status = "published" if pt.published else "unpublished"
         messages.success(request, f'Tournament history successfully {status}.')
         
-    # Redirect back to the scorecard tool page (or wherever the button is placed)
-    # The user request asks for it to be connected with AI Scorecard Generator, so we'll 
-    # assume they meant that page or the tournament history list. We will redirect to scorecard_tool.
+    return redirect('scorecard_tool')
+
+def delete_previous_tournament(request, history_id):
+    """Permanently delete a PreviousTournament record"""
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    
+    if request.method == 'POST':
+        pt = get_object_or_404(PreviousTournament, id=history_id, organization=org)
+        pt.delete()
+        messages.success(request, 'Tournament record deleted successfully.')
+        
     return redirect('scorecard_tool')
 
 @login_required_organization

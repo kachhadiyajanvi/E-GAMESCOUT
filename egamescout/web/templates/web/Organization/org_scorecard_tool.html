@@ -153,36 +153,114 @@
         {% endif %}
         <!-- All Previous Tournaments -->
         {% if all_previous_tournaments %}
-        <div class="glass-card p-6 rounded-xl border border-yellow-500/30 mt-6 bg-yellow-500/5">
-            <div class="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
-                <h3 class="font-display font-bold text-white"><i class="fa-solid fa-clock text-yellow-500 mr-2"></i> TOURNAMENT HISTORY WORKFLOW</h3>
-            </div>
-            <div class="space-y-4">
-                {% for pt in all_previous_tournaments %}
-                <div class="bg-black/40 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-white/5 hover:border-white/10 transition-colors">
-                    <div>
-                        <h4 class="font-bold text-accent-cyan uppercase tracking-wide">{{ pt.tournament_name }}</h4>
-                        <p class="text-xs text-gray-400 mt-1"><i class="fa-regular fa-calendar mr-1"></i> {{ pt.date|date:"M d, Y" }} | <i class="fa-solid fa-crown text-yellow-500 mx-1"></i> {{ pt.winner_team|default:"TBD" }}</p>
+        <div class="mt-8">
+            <!-- Section Header -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-lg flex items-center justify-center border border-yellow-500/30">
+                        <i class="fa-solid fa-clock-rotate-left text-yellow-400 text-xs"></i>
                     </div>
-                    <form action="{% url 'publish_previous_tournament' pt.id %}" method="post" class="flex gap-2" {% if pt.published %}onsubmit="return confirm('Are you sure you want to unpublish this tournament? It will be removed from the public index.');"{% endif %}>
-                        {% csrf_token %}
-                        <a href="{% url 'edit_previous_tournament' pt.id %}" class="bg-gray-800 text-white font-bold py-2 px-4 rounded text-xs uppercase tracking-widest hover:bg-gray-700 transition-all border border-gray-700">
-                            <i class="fa-solid fa-pen mr-1"></i> Edit
-                        </a>
-                        <button type="submit" class="{% if pt.published %}bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500 hover:text-white{% else %}bg-accent-cyan text-brand-dark hover:bg-white{% endif %} font-bold py-2 px-4 rounded text-xs uppercase tracking-widest transition-all">
-                            {% if pt.published %}
-                            <i class="fa-solid fa-eye-slash mr-1"></i> Unpublish
-                            {% else %}
-                            <i class="fa-solid fa-bullhorn mr-1"></i> Publish
-                            {% endif %}
-                        </button>
-                    </form>
+                    <div>
+                        <h3 class="text-sm font-bold text-white uppercase tracking-widest">Tournament History</h3>
+                        <p class="text-[10px] text-gray-500">Manage publication of your AI-processed tournament records</p>
+                    </div>
+                </div>
+                <span class="text-[10px] font-mono bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/10">
+                    {{ all_previous_tournaments|length }} record{{ all_previous_tournaments|length|pluralize }}
+                </span>
+            </div>
+
+            <!-- Tournament Cards -->
+            <div class="space-y-3">
+                {% for pt in all_previous_tournaments %}
+                <div class="group relative bg-gradient-to-r from-black/60 to-black/40 rounded-xl border border-white/8 hover:border-white/20 transition-all duration-300 overflow-hidden">
+                    <!-- Status Glow Line -->
+                    <div class="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl {% if pt.published %}bg-accent-cyan shadow-[0_0_8px_rgba(102,252,241,0.6)]{% else %}bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.4)]{% endif %}"></div>
+                    
+                    <div class="pl-4 pr-4 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <!-- Left: Info -->
+                        <div class="flex items-center gap-4 flex-1 min-w-0">
+                            <!-- Status Badge -->
+                            <div class="flex-shrink-0">
+                                {% if pt.published %}
+                                <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/30">
+                                    <span class="w-1.5 h-1.5 bg-accent-cyan rounded-full animate-pulse"></span> LIVE
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
+                                    <span class="w-1.5 h-1.5 bg-yellow-400 rounded-full"></span> DRAFT
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Details -->
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-white text-sm uppercase tracking-wide truncate group-hover:text-accent-cyan transition-colors">{{ pt.tournament_name }}</h4>
+                                <div class="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1">
+                                    <span class="text-[10px] text-gray-500 flex items-center gap-1">
+                                        <i class="fa-regular fa-calendar text-gray-600"></i> {{ pt.date|date:"M d, Y" }}
+                                    </span>
+                                    {% if pt.winner_team %}
+                                    <span class="text-[10px] text-yellow-500 flex items-center gap-1">
+                                        <i class="fa-solid fa-crown text-yellow-500/70"></i> {{ pt.winner_team }}
+                                    </span>
+                                    {% endif %}
+                                    {% if pt.game_name %}
+                                    <span class="text-[10px] text-gray-500 flex items-center gap-1">
+                                        <i class="fa-solid fa-gamepad text-gray-600"></i> {{ pt.game_name }}
+                                    </span>
+                                    {% endif %}
+                                    <span class="text-[10px] text-gray-600 flex items-center gap-1">
+                                        <i class="fa-solid fa-layer-group text-gray-700"></i> {{ pt.scorecards.count }} match{{ pt.scorecards.count|pluralize:"es" }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Action Buttons -->
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <!-- Edit Button -->
+                            <a href="{% url 'edit_previous_tournament' pt.id %}" 
+                               title="Edit tournament details"
+                               class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/30 hover:bg-white/10 transition-all duration-200">
+                                <i class="fa-solid fa-pen text-[10px]"></i>
+                            </a>
+                            
+                            <!-- Publish / Unpublish Toggle -->
+                            <form action="{% url 'publish_previous_tournament' pt.id %}" method="post" class="inline-block"
+                                  {% if pt.published %}onsubmit="return confirm('Unpublish this tournament? It will be hidden from the public page.');"{% endif %}>
+                                {% csrf_token %}
+                                {% if pt.published %}
+                                <button type="submit" title="Unpublish"
+                                    class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200">
+                                    <i class="fa-solid fa-eye-slash text-[9px]"></i> Unpublish
+                                </button>
+                                {% else %}
+                                <button type="submit" title="Publish to public history"
+                                    class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/30 hover:bg-accent-cyan hover:text-brand-dark hover:border-accent-cyan transition-all duration-200">
+                                    <i class="fa-solid fa-globe text-[9px]"></i> Publish
+                                </button>
+                                {% endif %}
+                            </form>
+                            
+                            <!-- Delete Button -->
+                            <form action="{% url 'delete_previous_tournament' pt.id %}" method="post" class="inline-block"
+                                  onsubmit="return confirm('Permanently delete \'{{ pt.tournament_name }}\'? This cannot be undone and will remove all associated scorecards and team data.');">
+                                {% csrf_token %}
+                                <button type="submit" title="Delete permanently"
+                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/5 border border-red-500/20 text-red-600 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200">
+                                    <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
         {% endif %}
     </div>
+    <!-- End of lg:col-span-2 -->
 
     <!-- Right: History Sidebar -->
     <div class="lg:col-span-1 space-y-4">
