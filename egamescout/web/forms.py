@@ -1,5 +1,5 @@
 from django import forms
-from web.models import Organization, Tournament
+from web.models import Organization, Tournament, Contract, Bid
 from web.models import Player
 
 class OrganizationEmailForm(forms.Form):
@@ -348,3 +348,74 @@ class AddPlayerForm(forms.Form):
             raise forms.ValidationError("Game ID must be between 10 and 12 characters.")
             
         return game_id_str
+
+class OrganizationSignatureForm(forms.ModelForm):
+    class Meta:
+        model = Organization
+        fields = ['organization_signature']
+        widgets = {
+            'organization_signature': forms.FileInput(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-2 text-gray-700 focus:outline-none focus:border-blue-500',
+                'required': 'required'
+            })
+        }
+
+class ContractForm(forms.ModelForm):
+    class Meta:
+        model = Contract
+        fields = ['player', 'salary', 'responsibilities', 'sponsor_promotion', 'duration', 'termination_rules']
+        widgets = {
+            'player': forms.Select(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 focus:outline-none focus:border-blue-500 transition-colors',
+                'required': 'required'
+            }),
+            'salary': forms.NumberInput(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors',
+                'placeholder': 'Enter Player Salary',
+                'required': 'required'
+            }),
+            'responsibilities': forms.Textarea(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors',
+                'placeholder': 'List Player & Organization Responsibilities...',
+                'rows': 4,
+                'required': 'required'
+            }),
+            'sponsor_promotion': forms.Textarea(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors',
+                'placeholder': 'Sponsor Promotion requirements (e.g., reels, jersey)...',
+                'rows': 3,
+                'required': 'required'
+            }),
+            'duration': forms.TextInput(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors',
+                'placeholder': 'e.g., 1 Year, 6 Months',
+                'required': 'required'
+            }),
+            'termination_rules': forms.Textarea(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors',
+                'placeholder': 'Termination Rules...',
+                'rows': 3,
+                'required': 'required'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        organization = kwargs.pop('organization', None)
+        super().__init__(*args, **kwargs)
+        if organization:
+            # Filter players to only show those belonging to this organization
+            players = Player.objects.filter(organization=organization)
+            
+            # Fetch accepted bids for these players to show price in label
+            accepted_bids = Bid.objects.filter(organization=organization, status='Accepted')
+            bid_map = {b.player_id: b.amount for b in accepted_bids}
+            
+            choices = []
+            for p in players:
+                price = bid_map.get(p.id)
+                label = f"{p.full_name} ({p.uid})"
+                if price:
+                    label += f" - Bid Price: ₹{price}"
+                choices.append((p.id, label))
+            
+            self.fields['player'].choices = [('', '---------')] + choices

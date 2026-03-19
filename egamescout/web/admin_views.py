@@ -4,7 +4,13 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession
+<<<<<<< HEAD
+from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession, RoleConflictRequest
+from django.db import transaction
+=======
+from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession, RoleConflictRequest
+from django.db import transaction
+>>>>>>> 196f8e0 (CONTRACT)
 from django.db.models import Count, Sum, Q, Max
 from django.utils import timezone
 from datetime import datetime, time, timedelta
@@ -12,6 +18,7 @@ from decimal import Decimal
 from web.auth_services import handle_secure_login, handle_secure_logout
 import csv
 from django.http import HttpResponse
+from django.core.exceptions import ValidationError
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 import random

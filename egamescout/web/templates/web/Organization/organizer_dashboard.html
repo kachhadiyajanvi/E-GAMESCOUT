@@ -121,43 +121,25 @@
             </div>
         </a>
 
-        <!-- Quick Actions -->
-        <div
-            class="glass-panel p-5 rounded-xl relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300 border border-white/5 flex flex-col justify-between">
-            <div
-                class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            </div>
-            <div class="relative z-10">
-                <h3 class="font-display font-bold text-sm text-white mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-bolt text-orange-400"></i> QUICK ACTIONS
-                </h3>
-                <div class="space-y-2">
-                    <a href="{% url 'tournament_list' %}"
-                        class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-accent-cyan/30 transition-all group/btn">
-                        <div
-                            class="w-8 h-8 rounded bg-accent-cyan/10 flex items-center justify-center text-accent-cyan group-hover/btn:scale-110 transition-transform shrink-0">
-                            <i class="fa-solid fa-plus text-xs"></i>
+        <!-- Contract Management -->
+        <a href="{% url 'org_contract_list' %}" class="block group">
+            <div class="glass-panel p-5 rounded-xl relative overflow-hidden transition-all duration-300 h-full flex flex-col justify-between border border-accent-cyan/10 bg-accent-cyan/[0.02] hover:border-accent-cyan/40 hover:bg-accent-cyan/[0.05]">
+                <div class="absolute inset-0 bg-gradient-to-br from-accent-cyan/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                <div class="relative z-10 flex justify-between items-start">
+                    <div>
+                        <div class="w-10 h-10 rounded-lg bg-[#0B0C10]/80 border border-white/10 flex items-center justify-center mb-2 group-hover:border-accent-cyan/30 transition-colors shadow-lg">
+                            <i class="fa-solid fa-file-signature text-brand-light/50 group-hover:text-accent-cyan transition-colors text-lg"></i>
                         </div>
-                        <span
-                            class="text-xs font-bold text-white group-hover/btn:text-accent-cyan transition-colors">Create
-                            Tournament</span>
-                    </a>
-                    <a href="{% url 'my_players' %}"
-                        class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-green-500/30 transition-all group/btn">
-                        <div
-                            class="w-8 h-8 rounded bg-green-500/10 flex items-center justify-center text-accent-green group-hover/btn:scale-110 transition-transform shrink-0">
-                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                        </div>
-                        <span
-                            class="text-xs font-bold text-white group-hover/btn:text-accent-green transition-colors">Scout
-                            Players</span>
-                    </a>
+                        <span class="text-accent-cyan text-[10px] uppercase tracking-widest font-black block">Legal Hub</span>
+                        <h3 class="text-xl font-display font-bold text-white mt-1 group-hover:text-accent-cyan transition-colors">Contract System</h3>
+                        <p class="text-[10px] text-brand-light/30 mt-1">Manage official agreements and recruitment history</p>
+                    </div>
+                </div>
+                <div class="absolute bottom-0 left-0 w-full h-1 bg-[#0B0C10]">
+                    <div class="absolute inset-0 bg-accent-cyan/50 blur-[2px] opacity-50"></div>
                 </div>
             </div>
-            <div class="absolute bottom-0 left-0 w-full h-1 bg-[#0B0C10]">
-                <div class="absolute inset-0 bg-orange-500/50 blur-[2px] opacity-50"></div>
-            </div>
-        </div>
+        </a>
     </div>
 
     <!-- Bidding Season Widget (Issue #9) -->

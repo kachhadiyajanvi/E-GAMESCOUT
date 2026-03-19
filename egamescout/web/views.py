@@ -20,19 +20,20 @@ from datetime import datetime, timedelta
 import random
 import time
 import json
+import os
 
 from web.forms import (
     OrganizationEmailForm, OTPForm, OrganizationDetailsForm,
     OrganizationLoginForm, OrganizationPhotoForm, TournamentForm,
     EmailLoginForm, OTPVerifyForm, AadharUploadForm,
-    PlayerRegistrationForm, PlayerProfileForm
+    PlayerRegistrationForm, PlayerProfileForm, ContractForm, OrganizationSignatureForm
 )
 from web.models import (
     Organization, Tournament, TournamentBidder, Player, 
     Transaction, OrganizationPlayer, ExternalPlayerInvite, PlayerNotification,
     AdminNotification, BiddingSeason, BiddingSeasonLog, Bid, Negotiation,
     SystemSettings, PlayerTask, OrganizationNotification, UserSession, ScorecardAnalysis,
-    PreviousTournament, TournamentTeam, TournamentScorecard
+    PreviousTournament, TournamentTeam, TournamentScorecard, Contract
 )
 from web.decorators import login_required_organization
 from web.auth_services import handle_secure_login, handle_secure_logout
@@ -370,10 +371,9 @@ def auth_login(request):
             # -----------------------------------------------------
             
             # Clear any previous conflict state
+                    analysis.raw_data = data
             if 'conflict_email' in request.session:
-                del request.session['conflict_email']
-            
-            # Logic Branching
+
             if not is_register: # LOGIN FLOW
                 if not player_exists:
 
@@ -382,13 +382,48 @@ def auth_login(request):
                     # return redirect(f"{request.path}?action=register") # Removed redirect as requested
                     return redirect('auth_login') # Refresh to show message
                 
+
+                    prev_tournament = None
+                    created = False
+
+                    if selected_tournament_id == 'new' and new_tournament_name:
+                        prev_tournament = PreviousTournament.objects.create(
+                            tournament_name=new_tournament_name,
+                            organization=org,
+                            **defaults_dict,
+                        )
+                        created = True
+                    elif selected_tournament_id and selected_tournament_id != 'new':
+                        try:
+                            platform_tournament = Tournament.objects.get(
+                                Tournament_ID=selected_tournament_id,
+                                Organization_Name=org,
+                            )
+                            prev_tournament = PreviousTournament.objects.filter(
+                                tournament_name=platform_tournament.Name,
+                                organization=org,
+                            ).first()
+                            if not prev_tournament:
+                                prev_tournament = PreviousTournament.objects.create(
+                                    tournament_name=platform_tournament.Name,
+                                    organization=org,
+                                    **defaults_dict,
+                                )
+                                created = True
+                        except (Tournament.DoesNotExist, ValueError, TypeError):
+                            prev_tournament = None
+
+                    if not prev_tournament:
+                        pt_name = data.get("tournament_name", "Unknown Tournament")
+                        prev_tournament, created = PreviousTournament.objects.get_or_create(
+                            tournament_name=pt_name,
+                            organization=org,
+                            defaults=defaults_dict
+                        )
+
+                    analysis.tournament = prev_tournament
+                    analysis.save()
             # Login Flow Continuation
-            if not is_register: 
-                player = Player.objects.get(email=email)
-                
-                # Check for Admin Suspension
-                if player.status == 'SUSPENDED':
-                    messages.error(request, 'Your account has been suspended by Admin. Please contact support.')
                     return redirect('index')
                     
                 # New status checks
@@ -1614,6 +1649,16 @@ def scorecard_tool(request):
             return redirect('scorecard_tool')
             
         image_file = request.FILES['scorecard_image']
+        selected_tournament_id = request.POST.get('tournament_id')
+        new_tournament_name = request.POST.get('new_tournament_name', '').strip()
+
+        if not selected_tournament_id:
+            messages.error(request, 'Please select an approved tournament or create a new record.')
+            return redirect('scorecard_tool')
+
+        if selected_tournament_id == 'new' and not new_tournament_name:
+            messages.error(request, 'Please provide a name for the new tournament record.')
+            return redirect('scorecard_tool')
         
         # 0. Validate File Type and Size
         import os
@@ -1635,7 +1680,10 @@ def scorecard_tool(request):
             summary_text='Analyzing...'
         )
         import threading
-        threading.Thread(target=run_scorecard_analysis_thread, args=(analysis.id, org.id)).start()
+        threading.Thread(
+            target=run_scorecard_analysis_thread,
+            args=(analysis.id, org.id, selected_tournament_id, new_tournament_name),
+        ).start()
         
         messages.success(request, 'Analysis started in the background. Please refresh in a moment to see results.')
         return redirect('scorecard_tool')
@@ -1660,11 +1708,19 @@ def scorecard_tool(request):
     all_previous_tournaments = PreviousTournament.objects.filter(
         organization=org
     ).order_by('-date')
+    unpublished_tournaments = all_previous_tournaments.filter(published=False)
+
+    approved_tournaments = Tournament.objects.filter(
+        Organization_Name=org,
+        approval_status='APPROVED'
+    ).order_by('-CreatedAt')
     
     return render(request, 'web/Organization/org_scorecard_tool.html', {
         'org': org, 
         'history': history,
-        'all_previous_tournaments': all_previous_tournaments
+        'all_previous_tournaments': all_previous_tournaments,
+        'unpublished_tournaments': unpublished_tournaments,
+        'approved_tournaments': approved_tournaments,
     })
 
 @login_required_organization
@@ -1693,11 +1749,11 @@ def delete_scorecard_analysis(request, analysis_id):
         messages.success(request, 'Analysis record deleted successfully.')
     return redirect('scorecard_tool')
 
-def run_scorecard_analysis_thread(analysis_id, org_id):
+def run_scorecard_analysis_thread(analysis_id, org_id, selected_tournament_id=None, new_tournament_name=None):
     import json, base64, os
     from django.conf import settings
     from django.utils import timezone
-    from web.models import ScorecardAnalysis, PreviousTournament, TournamentScorecard, TournamentTeam, Organization
+    from web.models import ScorecardAnalysis, PreviousTournament, TournamentScorecard, TournamentTeam, Tournament, Organization
     
     try:
         analysis = ScorecardAnalysis.objects.get(id=analysis_id)
@@ -1774,79 +1830,129 @@ def run_scorecard_analysis_thread(analysis_id, org_id):
                     with open(file_path, "rb") as f:
                         encoded_string = base64.b64encode(f.read()).decode('utf-8')
                         
-                    headers = {"Authorization": f"Bearer {provider['key']}", "Content-Type": "application/json"}
-                    payload = {
-                        "messages": [{"role": "user", "content": [{"type": "text", "text": user_prompt}, {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{encoded_string}"}}]}],
-                        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
-                    }
-                    import requests
-                    groq_resp = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload, timeout=60)
-                    groq_resp.raise_for_status()
-                    response_text = groq_resp.json()["choices"][0]["message"]["content"]
-                    used_provider = 'groq'
-                    
-                if response_text:
-                    break
-            except Exception as e:
-                provider_name = provider['type']
-                if provider['type'] == 'gemini': provider_name = f"Gemini Key #{provider.get('index', 1)}"
-                print(f"AI Provider {provider_name} Error: {e}")
-                continue
-                
-        if response_text:
-            cleaned_text = response_text.strip()
-            if cleaned_text.startswith("```json"): cleaned_text = cleaned_text[7:]
-            if cleaned_text.endswith("```"): cleaned_text = cleaned_text[:-3]
-            try:
-                data = json.loads(cleaned_text.strip())
-                analysis.summary_text = data.get("analysis_report", "Analysis generated successfully.")
-                analysis.ai_provider = used_provider
-                analysis.save()
-                
-                pt_name = data.get("tournament_name", "Unknown Tournament")
-                defaults_dict = {
-                    'winner_team': data.get("winner_team", ""),
-                    'runner_up_team': data.get("runner_up_team", ""),
-                    'description': data.get("analysis_report", "")[:200] + "...",
-                    'published': False
-                }
-                if data.get("tournament_date"): defaults_dict['date'] = data.get("tournament_date")
-                if data.get("game_name"): defaults_dict['game_name'] = data.get("game_name")
-                
-                prev_tournament, created = PreviousTournament.objects.get_or_create(
-                    tournament_name=pt_name,
-                    organization=org,
-                    defaults=defaults_dict
-                )
-                
-                match_data_json = {"teams": data.get("teams", [])}
-                TournamentScorecard.objects.update_or_create(
-                    tournament=prev_tournament,
-                    match_number=data.get("match_number", 1),
-                    defaults={'match_data': match_data_json, 'ai_analysis': data.get("analysis_report", "")}
-                )
-                
-                if created:
-                    for team_data in data.get("teams", []):
-                        TournamentTeam.objects.create(
-                            tournament=prev_tournament, team_name=team_data.get("team_name", "Unknown"),
-                            placement=team_data.get("rank", 99), points=team_data.get("points", 0)
-                        )
-            except json.JSONDecodeError as e:
-                print(f"JSON Parse Error: {e} - Raw output: {response_text}")
-                analysis.summary_text = "Analysis succeeded but format was invalid. Saved raw output:\n\n" + response_text
-                analysis.ai_provider = used_provider
-                analysis.save()
-        else:
-            analysis.summary_text = "Analysis failed. Please try again later."
-            analysis.ai_provider = 'failed'
-            analysis.save()
+                        headers = {
+                            "Authorization": f"Bearer {provider['key']}",
+                            "Content-Type": "application/json"
+                        }
+                        payload = {
+                            "messages": [
+                                {
+                                    "role": "user",
+                                    "content": [
+                                        {"type": "text", "text": user_prompt},
+                                        {
+                                            "type": "image_url",
+                                            "image_url": {
+                                                "url": f"data:{mime_type};base64,{encoded_string}",
+                                            },
+                                        },
+                                    ],
+                                }
+                            ],
+                            "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+                        }
+                        import requests
+                        groq_resp = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload, timeout=60)
+                        groq_resp.raise_for_status()
+                        response_text = groq_resp.json()["choices"][0]["message"]["content"]
+                        used_provider = 'groq'
+
+                    if response_text:
+                        break
+                        
+                except Exception as e:
+                    provider_name = provider['type']
+                    if provider['type'] == 'gemini':
+                        provider_name = f"Gemini Key #{provider.get('index', 1)}"
+                    print(f"AI Provider {provider_name} Error: {e}")
+                    continue
             
-    except Exception as e:
-        print(f"Critical Error in thread: {e}")
-        analysis.summary_text = f"System Error: {e}"
-        analysis.ai_provider = 'failed'
-        analysis.save()
+            if response_text:
+                # Clean up response text if the model returned markdown
+                cleaned_text = response_text.strip()
+                if cleaned_text.startswith("```json"):
+                    cleaned_text = cleaned_text[7:]
+                if cleaned_text.endswith("```"):
+                    cleaned_text = cleaned_text[:-3]
+                
+                try:
+                    data = json.loads(cleaned_text.strip())
+                    
+                    analysis.summary_text = data.get("analysis_report", "Analysis generated successfully.")
+                    analysis.ai_provider = used_provider
+                    analysis.save()
+                    
+                    # Store in Previous Tournament History
+                    pt_name = data.get("tournament_name", "Unknown Tournament")
+                    
+                    # Create or Get the overall Tournament Record
+                    prev_tournament, created = PreviousTournament.objects.get_or_create(
+                        tournament_name=pt_name,
+                        organization=org,
+                        defaults={
+                            'winner_team': data.get("winner_team", ""),
+                            'runner_up_team': data.get("runner_up_team", ""),
+                            'description': data.get("analysis_report", "")[:200] + "...",
+                            'published': False
+                        }
+                    )
+                    
+                    # Save Match Scorecard
+                    match_data_json = {
+                        "teams": data.get("teams", [])
+                    }
+                    TournamentScorecard.objects.create(
+                        tournament=prev_tournament,
+                        match_number=data.get("match_number", 1),
+                        match_data=match_data_json,
+                        ai_analysis=data.get("analysis_report", "")
+                    )
+                    
+                    # If this is a newly created tournament, add the teams
+                    if created:
+                        for team_data in data.get("teams", []):
+                            TournamentTeam.objects.create(
+                                tournament=prev_tournament,
+                                team_name=team_data.get("team_name", "Unknown"),
+                                placement=team_data.get("rank", 99),
+                                points=team_data.get("points", 0)
+                            )
+                            
+                    messages.success(request, 'Analysis Complete and added to Tournament History Workflow!')
+
+                except json.JSONDecodeError as e:
+                    print(f"JSON Parse Error: {e} - Raw output: {response_text}")
+                    analysis.summary_text = "Analysis succeeded but format was invalid. Saved raw output:\n\n" + response_text
+                    analysis.ai_provider = used_provider
+                    analysis.save()
+                    messages.warning(request, 'Analysis complete, but data formatting failed.')
+
+            else:
+                analysis.summary_text = "Analysis failed. Please try again later."
+                analysis.ai_provider = 'failed'
+                analysis.save()
+                messages.error(request, 'AI Analysis Failed.')
+
+        except Exception as e:
+            print(f"Critical Error: {e}")
+            messages.error(request, f"System Error: {e}")
+            
+        return redirect('scorecard_tool')
+
+    # GET Request: Show history
+    history = ScorecardAnalysis.objects.filter(organization=org).order_by('-created_at')
+    
+    # Get unpublished tournaments that can be reviewed and published
+    unpublished_tournaments = PreviousTournament.objects.filter(
+        organization=org, 
+        published=False
+    ).order_by('-date')
+    
+    return render(request, 'web/Organization/org_scorecard_tool.html', {
+        'org': org, 
+        'history': history,
+        'unpublished_tournaments': unpublished_tournaments
+    })
 
 # --- Profile Management ---
 
@@ -2719,6 +2825,19 @@ def org_bidding_dashboard(request):
     
     active_season = BiddingSeason.objects.filter(is_active=True).first()
     
+    # Check if there is any active season for player visibility
+    if not active_season:
+        # Check for auto-start seasons that should be active
+        now = timezone.now()
+        active_season = BiddingSeason.objects.filter(
+            auto_start=True,
+            start_date__lte=now,
+            end_date__gte=now
+        ).first()
+        if active_season and not active_season.is_active:
+             active_season.is_active = True
+             active_season.save()
+    
     # Build bidding_status for the template countdown banner
     # Get upcoming (non-active) seasons that start today or in the future, ordered by nearest start date
     # Also exclude seasons that have already ended
@@ -2800,6 +2919,18 @@ def player_bidding_dashboard(request):
         
     player = get_object_or_404(Player, id=player_id)
     active_season = BiddingSeason.objects.filter(is_active=True).first()
+    
+    # Check if there is any active season
+    if not active_season:
+        now = timezone.now()
+        active_season = BiddingSeason.objects.filter(
+            auto_start=True,
+            start_date__lte=now,
+            end_date__gte=now
+        ).first()
+        if active_season and not active_season.is_active:
+             active_season.is_active = True
+             active_season.save()
     
     # Build bidding_status for the template countdown banner
     # Get upcoming (non-active) seasons that start today or in the future, ordered by nearest start date
@@ -3388,3 +3519,194 @@ def check_username(request):
         return JsonResponse({'available': False})
         
     return JsonResponse({'available': True})
+
+
+@login_required_organization
+def org_contract_list(request):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    contracts = Contract.objects.filter(organization=org).order_by('-created_at')
+    return render(request, 'web/Organization/org_contracts_list.html', {
+        'org': org,
+        'contracts': contracts
+    })
+
+@login_required_organization
+def org_create_contract(request):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    
+    if request.method == 'POST':
+        contract_form = ContractForm(request.POST, organization=org)
+        sig_form = None
+        if not org.organization_signature:
+            sig_form = OrganizationSignatureForm(request.POST, request.FILES, instance=org)
+            
+        if contract_form.is_valid() and (sig_form is None or sig_form.is_valid()):
+            if sig_form:
+                sig_form.save()
+            
+            contract = contract_form.save(commit=False)
+            contract.organization = org
+            contract.save()
+            messages.success(request, "Contract drafted successfully!")
+            return redirect('org_view_contract', contract_id=contract.id)
+    else:
+        contract_form = ContractForm(organization=org)
+        sig_form = None
+        if not org.organization_signature:
+            sig_form = OrganizationSignatureForm(instance=org)
+            
+    # Fetch accepted bids for this organization's players to show bid price
+    accepted_bids = Bid.objects.filter(
+        organization=org,
+        status='Accepted'
+    ).values('player_id', 'amount')
+    
+    bid_map = {b['player_id']: b['amount'] for b in accepted_bids}
+    
+    players = Player.objects.filter(organization=org)
+    for p in players:
+        p.bid_price = bid_map.get(p.id)
+
+    return render(request, 'web/Organization/org_create_contract.html', {
+        'org': org,
+        'contract_form': contract_form,
+        'sig_form': sig_form,
+        'players': players
+    })
+
+@login_required_organization
+def org_view_contract(request, contract_id):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    contract = get_object_or_404(Contract, id=contract_id, organization=org)
+    
+    return render(request, 'web/Organization/org_contract_document.html', {
+        'org': org,
+        'contract': contract
+    })
+
+@login_required_organization
+def org_save_contract(request, contract_id):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    contract = get_object_or_404(Contract, id=contract_id, organization=org)
+    
+    contract.is_saved = True
+    contract.save()
+    messages.success(request, "Contract saved to history!")
+    return redirect('org_contract_list')
+
+@login_required_organization
+def org_player_contact_page(request):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    players = Player.objects.filter(organization=org)
+    
+    return render(request, 'web/Organization/org_player_contact.html', {
+        'org': org,
+        'players': players
+    })
+
+from io import BytesIO
+from xhtml2pdf import pisa
+from django.http import HttpResponse
+
+def fetch_resources(uri, rel):
+    """
+    Convert HTML URIs to absolute system paths so xhtml2pdf can access those
+    resources on the local file system.
+    """
+    from urllib.parse import urlparse, unquote
+
+    # Unquote the URI to handle spaces and special characters
+    uri = unquote(uri)
+
+    # If it's a full URL, we only want the path part
+    if uri.startswith('http'):
+        uri = urlparse(uri).path
+
+    # Handle media files
+    if uri.startswith(settings.MEDIA_URL):
+        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, "", 1).lstrip('/'))
+    # Handle static files
+    elif uri.startswith(settings.STATIC_URL):
+        # First try STATIC_ROOT
+        path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, "", 1).lstrip('/'))
+    else:
+        return uri
+
+    # Fallback/verification
+    if not os.path.isfile(path):
+        # If static, search in STATICFILES_DIRS
+        if uri.startswith(settings.STATIC_URL):
+            for static_dir in settings.STATICFILES_DIRS:
+                test_path = os.path.join(static_dir, uri.replace(settings.STATIC_URL, "", 1).lstrip('/'))
+                if os.path.isfile(test_path):
+                    return test_path
+        return uri
+    return path
+
+def render_to_pdf(template_src, context_dict={}):
+    template = render_to_string(template_src, context_dict)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(template.encode("UTF-8")), result, link_callback=fetch_resources)
+    if not pdf.err:
+        return result.getvalue()
+    return None
+
+@login_required_organization
+def org_export_contract_pdf(request, contract_id):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    contract = get_object_or_404(Contract, id=contract_id, organization=org)
+    
+    pdf = render_to_pdf('web/Organization/org_contract_document.html', {
+        'org': org,
+        'contract': contract,
+        'is_pdf': True
+    })
+    
+    if pdf:
+        response = HttpResponse(pdf, content_type='application/pdf')
+        filename = f"Contract_{contract.player.full_name}_{contract.id}.pdf"
+        content = f"attachment; filename={filename}"
+        response['Content-Disposition'] = content
+        return response
+    return HttpResponse("Error generating PDF", status=400)
+
+@login_required_organization
+def org_send_contract_to_player(request, contract_id):
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    contract = get_object_or_404(Contract, id=contract_id, organization=org)
+    
+    player_email = contract.player.email
+    if not player_email:
+        messages.error(request, "Player email not found!")
+        return redirect('org_view_contract', contract_id=contract.id)
+        
+    pdf = render_to_pdf('web/Organization/org_contract_document.html', {
+        'org': org,
+        'contract': contract,
+        'is_pdf': True
+    })
+    
+    if pdf:
+        subject = f"Official Contract from {org.Organization_Name}"
+        message = f"Hello {contract.player.full_name},\n\nPlease find the attached contract for your review."
+        email = EmailMultiAlternatives(
+            subject, 
+            message, 
+            settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com', 
+            [player_email]
+        )
+        email.attach(f"Contract_{org.Organization_Name}.pdf", pdf, 'application/pdf')
+        email.send()
+        
+        messages.success(request, f"Contract sent to {contract.player.full_name} ({player_email}) successfully!")
+    else:
+        messages.error(request, "Failed to generate PDF for email attachment.")
+        
+    return redirect('org_view_contract', contract_id=contract.id)
