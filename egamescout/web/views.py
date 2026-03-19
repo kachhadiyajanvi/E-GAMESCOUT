@@ -1723,44 +1723,82 @@ def scorecard_tool(request):
                     data = json.loads(cleaned_text.strip())
                     
                     analysis.summary_text = data.get("analysis_report", "Analysis generated successfully.")
+                    analysis.raw_data = data
                     analysis.ai_provider = used_provider
                     analysis.save()
                     
-                    # Store in Previous Tournament History
-                    pt_name = data.get("tournament_name", "Unknown Tournament")
+                    selected_tournament_id = request.POST.get('tournament_id')
+                    new_tournament_name = request.POST.get('new_tournament_name')
+                    prev_tournament = None
+                    created = False
                     
-                    # Create or Get the overall Tournament Record
-                    prev_tournament, created = PreviousTournament.objects.get_or_create(
-                        tournament_name=pt_name,
-                        organization=org,
-                        defaults={
-                            'winner_team': data.get("winner_team", ""),
-                            'runner_up_team': data.get("runner_up_team", ""),
-                            'description': data.get("analysis_report", "")[:200] + "...",
-                            'published': False
+                    if selected_tournament_id == 'new' and new_tournament_name:
+                        # Create a new history record manually
+                        prev_tournament = PreviousTournament.objects.create(
+                            tournament_name=new_tournament_name,
+                            organization=org,
+                            winner_team=data.get("winner_team", ""),
+                            runner_up_team=data.get("runner_up_team", ""),
+                            description=data.get("analysis_report", "")[:200] + "...",
+                            published=False
+                        )
+                        created = True
+                    elif selected_tournament_id and selected_tournament_id != 'new':
+                        # This ID belongs to the Tournament model (approved platform tournament)
+                        from .models import Tournament
+                        try:
+                            plat_tourney = Tournament.objects.get(Tournament_ID=selected_tournament_id, Organization_Name=org)
+                            
+                            # Check if we already have a PreviousTournament for this platform tournament
+                            prev_tournament = PreviousTournament.objects.filter(
+                                tournament_name=plat_tourney.Name,
+                                organization=org
+                            ).first()
+
+                            if not prev_tournament:
+                                # Create a History record from the platform tournament
+                                prev_tournament = PreviousTournament.objects.create(
+                                    tournament_name=plat_tourney.Name,
+                                    organization=org,
+                                    winner_team=data.get("winner_team", ""),
+                                    runner_up_team=data.get("runner_up_team", ""),
+                                    description=data.get("analysis_report", "")[:200] + "...",
+                                    published=False
+                                )
+                                created = True
+                        except (Tournament.DoesNotExist, ValueError):
+                            pass
+
+                    # If no valid tournament was found/created, we can't proceed with the link
+                    if prev_tournament:
+                        analysis.tournament = prev_tournament
+                        analysis.save()
+                    
+                    # Save Match Scorecard if we have a tournament
+                    if prev_tournament:
+                        match_data_json = {
+                            "teams": data.get("teams", [])
                         }
-                    )
-                    
-                    # Save Match Scorecard
-                    match_data_json = {
-                        "teams": data.get("teams", [])
-                    }
-                    TournamentScorecard.objects.create(
-                        tournament=prev_tournament,
-                        match_number=data.get("match_number", 1),
-                        match_data=match_data_json,
-                        ai_analysis=data.get("analysis_report", "")
-                    )
-                    
-                    # If this is a newly created tournament, add the teams
-                    if created:
-                        for team_data in data.get("teams", []):
-                            TournamentTeam.objects.create(
-                                tournament=prev_tournament,
-                                team_name=team_data.get("team_name", "Unknown"),
-                                placement=team_data.get("rank", 99),
-                                points=team_data.get("points", 0)
-                            )
+                        TournamentScorecard.objects.create(
+                            tournament=prev_tournament,
+                            match_number=data.get("match_number", 1),
+                            match_data=match_data_json,
+                            ai_analysis=data.get("analysis_report", "")
+                        )
+                        
+                        # If this is a newly created tournament, add the teams
+                        if created:
+                            for team_data in data.get("teams", []):
+                                TournamentTeam.objects.create(
+                                    tournament=prev_tournament,
+                                    team_name=team_data.get("team_name", "Unknown"),
+                                    placement=team_data.get("rank", 99),
+                                    points=team_data.get("points", 0)
+                                )
+                        
+                        messages.success(request, f'Analysis Complete and linked to {prev_tournament.tournament_name}!')
+                    else:
+                        messages.warning(request, 'Analysis complete, but no tournament was selected or created.')
                             
                     messages.success(request, 'Analysis Complete and added to Tournament History Workflow!')
 
@@ -1791,11 +1829,19 @@ def scorecard_tool(request):
         organization=org, 
         published=False
     ).order_by('-date')
+
+    # Get approved tournaments for selection
+    from .models import Tournament
+    approved_tournaments = Tournament.objects.filter(
+        Organization_Name=org,
+        approval_status='APPROVED'
+    ).order_by('-CreatedAt')
     
     return render(request, 'web/Organization/org_scorecard_tool.html', {
         'org': org, 
         'history': history,
-        'unpublished_tournaments': unpublished_tournaments
+        'unpublished_tournaments': unpublished_tournaments,
+        'approved_tournaments': approved_tournaments
     })
 
 # --- Profile Management ---

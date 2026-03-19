@@ -35,8 +35,10 @@ class Organization(models.Model):
 
 class ScorecardAnalysis(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    tournament = models.ForeignKey('PreviousTournament', on_delete=models.SET_NULL, null=True, blank=True, related_name='ai_analyses')
     image = models.ImageField(upload_to='scorecards/')
     summary_text = models.TextField()
+    raw_data = models.JSONField(null=True, blank=True, help_text="Stored JSON data from AI")
     ai_provider = models.CharField(max_length=50) # 'gemini' or 'groq'
     created_at = models.DateTimeField(auto_now_add=True)
 

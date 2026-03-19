@@ -33,8 +33,15 @@
                             <div class="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.2)_50%)] bg-[length:100%_4px] pointer-events-none"></div>
                             
                             <!-- Date Badge -->
-                            <div class="absolute top-4 right-4 bg-black/60 backdrop-blur border border-white/10 px-3 py-1 rounded text-[10px] font-mono text-orange-500 tracking-widest uppercase shadow-lg">
-                                <i class="fa-solid fa-calendar-alt mr-1"></i> {{ tourney.date|date:"d M Y" }}
+                            <div class="absolute top-4 right-4 flex flex-col items-end gap-2">
+                                <div class="bg-black/60 backdrop-blur border border-white/10 px-3 py-1 rounded text-[10px] font-mono text-orange-500 tracking-widest uppercase shadow-lg">
+                                    <i class="fa-solid fa-calendar-alt mr-1"></i> {{ tourney.date|date:"d M Y" }}
+                                </div>
+                                {% if tourney.scorecards.exists %}
+                                <div class="bg-orange-500/20 backdrop-blur border border-orange-500/40 px-3 py-1 rounded text-[8px] font-mono text-white tracking-widest uppercase shadow-lg flex items-center gap-1.5 animate-pulse">
+                                    <i class="fa-solid fa-microchip text-[10px]"></i> ANALYSIS AVAILABLE
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
 
