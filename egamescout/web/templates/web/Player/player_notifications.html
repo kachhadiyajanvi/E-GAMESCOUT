@@ -1,19 +1,50 @@
-{% extends 'web/Player/player_base.html' %}
+{% extends 'web/Player/player_page_base.html' %}
+{% load static %}
 
-{% block content %}
-<div class="container mt-4">
-    <h2>Player Notifications</h2>
-    {% if notifications %}
-        <ul class="list-group">
-            {% for n in notifications %}
-                <li class="list-group-item {% if not n.is_read %}active{% endif %}">
-                    <p>{{ n.message }}</p>
-                    <small>{{ n.created_at }}</small>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No notifications.</p>
-    {% endif %}
+{% block title %}Notifications | E-Game Scout{% endblock %}
+
+{% block header_icon %}fa-solid fa-bell{% endblock %}
+{% block header_tag %}Player Alerts{% endblock %}
+{% block header_title %}Notifications{% endblock %}
+{% block header_desc %}Stay updated on your bidding results, tournament schedules, and account security alerts.{% endblock %}
+
+{% block page_content %}
+<div class="container mx-auto max-w-4xl animate-fade-in">
+    <div class="bg-[#111217] rounded-3xl border border-white/5 shadow-xl overflow-hidden">
+        <div class="p-6 border-b border-white/5 flex items-center justify-between bg-black/30">
+            <h3 class="text-lg font-display font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-inbox text-accent-cyan"></i> Recent Alerts
+            </h3>
+            <span class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                {{ notifications|length }} Total
+            </span>
+        </div>
+        
+        <div class="divide-y divide-white/5">
+            {% if notifications %}
+                {% for n in notifications %}
+                <div class="p-5 hover:bg-white/5 transition-colors group flex gap-4 items-start {% if not n.is_read %}bg-accent-cyan/5 border-l-2 border-l-accent-cyan{% else %}border-l-2 border-l-transparent{% endif %}">
+                    <div class="w-10 h-10 rounded-full {% if not n.is_read %}bg-accent-cyan/20 text-accent-cyan border-accent-cyan/30{% else %}bg-white/5 text-gray-500 border-white/10{% endif %} flex items-center justify-center border shrink-0">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm {% if not n.is_read %}text-white font-bold{% else %}text-gray-300{% endif %} leading-relaxed">{{ n.message }}</p>
+                        <p class="text-[10px] text-gray-500 font-mono mt-2 flex items-center gap-1.5 uppercase font-bold tracking-widest">
+                            <i class="fa-regular fa-clock"></i> {{ n.created_at|timesince }} ago
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="p-12 text-center flex flex-col items-center justify-center opacity-60">
+                    <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/10">
+                        <i class="fa-regular fa-bell-slash text-2xl text-gray-500"></i>
+                    </div>
+                    <p class="text-sm font-bold text-gray-400 uppercase tracking-widest">All Caught Up</p>
+                    <p class="text-[11px] text-gray-500 mt-1">You have no new notifications.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -226,13 +226,13 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-end gap-4 pt-4">
+        <div class="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4">
             <a href="{% url 'tournament_list' %}"
-                class="px-8 py-3 rounded border border-white/10 text-brand-light/60 hover:text-white hover:bg-white/5 font-display font-bold text-sm tracking-widest transition-all">
+                class="w-full sm:w-auto px-8 py-3 text-center rounded border border-white/10 text-brand-light/60 hover:text-white hover:bg-white/5 font-display font-bold text-sm tracking-widest transition-all">
                 CANCEL
             </a>
             <button type="submit"
-                class="px-10 py-3 rounded bg-accent-cyan text-brand-dark font-display font-bold text-sm tracking-widest hover:bg-white hover:shadow-[0_0_20px_rgba(102,252,241,0.6)] transition-all flex items-center gap-2">
+                class="w-full sm:w-auto px-10 py-3 justify-center rounded bg-accent-cyan text-brand-dark font-display font-bold text-sm tracking-widest hover:bg-white hover:shadow-[0_0_20px_rgba(102,252,241,0.6)] transition-all flex items-center gap-2">
                 <i class="fa-solid fa-check"></i> {{ action|upper }} TOURNAMENT
             </button>
         </div>
@@ -330,7 +330,6 @@
         }
     }
 
-    // Add Prize Row
     function addPrizeRow(position = '', amount = '') {
         const container = document.getElementById('prizeContainer');
         const rowCount = container.children.length + 1;
@@ -344,18 +343,18 @@
                 <input type="text" class="position-input w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all text-sm font-medium tracking-wide"
                     placeholder="e.g. 1st Place" value="${posValue}">
             </div>
-            <div class="flex-1 w-full">
+            <div class="flex-1 w-full relative">
                 <label class="block text-[10px] font-bold text-brand-light/50 mb-1 uppercase tracking-wider">Prize Amount</label>
-                <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-accent-cyan">₹</span>
-                    <input type="number" class="amount-input w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded pl-8 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all text-sm font-medium tracking-wide"
+                <div class="relative flex">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-accent-cyan z-10">₹</span>
+                    <input type="number" class="amount-input w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded pl-8 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all text-sm font-medium tracking-wide rounded-r-none"
                         placeholder="Amount" value="${amount}">
+                    <button type="button" onclick="removePrizeRow(this)"
+                        class="w-12 bg-red-500/10 border border-l-0 border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white rounded-r transition-all flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
                 </div>
             </div>
-            <button type="button" onclick="removePrizeRow(this)"
-                class="w-[46px] h-[46px] rounded border border-red-500/30 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-all flex items-center justify-center">
-                <i class="fa-solid fa-trash-can"></i>
-            </button>
         `;
         container.appendChild(div);
     }
