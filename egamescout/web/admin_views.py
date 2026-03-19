@@ -4,13 +4,8 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-<<<<<<< HEAD
-from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession, RoleConflictRequest
+from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession
 from django.db import transaction
-=======
-from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession, RoleConflictRequest
-from django.db import transaction
->>>>>>> 196f8e0 (CONTRACT)
 from django.db.models import Count, Sum, Q, Max
 from django.utils import timezone
 from datetime import datetime, time, timedelta

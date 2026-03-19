@@ -371,61 +371,16 @@ def auth_login(request):
             # -----------------------------------------------------
             
             # Clear any previous conflict state
-                    analysis.raw_data = data
             if 'conflict_email' in request.session:
+                del request.session['conflict_email']
 
             if not is_register: # LOGIN FLOW
                 if not player_exists:
-
-                    
                     messages.error(request, "This email is not registered. Please Register first.")
-                    # return redirect(f"{request.path}?action=register") # Removed redirect as requested
                     return redirect('auth_login') # Refresh to show message
                 
-
-                    prev_tournament = None
-                    created = False
-
-                    if selected_tournament_id == 'new' and new_tournament_name:
-                        prev_tournament = PreviousTournament.objects.create(
-                            tournament_name=new_tournament_name,
-                            organization=org,
-                            **defaults_dict,
-                        )
-                        created = True
-                    elif selected_tournament_id and selected_tournament_id != 'new':
-                        try:
-                            platform_tournament = Tournament.objects.get(
-                                Tournament_ID=selected_tournament_id,
-                                Organization_Name=org,
-                            )
-                            prev_tournament = PreviousTournament.objects.filter(
-                                tournament_name=platform_tournament.Name,
-                                organization=org,
-                            ).first()
-                            if not prev_tournament:
-                                prev_tournament = PreviousTournament.objects.create(
-                                    tournament_name=platform_tournament.Name,
-                                    organization=org,
-                                    **defaults_dict,
-                                )
-                                created = True
-                        except (Tournament.DoesNotExist, ValueError, TypeError):
-                            prev_tournament = None
-
-                    if not prev_tournament:
-                        pt_name = data.get("tournament_name", "Unknown Tournament")
-                        prev_tournament, created = PreviousTournament.objects.get_or_create(
-                            tournament_name=pt_name,
-                            organization=org,
-                            defaults=defaults_dict
-                        )
-
-                    analysis.tournament = prev_tournament
-                    analysis.save()
-            # Login Flow Continuation
-                    return redirect('index')
-                    
+                player = Player.objects.get(email=email)
+                
                 # New status checks
                 if player.status in ['PENDING', 'Pending']:
                     messages.error(request, 'Your account is currently pending admin approval.')
@@ -1860,12 +1815,12 @@ def run_scorecard_analysis_thread(analysis_id, org_id, selected_tournament_id=No
                     if response_text:
                         break
                         
-                except Exception as e:
-                    provider_name = provider['type']
-                    if provider['type'] == 'gemini':
-                        provider_name = f"Gemini Key #{provider.get('index', 1)}"
-                    print(f"AI Provider {provider_name} Error: {e}")
-                    continue
+            except Exception as e:
+                provider_name = provider['type']
+                if provider['type'] == 'gemini':
+                    provider_name = f"Gemini Key #{provider.get('index', 1)}"
+                print(f"AI Provider {provider_name} Error: {e}")
+                continue
             
             if response_text:
                 # Clean up response text if the model returned markdown
@@ -1918,26 +1873,23 @@ def run_scorecard_analysis_thread(analysis_id, org_id, selected_tournament_id=No
                                 points=team_data.get("points", 0)
                             )
                             
-                    messages.success(request, 'Analysis Complete and added to Tournament History Workflow!')
-
                 except json.JSONDecodeError as e:
                     print(f"JSON Parse Error: {e} - Raw output: {response_text}")
-                    analysis.summary_text = "Analysis succeeded but format was invalid. Saved raw output:\n\n" + response_text
+                    analysis.summary_text = "Analysis succeeded but format was invalid. Saved raw output:\n\n" + str(response_text)
                     analysis.ai_provider = used_provider
                     analysis.save()
-                    messages.warning(request, 'Analysis complete, but data formatting failed.')
 
             else:
                 analysis.summary_text = "Analysis failed. Please try again later."
                 analysis.ai_provider = 'failed'
                 analysis.save()
-                messages.error(request, 'AI Analysis Failed.')
 
-        except Exception as e:
-            print(f"Critical Error: {e}")
-            messages.error(request, f"System Error: {e}")
-            
-        return redirect('scorecard_tool')
+    except Exception as e:
+        print(f"Critical Error: {e}")
+        if 'analysis' in locals() and analysis:
+            analysis.summary_text = f"System Error: {e}"
+            analysis.ai_provider = 'failed'
+            analysis.save()
 
     # GET Request: Show history
     history = ScorecardAnalysis.objects.filter(organization=org).order_by('-created_at')
