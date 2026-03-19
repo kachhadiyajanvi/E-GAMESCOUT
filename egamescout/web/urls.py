@@ -168,8 +168,5 @@ urlpatterns = [
     path('admin/archive/org/<int:org_id>/delete/', admin_views.admin_delete_archived_organization, name='admin_delete_archived_organization'),
     path('admin/archive/tournament/<int:tournament_id>/delete/', admin_views.admin_delete_archived_tournament, name='admin_delete_archived_tournament'),
     
-    # Admin Role Conflicts
-    path('admin/role-conflicts/', admin_views.admin_role_conflicts, name='admin_role_conflicts'),
-    path('admin/role-conflicts/approve/<int:request_id>/', admin_views.admin_approve_conflict, name='admin_approve_conflict'),
-    path('admin/role-conflicts/reject/<int:request_id>/', admin_views.admin_reject_conflict, name='admin_reject_conflict'),
+
 ]

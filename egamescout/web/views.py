@@ -376,16 +376,7 @@ def auth_login(request):
             # Logic Branching
             if not is_register: # LOGIN FLOW
                 if not player_exists:
-                    # Check for Pending/Rejected from Role Conflict
-                    from .models import RoleConflictRequest
-                    conflict_req = RoleConflictRequest.objects.filter(email=email, requested_role='Player').order_by('-created_at').first()
-                    if conflict_req:
-                        if conflict_req.request_status == 'Pending':
-                            messages.warning(request, "Your registration request is currently under review by an administrator.")
-                            return redirect('auth_login')
-                        elif conflict_req.request_status == 'Rejected':
-                            messages.error(request, "Your registration request was rejected by the administrator.")
-                            return redirect('auth_login')
+
                     
                     messages.error(request, "This email is not registered. Please Register first.")
                     # return redirect(f"{request.path}?action=register") # Removed redirect as requested
@@ -1305,16 +1296,7 @@ def org_login_start(request):
                 
                 return redirect('org_login_otp')
             except Organization.DoesNotExist:
-                # Check if there's a pending/rejected conflict request before showing generic error
-                from .models import RoleConflictRequest
-                conflict_req = RoleConflictRequest.objects.filter(email=email, requested_role='Organization').order_by('-created_at').first()
-                if conflict_req:
-                    if conflict_req.request_status == 'Pending':
-                        messages.warning(request, 'Your registration request is currently under review by an administrator. You will be notified once it is approved.')
-                        return redirect('org_login_start')
-                    elif conflict_req.request_status == 'Rejected':
-                        messages.error(request, 'Your registration request was rejected by the administrator. Please contact support.')
-                        return redirect('org_login_start')
+
                 messages.error(request, 'Email not found. Please register.')
     else:
         form = OrganizationEmailForm()

@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession, RoleConflictRequest
+from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession
 from django.db.models import Count, Sum, Q, Max
 from django.utils import timezone
 from datetime import datetime, time, timedelta
@@ -1485,89 +1485,4 @@ def admin_delete_archived_tournament(request, tournament_id):
     return redirect('admin_archive_actions')
 
 
-# --- Role Conflict Requests ---
 
-@user_passes_test(is_superuser, login_url='/admin/login/')
-def admin_role_conflicts(request):
-    """View to list all role conflict requests."""
-    conflict_requests = RoleConflictRequest.objects.all().order_by('-created_at')
-    return render(request, 'web/Admin/admin_role_conflicts.html', {
-        'conflict_requests': conflict_requests
-    })
-
-
-@user_passes_test(is_superuser, login_url='/admin/login/')
-def admin_approve_conflict(request, request_id):
-    """Approve a role conflict request and activate the corresponding account."""
-    conflict_req = get_object_or_404(RoleConflictRequest, id=request_id)
-    
-    if request.method == 'POST':
-        if conflict_req.request_status == 'Approved':
-            messages.info(request, "This request is already approved.")
-            return redirect('admin_role_conflicts')
-
-        payload = conflict_req.request_data or {}
-            
-        # Create and Activate the account
-        if conflict_req.requested_role == 'Player':
-            if Player.objects.filter(email=conflict_req.email).exists():
-                messages.error(request, f"Player account for '{conflict_req.email}' already exists.")
-            else:
-                try:
-                    Player.objects.create(
-                        email=conflict_req.email,
-                        full_name=payload.get('full_name', ''),
-                        phone_number=payload.get('phone_number', ''),
-                        in_game_name=payload.get('in_game_name', ''),
-                        game_id=payload.get('game_id', ''),
-                        date_of_birth=payload.get('date_of_birth') or None,
-                        age=payload.get('age', 18),
-                        aadhar_number=payload.get('aadhar_number', ''),
-                        bio=payload.get('bio', ''),
-                        social_links=payload.get('social_links', ''),
-                        profile_picture=payload.get('profile_picture', ''),
-                        status='ACTIVE'
-                    )
-                    conflict_req.request_status = 'Approved'
-                    conflict_req.save()
-                    messages.success(request, f"Player account for '{conflict_req.email}' created and activated.")
-                except Exception as e:
-                    messages.error(request, f"Failed to create Player: {str(e)}")
-                    
-        elif conflict_req.requested_role == 'Organization':
-            if Organization.objects.filter(Organization_Email=conflict_req.email).exists():
-                messages.error(request, f"Organization account for '{conflict_req.email}' already exists.")
-            else:
-                try:
-                    org = Organization.objects.create(
-                        Organization_Email=conflict_req.email,
-                        Organization_Name=payload.get('Organization_Name', ''),
-                        Organization_UserName=payload.get('Organization_UserName', ''),
-                        Organization_Contact=int(payload.get('Organization_Contact', 0)) if payload.get('Organization_Contact') else 0,
-                        status='Active'
-                    )
-                    # Restore profile photo if saved
-                    photo_path = payload.get('profile_photo', '')
-                    if photo_path:
-                        org.profile_photo = photo_path
-                        org.save()
-                    conflict_req.request_status = 'Approved'
-                    conflict_req.save()
-                    messages.success(request, f"Organization account for '{conflict_req.email}' created and activated.")
-                except Exception as e:
-                    messages.error(request, f"Failed to create Organization: {str(e)}")
-        
-    return redirect('admin_role_conflicts')
-
-
-@user_passes_test(is_superuser, login_url='/admin/login/')
-def admin_reject_conflict(request, request_id):
-    """Reject a role conflict request."""
-    conflict_req = get_object_or_404(RoleConflictRequest, id=request_id)
-
-    if request.method == 'POST':
-        conflict_req.request_status = 'Rejected'
-        conflict_req.save()
-        messages.success(request, f"Conflict request for '{conflict_req.email}' has been rejected.")
-
-    return redirect('admin_role_conflicts')
