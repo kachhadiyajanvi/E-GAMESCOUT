@@ -548,10 +548,18 @@ def auth_2fa_verify(request):
 
         if totp.verify(otp_code):
             if request.user.is_authenticated: logout(request)
-            if 'organizer_id' in request.session: del request.session['organizer_id']
+            request.session.pop('organizer_id', None)
+            request.session.pop('pending_2fa_player_id', None)
             
+            # Set generic session ID for Django to recognize
+            if not request.session.session_key:
+                request.session.create()
+                
             request.session['player_id'] = player.id
-            del request.session['pending_2fa_player_id']
+            
+            # Secure Tracking Login
+            handle_secure_login(request, user_id=player.id, user_type='PLAYER')
+            
             messages.success(request, 'Login successful.')
             return redirect('player_dashboard')
         else:
