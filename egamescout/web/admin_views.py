@@ -11,6 +11,7 @@ from django.utils import timezone
 from datetime import datetime, time, timedelta
 from decimal import Decimal
 from web.auth_services import handle_secure_login, handle_secure_logout
+from web.otp_services import OTPService, EmailService  # ✅ NEW: Secure OTP
 import csv
 from django.http import HttpResponse
 from django.core.exceptions import ValidationError
@@ -20,6 +21,9 @@ import random
 import time as time_module
 from django.core.mail import send_mail
 from django.conf import settings
+import logging  # ✅ NEW: Logging
+
+logger = logging.getLogger(__name__)  # ✅ NEW: Logger instance
 
 # Helper to check if user is superuser
 from django.core.paginator import Paginator
@@ -28,93 +32,134 @@ def is_superuser(user):
     return user.is_superuser
 
 def admin_login(request):
+    """
+    SECURE Admin Login - Step 1
+    
+    Security Features:
+    - Validates admin credentials
+    - Generates secure OTP for 2FA
+    - Uses centralized OTPService
+    - No plaintext OTP storage
+    - Hashed password verification
+    """
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect('admin_dashboard')
 
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        email = request.POST.get('email', '').strip().lower()
+        password = request.POST.get('password', '').strip()
         
+        if not email or not password:
+            messages.error(request, "Email and password are required.")
+            return render(request, 'web/Admin/admin_login.html')
+        
+        # ===== VALIDATE CREDENTIALS =====
         user = User.objects.filter(email=email, is_superuser=True).first()
         
-        if user is not None and user.check_password(password):
-            # Generate 6-digit OTP
-            otp = str(random.randint(100000, 999999))
-            request.session['admin_login_otp'] = otp
-            request.session['admin_login_user_id'] = user.id
-            request.session['admin_login_otp_time'] = time_module.time()
-            
-            # Send Email
-            try:
-                from django.template.loader import render_to_string
-                from django.utils.html import strip_tags
-                
-                html_message = render_to_string('web/emails/admin_otp.html', {'otp': otp, 'user': user})
-                plain_message = strip_tags(html_message)
-                
-                send_mail(
-                    'Admin Secure Login OTP - E-GameScout',
-                    plain_message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [email],
-                    html_message=html_message
-                )
-                messages.success(request, "Secure Login OTP sent to your email.")
-            except Exception as e:
-                # If email fails, print it for development
-                print(f"OTP SEND FAIL: {otp} - Error: {str(e)}")
-                messages.success(request, "Secure Login OTP generated. Check console if testing.")
-            
-            return redirect('admin_verify_otp')
-        else:
+        if user is None or not user.check_password(password):
+            logger.warning(f"Failed admin login attempt for email: {email}")
             messages.error(request, "Invalid credentials or access denied.")
+            return render(request, 'web/Admin/admin_login.html')
+        
+        # ===== GENERATE & STORE OTP (SECURE) =====
+        success, otp_or_error, metadata = OTPService.store_otp(email)
+        
+        if not success:
+            logger.error(f"Failed to generate OTP for admin: {otp_or_error}")
+            messages.error(request, "Failed to generate OTP. Please try again.")
+            return render(request, 'web/Admin/admin_login.html')
+        
+        otp = otp_or_error
+        
+        # ===== STORE MINIMAL SESSION DATA =====
+        # Only store user_id, not OTP (OTP is in secure cache)
+        request.session['admin_login_user_id'] = user.id
+        request.session['admin_login_email'] = email
+        
+        # ===== SEND OTP EMAIL =====
+        email_success, email_msg = EmailService.send_admin_otp_email(
+            email=email,
+            otp=otp,
+            user_name=user.username
+        )
+        
+        if not email_success:
+            logger.error(f"Failed to send admin OTP email: {email_msg}")
+            messages.success(request, "OTP generated. Check console if testing.")
+        else:
+            messages.success(request, f"Secure Login OTP sent to your email. Valid for {metadata['expiry_minutes']} minutes.")
+        
+        logger.info(f"Admin OTP sent to {email}")
+        return redirect('admin_verify_otp')
     
     return render(request, 'web/Admin/admin_login.html')
 
 def admin_verify_otp(request):
+    """
+    SECURE Admin Login - Step 2
+    
+    Security Features:
+    - Verifies OTP using timing-safe comparison
+    - Brute-force protection (max 5 attempts)
+    - Automatic OTP expiry validation
+    - Clean session management after successful login
+    - Clears OTP from cache after use
+    """
+    # Already authenticated - redirect to dashboard
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect('admin_dashboard')
 
+    # Not in OTP flow - redirect to login
     if 'admin_login_user_id' not in request.session:
         messages.error(request, "Session expired. Please login again.")
         return redirect('admin_login')
 
     if request.method == 'POST':
-        entered_otp = request.POST.get('otp')
-        stored_otp = request.session.get('admin_login_otp')
-        otp_time = request.session.get('admin_login_otp_time', 0)
+        otp_input = request.POST.get('otp', '').strip()
+        email = request.session.get('admin_login_email', '')
         
-        # Check expiry (5 minutes)
-        if time_module.time() - otp_time > 300:
-            del request.session['admin_login_otp']
-            messages.error(request, "OTP has expired. Please login again.")
-            return redirect('admin_login')
-            
-        if entered_otp == stored_otp:
-            user_id = request.session.get('admin_login_user_id')
-            user = get_object_or_404(User, id=user_id)
-            
-            # Clear intermediate session variables
-            del request.session['admin_login_otp']
+        if not otp_input:
+            messages.error(request, "Please enter the OTP.")
+            return render(request, 'web/Admin/admin_verify_otp.html')
+        
+        # ===== VERIFY OTP (TIMING-SAFE & BRUTE-FORCE PROTECTED) =====
+        success, message = OTPService.verify_otp(email, otp_input)
+        
+        if not success:
+            logger.warning(f"Admin OTP verification failed: {message}")
+            messages.error(request, message)
+            return render(request, 'web/Admin/admin_verify_otp.html')
+        
+        # ===== OTP VERIFIED - COMPLETE LOGIN =====
+        user_id = request.session.get('admin_login_user_id')
+        user = get_object_or_404(User, id=user_id)
+        
+        # ===== CLEAN SESSION =====
+        # Remove OTP-related session data
+        if 'admin_login_user_id' in request.session:
             del request.session['admin_login_user_id']
-            del request.session['admin_login_otp_time']
-            
-            # Clear conflicting custom sessions
-            if 'organizer_id' in request.session: del request.session['organizer_id']
-            if 'player_id' in request.session: del request.session['player_id']
-            
-            # Standard Django Login
-            login(request, user)
-            
-            # Secure Tracking Login
-            handle_secure_login(request, user_id=user.id, user_type='ADMIN')
-            
-            messages.success(request, "Admin access granted.")
-            return redirect('admin_dashboard')
-        else:
-            messages.error(request, "Invalid OTP.")
-
-    return render(request, 'web/Admin/admin_verify_otp.html')
+        if 'admin_login_email' in request.session:
+            del request.session['admin_login_email']
+        
+        # Clear any conflicting user sessions
+        for key in ['organizer_id', 'player_id']:
+            if key in request.session:
+                del request.session[key]
+        
+        # ===== PERFORM LOGIN =====
+        # Django's standard login
+        login(request, user)
+        
+        # Secure tracking
+        handle_secure_login(request, user_id=user.id, user_type='ADMIN')
+        
+        logger.info(f"Admin successfully logged in: {user.email}")
+        messages.success(request, "Admin access granted.")
+        return redirect('admin_dashboard')
+    
+    return render(request, 'web/Admin/admin_verify_otp.html', {
+        'expiry_minutes': OTPService.get_otp_expiry_minutes()
+    })
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_logout(request):

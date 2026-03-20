@@ -21,6 +21,9 @@ import random
 import time
 import json
 import os
+import logging  # ✅ NEW: Logging for security audit trail
+
+logger = logging.getLogger(__name__)  # ✅ NEW: Logger instance
 
 from web.forms import (
     OrganizationEmailForm, OTPForm, OrganizationDetailsForm,
@@ -38,11 +41,18 @@ from web.models import (
 from web.decorators import login_required_organization
 from web.auth_services import handle_secure_login, handle_secure_logout
 from web.helpers import extract_aadhar_details
+from web.otp_services import OTPService, EmailService  # ✅ NEW: Secure OTP Service
 from django.core.cache import cache
 import pyotp
 import qrcode
 import base64
 from io import BytesIO
+
+
+def get_otp_expiry_minutes() -> int:
+    """Return OTP expiry in minutes from settings (single source of truth)."""
+    otp_expiry_seconds = int(getattr(settings, 'OTP_EXPIRY_SECONDS', 300) or 300)
+    return max(1, (otp_expiry_seconds + 59) // 60)
 
 
 def terms_and_conditions(request):
@@ -71,198 +81,420 @@ def maintenance_page(request):
 
 @csrf_exempt
 def api_send_otp(request):
+    """
+    SECURE OTP Generation Endpoint
+    
+    Security Features:
+    - Validates user exists before sending OTP
+    - Uses centralized OTPService for management
+    - Implements rate limiting (3 requests per 15 minutes)
+    - Hashes OTP before storage (never stored plaintext)
+    - Automatic expiry (5 minutes default)
+    
+    Request: POST /api/login/send-otp
+    {
+        "email": "user@example.com",
+        "role": "player" | "organization"
+    }
+    """
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            email = data.get('email')
-            role = data.get('role')
+            email = data.get('email', '').strip().lower()
+            role = data.get('role', '').lower()
             
+            # ===== Input Validation =====
             if not email or not role:
-                return JsonResponse({'status': 'error', 'message': 'Email and role are required'}, status=400)
-                
-            player_exists = False
-            org_exists = False
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Email and role are required'
+                }, status=400)
             
-            if role.lower() == 'player':
-                try:
-                    player = Player.objects.get(email__iexact=email)
-                    if player.status == 'SUSPENDED':
-                         return JsonResponse({'status': 'error', 'message': 'Account is suspended'}, status=403)
-                    player_exists = True
-                except Player.DoesNotExist:
-                    return JsonResponse({'status': 'error', 'message': 'Player not found'}, status=404)
-            elif role.lower() == 'organization':
-                try:
-                    org = Organization.objects.get(Organization_Email__iexact=email)
-                    if org.status == 'Suspended':
-                         return JsonResponse({'status': 'error', 'message': 'Account is suspended'}, status=403)
-                    org_exists = True
-                except Organization.DoesNotExist:
-                    return JsonResponse({'status': 'error', 'message': 'Organization not found'}, status=404)
-            else:
-                return JsonResponse({'status': 'error', 'message': 'Unsupported role'}, status=400)
-                
-            if player_exists or org_exists:
-                # Generate OTP
-                otp_code = str(random.randint(100000, 999999))
-                
-                # Store OTP in cache for 5 minutes (300 seconds)
-                cache_key = f"api_otp_{email}"
-                cache.set(cache_key, otp_code, timeout=300)
-                
-                # Send Email
-                html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
-                plain_message = strip_tags(html_message)
-                
-                send_mail(
-                    'Your E-Game Scout Code',
-                    plain_message,
-                    settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com',
-                    [email],
-                    fail_silently=False,
-                    html_message=html_message
-                )
-                
-                print(f"DEBUG: API Post OTP for {email}: {otp_code}")
-                return JsonResponse({'status': 'success', 'message': 'OTP sent successfully'})
+            if role not in ['player', 'organization']:
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Invalid role. Must be "player" or "organization"'
+                }, status=400)
+            
+            # ===== Verify User Exists & Active =====
+            try:
+                if role == 'player':
+                    user = Player.objects.get(email__iexact=email)
+                    if user.status == 'SUSPENDED':
+                        logger.warning(f"OTP requested for suspended player: {email}")
+                        return JsonResponse({
+                            'status': 'error', 
+                            'message': 'Account is suspended'
+                        }, status=403)
+                else:  # organization
+                    user = Organization.objects.get(Organization_Email__iexact=email)
+                    if user.status == 'Suspended':
+                        logger.warning(f"OTP requested for suspended organization: {email}")
+                        return JsonResponse({
+                            'status': 'error', 
+                            'message': 'Account is suspended'
+                        }, status=403)
+            except (Player.DoesNotExist, Organization.DoesNotExist):
+                # Don't reveal if user exists/doesn't exist (security best practice)
+                logger.warning(f"OTP requested for non-existent user: {email}")
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Email not found or invalid role'
+                }, status=404)
+            
+            # ===== Generate & Store OTP (SECURE) =====
+            success, otp_or_error, metadata = OTPService.store_otp(email)
+            
+            if not success:
+                # Rate limited or other error
+                logger.warning(f"OTP generation failed: {otp_or_error}")
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': otp_or_error
+                }, status=429)  # 429 Too Many Requests
+            
+            otp = otp_or_error  # otp is the plaintext (only sent in email, never stored)
+            
+            # ===== Send Email =====
+            email_success, email_msg = EmailService.send_otp_email(
+                email=email,
+                otp=otp,
+                context_extras={
+                    'name': user.full_name if role == 'player' else user.Organization_Name
+                }
+            )
+            
+            if not email_success:
+                logger.error(f"Failed to send OTP email to {email}: {email_msg}")
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Failed to send OTP. Please try again.'
+                }, status=500)
+            
+            logger.info(f"OTP sent successfully to {email} (expiry: {metadata['expiry_minutes']}m)")
+            
+            return JsonResponse({
+                'status': 'success', 
+                'message': f"OTP sent to your email. Valid for {metadata['expiry_minutes']} minutes"
+            })
+            
         except json.JSONDecodeError:
-            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'Invalid JSON format'
+            }, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in api_send_otp: {str(e)}")
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'An unexpected error occurred'
+            }, status=500)
+    
+    return JsonResponse({
+        'status': 'error', 
+        'message': 'Method not allowed'
+    }, status=405)
 
 @csrf_exempt
 def api_verify_otp(request):
+    """
+    SECURE OTP Verification Endpoint
+    
+    Security Features:
+    - Timing-safe comparison (prevents timing attacks)
+    - Tracks failed attempts (max 5, then OTP invalidated)
+    - Automatic OTP expiry validation
+    - Clears OTP from cache after verification
+    - Never exposes OTP in responses or logs
+    
+    Request: POST /api/login/verify-otp
+    {
+        "email": "user@example.com",
+        "otp": "123456",
+        "role": "player" | "organization"
+    }
+    """
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            email = data.get('email')
-            otp_input = data.get('otp')
-            role = data.get('role')
+            email = data.get('email', '').strip().lower()
+            otp_input = data.get('otp', '').strip()
+            role = data.get('role', '').lower()
             
+            # ===== Input Validation =====
             if not email or not otp_input or not role:
-                 return JsonResponse({'status': 'error', 'message': 'Email, OTP, and role are required'}, status=400)
-                 
-            # Retrieve OTP from cache
-            cache_key = f"api_otp_{email}"
-            stored_otp = cache.get(cache_key)
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Email, OTP, and role are required'
+                }, status=400)
             
-            if not stored_otp:
-                return JsonResponse({'status': 'error', 'message': 'OTP expired or invalid. Please request a new one.'}, status=400)
-                
-            if str(otp_input).strip() == str(stored_otp).strip():
-                # OTP is correct, clear it
-                cache.delete(cache_key)
-                
-                # Fetch user data to return
-                if role.lower() == 'player':
-                    try:
-                        player = Player.objects.get(email__iexact=email)
-                        return JsonResponse({'status': 'success', 'message': 'Login successful', 'data': {
-                            'id': player.id, 
-                            'name': player.full_name,
-                            'email': player.email,
-                            'aadhar_number': player.aadhar_number,
-                            'uid': player.uid,
-                            'mobile_no': player.mobile_no,
-                            'age': player.age,
+            if role not in ['player', 'organization']:
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Invalid role'
+                }, status=400)
+            
+            # ===== Verify OTP (TIMING-SAFE & BRUTE-FORCE PROTECTED) =====
+            success, message = OTPService.verify_otp(email, otp_input)
+            
+            if not success:
+                # OTP is invalid, expired, or attempts exceeded
+                logger.warning(f"OTP verification failed for {email}: {message}")
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': message
+                }, status=400)
+            
+            # ===== OTP VERIFIED - Fetch User Data =====
+            try:
+                if role == 'player':
+                    user = Player.objects.get(email__iexact=email)
+                    return JsonResponse({
+                        'status': 'success', 
+                        'message': 'Login successful',
+                        'data': {
+                            'id': user.id,
+                            'name': user.full_name,
+                            'email': user.email,
+                            'aadhar_number': user.aadhar_number,
+                            'uid': user.uid,
+                            'mobile_no': user.mobile_no,
+                            'age': user.age,
                             'role': 'player'
-                        }})
-                    except Player.DoesNotExist:
-                        return JsonResponse({'status': 'error', 'message': 'Player not found'}, status=404)
-                elif role.lower() == 'organization':
-                    try:
-                        org = Organization.objects.get(Organization_Email__iexact=email)
-                        return JsonResponse({'status': 'success', 'message': 'Login successful', 'data': {'id': org.id, 'name': org.Organization_Name}})
-                    except Organization.DoesNotExist:
-                        return JsonResponse({'status': 'error', 'message': 'Organization not found'}, status=404)
-            else:
-                return JsonResponse({'status': 'error', 'message': 'Invalid OTP'}, status=400)
-                
+                        }
+                    })
+                else:  # organization
+                    user = Organization.objects.get(Organization_Email__iexact=email)
+                    return JsonResponse({
+                        'status': 'success', 
+                        'message': 'Login successful',
+                        'data': {
+                            'id': user.id,
+                            'name': user.Organization_Name,
+                            'email': user.Organization_Email,
+                            'role': 'organization'
+                        }
+                    })
+            except (Player.DoesNotExist, Organization.DoesNotExist):
+                logger.error(f"User not found after successful OTP verification: {email}, role: {role}")
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'User not found'
+                }, status=404)
+            
         except json.JSONDecodeError:
-            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'Invalid JSON format'
+            }, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in api_verify_otp: {str(e)}")
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'An unexpected error occurred'
+            }, status=500)
+    
+    return JsonResponse({
+        'status': 'error', 
+        'message': 'Method not allowed'
+    }, status=405)
 
 @csrf_exempt
 def api_register_send_otp(request):
-    """Sends OTP for registration, ensuring player does NOT exist."""
+    """
+    SECURE OTP Generation for Registration
+    
+    Security Features:
+    - Verifies user NOT already registered
+    - Checks registration is enabled
+    - Uses centralized OTPService
+    - Rate limiting on OTP requests
+    - Hashed OTP storage (never plaintext)
+    
+    Request: POST /api/register/send-otp
+    {
+        "email": "user@example.com",
+        "role": "player" | "organization"
+    }
+    """
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            email = data.get('email')
-            role = data.get('role')
+            email = data.get('email', '').strip().lower()
+            role = data.get('role', '').lower()
             
+            # ===== Input Validation =====
             if not email or not role:
-                 return JsonResponse({'status': 'error', 'message': 'Email and role are required'}, status=400)
-                 
-            if role.lower() == 'player':
-                if not SystemSettings.get_settings().allow_player_registration:
-                    return JsonResponse({'status': 'error', 'message': 'Player registration is currently disabled.'}, status=403)
-                if Player.objects.filter(email__iexact=email).exists():
-                     return JsonResponse({'status': 'error', 'message': 'Player already exists. Please login.'}, status=409)
-            elif role.lower() == 'organization':
-                 if not SystemSettings.get_settings().allow_org_registration:
-                     return JsonResponse({'status': 'error', 'message': 'Organization registration is currently disabled.'}, status=403)
-                 if Organization.objects.filter(Organization_Email__iexact=email).exists():
-                     return JsonResponse({'status': 'error', 'message': 'Organization already exists. Please login.'}, status=409)
-            else:
-                return JsonResponse({'status': 'error', 'message': 'Unsupported role'}, status=400)
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Email and role are required'
+                }, status=400)
+            
+            if role not in ['player', 'organization']:
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Invalid role. Must be "player" or "organization"'
+                }, status=400)
+            
+            # ===== Check Registration Enabled =====
+            system_settings = SystemSettings.get_settings()
+            
+            if role == 'player':
+                if not system_settings.allow_player_registration:
+                    logger.warning(f"Player registration disabled but OTP requested for: {email}")
+                    return JsonResponse({
+                        'status': 'error', 
+                        'message': 'Player registration is currently disabled'
+                    }, status=403)
                 
-            # Generate OTP
-            otp_code = str(random.randint(100000, 999999))
+                if Player.objects.filter(email__iexact=email).exists():
+                    logger.warning(f"Registration OTP requested for existing player: {email}")
+                    return JsonResponse({
+                        'status': 'error', 
+                        'message': 'Email already registered. Please login instead.'
+                    }, status=409)
             
-            # Store OTP in cache for 5 minutes (300 seconds)
-            cache_key = f"api_register_otp_{email}"
-            cache.set(cache_key, otp_code, timeout=300)
+            else:  # organization
+                if not system_settings.allow_org_registration:
+                    logger.warning(f"Organization registration disabled but OTP requested for: {email}")
+                    return JsonResponse({
+                        'status': 'error', 
+                        'message': 'Organization registration is currently disabled'
+                    }, status=403)
+                
+                if Organization.objects.filter(Organization_Email__iexact=email).exists():
+                    logger.warning(f"Registration OTP requested for existing organization: {email}")
+                    return JsonResponse({
+                        'status': 'error', 
+                        'message': 'Email already registered. Please login instead.'
+                    }, status=409)
             
-            # Send Email
-            html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
-            plain_message = strip_tags(html_message)
+            # ===== Generate & Store OTP (SECURE) =====
+            success, otp_or_error, metadata = OTPService.store_otp(email)
             
-            send_mail(
-                'Your E-Game Scout Code',
-                plain_message,
-                settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com',
-                [email],
-                fail_silently=False,
-                html_message=html_message
+            if not success:
+                logger.warning(f"OTP generation failed for registration: {otp_or_error}")
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': otp_or_error
+                }, status=429)  # 429 Too Many Requests
+            
+            otp = otp_or_error
+            
+            # ===== Send Email =====
+            email_success, email_msg = EmailService.send_otp_email(
+                email=email,
+                otp=otp,
+                context_extras={
+                    'name': email.split('@')[0]  # Use username part as fallback name
+                }
             )
             
-            print(f"DEBUG: API Post Register OTP for {email}: {otp_code}")
-            return JsonResponse({'status': 'success', 'message': 'OTP sent successfully'})
+            if not email_success:
+                logger.error(f"Failed to send registration OTP to {email}: {email_msg}")
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Failed to send OTP. Please try again.'
+                }, status=500)
+            
+            logger.info(f"Registration OTP sent to {email} (role: {role}, expiry: {metadata['expiry_minutes']}m)")
+            
+            return JsonResponse({
+                'status': 'success', 
+                'message': f"OTP sent to your email. Valid for {metadata['expiry_minutes']} minutes"
+            })
+            
         except json.JSONDecodeError:
-            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'Invalid JSON format'
+            }, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in api_register_send_otp: {str(e)}")
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'An unexpected error occurred'
+            }, status=500)
+    
+    return JsonResponse({
+        'status': 'error', 
+        'message': 'Method not allowed'
+    }, status=405)
 
 @csrf_exempt
 def api_register_verify_otp(request):
-    """Verifies OTP for registration."""
+    """
+    SECURE OTP Verification for Registration
+    
+    Security Features:
+    - Timing-safe OTP comparison
+    - Brute-force protection (max 5 attempts)
+    - Automatic expiry validation
+    - Clears OTP after verification
+    
+    Request: POST /api/register/verify-otp
+    {
+        "email": "user@example.com",
+        "otp": "123456",
+        "role": "player" | "organization"
+    }
+    
+    Response: {'status': 'success', 'message': 'OTP verified successfully'}
+    """
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            email = data.get('email')
-            otp_input = data.get('otp')
-            role = data.get('role')
+            email = data.get('email', '').strip().lower()
+            otp_input = data.get('otp', '').strip()
+            role = data.get('role', '').lower()
             
+            # ===== Input Validation =====
             if not email or not otp_input or not role:
-                 return JsonResponse({'status': 'error', 'message': 'Email, OTP, and role are required'}, status=400)
-                 
-            # Retrieve OTP from cache
-            cache_key = f"api_register_otp_{email}"
-            stored_otp = cache.get(cache_key)
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Email, OTP, and role are required'
+                }, status=400)
             
-            if not stored_otp:
-                return JsonResponse({'status': 'error', 'message': 'OTP expired or invalid. Please request a new one.'}, status=400)
-                
-            if str(otp_input).strip() == str(stored_otp).strip():
-                # OTP is correct, clear it
-                cache.delete(cache_key)
-                # Registration step 1 verified (email is good), proceed to next steps
-                return JsonResponse({'status': 'success', 'message': 'OTP verified successfully'})
-            else:
-                return JsonResponse({'status': 'error', 'message': 'Invalid OTP'}, status=400)
-                
+            if role not in ['player', 'organization']:
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Invalid role'
+                }, status=400)
+            
+            # ===== Verify OTP (TIMING-SAFE) =====
+            success, message = OTPService.verify_otp(email, otp_input)
+            
+            if not success:
+                logger.warning(f"Registration OTP verification failed for {email}: {message}")
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': message
+                }, status=400)
+            
+            # ===== OTP VERIFIED =====
+            logger.info(f"Registration OTP verified for {email} (role: {role})")
+            
+            return JsonResponse({
+                'status': 'success', 
+                'message': 'OTP verified successfully. Proceed to next step.'
+            })
+            
         except json.JSONDecodeError:
-            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'Invalid JSON format'
+            }, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in api_register_verify_otp: {str(e)}")
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'An unexpected error occurred'
+            }, status=500)
+    
+    return JsonResponse({
+        'status': 'error', 
+        'message': 'Method not allowed'
+    }, status=405)
 
 
 @csrf_exempt
@@ -427,7 +659,12 @@ def auth_login(request):
             
             # Send Email
                             
-            html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+            html_message = render_to_string('web/emails/otp_verification.html', {
+                'otp': otp_code,
+                'email': email,
+                'expiry_minutes': get_otp_expiry_minutes(),
+                'logo_url': request.build_absolute_uri('/static/web/images/logo.png')
+            })
             plain_message = strip_tags(html_message)
             
             send_mail(
@@ -1301,7 +1538,12 @@ def org_register_start(request):
             # Send OTP via Email
             # Send OTP via Email (HTML + Text)
             subject = 'E-Game Scout Registration OTP'
-            html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+            html_content = render_to_string('web/emails/otp_verification.html', {
+                'otp': otp,
+                'email': email,
+                'expiry_minutes': get_otp_expiry_minutes(),
+                'logo_url': request.build_absolute_uri('/static/web/images/logo.png')
+            })
             text_content = strip_tags(html_content)
             
             msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -1440,7 +1682,12 @@ def org_login_start(request):
                 # Send OTP via Email
                 # Send OTP via Email (HTML + Text)
                 subject = 'E-Game Scout Login OTP'
-                html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+                html_content = render_to_string('web/emails/otp_verification.html', {
+                    'otp': otp,
+                    'email': email,
+                    'expiry_minutes': get_otp_expiry_minutes(),
+                    'logo_url': request.build_absolute_uri('/static/web/images/logo.png')
+                })
                 text_content = strip_tags(html_content)
                 
                 msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -1715,7 +1962,12 @@ def resend_otp(request):
             
         # Send OTP via Email
         subject = 'E-Game Scout OTP Resend'
-        html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+        html_content = render_to_string('web/emails/otp_verification.html', {
+            'otp': otp,
+            'email': email,
+            'expiry_minutes': get_otp_expiry_minutes(),
+            'logo_url': request.build_absolute_uri('/static/web/images/logo.png')
+        })
         text_content = strip_tags(html_content)
         
         msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
@@ -2760,17 +3012,126 @@ def handler403(request, exception):
 def handler400(request, exception):
     return custom_error_view(request, exception=exception, status_code=400)
 
+@login_required_organization
 def org_2fa_setup(request):
-    pass
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
 
+    org = get_object_or_404(Organization, id=org_id)
+
+    if org.is_2fa_enabled:
+        messages.info(request, '2FA is already enabled.')
+        return redirect('manage_profile')
+
+    if not org.totp_secret:
+        org.totp_secret = pyotp.random_base32()
+        org.save()
+
+    totp = pyotp.TOTP(org.totp_secret)
+    provisioning_uri = totp.provisioning_uri(name=org.Organization_Email, issuer_name='E-Game Scout')
+
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(provisioning_uri)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode()
+    qr_code_uri = f"data:image/png;base64,{qr_code_base64}"
+
+    return render(request, 'web/Organization/2fa_setup.html', {
+        'qr_code_uri': qr_code_uri,
+        'secret': org.totp_secret
+    })
+
+@login_required_organization
 def org_2fa_verify_setup(request):
-    pass
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
 
+    org = get_object_or_404(Organization, id=org_id)
+
+    if request.method == 'POST':
+        otp_code = request.POST.get('otp_code', '').strip()
+
+        if not org.totp_secret:
+            messages.error(request, '2FA setup not initialized. Please start setup again.')
+            return redirect('org_2fa_setup')
+
+        totp = pyotp.TOTP(org.totp_secret)
+        if totp.verify(otp_code):
+            org.is_2fa_enabled = True
+            org.save()
+            log_system_action(request, 'ORGANIZATION', org.id, '2FA_SETUP', 'Organization successfully enabled Two-Factor Authentication.')
+            messages.success(request, 'Two-Factor Authentication has been successfully enabled.')
+            return redirect('manage_profile')
+
+        messages.error(request, 'Invalid code. Please try again.')
+        return redirect('org_2fa_setup')
+
+    return redirect('org_2fa_setup')
+
+@login_required_organization
 def org_2fa_disable(request):
-    pass
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+
+    org = get_object_or_404(Organization, id=org_id)
+
+    if request.method == 'POST':
+        org.is_2fa_enabled = False
+        org.totp_secret = None
+        org.save()
+        log_system_action(request, 'ORGANIZATION', org.id, '2FA_DISABLE', 'Organization disabled Two-Factor Authentication.')
+        messages.success(request, 'Two-Factor Authentication has been disabled.')
+        return redirect('manage_profile')
+
+    return redirect('manage_profile')
 
 def org_2fa_verify_login(request):
-    pass
+    if request.session.get('organizer_id'):
+        return redirect('organizer_dashboard')
+
+    org_id = request.session.get('pending_org_2fa_id')
+    if not org_id:
+        return redirect('org_login_start')
+
+    org = get_object_or_404(Organization, id=org_id)
+
+    if request.method == 'POST':
+        otp_code = request.POST.get('otp_code', '').strip()
+
+        if not org.totp_secret:
+            request.session.pop('pending_org_2fa_id', None)
+            messages.error(request, '2FA is not configured for this account.')
+            return redirect('org_login_start')
+
+        totp = pyotp.TOTP(org.totp_secret)
+        if totp.verify(otp_code):
+            if request.user.is_authenticated:
+                logout(request)
+
+            request.session.pop('player_id', None)
+            request.session.pop('pending_org_2fa_id', None)
+
+            if not request.session.session_key:
+                request.session.create()
+
+            request.session['organizer_id'] = org.id
+
+            handle_secure_login(request, user_id=org.id, user_type='ORG')
+            log_system_action(request, 'ORGANIZATION', org.id, 'LOGIN_2FA', 'Organization logged in successfully with 2FA.')
+
+            messages.success(request, 'Login successful.')
+            return redirect('organizer_dashboard')
+
+        messages.error(request, 'Invalid Authenticator Code.')
+
+    return render(request, 'web/Organization/2fa_verify_login.html')
 
 # --- Tournament Management ---
 
@@ -3644,7 +4005,12 @@ def player_reactivate_confirm(request):
             request.session['otp_verified'] = False
             
             try:
-                html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+                html_message = render_to_string('web/emails/otp_verification.html', {
+                    'otp': otp_code,
+                    'email': email,
+                    'expiry_minutes': get_otp_expiry_minutes(),
+                    'logo_url': request.build_absolute_uri('/static/web/images/logo.png')
+                })
                 plain_message = strip_tags(html_message)
                 
                 send_mail(

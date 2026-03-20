@@ -193,3 +193,54 @@ DEFAULT_FROM_EMAIL = f'E-Game Scout <{EMAIL_HOST_USER}>' if EMAIL_HOST_USER else
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# ===================================================================
+# OTP SECURITY CONFIGURATION - Centralized Settings
+# ===================================================================
+# All OTP-related security parameters should be configured here
+# See: web/otp_services.py for implementation
+
+# OTP validity period in seconds (default: 5 minutes)
+# Used for: Email verification, 2FA, Admin login, etc.
+OTP_EXPIRY_SECONDS = int(os.getenv('OTP_EXPIRY_SECONDS', 300))
+
+# Maximum OTP verification attempts per session
+# After exceeding, OTP is invalidated and user must request new one
+OTP_MAX_ATTEMPTS = int(os.getenv('OTP_MAX_ATTEMPTS', 5))
+
+# Maximum OTP requests allowed per time window
+# Prevents brute-force OTP request spam
+OTP_REQUEST_LIMIT = int(os.getenv('OTP_REQUEST_LIMIT', 3))
+
+# Time window for OTP request rate limiting (in seconds)
+# Default: 15 minutes = 900 seconds
+OTP_REQUEST_LIMIT_WINDOW = int(os.getenv('OTP_REQUEST_LIMIT_WINDOW', 900))
+
+# OTP Length (number of digits)
+# Standard: 6 digits. Can be increased to 8 for higher security
+OTP_LENGTH = int(os.getenv('OTP_LENGTH', 6))
+
+# ===================================================================
+# CACHING CONFIGURATION - Required for OTP Storage
+# ===================================================================
+# OTP Service uses Django cache for secure OTP storage and rate limiting
+# Production: Configure Redis cache
+# Development: Default in-memory cache is used
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'e-gamescout-cache',
+        'OPTIONS': {
+            'MAX_ENTRIES': 10000
+        }
+    }
+}
+
+# Note: For production with multiple servers, use Redis:
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+#         'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0'),
+#     }
+# }
