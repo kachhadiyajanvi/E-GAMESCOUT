@@ -50,8 +50,88 @@
 {% block page_content %}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
+    <!-- Left Column: Status & Identity -->
+    <div class="lg:col-span-1 space-y-6">
+
+        <!-- Account Status -->
+        <div
+            class="bg-[#111217] p-6 rounded-3xl border border-white/5 shadow-xl relative overflow-hidden group hover:border-white/10 transition-colors duration-300">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent"></div>
+            <h3
+                class="text-sm font-display font-bold text-white mb-5 flex items-center gap-2 uppercase tracking-wide">
+                <i class="fa-solid fa-shield-halved text-accent-cyan"></i> Security Status
+            </h3>
+
+            <div class="space-y-4 relative z-10">
+                <!-- Verified Status -->
+                <div class="p-4 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-400 border border-green-500/20">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-white text-sm">Account Active</h5>
+                            <p class="text-[11px] text-green-400/80">Fully verified</p>
+                        </div>
+                    </div>
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                </div>
+
+                <!-- Email Status -->
+                <div class="p-4 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan border border-accent-cyan/20">
+                            <i class="fa-solid fa-envelope-circle-check"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-white text-sm">Email Status</h5>
+                            <p class="text-[11px] text-accent-cyan/80">Confirmed</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-check text-accent-cyan"></i>
+                </div>
+
+                <!-- 2FA Status -->
+                <div class="p-4 rounded-2xl bg-black/40 border border-white/5 flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 border border-purple-500/20">
+                                <i class="fa-solid fa-shield"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-white text-sm">Two-Factor Auth</h5>
+                                <p class="text-[11px] text-purple-400/80">{% if player.is_2fa_enabled %}Enabled{% else %}Disabled{% endif %}</p>
+                            </div>
+                        </div>
+                        {% if player.is_2fa_enabled %}
+                            <i class="fa-solid fa-check text-green-400"></i>
+                        {% else %}
+                            <i class="fa-solid fa-xmark text-red-400"></i>
+                        {% endif %}
+                    </div>
+                    <div class="mt-2">
+                        {% if player.is_2fa_enabled %}
+                            <form action="{% url 'player_2fa_disable' %}" method="POST" onsubmit="return confirm('Are you sure you want to disable 2FA? This will reduce your account security.');">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full text-xs py-2 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-colors border border-red-500/20 font-bold uppercase tracking-wider">
+                                    Disable 2FA
+                                </button>
+                            </form>
+                        {% else %}
+                            <a href="{% url 'player_2fa_setup' %}" class="block text-center w-full text-xs py-2 bg-purple-500/10 text-purple-400 hover:bg-purple-500 hover:text-white rounded-lg transition-colors border border-purple-500/20 font-bold uppercase tracking-wider">
+                                Enable 2FA
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Profile Update Form (Covers Photo, Username) -->
-    <form method="post" enctype="multipart/form-data" id="profile-update-form" class="lg:col-span-2 space-y-6 flex flex-col order-1 lg:order-1">
+    <form method="post" enctype="multipart/form-data" id="profile-update-form" class="lg:col-span-2 space-y-6 flex flex-col order-1 lg:order-2">
         {% csrf_token %}
         <input type="file" name="profile_photo" id="photo-upload" class="hidden" onchange="document.getElementById('profile-update-form').submit()">
 

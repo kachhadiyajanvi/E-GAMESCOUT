@@ -1,0 +1,60 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Setup 2FA | E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-white">Setup Two-Factor Authentication</h2>
+        <p class="mt-2 text-center text-sm text-gray-400">
+            Scan the QR code below with your Authenticator app (Google Authenticator, Authy, etc.)
+        </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-[#1a1f2e] py-8 px-4 shadow-xl sm:rounded-lg sm:px-10 border border-gray-800">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="p-4 mb-4 rounded {% if message.tags == 'error' %}bg-red-500/20 text-red-400 border border-red-500/50{% else %}bg-green-500/20 text-green-400 border border-green-500/50{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="flex justify-center mb-6">
+                <img src="{{ qr_code_uri }}" alt="QR Code for 2FA" class="rounded p-2 bg-white w-48 h-48">
+            </div>
+            <div class="text-center text-gray-400 mb-6 font-mono text-sm bg-[#0b0f19] p-3 rounded border border-gray-800">
+                <span class="text-xs text-gray-500 block mb-1">Manual Entry Secret:</span>
+                {{ secret }}
+            </div>
+
+            <form class="space-y-6" action="{% url 'player_2fa_verify_setup' %}" method="POST">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="otp_code" class="block text-sm font-medium text-gray-300">
+                        Enter 6-digit code from app
+                    </label>
+                    <div class="mt-1">
+                        <input id="otp_code" name="otp_code" type="text" pattern="[0-9]*" inputmode="numeric" maxlength="6" required
+                               class="appearance-none block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm placeholder-gray-500 focus:outline-none focus:ring-[#66FCF1] focus:border-[#66FCF1] sm:text-sm bg-[#0b0f19] text-white" placeholder="000000">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit"
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-[#0b0f19] bg-[#66FCF1] hover:bg-[#45c2ba] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#66FCF1] focus:ring-offset-[#1a1f2e] transition-colors duration-200">
+                        Verify and Enable 2FA
+                    </button>
+                </div>
+            </form>
+            <div class="mt-6 text-center">
+                <a href="{% url 'player_profile' %}" class="text-sm text-gray-400 hover:text-white transition-colors duration-200">
+                    Cancel and Return to Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
