@@ -1,0 +1,39 @@
+{% extends 'web/emails/base_email.html' %}
+{% block theme_class %}theme-blue{% endblock %}
+{% block title %}New Bid Received – E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle">💰</div>
+</div>
+
+<h1>NEW BID <span style="color: #45B6FE;">RECEIVED</span></h1>
+
+<p>Hello <strong style="color:#ffffff;">{{ player.full_name|default:player.username }}</strong>,</p>
+
+<p>You have received a new bid from a professional organization interested in signing you.</p>
+
+<div class="highlight-box">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <span style="font-size: 14px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 2px;">OFFER AMOUNT</span><br>
+        <span style="font-family: 'Orbitron', sans-serif; font-size: 42px; font-weight: 900; color: #45B6FE; text-shadow: 0 0 15px rgba(69, 182, 254, 0.5);">₹{{ bid.Current_Bid_Price }}</span>
+    </div>
+    
+    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+        <div style="margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+            <span style="color: rgba(255,255,255,0.6); font-size: 13px;">FROM ORGANIZATION</span>
+            <span style="float: right; color: #ffffff; font-weight: 700;">{{ org.Organization_Name }}</span>
+        </div>
+        <div>
+            <span style="color: rgba(255,255,255,0.6); font-size: 13px;">BIDDING SEASON</span>
+            <span style="float: right; color: #ffffff; font-weight: 700;">{{ season.name|default:"Season 2026" }}</span>
+        </div>
+    </div>
+</div>
+
+<p>Review this offer carefully. You can accept, reject, or request a negotiation directly from your dashboard.</p>
+
+<div class="btn-wrapper">
+    <a href="{{ dashboard_url|default:'http://127.0.0.1:8000/player/bidding/' }}" class="cta-button">VIEW & RESPOND</a>
+</div>
+{% endblock %}

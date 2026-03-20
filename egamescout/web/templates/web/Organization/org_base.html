@@ -50,25 +50,31 @@
     <!-- Grid Background -->
     <div class="fixed inset-0 bg-grid-pattern pointer-events-none -z-20"></div>
 
-    <!-- Navbar -->
+    <!-- Navbar (Glassmorphism) -->
     <nav
-        class="w-full py-6 px-6 md:px-12 flex items-center justify-between border-b border-white/5 bg-brand-dark/50 backdrop-blur-md sticky top-0 z-50">
+        class="w-full py-5 px-6 md:px-12 flex items-center justify-between border-b border-white/[0.08] bg-black/30 backdrop-blur-xl sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)] relative">
+        <!-- Glassy bottom glow line -->
+        <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-cyan/30 to-transparent"></div>
+        <!-- Subtle top highlight -->
+        <div class="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
         <div class="flex items-center gap-2">
             <a href="{% url 'index' %}" class="flex items-center gap-2 group">
-                <img src="{% static 'web/images/logo.png' %}" alt="Logo"
-                    class="w-8 h-8 object-contain group-hover:drop-shadow-[0_0_10px_rgba(102,252,241,0.5)] transition-all">
+                <div class="w-9 h-9 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center group-hover:border-accent-cyan/50 group-hover:shadow-[0_0_15px_rgba(102,252,241,0.3)] transition-all duration-300">
+                    <img src="{% static 'web/images/logo.png' %}" alt="Logo"
+                        class="w-6 h-6 object-contain group-hover:drop-shadow-[0_0_8px_rgba(102,252,241,0.8)] transition-all">
+                </div>
                 <span
-                    class="text-lg font-display font-bold tracking-wider text-white group-hover:text-accent-cyan transition-colors">E-GAME
-                    SCOUT</span>
+                    class="text-lg font-display font-bold logo-text-multi tracking-wider truncate text-white group-hover:text-accent-cyan transition-colors duration-300">EGAMESCOUT</span>
             </a>
         </div>
-        <div>
+        <div class="flex items-center gap-1">
             <a href="{% url 'index' %}"
-                class="text-sm font-bold text-gray-400 hover:text-white mr-4 transition-colors">HOME</a>
+                class="text-sm font-bold text-gray-400 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5 transition-all duration-300">HOME</a>
             <a href="{% url 'org_login_start' %}"
-                class="text-sm font-bold mr-4 transition-colors {% if 'login' in request.path %}text-white{% else %}text-gray-400 hover:text-white{% endif %}">LOGIN</a>
+                class="text-sm font-bold px-3 py-2 rounded-lg transition-all duration-300 {% if 'login' in request.path %}text-white bg-white/5{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">LOGIN</a>
             <a href="{% url 'org_register_start' %}"
-                class="px-4 py-2 border border-accent-cyan font-bold text-xs rounded transition-all {% if 'register' in request.path %}bg-accent-cyan text-black{% else %}text-accent-cyan hover:bg-accent-cyan hover:text-black{% endif %}">REGISTER</a>
+                class="ml-2 px-5 py-2.5 border font-bold text-xs rounded-lg transition-all duration-300 {% if 'register' in request.path %}bg-accent-cyan text-black border-accent-cyan shadow-[0_0_20px_rgba(102,252,241,0.3)]{% else %}text-accent-cyan border-accent-cyan/40 hover:bg-accent-cyan hover:text-black hover:shadow-[0_0_20px_rgba(102,252,241,0.3)]{% endif %}">REGISTER</a>
         </div>
     </nav>
 
@@ -87,6 +93,9 @@
 
     <footer class="py-6 flex flex-col items-center gap-2 border-t border-white/5">
         <div class="text-gray-600 text-xs">&copy; 2026 E-Game Scout Organization Portal.</div>
+        <div class="flex items-center gap-4 mt-1 mb-1">
+            <a href="{% url 'terms' %}" class="text-xs text-gray-400 hover:text-accent-cyan transition-colors">Terms & Conditions</a>
+        </div>
         <a href="mailto:help.egamescout@gmail.com"
             class="text-gray-400 hover:text-accent-cyan transition-colors text-sm flex items-center gap-2">
             <i class="fa-solid fa-envelope"></i> help.egamescout@gmail.com

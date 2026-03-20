@@ -1,41 +1,37 @@
-{% extends 'web/Admin/admin_dashboard.html' %}
+{% extends 'web/Admin/admin_page_base.html' %}
 
-{% block content %}
-<div class="flex-1 overflow-y-auto p-8 space-y-8">
+{% block header_icon %}<i class="fa-solid fa-users"></i>{% endblock %}
+{% block header_title %}PLAYERS{% endblock %}
+{% block header_desc %}Manage user accounts and player profiles.{% endblock %}
 
-    <!-- Breadcrumbs -->
-    <div class="flex items-center gap-2 text-xs text-white/40 mb-2 font-mono">
-        <a href="{% url 'admin_dashboard' %}" class="hover:text-brand-blue transition-colors">Dashboard</a>
-        <span>/</span>
-        <span class="text-white">Players</span>
+{% block header_actions %}
+<form method="GET" action="{% url 'admin_players_detail' %}" class="flex items-center gap-2">
+    <!-- Filter Dropdown -->
+    <select name="status" onchange="this.form.submit()" class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all cursor-pointer">
+        <option value="" {% if not status_filter %}selected{% endif %}>All Status</option>
+        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+        <option value="deactivated" {% if status_filter == 'deactivated' %}selected{% endif %}>Deactivated</option>
+        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+    </select>
+
+    <!-- Search Input -->
+    <div class="relative w-full sm:w-64 group">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search Players..." class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder-white/30">
+        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-blue transition-colors text-xs bg-transparent border-none cursor-pointer">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
     </div>
+</form>
+<button onclick="openModal('players')" class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center justify-center gap-2 whitespace-nowrap">
+    <i class="fa-solid fa-bullhorn"></i> Notify
+</button>
+{% endblock %}
 
-    <!-- Page Title -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="font-display font-bold text-3xl text-white mb-1">PLAYERS</h1>
-            <p class="text-white/40 text-sm">Manage user accounts and player profiles.</p>
-        </div>
-        <div class="flex gap-4">
-            <div class="flex gap-4">
-                <form method="GET" action="{% url 'admin_players_detail' %}" class="relative w-64 group">
-                    <input type="text" name="q" value="{{ search_query }}" placeholder="Search Players..."
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder-white/30">
-                    <button type="submit"
-                        class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-blue transition-colors text-xs bg-transparent border-none cursor-pointer">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
-                </form>
-                <button onclick="openModal('players')"
-                    class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-bullhorn"></i> Notify
-                </button>
-            </div>
-        </div>
-    </div>
+{% block page_content %}
     <!-- Players Table -->
-    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl">
-        <table class="w-full text-left border-collapse">
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
+        <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
             <thead>
                 <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
                     <th class="p-4 font-bold">Player Details</th>
@@ -63,7 +59,12 @@
                             <div class="flex-1">
                                 <!-- Full Name & Email -->
                                 <div class="mb-2">
-                                    <h4 class="font-bold text-white text-base">{{ player.full_name }}</h4>
+                                    <h4 class="font-bold text-white text-base flex items-center gap-2">
+                                        {{ player.full_name }}
+                                        {% if player.is_verified %}
+                                        <i class="fa-solid fa-circle-check text-blue-400 text-xs" title="Verified Player"></i>
+                                        {% endif %}
+                                    </h4>
                                     <p class="text-xs text-brand-blue">{{ player.email }}</p>
                                 </div>
                             </div>
@@ -73,7 +74,12 @@
 
 
                     <td class="p-4">
-                        {% if player.status == 'ACTIVE' %}
+                        {% if not player.is_active_account %}
+                        <span
+                            class="text-red-500 bg-red-500/10 px-2 py-1 rounded-full text-xs font-bold dot-indicator flex items-center gap-1 w-fit">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Deactivated
+                        </span>
+                        {% elif player.status == 'ACTIVE' %}
                         <span
                             class="text-green-400 bg-green-400/10 px-2 py-1 rounded-full text-xs font-bold dot-indicator flex items-center gap-1 w-fit">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Active
@@ -92,6 +98,11 @@
                     </td>
                     <td class="p-4 text-white/40">{{ player.created_at|date:"M d, Y" }}</td>
                     <td class="p-4 text-right">
+                        {% if player.is_verified %}
+                        <button class="text-blue-400/50 cursor-not-allowed px-2 text-xs" title="Verified Player" disabled>
+                            <i class="fa-solid fa-star"></i>
+                        </button>
+                        {% endif %}
                         <button onclick="openViewModal(this)" data-username="{{ player.username|default:'' }}"
                             data-fullname="{{ player.full_name }}" data-email="{{ player.email }}"
                             data-mobile="{{ player.mobile_no }}" data-uid="{{ player.uid }}" data-age="{{ player.age }}"
@@ -102,7 +113,7 @@
                             title="View Full Details">
                             <i class="fa-solid fa-eye"></i>
                         </button>
-                        <button onclick="openStatusModal('{{ player.id }}', '{{ player.status }}')"
+                        <button onclick="openStatusModal('{{ player.id }}', '{{ player.status }}', '{{ player.is_verified }}', '{{ player.is_active_account|lower }}')"
                             class="text-white/40 hover:text-brand-blue transition-colors px-2" title="Edit Status">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
@@ -151,7 +162,7 @@
     </div>
 
     <!-- View Details Modal -->
-    <div id="viewModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div id="viewModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div
             class="bg-brand-gray border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
             <!-- Modal Header -->
@@ -243,7 +254,7 @@
     </div>
 
     <!-- Edit Status Modal -->
-    <div id="statusModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div id="statusModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="bg-brand-gray border border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl relative">
             <button type="button" onclick="closePlayerModal('statusModal')"
                 class="absolute top-4 right-4 text-white/40 hover:text-white">
@@ -276,6 +287,14 @@
                         </label>
                     </div>
                 </div>
+                <div id="playerVerificationSection" class="mb-4 p-4 rounded-lg border hidden">
+                    <p id="verifyTitle" class="font-bold text-sm mb-1"></p>
+                    <p id="verifyDesc" class="text-white/50 text-xs mb-3"></p>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="playerVerifyCheckbox" class="rounded bg-black/50 border-white/20">
+                        <span id="verifyLabel" class="text-sm text-white"></span>
+                    </label>
+                </div>
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="closePlayerModal('statusModal')"
                         class="px-4 py-2 text-gray-400 hover:text-white text-sm font-bold uppercase">Cancel</button>
@@ -288,7 +307,7 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div id="deleteModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="bg-brand-gray border border-red-500/30 rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
@@ -309,8 +328,9 @@
             </form>
         </div>
     </div>
-</div>
+{% endblock %}
 
+{% block page_scripts %}
 <script>
     function openViewModal(button) {
         const modal = document.getElementById('viewModal');
@@ -356,15 +376,54 @@
         modal.classList.add('flex');
     }
 
-    function openStatusModal(playerId, currentStatus) {
+    function openStatusModal(playerId, currentStatus, isVerified, isActiveAccount) {
         const modal = document.getElementById('statusModal');
         const form = document.getElementById('statusForm');
+        const verifySection = document.getElementById('playerVerificationSection');
+        const checkbox = document.getElementById('playerVerifyCheckbox');
+        const title = document.getElementById('verifyTitle');
+        const desc = document.getElementById('verifyDesc');
+        const label = document.getElementById('verifyLabel');
 
         form.action = `/admin/players/update-status/${playerId}/`;
+        checkbox.checked = false;
 
-        // Select current status
-        const radio = form.querySelector(`input[value="${currentStatus}"]`);
+        const radio = form.querySelector(`input[name="status"][value="${currentStatus}"]`);
         if (radio) radio.checked = true;
+
+        const activeRadio = form.querySelector(`input[name="is_active_account"][value="${isActiveAccount}"]`);
+        if (activeRadio) activeRadio.checked = true;
+
+        if (isVerified === 'True') {
+            verifySection.className = 'mb-4 p-4 rounded-lg border border-red-500/20 bg-red-500/5';
+            title.className = 'font-bold text-sm mb-1 text-red-400';
+            title.textContent = '⚠ Revoke Verification';
+            desc.textContent = 'This will remove the verified badge from this player.';
+            label.textContent = 'Yes, revoke verification from this player.';
+        } else {
+            verifySection.className = 'mb-4 p-4 rounded-lg border border-blue-500/20 bg-blue-500/5';
+            title.className = 'font-bold text-sm mb-1 text-blue-400';
+            title.textContent = '★ Grant Verification';
+            desc.textContent = 'Verifying this player grants them a verified badge on the platform.';
+            label.textContent = 'Yes, I confirm this player should be verified.';
+        }
+
+        form.onsubmit = function(e) {
+            if (checkbox.checked) {
+                const action = isVerified === 'True' ? 'REVOKE VERIFICATION from' : 'GRANT VERIFICATION to';
+                if (!confirm(`Are you absolutely sure you want to ${action} this player?`)) {
+                    e.preventDefault(); return false;
+                }
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = isVerified === 'True' ? 'revoke_verification' : 'grant_verification';
+                inp.value = 'true';
+                // remove any previous hidden inputs to avoid duplicates
+                form.querySelectorAll('input[name="grant_verification"], input[name="revoke_verification"]').forEach(el => el.remove());
+                form.appendChild(inp);
+            }
+            return true;
+        };
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');

@@ -1,0 +1,35 @@
+{% extends 'web/emails/base_email.html' %}
+
+{% block title %}Welcome to E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle">🚀</div>
+</div>
+
+<h1>Welcome, <span style="color: #66FCF1;">{{ user.username|default:"Player" }}</span></h1>
+
+<p>Your account has been successfully created. You are now part of the premier esports talent discovery platform built to connect top-tier players with professional organizations.</p>
+
+<div class="highlight-box">
+    <div class="highlight-title">GET STARTED</div>
+    <div style="margin-bottom: 20px;">
+        <strong style="color: #66FCF1; font-size: 15px;">🎯 BUILD YOUR PROFILE</strong><br>
+        <span style="font-size: 14px; color: rgba(197,198,199,0.7);">Complete your player card with your gaming stats, achievements, and social links to get noticed by scouts.</span>
+    </div>
+    <div style="margin-bottom: 20px;">
+        <strong style="color: #66FCF1; font-size: 15px;">🏆 COMPETE AND WIN</strong><br>
+        <span style="font-size: 14px; color: rgba(197,198,199,0.7);">Register for official tournaments to prove your skills against the best players in the circuit.</span>
+    </div>
+    <div>
+        <strong style="color: #66FCF1; font-size: 15px;">🤝 GET SIGNED</strong><br>
+        <span style="font-size: 14px; color: rgba(197,198,199,0.7);">Perform well and receive official digital contract offers from verified professional organizations.</span>
+    </div>
+</div>
+
+<div class="btn-wrapper">
+    <a href="{{ login_url|default:'http://egamescout.com/login' }}" class="cta-button">ACCESS DASHBOARD</a>
+</div>
+
+<p style="text-align: center; font-size: 13px; color: rgba(197,198,199,0.5); margin-top: 24px;">GLHF from the entire E-Game Scout Team!</p>
+{% endblock %}

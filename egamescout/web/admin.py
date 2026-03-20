@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Organization, ScorecardAnalysis, Tournament, Player, Transaction, PlayerNotification, AdminNotification, PlayerTask, OrganizationNotification 
+from web.models import Organization, ScorecardAnalysis, Tournament, Player, Transaction, PlayerNotification, AdminNotification, PlayerTask, OrganizationNotification 
 
 class ArchivedFilter(admin.SimpleListFilter):
     title = 'Archived Status'

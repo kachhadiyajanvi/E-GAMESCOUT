@@ -1,0 +1,912 @@
+{% extends 'web/Organization/dashboard_base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="dashboard-container rounded-2xl p-8 min-h-[calc(100vh-80px)]">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm mb-6">
+        <a href="{% url 'organizer_dashboard' %}"
+            class="text-white/60 hover:text-white transition-colors flex items-center gap-1.5 font-bold">
+            <i class="fa-solid fa-home text-xs"></i>
+            <span>Home</span>
+        </a>
+        <span class="text-white/30">/</span>
+        <span class="text-accent-cyan font-bold tracking-wider">Bidding Hub</span>
+    </nav>
+
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div class="px-4 py-3 rounded-xl text-sm font-bold border flex items-center gap-2 
+            {% if message.tags == 'success' %}bg-green-500/10 border-green-500/30 text-green-400{% else %}bg-red-500/10 border-red-500/30 text-red-400{% endif %}">
+            <i class="fa-solid {% if message.tags == 'success' %}fa-check-circle{% else %}fa-circle-exclamation{% endif %}"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Notifications Section -->
+    <div id="org-notifications-view" class="hidden">
+    {% if notifications %}
+    <div class="mb-6 bg-white/5 border border-white/10 rounded-xl p-4">
+        <h3 class="text-white font-bold mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-bell text-yellow-400"></i> New Notifications
+        </h3>
+        <div class="space-y-2">
+            {% for n in notifications %}
+            <div class="flex items-start gap-3 p-3 bg-black/20 rounded-lg border border-white/5">
+                <div class="w-2 h-2 mt-1.5 rounded-full bg-accent-cyan shrink-0"></div>
+                <div>
+                    <p class="text-sm text-white/80">{{ n.message }}</p>
+                    <p class="text-[10px] text-white/30 font-mono mt-1">{{ n.created_at|timesince }} ago</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    </div>
+
+    <!-- Bidding Season Countdown Banner -->
+    {% if all_sold %}
+    <div class="mb-6 p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center gap-4 animate-pulse">
+        <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0 border border-orange-500/40">
+            <i class="fa-solid fa-store-slash text-orange-400 text-xl"></i>
+        </div>
+        <div>
+            <h3 class="font-bold text-orange-400 text-lg font-display tracking-wide">ALL PLAYERS SOLD OUT</h3>
+            <p class="text-orange-400/60 text-sm font-mono">The auction pool is empty. Bidding participation is disabled.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if bidding_status %}
+    <div class="relative overflow-hidden rounded-xl mb-6 p-5 border
+        {% if bidding_status.is_active %}bg-green-500/5 border-green-500/20{% else %}bg-yellow-500/5 border-yellow-500/20{% endif %}">
+        <div class="absolute top-0 right-0 w-64 h-64 {% if bidding_status.is_active %}bg-green-500/5{% else %}bg-yellow-500/5{% endif %} rounded-full blur-[80px] pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-2
+                    {% if bidding_status.is_active %}text-green-400{% else %}text-yellow-400{% endif %}">
+                    <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
+                    {% if bidding_status.is_active %}Live Bidding Session{% else %}Bidding Currently Closed{% endif %}
+                </p>
+                
+                <h3 class="text-white font-display font-bold text-xl tracking-wider">
+                    {% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}System Auto-Scheduled{% endif %}
+                </h3>
+                
+                {% if bidding_status.is_active %}
+                <p class="text-white/50 text-xs font-mono mt-1">
+                    <span class="text-white/30">Bidding Closes:</span>
+                    <span class="text-white font-bold">{{ bidding_status.end_date|date:"d F Y" }}</span>
+                </p>
+                {% else %}
+                <p class="text-white/50 text-xs font-mono mt-1">
+                    <span class="text-white/30">Next Bidding Season Starts:</span>
+                    <span class="text-yellow-500 font-bold border-b border-yellow-500/30 pb-0.5">{{ bidding_status.next_season_start|date:"d F Y" }}</span>
+                </p>
+                {% endif %}
+            </div>
+            
+            <div class="text-right shrink-0">
+                <p class="text-[10px] text-white/40 uppercase tracking-widest mb-1 font-bold">{% if bidding_status.is_active %}Time Remaining{% else %}Opens In{% endif %}</p>
+                {% if bidding_status.is_active %}
+                <span class="text-3xl font-display font-bold text-green-400 tabular-nums"
+                    id="orgPageCountdown"
+                    data-start="{{ bidding_status.start_date|date:'c' }}"
+                    data-end="{{ bidding_status.end_date|date:'c' }}"
+                    data-active="true">--:--:--</span>
+                {% else %}
+                <span class="text-3xl font-display font-bold text-yellow-500 tabular-nums"
+                    id="orgPageCountdown"
+                    data-start="{{ bidding_status.next_season_start|date:'c' }}"
+                    data-active="false">--:--:--</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Header & Wallet -->
+
+    <div class="page-header shrink-0">
+        <div class="page-title-group">
+            <div class="page-title-decorator"></div>
+            <div>
+                <h1 class="page-title">
+                    AUCTION <span class="page-title-highlight">HUB</span>
+                </h1>
+                {% if bidding_status.is_active %}
+                <p class="page-subtitle flex items-center gap-2 mt-1">
+                    <span class="w-2 h-2 rounded-full bg-accent-cyan animate-pulse"></span>
+                    Active Season: <strong class="text-accent-cyan">{{ bidding_status.season_name }}</strong>
+                </p>
+                {% else %}
+                <p class="page-subtitle flex items-center gap-2 mt-1">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                    <span class="text-red-400 font-bold">Bidding is closed.</span> Next season starts <strong class="text-yellow-500">{{ bidding_status.next_season_start|date:"d M Y" }}</strong>.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="page-actions shrink-0 glass-panel p-4 rounded-xl border border-yellow-500/30 flex items-center gap-4 group">
+            <div class="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/50 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-wallet text-yellow-400 text-xl"></i>
+            </div>
+            <div>
+                <p class="text-[10px] text-yellow-500/70 font-bold uppercase tracking-widest">Available Balance</p>
+                <h3 class="text-2xl font-display font-bold text-yellow-400 tracking-wider">₹{{ wallet_balance|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bidding Pre-start View -->
+    <div id="bidding-not-started-view" class="hidden flex-col items-center justify-center p-10 bg-black/40 border border-white/5 rounded-2xl mb-6">
+        <div class="w-20 h-20 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-5 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+            <i class="fa-solid fa-hourglass-half text-4xl text-blue-400 animate-pulse"></i>
+        </div>
+        <h2 class="font-display font-black text-3xl md:text-4xl text-white tracking-widest uppercase mb-2 text-center">Bidding Has Not Started</h2>
+        <p class="text-white/40 text-sm font-mono mb-8 text-center max-w-lg">The active bidding season has not begun yet. Below are the scheduled upcoming seasons.</p>
+
+        <!-- System Seasons (Always Shown - Hardcoded) -->
+        <div class="w-full max-w-3xl mb-3">
+            <p class="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em] mb-3 text-center flex items-center justify-center gap-2">
+                <i class="fa-solid fa-gear text-blue-500/50"></i> System Scheduled Seasons
+            </p>
+        </div>
+        <div class="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <!-- January Season (System) -->
+            <div class="relative bg-[#0a0a0e] border border-blue-500/20 rounded-2xl p-6 overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-[8px] text-blue-400/50 font-bold uppercase tracking-widest mb-0.5">System Season · Winter</p>
+                        <h3 class="font-display font-bold text-white text-base tracking-wider">E-Scout Jan Auction</h3>
+                    </div>
+                    <span class="shrink-0 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center gap-1">
+                        <i class="fa-solid fa-robot"></i> Auto Start
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-green-500/5 border border-green-500/10 rounded-xl p-3 text-center">
+                        <p class="text-[9px] text-green-400/60 font-bold uppercase tracking-widest mb-1.5"><i class="fa-solid fa-rocket mr-1"></i>Opens</p>
+                        <p class="text-white font-bold text-xs">01 Jan</p>
+                        <p class="text-green-400 font-mono text-[10px] font-bold mt-0.5">12:00 AM</p>
+                    </div>
+                    <div class="bg-red-500/5 border border-red-500/10 rounded-xl p-3 text-center">
+                        <p class="text-[9px] text-red-400/60 font-bold uppercase tracking-widest mb-1.5"><i class="fa-solid fa-flag-checkered mr-1"></i>Closes</p>
+                        <p class="text-white font-bold text-xs">31 Jan</p>
+                        <p class="text-red-400 font-mono text-[10px] font-bold mt-0.5">11:59 PM</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- July Season (System) -->
+            <div class="relative bg-[#0a0a0e] border border-blue-500/20 rounded-2xl p-6 overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-[8px] text-blue-400/50 font-bold uppercase tracking-widest mb-0.5">System Season · Summer</p>
+                        <h3 class="font-display font-bold text-white text-base tracking-wider">E-Scout Jul Auction</h3>
+                    </div>
+                    <span class="shrink-0 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center gap-1">
+                        <i class="fa-solid fa-robot"></i> Auto Start
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-green-500/5 border border-green-500/10 rounded-xl p-3 text-center">
+                        <p class="text-[9px] text-green-400/60 font-bold uppercase tracking-widest mb-1.5"><i class="fa-solid fa-rocket mr-1"></i>Opens</p>
+                        <p class="text-white font-bold text-xs">01 Jul</p>
+                        <p class="text-green-400 font-mono text-[10px] font-bold mt-0.5">12:00 AM</p>
+                    </div>
+                    <div class="bg-red-500/5 border border-red-500/10 rounded-xl p-3 text-center">
+                        <p class="text-[9px] text-red-400/60 font-bold uppercase tracking-widest mb-1.5"><i class="fa-solid fa-flag-checkered mr-1"></i>Closes</p>
+                        <p class="text-white font-bold text-xs">31 Jul</p>
+                        <p class="text-red-400 font-mono text-[10px] font-bold mt-0.5">11:59 PM</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manually Added Admin Seasons (Dynamic from DB) -->
+        {% if upcoming_seasons %}
+        <div class="w-full max-w-3xl mb-3">
+            <p class="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em] mb-3 text-center flex items-center justify-center gap-2">
+                <i class="fa-solid fa-user-shield text-yellow-500/50"></i> Admin-Added Seasons
+            </p>
+        </div>
+        <div class="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+            {% for season in upcoming_seasons %}
+            <div class="relative bg-[#0a0a0e] border rounded-2xl p-6 overflow-hidden
+                {% if season.auto_start %}border-blue-500/20{% else %}border-yellow-500/20{% endif %}">
+                <div class="absolute top-0 left-0 w-full h-0.5
+                    {% if season.auto_start %}bg-gradient-to-r from-transparent via-blue-500 to-transparent
+                    {% else %}bg-gradient-to-r from-transparent via-yellow-500 to-transparent{% endif %}">
+                </div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-display font-bold text-white text-base tracking-wider truncate pr-2">{{ season.name }}</h3>
+                    {% if season.auto_start %}
+                    <span class="shrink-0 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center gap-1">
+                        <i class="fa-solid fa-robot"></i> Auto Start
+                    </span>
+                    {% else %}
+                    <span class="shrink-0 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 flex items-center gap-1">
+                        <i class="fa-solid fa-user-shield"></i> Manual Start
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-green-500/5 border border-green-500/10 rounded-xl p-3 text-center">
+                        <p class="text-[9px] text-green-400/60 font-bold uppercase tracking-widest mb-1.5"><i class="fa-solid fa-rocket mr-1"></i>Opens</p>
+                        {% if season.start_date %}
+                        <p class="text-white font-bold text-xs">{{ season.start_date|date:"d M Y" }}</p>
+                        <p class="text-green-400 font-mono text-[10px] font-bold mt-0.5">{{ season.start_date|date:"h:i A" }}</p>
+                        {% else %}
+                        <p class="text-white/30 text-xs italic">TBA</p>
+                        {% endif %}
+                    </div>
+                    <div class="bg-red-500/5 border border-red-500/10 rounded-xl p-3 text-center">
+                        <p class="text-[9px] text-red-400/60 font-bold uppercase tracking-widest mb-1.5"><i class="fa-solid fa-flag-checkered mr-1"></i>Closes</p>
+                        {% if season.end_date %}
+                        <p class="text-white font-bold text-xs">{{ season.end_date|date:"d M Y" }}</p>
+                        <p class="text-red-400 font-mono text-[10px] font-bold mt-0.5">{{ season.end_date|date:"h:i A" }}</p>
+                        {% else %}
+                        <p class="text-white/30 text-xs italic">TBA</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if not season.auto_start %}
+                <div class="mt-4 flex items-center gap-2 p-2.5 bg-yellow-500/5 border border-yellow-500/15 rounded-lg">
+                    <span class="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse shrink-0"></span>
+                    <span class="text-[10px] text-yellow-400/80 font-bold uppercase tracking-widest">Waiting for Admin to Open</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Info Badges -->
+        <div class="flex flex-wrap justify-center gap-3 mb-8">
+            <div class="px-4 py-2 rounded-full bg-white/5 border border-white/10 flex items-center gap-2">
+                <i class="fa-solid fa-users-viewfinder text-white/60 text-xs"></i>
+                <span class="text-xs font-bold text-white/80 uppercase tracking-widest">Player Pool: {{ available_players|length }}</span>
+            </div>
+            <div class="px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20 flex items-center gap-2">
+                <i class="fa-solid fa-wallet text-yellow-500 text-xs"></i>
+                <span class="text-xs font-bold text-yellow-400 uppercase tracking-widest">Wallet: ₹{{ wallet_balance|intcomma }}</span>
+            </div>
+        </div>
+
+        <!-- Countdown for nearest auto-start season -->
+        {% if bidding_status and bidding_status.auto_start and bidding_status.start_date %}
+        <p class="text-white/30 text-xs font-mono mb-4 uppercase tracking-widest">Countdown to <span class="text-blue-400">{{ bidding_status.season_name }}</span></p>
+        <div class="flex items-center justify-center flex-wrap gap-4 text-center">
+            <div class="bg-black/60 border border-white/10 rounded-xl p-4 min-w-[80px]">
+                <span id="countdown-days" class="block font-display font-black text-3xl text-white">00</span>
+                <span class="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1 block">Days</span>
+            </div>
+            <div class="text-2xl text-white/20 font-black hidden sm:block">:</div>
+            <div class="bg-black/60 border border-white/10 rounded-xl p-4 min-w-[80px]">
+                <span id="countdown-hours" class="block font-display font-black text-3xl text-white">00</span>
+                <span class="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1 block">Hours</span>
+            </div>
+            <div class="text-2xl text-white/20 font-black hidden sm:block">:</div>
+            <div class="bg-black/60 border border-white/10 rounded-xl p-4 min-w-[80px]">
+                <span id="countdown-minutes" class="block font-display font-black text-3xl text-white">00</span>
+                <span class="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1 block">Mins</span>
+            </div>
+            <div class="text-2xl text-white/20 font-black hidden sm:block">:</div>
+            <div class="bg-black/60 border border-white/10 rounded-xl p-4 min-w-[80px]">
+                <span id="countdown-seconds" class="block font-display font-black text-3xl text-blue-400 tabular-nums">00</span>
+                <span class="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1 block">Secs</span>
+            </div>
+        </div>
+        {% else %}
+        <!-- Hidden stubs so JS doesn't error -->
+        <div class="hidden">
+            <span id="countdown-days">00</span>
+            <span id="countdown-hours">00</span>
+            <span id="countdown-minutes">00</span>
+            <span id="countdown-seconds">00</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Main Grid -->
+    <div id="bidding-active-view" class="grid grid-cols-1 lg:grid-cols-3 gap-6 hidden">
+
+        <!-- Left Column -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Available Players Pool -->
+            <div class="glass-panel rounded-xl p-6 border border-white/5 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-accent-cyan/5 rounded-full blur-[50px] pointer-events-none"></div>
+
+                <!-- Section Header -->
+                <div class="flex items-center justify-between mb-6 relative z-10">
+                    <h3 class="font-display font-bold text-lg text-white flex items-center gap-3 tracking-wider">
+                        <i class="fa-solid fa-users-viewfinder text-accent-cyan"></i>
+                        AVAILABLE PLAYERS
+                        <span class="w-6 h-6 flex items-center justify-center bg-white/10 text-white/60 text-xs font-bold rounded-full">{{ available_players|length }}</span>
+                    </h3>
+                </div>
+
+                {% if available_players %}
+                <div class="relative z-10">
+                    <!-- Players Grid (initial 4) -->
+                    <div id="playersGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for player in available_players %}
+                        <div class="player-card {% if forloop.counter > 4 %}hidden{% endif %} bg-black/40 border border-white/10 rounded-xl p-4 hover:border-accent-cyan/40 transition-all group flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-full bg-brand-gray overflow-hidden border border-white/10 shrink-0">
+                                {% if player.profile_photo %}
+                                <img src="{{ player.profile_photo.url }}" class="w-full h-full object-cover">
+                                {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-white/5 text-white/30 text-xl font-bold">
+                                    {{ player.full_name|make_list|first }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-white text-sm group-hover:text-accent-cyan transition-colors">{{ player.full_name }}</h4>
+                                <p class="text-[10px] text-accent-cyan/70 font-mono mb-3">@{{ player.username|default:"No IGN" }}</p>
+                                {% if bidding_status.is_active and not all_sold %}
+                                    {% if player.id in org_active_bid_player_ids %}
+                                    <div class="w-full py-1.5 px-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400/70 rounded text-[10px] font-bold text-center uppercase tracking-wider cursor-not-allowed">
+                                        <i class="fa-solid fa-clock mr-1"></i> Bid Active
+                                    </div>
+                                    {% else %}
+                                    <button onclick="openBidModal({{ player.id }}, '{{ player.full_name|escapejs }}')"
+                                        class="w-full py-1.5 px-3 bg-white/5 hover:bg-accent-cyan hover:text-black border border-white/10 hover:border-accent-cyan rounded text-xs font-bold transition-all text-center uppercase tracking-wider">
+                                        Place Bid
+                                    </button>
+                                    {% endif %}
+                                {% elif all_sold %}
+                                <div class="w-full py-1.5 px-3 bg-orange-500/10 border border-orange-500/20 text-orange-400/70 rounded text-[10px] font-bold text-center uppercase tracking-wider cursor-not-allowed">
+                                    <i class="fa-solid fa-store-slash mr-1"></i> Sold Out
+                                </div>
+                                {% else %}
+                                <div class="w-full py-1.5 px-3 bg-red-500/10 border border-red-500/20 text-red-400/70 rounded text-[10px] font-bold text-center uppercase tracking-wider cursor-not-allowed">
+                                    <i class="fa-solid fa-lock mr-1"></i> Closed
+                                </div>
+                                {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- View More / View Less button (only if > 4 players) -->
+                    {% if available_players|length > 4 %}
+                    <div class="mt-5 pt-4 border-t border-white/5">
+                        <button id="togglePlayersBtn" onclick="togglePlayers()" class="group w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-sm font-bold text-white/50 hover:text-white transition-all">
+                            <span id="toggleLabel">See all {{ available_players|length }} available players</span>
+                            <i id="toggleIcon" class="fa-solid fa-chevron-down text-xs group-hover:text-white/80 transition-transform duration-300"></i>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% else %}
+                <div class="p-8 text-center bg-black/20 rounded-xl border border-white/5">
+                    <i class="fa-solid fa-ghost text-4xl text-white/10 mb-3"></i>
+                    <p class="text-sm font-bold text-white/40">No players available in the pool right now.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- My Roster -->
+            <div class="glass-panel rounded-xl p-6 border border-white/5">
+                <h3 class="font-display font-bold text-lg text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-purple-400"></i>
+                    MY AUCTION ROSTER
+                </h3>
+                {% if my_roster %}
+                <div class="overflow-x-auto rounded-xl border border-white/5 bg-black/20">
+                    <table class="w-full text-left text-sm whitespace-nowrap md:whitespace-normal">
+                        <thead class="text-xs text-brand-light/40 uppercase bg-black/60 font-display">
+                            <tr>
+                                <th class="px-4 py-3 font-bold border-b border-white/5">Player</th>
+                                <th class="px-4 py-3 font-bold border-b border-white/5">Joined</th>
+                                <th class="px-4 py-3 font-bold text-right border-b border-white/5">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            {% for p in my_roster %}
+                            <tr class="hover:bg-white/5 transition-colors group">
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-brand-gray overflow-hidden border border-white/10 shrink-0">
+                                            {% if p.profile_photo %}
+                                            <img src="{{ p.profile_photo.url }}" class="w-full h-full object-cover">
+                                            {% else %}
+                                            <div class="w-full h-full flex items-center justify-center bg-white/5 text-white/30 text-xs font-bold">{{ p.full_name|make_list|first }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <span class="font-bold text-white text-sm group-hover:text-purple-400 transition-colors">{{ p.full_name }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-xs text-brand-light/50 font-mono">{{ p.created_at|date:"M d, Y" }}</td>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="{% url 'org_view_player_profile' p.id %}" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 hover:bg-purple-500/20 text-white/40 hover:text-purple-400 transition-colors" title="View Profile">
+                                        <i class="fa-solid fa-user text-xs"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8 bg-black/20 rounded-xl border border-white/5 border-dashed">
+                    <i class="fa-solid fa-users-slash text-2xl text-white/10 mb-2"></i>
+                    <p class="text-white/30 text-sm font-mono">You haven't purchased any players yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column (Bids Dashboard) -->
+        <div class="lg:col-span-1 space-y-6">
+            
+            <!-- Negotiation Bids -->
+            {% if negotiation_bids %}
+            <div class="glass-panel rounded-xl p-6 border border-yellow-500/30 h-auto flex flex-col bg-yellow-500/5">
+                <h3 class="font-display font-bold text-lg text-yellow-400 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-handshake-simple text-yellow-500"></i>
+                    NEGOTIATIONS
+                    <span class="ml-auto text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">{{ negotiation_bids|length }}</span>
+                </h3>
+                <div class="space-y-3">
+                    {% for bid in negotiation_bids %}
+                    <div class="p-4 rounded-xl border border-yellow-500/20 bg-black/40 hover:border-yellow-500/40 transition-colors">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold text-white text-sm">{{ bid.player.full_name }}</h4>
+                            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                                Action Needed
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-[10px] text-white/40 font-mono mb-0.5">Current Offer</p>
+                                <p class="text-sm font-bold text-white tracking-wider font-display">₹{{ bid.amount|intcomma }}</p>
+                            </div>
+                            {% with negotiation=bid.negotiations.last %}
+                            <div>
+                                <p class="text-[10px] text-accent-cyan/60 font-mono mb-0.5 text-right">Counter Offer</p>
+                                <p class="text-sm font-bold text-accent-cyan tracking-wider font-display">₹{{ negotiation.counter_amount|intcomma }}</p>
+                            </div>
+                            {% endwith %}
+                        </div>
+
+                        <!-- Negotiation Actions -->
+                        {% with negotiation=bid.negotiations.last %}
+                        <div class="mt-3 pt-3 border-t border-white/10">
+                            {% if negotiation.message %}
+                                <p class="text-[10px] text-white/60 italic mb-2">"{{ negotiation.message }}"</p>
+                            {% endif %}
+                            <div class="flex gap-2 mt-2">
+                                <form method="POST" action="{% url 'org_respond_negotiation' negotiation.id 'accept' %}" style="flex:1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full py-2 bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/30 rounded text-center text-[10px] font-bold uppercase transition-all">
+                                        Accept Offer
+                                    </button>
+                                </form>
+                                <form method="POST" action="{% url 'org_respond_negotiation' negotiation.id 'reject' %}" style="flex:1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full py-2 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 rounded text-center text-[10px] font-bold uppercase transition-all">
+                                        Reject
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endwith %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Active Bids -->
+            <div class="glass-panel rounded-xl p-6 border border-white/5 h-auto flex flex-col">
+                <h3 class="font-display font-bold text-lg text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-gavel text-accent-pink"></i>
+                    ACTIVE BIDS
+                    <span class="ml-auto text-xs bg-white/10 text-white/60 px-2 py-0.5 rounded-full">{{ active_bids|length }}</span>
+                </h3>
+                <div class="space-y-3 overflow-y-auto pr-1 custom-scrollbar max-h-[400px]">
+                    {% for bid in active_bids %}
+                    <div class="p-4 rounded-xl border border-white/5 bg-black/40 hover:border-white/10 transition-colors">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold text-white text-sm">{{ bid.player.full_name }}</h4>
+                            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                Pending
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-[10px] text-brand-light/40 font-mono mb-0.5">Bid Amount</p>
+                                <p class="text-sm font-bold text-yellow-400 tracking-wider font-display">₹{{ bid.amount|intcomma }}</p>
+                            </div>
+                            <p class="text-[10px] text-brand-light/30">{{ bid.created_at|date:"M d, H:i" }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    {% if not negotiation_bids and not rejected_bids %}
+                    <div class="text-center py-8">
+                        <i class="fa-solid fa-receipt text-3xl text-white/10 mb-3"></i>
+                        <p class="text-sm text-white/40 font-mono">No bids placed yet.</p>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-white/20 text-xs italic">No active bids</div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Rejected Bids -->
+            {% if rejected_bids %}
+            <div class="glass-panel rounded-xl p-6 border border-red-500/20 h-auto flex flex-col opacity-80 hover:opacity-100 transition-opacity">
+                <h3 class="font-display font-bold text-lg text-red-400 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-ban text-red-500"></i>
+                    REJECTED BIDS
+                    <span class="ml-auto text-xs bg-red-500/10 text-red-400 px-2 py-0.5 rounded-full">{{ rejected_bids|length }}</span>
+                </h3>
+                <div class="space-y-3 overflow-y-auto pr-1 custom-scrollbar max-h-[300px]">
+                    {% for bid in rejected_bids %}
+                    <div class="p-4 rounded-xl border border-red-500/10 bg-black/40 hover:border-red-500/20 transition-colors">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold text-white/70 text-sm">{{ bid.player.full_name }}</h4>
+                            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400/70 border border-red-500/20">
+                                Rejected
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-[10px] text-brand-light/40 font-mono mb-0.5">Refunded</p>
+                                <p class="text-sm font-bold text-white/50 tracking-wider font-display line-through">₹{{ bid.amount|intcomma }}</p>
+                            </div>
+                            <p class="text-[10px] text-brand-light/30">{{ bid.created_at|date:"M d" }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+    </div> <!-- End Main Grid Active View -->
+</div>
+
+<!-- ======= PLACE BID MODAL ======= -->
+<div id="bidModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeBidModal()"></div>
+
+    <!-- Modal Box -->
+    <div class="relative w-full max-w-md bg-[#0d1117] border border-accent-cyan/30 rounded-2xl p-6 shadow-[0_0_40px_rgba(102,252,241,0.15)] z-10">
+        <!-- Close -->
+        <button onclick="closeBidModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors">
+            <i class="fa-solid fa-times text-sm"></i>
+        </button>
+
+        <!-- Header -->
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-accent-cyan/10 border border-accent-cyan/30 flex items-center justify-center">
+                <i class="fa-solid fa-gavel text-accent-cyan"></i>
+            </div>
+            <div>
+                <h2 class="font-display font-bold text-white text-lg tracking-wider">PLACE BID</h2>
+                <p id="modalPlayerName" class="text-accent-cyan text-xs font-mono"></p>
+            </div>
+        </div>
+
+        <!-- Wallet Info -->
+        <div class="flex items-center justify-between bg-yellow-500/5 border border-yellow-500/20 rounded-xl px-4 py-3 mb-5">
+            <div class="flex items-center gap-2 text-yellow-400/70 text-xs font-mono">
+                <i class="fa-solid fa-wallet"></i>
+                <span>Your Balance</span>
+            </div>
+            <span class="text-yellow-400 font-bold font-display tracking-wider">₹{{ wallet_balance|intcomma }}</span>
+        </div>
+
+        <!-- Form -->
+        <form id="bidForm" method="POST" action="">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">Bid Amount (₹)</label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 font-bold text-sm">₹</span>
+                    <input
+                        type="number"
+                        name="amount"
+                        id="bidAmount"
+                        min="1"
+                        max="{{ wallet_balance }}"
+                        placeholder="Enter your bid..."
+                        required
+                        class="w-full bg-black/40 border border-white/10 focus:border-accent-cyan/60 focus:ring-1 focus:ring-accent-cyan/30 rounded-xl pl-9 pr-4 py-3 text-white font-bold text-lg outline-none transition-all"
+                    >
+                </div>
+                <p class="text-[10px] text-white/30 font-mono mt-1.5">Maximum: ₹{{ wallet_balance|intcomma }}</p>
+            </div>
+
+            <!-- Quick Amount Buttons -->
+            <div class="flex flex-wrap gap-2 mb-5">
+                <span class="text-[10px] text-white/30 uppercase font-bold tracking-widest w-full">Quick Select:</span>
+                <button type="button" onclick="setQuickBid(100)" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white/60 hover:text-white transition-all">₹100</button>
+                <button type="button" onclick="setQuickBid(500)" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white/60 hover:text-white transition-all">₹500</button>
+                <button type="button" onclick="setQuickBid(1000)" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white/60 hover:text-white transition-all">₹1,000</button>
+                <button type="button" onclick="setQuickBid(5000)" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white/60 hover:text-white transition-all">₹5,000</button>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closeBidModal()"
+                    class="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-bold text-white/50 hover:text-white transition-all">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="flex-1 py-3 rounded-xl bg-accent-cyan/20 hover:bg-accent-cyan hover:text-black border border-accent-cyan/40 hover:border-accent-cyan text-accent-cyan text-sm font-bold uppercase tracking-wider transition-all">
+                    <i class="fa-solid fa-gavel mr-1.5"></i> Confirm Bid
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    // ---- Load More Players Logic ----
+    function togglePlayers() {
+        const hiddenCards = document.querySelectorAll('.player-card.hidden');
+        let count = 0;
+        const BATCH_SIZE = 4;
+
+        hiddenCards.forEach((card) => {
+            if (count < BATCH_SIZE) {
+                card.classList.remove('hidden');
+                card.classList.add('animate-fade-in-up'); // Added animation class if available or just remove hidden
+                count++;
+            }
+        });
+
+        const remaining = document.querySelectorAll('.player-card.hidden').length;
+        const btn = document.getElementById('togglePlayersBtn');
+        const label = document.getElementById('toggleLabel');
+        
+        if (remaining === 0) {
+            btn.classList.add('hidden');
+        } else {
+            label.textContent = `View More (${remaining} remaining)`;
+        }
+    }
+
+    // Initialize Button Label on Load
+    document.addEventListener('DOMContentLoaded', () => {
+        const remaining = document.querySelectorAll('.player-card.hidden').length;
+        const label = document.getElementById('toggleLabel');
+        if (label && remaining > 0) {
+            label.textContent = `View More (${remaining} remaining)`;
+        }
+        
+        // Check for Sold Out State
+        {% if all_sold %}
+        showToast('All players are sold out', 'warning');
+        {% endif %}
+    });
+
+    // ---- Toast Notification ----
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        const colorClass = type === 'warning' ? 'text-orange-400' : 'text-accent-cyan';
+        const borderClass = type === 'warning' ? 'border-orange-500/30' : 'border-accent-cyan/30';
+        
+        toast.className = `fixed top-24 right-5 z-50 bg-[#0B0C10] border ${borderClass} shadow-lg rounded-xl p-4 flex items-center gap-3 transition-opacity duration-500`;
+        toast.style.opacity = '0';
+        toast.innerHTML = `
+            <i class="fa-solid ${type === 'warning' ? 'fa-circle-exclamation' : 'fa-info-circle'} ${colorClass} text-xl"></i>
+            <div>
+                <h4 class="font-bold text-white text-sm uppercase tracking-wider">${type}</h4>
+                <p class="text-white/60 text-xs">${message}</p>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        // Animate In
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+        });
+        
+        // Remove after 4s
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    }
+
+    // ---- Bid Modal ----
+    function openBidModal(playerId, playerName) {
+        document.getElementById('bidModal').classList.remove('hidden');
+        document.getElementById('modalPlayerName').textContent = playerName;
+        document.getElementById('bidAmount').value = '';
+        document.getElementById('bidForm').action = '/organization/bidding/place/' + playerId + '/';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeBidModal() {
+        document.getElementById('bidModal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function setQuickBid(amount) {
+        document.getElementById('bidAmount').value = amount;
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeBidModal();
+    });
+
+    // Start Time Logic
+    (function() {
+        const notStartedView = document.getElementById('bidding-not-started-view');
+        const activeView = document.getElementById('bidding-active-view');
+        const orgNotificationsView = document.getElementById('org-notifications-view');
+        const autoStart = {{ bidding_status.auto_start|yesno:"true,false" }};
+        const isActiveBackend = {{ bidding_status.is_active|yesno:"true,false" }};
+        const countdownContainer = notStartedView ? notStartedView.querySelector('.flex.items-center.justify-center.flex-wrap.gap-4') : null;
+
+        if (isActiveBackend) {
+            // Already active in backend, show active view immediately
+            if (activeView) {
+                activeView.classList.remove('hidden');
+                activeView.classList.add('grid');
+            }
+            if (notStartedView) {
+                notStartedView.classList.add('hidden');
+                notStartedView.classList.remove('flex');
+            }
+            if (orgNotificationsView) {
+                orgNotificationsView.classList.remove('hidden');
+            }
+            return;
+        }
+
+        {% if bidding_status and bidding_status.start_date %}
+        const startTimeStr = "{{ bidding_status.start_date|date:'c' }}";
+        const startTime = new Date(startTimeStr).getTime();
+        
+        function updateStartCountdown() {
+            if (isActiveBackend) return; // if it was marked active server side, we don't need UI countdown
+            
+            const now = new Date().getTime();
+            const diff = startTime - now;
+            
+            if (diff > 0) {
+                if (notStartedView) {
+                    notStartedView.classList.remove('hidden');
+                    notStartedView.classList.add('flex');
+                }
+                if (activeView) {
+                    activeView.classList.add('hidden');
+                    activeView.classList.remove('grid');
+                }
+                
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                const elD = document.getElementById('countdown-days');
+                const elH = document.getElementById('countdown-hours');
+                const elM = document.getElementById('countdown-minutes');
+                const elS = document.getElementById('countdown-seconds');
+                
+                if (elD) elD.textContent = String(d).padStart(2, '0');
+                if (elH) elH.textContent = String(h).padStart(2, '0');
+                if (elM) elM.textContent = String(m).padStart(2, '0');
+                if (elS) elS.textContent = String(s).padStart(2, '0');
+            } else {
+                if (autoStart) {
+                    // Auto switch if autoStart is true
+                    if (notStartedView) {
+                        notStartedView.classList.add('hidden');
+                        notStartedView.classList.remove('flex');
+                    }
+                    if (activeView) {
+                        activeView.classList.remove('hidden');
+                        activeView.classList.add('grid'); // Main wrapper uses grid
+                    }
+                    if (orgNotificationsView) {
+                        orgNotificationsView.classList.remove('hidden');
+                    }
+                } else {
+                    // Manual start required, just show waiting text and hide countdown
+                    if (notStartedView) {
+                        notStartedView.classList.remove('hidden');
+                        notStartedView.classList.add('flex');
+                        const desc = document.getElementById('not-started-desc');
+                        if (desc) desc.textContent = "Waiting for an administrator to manually start this bidding season.";
+                    }
+                    if (countdownContainer) {
+                        countdownContainer.classList.add('hidden');
+                    }
+                    if (activeView) {
+                        activeView.classList.add('hidden');
+                        activeView.classList.remove('grid');
+                    }
+                }
+            }
+        }
+        setInterval(updateStartCountdown, 1000);
+        updateStartCountdown();
+        {% else %}
+        // Fallback if no start date
+        if (activeView && isActiveBackend) {
+            activeView.classList.remove('hidden');
+            activeView.classList.add('grid');
+            if (notStartedView) {
+                notStartedView.classList.add('hidden');
+                notStartedView.classList.remove('flex');
+            }
+            if (orgNotificationsView) {
+                orgNotificationsView.classList.remove('hidden');
+            }
+        } else {
+             if (notStartedView) {
+                notStartedView.classList.remove('hidden');
+                notStartedView.classList.add('flex');
+                if (countdownContainer) countdownContainer.classList.add('hidden');
+            }
+            if (activeView) {
+                activeView.classList.add('hidden');
+                activeView.classList.remove('grid');
+            }
+        }
+        {% endif %}
+    })();
+
+    // Org Bidding Page Countdown
+    (function() {
+        const el = document.getElementById('orgPageCountdown');
+        if (!el) return;
+        const endStr = el.dataset.end;
+        const startStr = el.dataset.start;
+        const isActive = el.dataset.active === 'true';
+        if (!endStr && !startStr) return;
+        function pad(n) { return String(n).padStart(2, '0'); }
+        function updateOrgPageCountdown() {
+            const now = new Date();
+            if (isActive && endStr) {
+                const end = new Date(endStr);
+                const diff = end - now;
+                if (diff <= 0) { el.textContent = 'Season Ended'; return; }
+                const h = Math.floor(diff / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                const d = Math.floor(h / 24);
+                el.textContent = d > 0
+                    ? `${d}d ${pad(h%24)}:${pad(m)}:${pad(s)}`
+                    : `${pad(h)}:${pad(m)}:${pad(s)}`;
+            } else if (!isActive && startStr) {
+                const start = new Date(startStr);
+                const diff = start - now;
+                if (diff <= 0) { el.textContent = 'Starting…'; return; }
+                const h = Math.floor(diff / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                const d = Math.floor(h / 24);
+                el.textContent = d > 0
+                    ? `${d}d ${pad(h%24)}:${pad(m)}:${pad(s)}`
+                    : `${pad(h)}:${pad(m)}:${pad(s)}`;
+            }
+        }
+        setInterval(updateOrgPageCountdown, 1000);
+        updateOrgPageCountdown();
+    })();
+</script>
+{% endblock %}

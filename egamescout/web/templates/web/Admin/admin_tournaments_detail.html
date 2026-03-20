@@ -1,35 +1,23 @@
-{% extends 'web/Admin/admin_dashboard.html' %}
+{% extends 'web/Admin/admin_page_base.html' %}
 
-{% block content %}
-<div class="flex-1 overflow-y-auto p-8 space-y-8">
+{% block header_icon %}<i class="fa-solid fa-trophy text-purple-500"></i>{% endblock %}
+{% block header_title %}TOURNAMENTS{% endblock %}
+{% block header_desc %}Manage competitive events and matches.{% endblock %}
 
-    <!-- Breadcrumbs -->
-    <div class="flex items-center gap-2 text-xs text-white/40 mb-2 font-mono">
-        <a href="{% url 'admin_dashboard' %}" class="hover:text-brand-blue transition-colors">Dashboard</a>
-        <span>/</span>
-        <span class="text-white">Tournaments</span>
-    </div>
+{% block header_actions %}
+<form method="GET" action="{% url 'admin_tournaments_detail' %}" class="relative w-full sm:w-64 group">
+    <input type="text" name="q" value="{{ request.GET.q|default_if_none:'' }}" placeholder="Search Tournaments..." class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder-white/30">
+    <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-purple-500 transition-colors text-xs bg-transparent border-none cursor-pointer">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
+</form>
+{% endblock %}
 
-    <!-- Page Title -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="font-display font-bold text-3xl text-white mb-1">TOURNAMENTS</h1>
-            <p class="text-white/40 text-sm">Manage competitive events and matches.</p>
-        </div>
-        <div class="flex gap-4">
-            <div class="relative w-64 group">
-                <input type="text" placeholder="Search Tournaments..."
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder-white/30">
-                <i
-                    class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-purple-500 transition-colors text-xs"></i>
-            </div>
-
-        </div>
-    </div>
+{% block page_content %}
 
     <!-- Tournaments Table -->
-    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl">
-        <table class="w-full text-left border-collapse">
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
+        <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
             <thead>
                 <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
                     <th class="p-4 font-bold">Tournament</th>
@@ -150,7 +138,7 @@
 
     <!-- View Tournament Modal -->
     <div id="viewTournamentModal"
-        class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div
             class="bg-brand-gray border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
             <!-- Header -->
@@ -236,7 +224,7 @@
 
     <!-- Edit Status Modal -->
     <div id="statusTournamentModal"
-        class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="bg-brand-gray border border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl relative">
             <button type="button" onclick="closeModal('statusTournamentModal')"
                 class="absolute top-4 right-4 text-white/40 hover:text-white">
@@ -283,7 +271,7 @@
 
     <!-- Delete Confirmation Modal -->
     <div id="deleteTournamentModal"
-        class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="bg-brand-gray border border-red-500/30 rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
@@ -305,8 +293,9 @@
         </div>
     </div>
 
-</div>
+{% endblock %}
 
+{% block page_scripts %}
 <script>
     function openTournamentViewModal(btn) {
         const data = btn.dataset;

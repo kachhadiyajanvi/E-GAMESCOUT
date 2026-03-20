@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from .models import Organization, Tournament
+from web.models import Organization, Tournament
 
 class OrganizationAuthTest(TestCase):
     def setUp(self):

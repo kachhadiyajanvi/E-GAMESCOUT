@@ -1,0 +1,23 @@
+{% extends 'web/emails/base_email.html' %}
+{% block title %}Auction Reminder – E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle">⏳</div>
+</div>
+
+<h1>AUCTION <span style="color: #66FCF1;">REMINDER</span></h1>
+
+<p>Hello <strong style="color:#ffffff;">{{ user.username }}</strong>,</p>
+
+<p>This is a reminder that the highly anticipated <strong>{{ season.name|default:"Auction Season" }}</strong> will begin in <strong>2 days</strong>.</p>
+
+<div class="highlight-box">
+    <div style="font-size: 18px; color: #ffffff; text-align: center; margin-bottom: 10px;">PREPARE YOUR STRATEGY</div>
+    <p style="font-size: 14px; text-align: center; color: rgba(255,255,255,0.7); margin: 0;"> Ensure your wallet is topped up and your roster slots are managed before the bidding war starts.</p>
+</div>
+
+<div class="btn-wrapper">
+    <a href="{{ dashboard_url|default:'http://127.0.0.1:8000/dashboard/' }}" class="cta-button">GO TO DASHBOARD</a>
+</div>
+{% endblock %}

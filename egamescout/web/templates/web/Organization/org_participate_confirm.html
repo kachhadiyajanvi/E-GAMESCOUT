@@ -1,0 +1,239 @@
+{% extends 'web/Organization/dashboard_base.html' %}
+
+{% block title %}Confirm Participation - E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-5xl p-6 lg:p-8">
+    <!-- Breadcrumb -->
+    <nav class="page-breadcrumb">
+        <a href="{% url 'org_upcoming_tournaments' %}" class="breadcrumb-link !font-bold">
+            <i class="fa-solid fa-arrow-left text-xs"></i>
+            <span>Back to Tournaments</span>
+        </a>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-10 text-center">
+        <h1 class="page-title mb-2">
+            Join <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">{{ tournament.Name }}</span>
+        </h1>
+        <p class="page-subtitle text-gray-400">Select your active roster of 5 players to participate in this tournament.</p>
+    </div>
+
+    <form method="post" action="{% url 'org_join_tournament' tournament.Tournament_ID %}">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Tournament Details Card -->
+            <div class="lg:col-span-1">
+                <div class="glass-panel p-6 rounded-2xl border border-orange-500/20 bg-gradient-to-b from-orange-500/5 to-transparent relative overflow-hidden sticky top-28">
+                    <!-- Glow effect -->
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-orange-500/10 blur-[40px] rounded-full"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 bg-orange-500/10 border border-orange-500/30 rounded-xl flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(249,115,22,0.15)]">
+                            <i class="fa-solid fa-trophy text-orange-500 text-xl"></i>
+                        </div>
+                        
+                        <h2 class="text-xl font-display font-bold text-white mb-1">{{ tournament.Name }}</h2>
+                        <p class="text-sm text-gray-400 mb-6 border-b border-white/5 pb-4">Organized by <span class="text-white">{{ tournament.Organization_Name.Organization_Name }}</span></p>
+                        
+                        <div class="space-y-4 mb-8">
+                            <div>
+                                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Game</p>
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-gamepad text-gray-400 w-4 text-center"></i>
+                                    <span class="text-white font-medium">{{ tournament.Game_Name.Game_Name }}</span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Date</p>
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-regular fa-calendar-alt text-gray-400 w-4 text-center"></i>
+                                    <span class="text-white font-medium">{{ tournament.start_date|date:"F j, Y" }}</span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Format</p>
+                                <div class="flex items-center gap-2">
+                                    {% if tournament.is_offline %}
+                                    <i class="fa-solid fa-location-dot text-purple-400 w-4 text-center"></i>
+                                    <span class="text-white font-medium">Offline ({{ tournament.venue|default:"TBA" }})</span>
+                                    {% else %}
+                                    <i class="fa-solid fa-wifi text-green-400 w-4 text-center"></i>
+                                    <span class="text-white font-medium">Online</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="pt-4 mt-2 border-t border-white/5">
+                                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Prize Pool</p>
+                                <span class="text-xl font-display font-bold text-yellow-400">₹{{ tournament.PrizePool|floatformat:0 }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black/40 rounded-xl p-4 border border-white/5">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs text-gray-400 font-bold tracking-wider uppercase">Selected Players</span>
+                                <span id="selection-counter" class="text-xs font-bold px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 border border-orange-500/30">0/5</span>
+                            </div>
+                            <!-- Progress Bar -->
+                            <div class="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                                <div id="selection-progress" class="bg-gradient-to-r from-orange-400 to-red-500 h-1.5 rounded-full w-0 transition-all duration-300"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Player Selection Grid -->
+            <div class="lg:col-span-2">
+                <div class="glass-panel p-6 rounded-2xl h-full border border-white/5">
+                    <div class="flex justify-between items-center mb-6 pb-4 border-b border-white/5">
+                        <h3 class="text-lg font-display font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-users text-accent-cyan"></i> Select Active Roster
+                        </h3>
+                        <p class="text-xs text-gray-400 italic">Choose exactly 5 players</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="player-grid">
+                        {% for p in players %}
+                        <label class="cursor-pointer group block relative">
+                            <!-- Hidden Checkbox -->
+                            <input type="checkbox" name="players" value="{{ p.id }}" class="peer hidden player-checkbox" onchange="updateSelection()">
+                            
+                            <!-- Card Design -->
+                            <div class="p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all 
+                                      peer-checked:border-orange-500 peer-checked:bg-orange-500/10 peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500/50">
+                                
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="w-10 h-10 rounded border border-white/20 p-0.5 shrink-0 bg-[#1F2833] flex items-center justify-center overflow-hidden">
+                                        {% if p.player and p.player.profile_photo %}
+                                            <img src="{{ p.player.profile_photo.url }}" class="w-full h-full object-cover">
+                                        {% else %}
+                                            <i class="fa-solid fa-user text-gray-500"></i>
+                                        {% endif %}
+                                    </div>
+                                    <!-- Selection Indicator -->
+                                    <div class="w-5 h-5 rounded-full border border-gray-500 flex items-center justify-center transition-all bg-black/40
+                                                peer-checked:group-[]:bg-orange-500 peer-checked:group-[]:border-orange-500 text-transparent peer-checked:group-[]:text-white">
+                                        <i class="fa-solid fa-check text-[10px]"></i>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-white font-bold leading-tight">{{ p.name }}</h4>
+                                    <p class="text-[10px] text-gray-400 font-mono mt-0.5">ID: {{ p.game_id }}</p>
+                                </div>
+                                
+                                <div class="mt-3 pt-3 border-t border-white/5">
+                                    {% if p.status_label == 'Purchased via Bidding' %}
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                            <i class="fa-solid fa-gavel text-[8px]"></i> ACQUIRED VIA BID
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase bg-green-500/10 text-green-400 border border-green-500/20">
+                                            <i class="fa-solid fa-plus text-[8px]"></i> ADDED MANUALLY
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Submit Action -->
+                    <div class="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+                        <p id="selection-warning" class="text-sm font-bold text-red-400 hidden flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Select exactly 5 players
+                        </p>
+                        <p id="selection-success" class="text-sm font-bold text-green-400 hidden flex items-center gap-2">
+                            <i class="fa-solid fa-check-circle"></i> Squad Complete!
+                        </p>
+                        
+                        <button type="submit" id="submit-btn" disabled
+                            class="ml-auto px-8 py-3.5 rounded-xl font-bold font-display uppercase tracking-wider transition-all flex items-center gap-3 shadow-xl opacity-50 cursor-not-allowed
+                                   bg-gray-800 text-gray-400">
+                            Confirm Squad <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function updateSelection() {
+        const checkboxes = document.querySelectorAll('.player-checkbox');
+        const checkedBoxes = document.querySelectorAll('.player-checkbox:checked');
+        const count = checkedBoxes.length;
+        
+        // Update Counter
+        const counter = document.getElementById('selection-counter');
+        counter.textContent = `${count}/5`;
+        
+        // Update Progress Bar
+        const progress = document.getElementById('selection-progress');
+        const percent = Math.min((count / 5) * 100, 100);
+        progress.style.width = `${percent}%`;
+        
+        // Handle styling based on exact 5 target
+        const btn = document.getElementById('submit-btn');
+        const warning = document.getElementById('selection-warning');
+        const success = document.getElementById('selection-success');
+        
+        if (count === 5) {
+            // Colors
+            counter.classList.replace('text-orange-400', 'text-green-400');
+            counter.classList.replace('bg-orange-500/20', 'bg-green-500/20');
+            counter.classList.replace('border-orange-500/30', 'border-green-500/30');
+            progress.classList.replace('from-orange-400', 'from-green-400');
+            progress.classList.replace('to-red-500', 'to-emerald-500');
+            
+            // Messages
+            warning.classList.add('hidden');
+            success.classList.remove('hidden');
+            
+            // Enable Button
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-800', 'text-gray-400');
+            btn.classList.add('bg-orange-500', 'text-white', 'hover:bg-orange-600', 'shadow-[0_0_20px_rgba(249,115,22,0.4)]');
+            
+            // Disable remaining checkboxes
+            checkboxes.forEach(cb => {
+                if (!cb.checked) cb.disabled = true;
+            });
+        } else {
+            // Colors
+            counter.classList.replace('text-green-400', 'text-orange-400');
+            counter.classList.replace('bg-green-500/20', 'bg-orange-500/20');
+            counter.classList.replace('border-green-500/30', 'border-orange-500/30');
+            progress.classList.replace('from-green-400', 'from-orange-400');
+            progress.classList.replace('to-emerald-500', 'to-red-500');
+            
+            // Messages
+            if (count > 0) {
+                warning.classList.remove('hidden');
+            } else {
+                warning.classList.add('hidden');
+            }
+            success.classList.add('hidden');
+            
+            // Disable Button
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-800', 'text-gray-400');
+            btn.classList.remove('bg-orange-500', 'text-white', 'hover:bg-orange-600', 'shadow-[0_0_20px_rgba(249,115,22,0.4)]');
+            
+            // Re-enable all checkboxes
+            checkboxes.forEach(cb => {
+                cb.disabled = false;
+            });
+        }
+    }
+    
+    // Initialize
+    updateSelection();
+</script>
+{% endblock %}

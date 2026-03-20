@@ -24,9 +24,14 @@
                 <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-2">
                     Registered Email
                 </label>
-                {{ form.email }}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-accent-cyan transition-colors">
+                        <i class="fa-solid fa-envelope"></i>
+                    </div>
+                    {{ form.email }}
+                </div>
                 {% if form.email.errors %}
-                <p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>
+                <p class="text-red-500 text-xs mt-1 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ form.email.errors.0 }}</p>
                 {% endif %}
             </div>
 
@@ -54,20 +59,23 @@
         if (emailInput) {
             // Create error element
             const errorP = document.createElement('p');
-            errorP.className = "text-red-500 text-xs mt-1 font-bold hidden";
-            emailInput.parentNode.appendChild(errorP);
+            errorP.className = "text-red-500 text-xs mt-2 font-bold hidden items-center gap-1";
+            // Append after the relative group wrapper
+            emailInput.parentNode.parentNode.appendChild(errorP);
 
             emailInput.addEventListener('input', function () {
                 const email = this.value;
                 const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
                 if (email.length > 0 && !emailPattern.test(email)) {
-                    errorP.textContent = "Please enter a valid email address.";
+                    errorP.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Please enter a valid email address.';
                     errorP.classList.remove('hidden');
+                    errorP.classList.add('flex');
                     this.classList.add('border-red-500');
                     this.classList.add('text-red-500');
                 } else {
                     errorP.classList.add('hidden');
+                    errorP.classList.remove('flex');
                     this.classList.remove('border-red-500');
                     this.classList.remove('text-red-500');
                 }

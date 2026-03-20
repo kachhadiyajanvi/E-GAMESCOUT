@@ -1,213 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'web/Admin/admin_page_base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EGAME SCOUT | DASHBOARD</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+{% block header_icon %}<i class="fa-solid fa-chart-line"></i>{% endblock %}
+{% block header_title %}DASHBOARD{% endblock %}
+{% block header_desc %}Welcome back, here's what's happening today.{% endblock %}
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
+{% block header_actions %}
+<button class="bg-brand-blue/10 border border-brand-blue/50 text-brand-blue hover:bg-brand-blue hover:text-black px-6 py-2.5 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
+    <i class="fa-solid fa-download"></i> Export Report
+</button>
+{% endblock %}
 
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #00f3ff;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #00c2cc;
-        }
-
-        /* Select Dropdown Theme */
-        select option {
-            background-color: #0a0a0a;
-            color: white;
-            padding: 10px;
-        }
-
-        select:focus option:checked {
-            background: #00f3ff linear-gradient(0deg, #00f3ff 0%, #00f3ff 100%);
-            color: black;
-        }
-    </style>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Rajdhani', 'sans-serif'],
-                        display: ['Orbitron', 'sans-serif'],
-                    },
-                    colors: {
-                        'brand-blue': '#00f3ff',     /* Neon Cyan */
-                        'brand-pink': '#ec4899',     /* Hot Pink */
-                        'brand-dark': '#0a0a0a',     /* Off Black */
-                    },
-                    keyframes: {
-                        pulse: {
-                            '0%, 100%': { opacity: '1' },
-                            '50%': { opacity: '0.6' },
-                        }
-                    },
-                    animation: {
-                        'pulse': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
-                }
-            }
-        }
-    </script>
-    {% load static %}
-</head>
-
-<body class="bg-black text-white font-sans overflow-hidden h-screen flex relative">
-
-    <!-- Ambient Background Glows -->
-    <div
-        class="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vh] bg-brand-blue/10 blur-[150px] rounded-full pointer-events-none">
-    </div>
-    <div
-        class="fixed bottom-[-10%] right-[-10%] w-[40vw] h-[40vh] bg-brand-pink/10 blur-[150px] rounded-full pointer-events-none">
-    </div>
-    <div
-        class="fixed inset-0 z-0 overflow-hidden pointer-events-none opacity-[0.05] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay">
-    </div>
-
-    <!-- Sidebar -->
-    <aside class="w-64 h-full bg-white/5 backdrop-blur-md border-r border-white/10 flex flex-col z-10 shrink-0">
-        <!-- Sidebar Header -->
-        <div class="h-20 flex items-center justify-center border-b border-white/5">
-            <div class="flex items-center gap-3">
-                <i
-                    class="fa-solid fa-gamepad text-2xl text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-pink"></i>
-                <div class="flex flex-col leading-none">
-                    <span class="font-display font-bold text-lg tracking-widest text-white">EGAME</span>
-                    <span
-                        class="font-display font-bold text-lg tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-pink">SCOUT</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Navigation -->
-        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-            <p class="text-[10px] text-white/40 font-bold tracking-widest mb-4 px-2">MAIN MENU</p>
-
-            <!-- Dashboard Link -->
-            <a href="{% url 'admin_dashboard' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
-                <i class="fa-solid fa-chart-line w-5 text-center"></i>
-                <span class="font-bold tracking-wider text-sm">Dashboard</span>
-            </a>
-
-            <!-- Players Link -->
-            <a href="{% url 'admin_players_detail' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_players_detail' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
-                <i
-                    class="fa-solid fa-users w-5 text-center {% if request.resolver_match.url_name != 'admin_players_detail' %}group-hover:text-brand-pink{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Players</span>
-            </a>
-
-            <!-- Organizations Link -->
-            <a href="{% url 'admin_organization_detail' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_organization_detail' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
-                <i
-                    class="fa-solid fa-sitemap w-5 text-center {% if request.resolver_match.url_name != 'admin_organization_detail' %}group-hover:text-brand-blue{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Organizations</span>
-            </a>
-
-            <!-- Tournaments Link -->
-            <a href="{% url 'admin_tournaments_detail' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_tournaments_detail' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
-                <i
-                    class="fa-solid fa-trophy w-5 text-center {% if request.resolver_match.url_name != 'admin_tournaments_detail' %}group-hover:text-purple-500{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Tournaments</span>
-            </a>
-
-
-
-            <a href="{% url 'admin_analytics' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_analytics' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
-                <i
-                    class="fa-solid fa-chart-pie w-5 text-center {% if request.resolver_match.url_name != 'admin_analytics' %}group-hover:text-brand-pink{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Analytics</span>
-            </a>
-        </nav>
-
-        <!-- Logout Section -->
-        <div class="p-4 border-t border-white/5">
-            <a href="{% url 'admin_logout' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all group">
-                <i
-                    class="fa-solid fa-right-from-bracket w-5 text-center group-hover:text-red-500 transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Log Out</span>
-            </a>
-        </div>
-    </aside>
-
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative z-10">
-        <!-- Top Header -->
-        <header class="h-20 border-b border-white/5 px-8 flex items-center justify-end bg-black/20 backdrop-blur-sm">
-
-
-            <!-- Right Actions -->
-            <div class="flex items-center gap-6">
-                <!-- Notifications -->
-                <div class="relative cursor-pointer group">
-                    <div class="absolute -top-2 -right-2 min-w-5 h-5 bg-brand-pink rounded-full border-2 border-black px-1 flex items-center justify-center hidden"
-                        id="notificationBadge">
-                        <span class="text-[10px] font-bold text-white leading-none" id="notificationCount">0</span>
-                    </div>
-                    <i class="fa-regular fa-bell text-xl text-white/60 group-hover:text-white transition-colors"></i>
-                </div>
-
-                <!-- Profile -->
-                <a href="{% url 'admin_profile' %}"
-                    class="flex items-center gap-3 pl-6 border-l border-white/10 cursor-pointer group">
-                    <div class="text-right hidden md:block">
-                        <p
-                            class="text-sm font-bold text-white leading-none group-hover:text-brand-blue transition-colors">
-                            Admin User</p>
-                        <p class="text-[10px] text-white/40 font-bold tracking-wider">SUPER ADMIN</p>
-                    </div>
-                    <div
-                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue to-purple-600 p-[2px] group-hover:shadow-[0_0_15px_rgba(0,243,255,0.3)] transition-all">
-                        <img src="https://ui-avatars.com/api/?name=Admin+User&background=000&color=fff"
-                            class="w-full h-full rounded-[10px] object-cover" alt="Profile">
-                    </div>
-                </a>
-
-            </div>
-        </header>
-
-        {% block content %}
-        <!-- Dashboard Content -->
-        <div class="flex-1 overflow-y-auto p-8 space-y-8">
-
-
-            <!-- Page Title -->
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="font-display font-bold text-3xl text-white mb-1">DASHBOARD</h1>
-                    <p class="text-white/40 text-sm">Welcome back, here's what's happening today.</p>
-                </div>
-                <button
-                    class="bg-brand-blue/10 border border-brand-blue/50 text-brand-blue hover:bg-brand-blue hover:text-black px-6 py-2.5 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-download"></i> Export Report
-                </button>
-            </div>
+{% block page_content %}
 
             <!-- Stats Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -280,6 +83,37 @@
                 </div>
             </div>
 
+            <!-- Auto Bidding Season Widget -->
+            {% if bidding_status %}
+            <a href="{% url 'admin_bidding_dashboard' %}"
+                class="flex items-center gap-4 p-5 bg-white/5 border rounded-2xl backdrop-blur-sm hover:bg-white/8 transition-all group relative overflow-hidden
+                {% if bidding_status.is_active %}border-green-500/30 hover:border-green-500/50{% else %}border-yellow-500/20 hover:border-yellow-500/40{% endif %}">
+                <div class="absolute top-0 right-0 w-32 h-32 {% if bidding_status.is_active %}bg-green-500/5{% else %}bg-yellow-500/5{% endif %} rounded-full blur-[50px] pointer-events-none"></div>
+                
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 relative z-10
+                    {% if bidding_status.is_active %}bg-green-500/10 border border-green-500/30{% else %}bg-yellow-500/10 border border-yellow-500/30{% endif %}">
+                    <i class="fa-solid {% if bidding_status.is_active %}fa-gavel text-green-400{% else %}fa-clock text-yellow-400{% endif %} text-xl"></i>
+                </div>
+                
+                <div class="relative z-10 min-w-0">
+                    <p class="text-[10px] font-bold uppercase tracking-widest {% if bidding_status.is_active %}text-green-400{% else %}text-yellow-400{% endif %} flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
+                        {% if bidding_status.is_active %}Bidding Live{% else %}Bidding Closed{% endif %}
+                    </p>
+                    <p class="text-white font-bold font-display tracking-wide mt-0.5 truncate">
+                        {% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}System Auto-Scheduled{% endif %}
+                    </p>
+                    {% if bidding_status.is_active %}
+                    <p class="text-white/40 text-[11px] font-mono">Closes: {{ bidding_status.end_date|date:"d M Y" }}</p>
+                    {% else %}
+                    <p class="text-white/40 text-[11px] font-mono">Next Season: {{ bidding_status.next_season_start|date:"d M Y" }}</p>
+                    {% endif %}
+                </div>
+                
+                <i class="fa-solid fa-chevron-right text-white/20 group-hover:text-white/50 transition-colors text-xs ml-auto relative z-10"></i>
+            </a>
+            {% endif %}
+
             <!-- Content Grid (Charts & Table) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Registration Trend Chart -->
@@ -330,15 +164,18 @@
                 </div>
             </div>
 
-        </div>
+{% endblock %}
 
+{% block page_scripts %}
         <!-- Chart Data -->
+        {% if chart_labels %}
         {{ chart_labels|json_script:"chart-labels-data" }}
         {{ player_trend|json_script:"player-trend-data" }}
         {{ org_trend|json_script:"org-trend-data" }}
+        {% endif %}
 
-        <!-- Chart.js Integration -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block scripts %}
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 // Parse Data from JSON Scripts
@@ -424,266 +261,8 @@
                 });
             });
         </script>
-        {% endblock %}
-    </main>
-
-    <!-- Notification Modal -->
-    <div id="notificationModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop">
-        </div>
-
-        <!-- Modal Content -->
-        <div class="bg-[#0a0a0a] border border-white/10 rounded-2xl w-full max-w-lg p-6 relative z-10 scale-95 opacity-0 transition-all duration-300 shadow-[0_0_50px_rgba(0,243,255,0.15)] group"
-            id="modalContent">
-            <!-- Glow Effects -->
-            <div
-                class="absolute -top-10 -left-10 w-32 h-32 bg-brand-blue/20 blur-[60px] rounded-full pointer-events-none">
-            </div>
-            <div
-                class="absolute -bottom-10 -right-10 w-32 h-32 bg-brand-pink/20 blur-[60px] rounded-full pointer-events-none">
-            </div>
-
-            <div class="flex justify-between items-center mb-6 relative">
-                <div>
-                    <h3 class="font-display font-bold text-xl text-white">SEND NOTIFICATION</h3>
-                    <p class="text-xs text-white/40">Compose a message</p>
-                </div>
-                <button onclick="closeNotificationModal()"
-                    class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <form onsubmit="sendNotification(event)" class="space-y-4 relative">
-                <!-- Recipient Select -->
-                <div>
-                    <label class="block text-xs font-bold text-white/40 mb-1 uppercase tracking-wider">Recipient</label>
-                    <select id="recipientSelect"
-                        class="w-full bg-[#0a0a0a] border border-white/20 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none cursor-pointer transition-all shadow-inner">
-                        <!-- Options populated by JS -->
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-white/40 mb-1 uppercase tracking-wider">Subject</label>
-                    <input type="text"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-white/20"
-                        placeholder="Important Update..." required>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-white/40 mb-1 uppercase tracking-wider">Message</label>
-                    <textarea rows="4"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-white/20 resize-none"
-                        placeholder="Type your message here..." required></textarea>
-                </div>
-
-                <div class="flex gap-4">
-                    <div class="flex-1">
-                        <label
-                            class="block text-xs font-bold text-white/40 mb-1 uppercase tracking-wider">Priority</label>
-                        <select
-                            class="w-full bg-[#0a0a0a] border border-white/20 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none cursor-pointer transition-all shadow-inner">
-                            <option>Normal</option>
-                            <option>High</option>
-                            <option>Low</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="pt-2 flex justify-end gap-3">
-                    <button type="button" onclick="closeNotificationModal()"
-                        class="px-4 py-2 rounded-lg text-sm font-bold text-white/60 hover:text-white hover:bg-white/5 transition-all">Cancel</button>
-                    <button type="submit"
-                        class="px-6 py-2 rounded-lg bg-gradient-to-r from-brand-blue to-cyan-600 text-black font-bold text-sm hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition-all flex items-center gap-2">
-                        <i class="fa-regular fa-paper-plane"></i> Send Message
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Enhanced Toast Notification Container -->
-    <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none">
-        <!-- Toasts will be injected here -->
-    </div>
-
-    <script>
-        const modal = document.getElementById('notificationModal');
-        const modalContent = document.getElementById('modalContent');
-        const modalBackdrop = document.getElementById('modalBackdrop');
-        const recipientSelect = document.getElementById('recipientSelect');
-        const toastContainer = document.getElementById('toast-container');
-
-        // --- Notification Polling System ---
-        let lastNotificationCount = 0;
-
-        function pollNotifications() {
-            fetch('{% url "get_notifications" %}')
-                .then(response => {
-                    if (response.status === 403 || response.status === 401) {
-                        // User logged out or not authorized
-                        return null;
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (!data) return;
-
-                    const count = data.count;
-                    const notifications = data.notifications;
-
-                    // Update Bell Badge
-                    const bellBadge = document.getElementById('notificationBadge');
-                    const countSpan = document.getElementById('notificationCount');
-                    if (count > 0) {
-                        bellBadge.classList.remove('hidden');
-                        countSpan.innerText = count > 9 ? '9+' : count;
-                    } else {
-                        bellBadge.classList.add('hidden');
-                    }
-
-                    // Show Toast for NEW notifications
-                    // Simple logic: if count increased or we have ids we haven't seen. 
-                    // For simplicity in this demo, we'll show the latest one if count > lastNotificationCount
-                    if (count > lastNotificationCount && notifications.length > 0) {
-                        const latest = notifications[0];
-                        showToast(latest);
-                    }
-                    lastNotificationCount = count;
-                })
-                .catch(err => console.error('Notification Poll Error:', err));
-        }
-
-        // Start Polling (every 10 seconds)
-        setInterval(pollNotifications, 10000);
-        // Initial call
-        pollNotifications();
-
-        function showToast(notification) {
-            // Create Toast Element
-            const toast = document.createElement('div');
-            toast.className = `
-                pointer-events-auto
-                bg-white/80 backdrop-blur-md border border-white/20 
-                rounded-full p-2 pr-6
-                shadow-[0_8px_30px_rgb(0,0,0,0.12)]
-                flex items-center gap-4
-                transform transition-all duration-500 ease-out translate-x-20 opacity-0
-            `;
-
-            // Icon Color based on type
-            let iconColor = 'text-green-500 bg-green-100';
-            let iconClass = 'fa-check';
-
-            if (notification.type === 'PLAYER') {
-                iconColor = 'text-brand-blue bg-blue-100';
-                iconClass = 'fa-user-plus';
-            } else if (notification.type === 'ORG') {
-                iconColor = 'text-purple-500 bg-purple-100';
-                iconClass = 'fa-building';
-            }
-
-            toast.innerHTML = `
-                <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center shrink-0">
-                    <i class="fa-solid ${iconClass} text-lg"></i>
-                </div>
-                <div class="flex-1 min-w-[200px]">
-                    <h4 class="font-bold text-gray-900 text-sm leading-tight">${notification.type} Alert</h4>
-                    <p class="text-xs text-gray-500 truncate max-w-[250px]">${notification.message}</p>
-                </div>
-                <button onclick="markAsRead(this, ${notification.id})" 
-                    class="bg-gray-900 hover:bg-black text-white text-xs font-bold px-4 py-2 rounded-full transition-colors whitespace-nowrap">
-                    Got It!
-                </button>
-            `;
-
-            // Append to container
-            toastContainer.appendChild(toast);
-
-            // Animate In
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-x-20', 'opacity-0');
-            });
-
-            // Auto-dismiss logic (optional, but requested "Got It" suggests manual)
-            // setTimeout(() => { dismissToast(toast); }, 5000);
-        }
-
-        function markAsRead(btn, id) {
-            fetch(`/admin/api/notifications/read/${id}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                }
-            }).then(response => {
-                if (response.ok) {
-                    dismissToast(btn.closest('div'));
-                    lastNotificationCount = Math.max(0, lastNotificationCount - 1); // Decrement local count
-                    pollNotifications(); // Refresh state
-                }
-            });
-        }
-
-        function dismissToast(toastElement) {
-            toastElement.classList.add('translate-x-20', 'opacity-0');
-            setTimeout(() => {
-                toastElement.remove();
-            }, 500);
-        }
-
-
-        // --- Existing Modal Logic ---
-        function openNotificationModal(type) {
-            recipientSelect.innerHTML = '';
-            const players = ['John Doe', 'Alice Smith', 'Mike K.'];
-            const orgs = ['Red Dragon Esports', 'Phantom Gaming', 'Voltage Squad'];
-
-            let options = [];
-            if (type === 'players') { options = ['All Players', ...players]; }
-            else if (type === 'orgs') { options = ['All Organizations', ...orgs]; }
-
-            options.forEach(opt => {
-                const el = document.createElement('option');
-                el.textContent = opt;
-                el.value = opt;
-                recipientSelect.appendChild(el);
-            });
-
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modalBackdrop.classList.remove('opacity-0');
-                modalContent.classList.remove('scale-95', 'opacity-0');
-                modalContent.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
-
-        function closeNotificationModal() {
-            modalBackdrop.classList.add('opacity-0');
-            modalContent.classList.remove('scale-100', 'opacity-100');
-            modalContent.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
-        }
-
-        function sendNotification(e) {
-            e.preventDefault();
-            closeNotificationModal();
-            // Simulate sending text (Toast for admin's action)
-            showToast({
-                id: 0,
-                type: 'SYSTEM',
-                message: 'Notification sent successfully to recipients.'
-            });
-            e.target.reset();
-        }
-
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal || e.target === modalBackdrop) { closeNotificationModal(); }
-        });
-    </script>
-
-</body>
-
-</html>
+        {% if chart_labels %}
+        <!-- Chart.js Integration -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        {% endif %}
+{% endblock %}

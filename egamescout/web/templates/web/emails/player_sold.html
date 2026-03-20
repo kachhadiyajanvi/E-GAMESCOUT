@@ -1,0 +1,36 @@
+{% extends 'web/emails/base_email.html' %}
+{% block theme_class %}theme-green{% endblock %}
+{% block title %}Player Sold – E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle">✍️</div>
+</div>
+
+<h1>YOU HAVE BEEN <span style="color: #22C55E;">SIGNED</span></h1>
+
+<p>Hello <strong style="color:#ffffff;">{{ player.full_name|default:player.username }}</strong>,</p>
+
+<p>Congratulations! You have been officially signed by <strong style="color: #ffffff;">{{ org.Organization_Name }}</strong>.</p>
+
+<div class="highlight-box">
+    <div style="font-size: 20px; color: #22C55E; margin-bottom: 5px; font-weight: 700; text-align: center;">WELCOME TO THE TEAM</div>
+    
+    <div style="background: rgba(34, 197, 94, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2); margin-top: 15px;">
+        <div style="margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 8px;">
+            <span style="color: rgba(255,255,255,0.6); font-size: 13px; text-transform: uppercase;">Final Contract</span>
+            <span style="float: right; color: #22C55E; font-weight: 700; font-family: 'Orbitron', monospace;">₹{{ bid.Current_Bid_Price }}</span>
+        </div>
+        <div>
+            <span style="color: rgba(255,255,255,0.6); font-size: 13px; text-transform: uppercase;">Status</span>
+            <span style="float: right; color: #22C55E; font-weight: 700;">SOLD</span>
+        </div>
+    </div>
+</div>
+
+<p>The organization has been notified and the transaction is being processed. Prepare for your upcoming matches!</p>
+
+<div class="btn-wrapper">
+    <a href="{{ dashboard_url|default:'http://127.0.0.1:8000/player/dashboard/' }}" class="cta-button">OPEN DASHBOARD</a>
+</div>
+{% endblock %}

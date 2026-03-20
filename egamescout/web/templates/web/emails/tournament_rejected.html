@@ -1,0 +1,31 @@
+{% extends 'web/emails/base_email.html' %}
+{% block theme_class %}theme-red{% endblock %}
+{% block title %}Tournament Rejected – E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle">🚫</div>
+</div>
+
+<h1>TOURNAMENT <span style="color: #EF4444;">REJECTED</span></h1>
+
+<p>Greetings <strong style="color:#ffffff;">{{ tournament.Organization_Name.Organization_Name }}</strong>,</p>
+
+<p>Your recent tournament submission has been reviewed by the E-GameScout administrative team. Unfortunately, it has been rejected and cannot be published at this time.</p>
+
+<div class="highlight-box">
+    <div style="font-size: 20px; color: #ffffff; font-weight: 700; margin-bottom: 5px; font-family: 'Orbitron', sans-serif;">{{ tournament.Name }}</div>
+    <div style="font-size: 14px; color: #EF4444; margin-bottom: 15px; font-family: monospace; letter-spacing: 1px;">ID: #{{ tournament.Tournament_ID }}</div>
+    
+    <div style="background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); padding: 15px; border-radius: 6px; margin-top: 15px;">
+        <div style="font-size: 12px; color: #EF4444; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Reason for Rejection:</div>
+        <p style="font-size: 15px; color: #ffffff; margin: 0; font-style: italic;">"{{ tournament.admin_rejection_reason|default:'Not provided.' }}"</p>
+    </div>
+</div>
+
+<p><strong>Next Steps:</strong> Please review the reason for rejection above. You can login to your dashboard, edit the tournament details to resolve the issues, and resubmit it for approval.</p>
+
+<div class="btn-wrapper">
+    <a href="{{ login_url|default:'http://127.0.0.1:8000/organization/dashboard/' }}" class="cta-button">EDIT TOURNAMENT</a>
+</div>
+{% endblock %}

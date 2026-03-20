@@ -1,0 +1,42 @@
+{% extends 'web/Player/player_base.html' %}
+{% load static %}
+
+{% block title %}Reactivate Account | E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-md">
+    <div class="glass-card p-8 rounded-xl border border-white/10 relative overflow-hidden group hover:border-accent-cyan/30 transition-all duration-300">
+        <div class="mb-8 text-center">
+            <div class="w-16 h-16 bg-accent-cyan/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-accent-cyan/20">
+                <i class="fa-solid fa-user-lock text-3xl text-accent-cyan"></i>
+            </div>
+            <h2 class="text-3xl font-display font-bold text-white mb-2">Account Deactivated</h2>
+            <p class="text-gray-400 text-sm">
+                Welcome back, <span class="text-white font-bold">{{ player.full_name }}</span>.<br>
+                Your account is currently deactivated.
+            </p>
+        </div>
+
+        <div class="space-y-4 text-center">
+            <p class="text-sm text-gray-500 mb-6">Do you want to reactivate your account and log in?</p>
+            
+            <form action="{% url 'player_reactivate_confirm' %}" method="post" class="space-y-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="confirm">
+                <input type="hidden" name="email" value="{{ player.email }}">
+                <button type="submit" class="w-full py-3 px-4 bg-accent-cyan hover:bg-white hover:text-black text-black text-sm font-bold uppercase tracking-wider rounded-lg transition-all shadow-[0_0_15px_rgba(102,252,241,0.2)]">
+                    Yes, Reactivate Account
+                </button>
+            </form>
+            
+            <form action="{% url 'player_reactivate_confirm' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="cancel">
+                <button type="submit" class="w-full py-3 px-4 bg-white/5 hover:bg-white/10 text-white text-sm font-bold uppercase tracking-wider rounded-lg transition-colors border border-white/10">
+                    Cancel (Go Home)
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

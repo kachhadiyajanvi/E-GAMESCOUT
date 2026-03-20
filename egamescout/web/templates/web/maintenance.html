@@ -1,0 +1,52 @@
+{% extends 'web/base.html' %}
+
+{% block title %}System Maintenance — E-GameScout{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-[#0a0f1c] relative overflow-hidden py-24">
+    <!-- E-GameScout Decorative Grid Background -->
+    <div class="absolute inset-0 z-0">
+        <div
+            class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] [transform:perspective(1000px)_rotateX(60deg)_translateY(-100px)_translateZ(-200px)]">
+        </div>
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-blue/20 rounded-full blur-[120px] opacity-50 mix-blend-screen pointer-events-none">
+        </div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-2xl px-6 text-center">
+        <!-- Maintenance Icon -->
+        <div class="mb-8 relative inline-block">
+            <div class="absolute inset-0 bg-yellow-500/20 blur-2xl rounded-full"></div>
+            <i
+                class="fa-solid fa-person-digging text-8xl text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)] relative z-10 animate-bounce"></i>
+        </div>
+
+        <h1 class="font-display text-4xl md:text-5xl font-bold text-white mb-6 tracking-wide uppercase">
+            System <span
+                class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Maintenance</span>
+        </h1>
+
+        <div
+            class="bg-surface/60 backdrop-blur-md border border-white/10 p-8 rounded-2xl shadow-2xl relative overflow-hidden group">
+            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent">
+            </div>
+
+            <p class="text-xl text-white/80 leading-relaxed font-medium">
+                {{ message }}
+            </p>
+
+            <div class="mt-8 pt-6 border-t border-white/10">
+                <p class="text-white/50 text-sm">Thank you for your patience while we upgrade your experience. Normal
+                    operations will resume shortly.</p>
+                <div class="mt-8 flex justify-center">
+                    <a href="{% url 'index' %}"
+                        class="bg-white/5 hover:bg-white/10 text-white border border-white/10 px-6 py-2 rounded-full font-bold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> Refresh Page
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

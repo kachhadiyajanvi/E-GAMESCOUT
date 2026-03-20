@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from .models import Organization, Player, AdminNotification
+from web.models import Organization, Player, AdminNotification
 
 class LoginStatusCheckTest(TestCase):
     def setUp(self):
@@ -143,7 +143,7 @@ class OTPExpiryTest(TestCase):
 
 from django.utils import timezone
 from datetime import timedelta
-from .models import Organization, Player, AdminNotification, Tournament
+from web.models import Organization, Player, AdminNotification, Tournament
 
 class AdminDashboardStatsTest(TestCase):
     def setUp(self):

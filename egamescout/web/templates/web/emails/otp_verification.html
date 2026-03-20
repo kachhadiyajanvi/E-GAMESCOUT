@@ -1,0 +1,26 @@
+{% extends 'web/emails/base_email.html' %}
+
+{% block title %}Verify Your Identity – E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle">🔒</div>
+</div>
+
+<h1>VERIFY YOUR <span class="logo-highlight">IDENTITY</span></h1>
+
+<p>Hello <strong style="color:#ffffff;">{{ name|default:email }}</strong>,</p>
+
+<p>We received a request to verify your email address. Use the following dynamic authorization code to complete your process.</p>
+
+<div style="background: rgba(102,252,241,0.05); border: 1px dashed rgba(102,252,241,0.5); border-radius: 12px; padding: 30px; margin: 32px 0; text-align: center;">
+    <span style="font-family: 'Orbitron', monospace; font-size: 32px; font-weight: 900; color: #FFFFFF; letter-spacing: 12px; text-shadow: 0 0 20px rgba(102,252,241,0.6); margin-left: 12px;">{{ otp }}</span>
+</div>
+
+<p>This code is valid for <strong>10 minutes</strong>. Do not share this code with anyone.</p>
+
+<div class="highlight-box">
+    <div class="highlight-title"><i class="fa-solid fa-triangle-exclamation"></i> SECURITY ALERT</div>
+    <span style="font-size: 14px; color: rgba(197,198,199,0.7);">If you did not initiate this request, please ignore this email or contact support immediately if you suspect unauthorized activity.</span>
+</div>
+{% endblock %}

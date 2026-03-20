@@ -1,48 +1,29 @@
-{% extends 'web/Player/player_dashboard_base.html' %}
+{% extends 'web/Player/player_page_base.html' %}
 
 {% block title %}Upcoming Tournaments - E-Game Scout{% endblock %}
 
-{% block content %}
-<div class="container mx-auto max-w-7xl animate-fade-in">
-    <!-- Hero Header section -->
+{% block header_icon %}fa-solid fa-fire{% endblock %}
+{% block header_tag %}DISCOVER EVENTS{% endblock %}
+{% block header_title %}Upcoming Tournaments{% endblock %}
+{% block header_desc %}Browse our schedule of verified esports tournaments. Prepare yourself, join the competition, and get noticed by top organizations.{% endblock %}
+
+{% block header_actions %}
+<!-- Search Bar -->
+<div class="w-full md:w-80 relative group">
     <div
-        class="relative bg-gradient-to-r from-[#0B0C10] via-[#1A1A24] to-[#0B0C10] rounded-3xl p-8 mb-10 border border-white/5 overflow-hidden shadow-xl">
-        <div
-            class="absolute inset-0 bg-grid-pattern opacity-20 mask-image:linear-gradient(to_bottom,white,transparent)">
-        </div>
-        <div class="absolute -top-24 -right-24 w-64 h-64 bg-accent-cyan/5 rounded-full blur-[80px]"></div>
-
-        <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-            <div class="text-center md:text-left">
-                <div
-                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan text-xs font-bold tracking-widest mb-4">
-                    <i class="fa-solid fa-fire"></i> DISCOVER EVENTS
-                </div>
-                <h1 class="text-3xl md:text-4xl font-display font-bold text-white mb-3 tracking-tight">
-                    Upcoming Tournaments
-                </h1>
-                <p class="text-brand-light/60 text-sm md:text-base max-w-xl leading-relaxed">
-                    Browse our schedule of verified esports tournaments. Prepare yourself, join the competition, and get
-                    noticed by top organizations.
-                </p>
-            </div>
-
-            <!-- Search Bar -->
-            <div class="w-full md:w-80 relative group">
-                <div
-                    class="absolute inset-0 bg-accent-cyan/20 rounded-2xl blur-xl group-hover:bg-accent-cyan/30 transition-all duration-300 -z-10">
-                </div>
-                <div class="relative">
-                    <input type="text" id="tournament-search" placeholder="Search tournaments by name or org..."
-                        class="w-full bg-[#0a0a0e] border border-white/10 hover:border-accent-cyan/30 focus:border-accent-cyan rounded-2xl py-4 pl-12 pr-4 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-accent-cyan/10 transition-all duration-300 text-sm shadow-inner"
-                        oninput="filterTournaments(this.value)">
-                    <i
-                        class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-accent-cyan/70 text-base"></i>
-                </div>
-            </div>
-        </div>
+        class="absolute inset-0 bg-accent-cyan/20 rounded-2xl blur-xl group-hover:bg-accent-cyan/30 transition-all duration-300 -z-10">
     </div>
+    <div class="relative">
+        <input type="text" id="tournament-search" placeholder="Search tournaments by name or org..."
+            class="w-full bg-[#0a0a0e] border border-white/10 hover:border-accent-cyan/30 focus:border-accent-cyan rounded-2xl py-4 pl-12 pr-4 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-accent-cyan/10 transition-all duration-300 text-sm shadow-inner"
+            oninput="filterTournaments(this.value)">
+        <i
+            class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-accent-cyan/70 text-base"></i>
+    </div>
+</div>
+{% endblock %}
 
+{% block page_content %}
     <!-- Tournaments Grid -->
     {% if tournaments %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="tournaments-grid">
@@ -201,7 +182,6 @@
         </div>
     </div>
     {% endif %}
-</div>
 
 <script>
     function toggleCardDetails(btn) {

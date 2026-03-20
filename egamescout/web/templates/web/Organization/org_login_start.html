@@ -31,9 +31,37 @@
         </form>
 
         <div class="mt-6 text-center text-xs text-gray-500">
-            New Organization? <a href="{% url 'org_register_start' %}" class="text-accent-cyan hover:underline">Apply
-                Here</a>
+            New Organization? <a href="{% url 'org_register_start' %}" class="text-accent-cyan hover:underline">Register Here</a>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const emailInput = document.querySelector('input[type="email"]');
+
+        if (emailInput) {
+            // Create error element
+            const errorP = document.createElement('p');
+            errorP.className = "text-red-500 text-xs mt-1 font-bold hidden";
+            emailInput.parentNode.appendChild(errorP);
+
+            emailInput.addEventListener('input', function () {
+                const email = this.value;
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+                if (email.length > 0 && !emailPattern.test(email)) {
+                    errorP.textContent = "Please enter a valid email address.";
+                    errorP.classList.remove('hidden');
+                    this.classList.add('border-red-500');
+                    this.classList.add('text-red-500');
+                } else {
+                    errorP.classList.add('hidden');
+                    this.classList.remove('border-red-500');
+                    this.classList.remove('text-red-500');
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

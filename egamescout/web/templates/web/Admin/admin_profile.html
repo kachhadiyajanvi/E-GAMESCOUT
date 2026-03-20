@@ -1,27 +1,17 @@
-{% extends 'web/Admin/admin_dashboard.html' %}
+{% extends 'web/Admin/admin_page_base.html' %}
 
-{% block content %}
-<div class="flex-1 overflow-y-auto p-8 space-y-8">
+{% block header_icon %}<i class="fa-solid fa-user-shield"></i>{% endblock %}
+{% block header_title %}MY PROFILE{% endblock %}
+{% block header_desc %}Manage your account settings and preferences.{% endblock %}
 
-    <!-- Breadcrumbs -->
-    <div class="flex items-center gap-2 text-xs text-white/40 mb-2 font-mono">
-        <a href="{% url 'admin_dashboard' %}" class="hover:text-brand-blue transition-colors">Dashboard</a>
-        <span>/</span>
-        <span class="text-white">Profile</span>
-    </div>
+{% block header_actions %}
+<a href="{% url 'admin_logout' %}" class="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-6 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 border border-red-500/20 hover:border-red-500/50 group shadow-[0_0_20px_rgba(239,68,68,0.1)] whitespace-nowrap">
+    <i class="fa-solid fa-right-from-bracket group-hover:rotate-180 transition-transform duration-300"></i>
+    Logout
+</a>
+{% endblock %}
 
-    <!-- Page Title -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="font-display font-bold text-3xl text-white mb-1">MY PROFILE</h1>
-            <p class="text-white/40 text-sm">Manage your account settings and preferences.</p>
-        </div>
-        <a href="{% url 'admin_logout' %}"
-            class="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-6 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 border border-red-500/20 hover:border-red-500/50 group shadow-[0_0_20px_rgba(239,68,68,0.1)]">
-            <i class="fa-solid fa-right-from-bracket group-hover:rotate-180 transition-transform duration-300"></i>
-            Logout
-        </a>
-    </div>
+{% block page_content %}
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -158,26 +148,15 @@
                     <h3 class="font-display font-bold text-xl text-white">Security</h3>
                 </div>
 
-                <form class="space-y-6 relative z-10">
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-white/40 uppercase tracking-wider">Current Password</label>
-                        <input type="password" value="password123"
-                            class="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-pink focus:ring-1 focus:ring-brand-pink outline-none transition-all placeholder-white/20 shadow-inner">
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-white/40 uppercase tracking-wider">New Password</label>
-                            <input type="password" placeholder="••••••••"
-                                class="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-pink focus:ring-1 focus:ring-brand-pink outline-none transition-all placeholder-white/20 shadow-inner">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-white/40 uppercase tracking-wider">Confirm
-                                Password</label>
-                            <input type="password" placeholder="••••••••"
-                                class="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-pink focus:ring-1 focus:ring-brand-pink outline-none transition-all placeholder-white/20 shadow-inner">
-                        </div>
-                    </div>
-                </form>
+                <div class="space-y-6 relative z-10 pt-4">
+                    <p class="text-sm text-white/50 tracking-wide mb-6">Update your account password using our secure verification flow. We will send a one-time passcode to your registered email to authorize this change.</p>
+                    
+                    <a href="{% url 'admin_change_password_request' %}" 
+                        class="inline-flex w-full sm:w-auto items-center justify-center gap-3 px-8 py-3.5 rounded-xl bg-brand-pink/10 border border-brand-pink/30 text-brand-pink font-bold text-sm tracking-widest uppercase hover:bg-brand-pink hover:text-white hover:shadow-[0_0_20px_rgba(255,20,147,0.4)] transition-all group">
+                        <i class="fa-solid fa-key group-hover:-rotate-12 transition-transform"></i>
+                        Initiate Secure Password Change
+                    </a>
+                </div>
             </div>
 
             <!-- Action Buttons -->
@@ -193,5 +172,4 @@
 
         </div>
     </div>
-</div>
 {% endblock %}

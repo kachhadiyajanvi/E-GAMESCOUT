@@ -1,6 +1,6 @@
 from django import forms
-from .models import Organization, Tournament
-from .models import Player
+from web.models import Organization, Tournament, Contract, Bid
+from web.models import Player
 
 class OrganizationEmailForm(forms.Form):
     organization_email = forms.EmailField(
@@ -14,7 +14,7 @@ class OrganizationEmailForm(forms.Form):
 
     def clean_organization_email(self):
         email = self.cleaned_data.get('organization_email')
-        if Organization.objects.filter(Organization_Email=email).exists():
+        if Organization.objects.filter(Organization_Email=email, is_archived=False).exists():
             raise forms.ValidationError("This email is already registered.")
         return email
 
@@ -114,7 +114,7 @@ class OrganizationPhotoForm(forms.ModelForm):
 class EmailLoginForm(forms.Form):
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
-            'class': 'cyber-input w-full rounded-lg p-3 placeholder-white/30',
+            'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 placeholder-white/30',
             'placeholder': 'Enter your email'
         }),
         label="Email Address"
@@ -138,11 +138,11 @@ class PlayerRegistrationForm(forms.ModelForm):
         model = Player
         fields = ['full_name', 'age', 'uid', 'mobile_no', 'aadhar_number'] # Age & Aadhar extracted via AI
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3 opacity-70 cursor-not-allowed', 'placeholder': 'Enter Full Name', 'readonly': 'readonly'}),
-            'age': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3 opacity-70 cursor-not-allowed', 'placeholder': 'Age', 'readonly': 'readonly'}),
-            'uid': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3', 'placeholder': 'Enter Game ID'}),
-            'mobile_no': forms.NumberInput(attrs={'class': 'cyber-input w-full rounded-lg p-3', 'placeholder': 'Enter Mobile Number'}),
-            'aadhar_number': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg p-3 opacity-70 cursor-not-allowed', 'placeholder': 'Aadhar Number', 'readonly': 'readonly'}),
+            'full_name': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 opacity-70 cursor-not-allowed', 'placeholder': 'Enter Full Name', 'readonly': 'readonly'}),
+            'age': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 opacity-70 cursor-not-allowed', 'placeholder': 'Age', 'readonly': 'readonly'}),
+            'uid': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 'placeholder': 'Enter Game ID'}),
+            'mobile_no': forms.NumberInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 'placeholder': 'Enter Mobile Number'}),
+            'aadhar_number': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 opacity-70 cursor-not-allowed', 'placeholder': 'Aadhar Number', 'readonly': 'readonly'}),
         }
 
     def clean_mobile_no(self):
@@ -164,7 +164,7 @@ class PlayerRegistrationForm(forms.ModelForm):
         if not aadhar:
              raise forms.ValidationError("Aadhar Number is required.")
         # Check uniqueness (though model handles it, nice to have custom error)
-        if Player.objects.filter(aadhar_number=aadhar).exists():
+        if Player.objects.filter(aadhar_number=aadhar, is_archived=False).exists():
              raise forms.ValidationError("This Aadhar Number is already registered.")
         return aadhar
 
@@ -178,12 +178,16 @@ class PlayerRegistrationForm(forms.ModelForm):
 class PlayerProfileForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['username', 'profile_photo']
+        fields = ['username', 'profile_photo', 'address']
         widgets = {
              'username': forms.TextInput(attrs={
-                'class': 'flex-1 bg-transparent border-none outline-none text-white', 
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
                 'placeholder': 'gamer_tag',
                 'required': 'required'
+            }),
+             'address': forms.TextInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'City, State, Country'
             }),
              'profile_photo': forms.FileInput(attrs={
                 'class': 'hidden',
@@ -266,13 +270,152 @@ class TournamentForm(forms.ModelForm):
             raise forms.ValidationError("Prize Pool must be a positive number.")
         return prize_pool
 
-    def clean_prize_distribution(self):
-        data = self.cleaned_data.get('prize_distribution')
-        # If it comes as a string (from hidden input), try to parse it
-        if isinstance(data, str):
-            import json
-            try:
-                data = json.loads(data)
-            except json.JSONDecodeError:
-                raise forms.ValidationError("Invalid Prize Distribution Format")
-        return data
+    def clean(self):
+        cleaned_data = super().clean()
+        prize_pool = cleaned_data.get('PrizePool')
+        prize_distribution = cleaned_data.get('prize_distribution')
+
+        if prize_pool is not None and prize_distribution:
+            # If it comes as a string (from hidden input), try to parse it
+            if isinstance(prize_distribution, str):
+                import json
+                try:
+                    prize_distribution = json.loads(prize_distribution)
+                except json.JSONDecodeError:
+                    raise forms.ValidationError("Invalid Prize Distribution Format")
+
+            total_distribution = 0.0
+            if isinstance(prize_distribution, list):
+                for item in prize_distribution:
+                    # Item could be dict like {'position': 1, 'amount': 1000} or just amount
+                    amount = item.get('amount') if isinstance(item, dict) else item
+                    try:
+                        if amount is not None:
+                            total_distribution += float(amount)
+                    except (ValueError, TypeError):
+                        pass
+
+            if float(prize_pool) < total_distribution:
+                raise forms.ValidationError("Tournament prize cannot be higher than total distribution amount.")
+                
+            # Keep parsed data
+            cleaned_data['prize_distribution'] = prize_distribution
+            
+        return cleaned_data
+
+class AddPlayerForm(forms.Form):
+    name = forms.CharField(
+        label='Player Full Name',
+        max_length=255,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+            'placeholder': 'Enter player full name',
+            'required': 'required'
+        })
+    )
+    email = forms.EmailField(
+        label='Player Email',
+        max_length=100,
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+            'placeholder': 'Enter player email address',
+            'required': 'required'
+        })
+    )
+    game_id = forms.CharField(
+        label='Game ID (UID)',
+        max_length=12,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+            'placeholder': 'Enter 10-12 character Game ID',
+            'required': 'required',
+            'pattern': '.{10,12}',
+            'title': 'Game ID must be between 10 and 12 characters.'
+        })
+    )
+
+    def clean_game_id(self):
+        game_id = self.cleaned_data.get('game_id')
+        if not game_id:
+            raise forms.ValidationError("Game ID is required.")
+        
+        game_id_str = str(game_id).strip()
+        
+        if len(game_id_str) < 10 or len(game_id_str) > 12:
+            raise forms.ValidationError("Game ID must be between 10 and 12 characters.")
+            
+        return game_id_str
+
+class OrganizationSignatureForm(forms.ModelForm):
+    class Meta:
+        model = Organization
+        fields = ['organization_signature']
+        widgets = {
+            'organization_signature': forms.FileInput(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-2 text-gray-700 focus:outline-none focus:border-blue-500',
+                'required': 'required'
+            })
+        }
+
+class ContractForm(forms.ModelForm):
+    class Meta:
+        model = Contract
+        fields = ['player', 'salary', 'responsibilities', 'sponsor_promotion', 'duration', 'termination_rules']
+        widgets = {
+            'player': forms.Select(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 focus:outline-none focus:border-blue-500 transition-colors',
+                'required': 'required'
+            }),
+            'salary': forms.NumberInput(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors',
+                'placeholder': 'Enter Player Salary',
+                'required': 'required'
+            }),
+            'responsibilities': forms.Textarea(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors',
+                'placeholder': 'List Player & Organization Responsibilities...',
+                'rows': 4,
+                'required': 'required'
+            }),
+            'sponsor_promotion': forms.Textarea(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors',
+                'placeholder': 'Sponsor Promotion requirements (e.g., reels, jersey)...',
+                'rows': 3,
+                'required': 'required'
+            }),
+            'duration': forms.TextInput(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors',
+                'placeholder': 'e.g., 1 Year, 6 Months',
+                'required': 'required'
+            }),
+            'termination_rules': forms.Textarea(attrs={
+                'class': 'w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors',
+                'placeholder': 'Termination Rules...',
+                'rows': 3,
+                'required': 'required'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        organization = kwargs.pop('organization', None)
+        super().__init__(*args, **kwargs)
+        if organization:
+            # Filter players to only show those belonging to this organization
+            players = Player.objects.filter(organization=organization)
+            
+            # Fetch accepted bids for these players to show price in label
+            accepted_bids = Bid.objects.filter(organization=organization, status='Accepted')
+            bid_map = {b.player_id: b.amount for b in accepted_bids}
+            
+            choices = []
+            for p in players:
+                price = bid_map.get(p.id)
+                label = f"{p.full_name} ({p.uid})"
+                if price:
+                    label += f" - Bid Price: ₹{price}"
+                choices.append((p.id, label))
+            
+            self.fields['player'].choices = [('', '---------')] + choices

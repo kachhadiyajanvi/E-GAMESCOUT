@@ -40,6 +40,22 @@
         }
     </script>
     <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+    <style type="text/tailwindcss">
+        @layer components {
+            .page-breadcrumb { @apply flex items-center gap-2 text-sm mb-6 font-mono text-gray-400; }
+            .breadcrumb-link { @apply hover:text-accent-cyan transition-colors flex items-center gap-1.5; }
+            .breadcrumb-separator { @apply text-gray-600 text-[10px]; }
+            .breadcrumb-active { @apply text-white font-semibold; }
+            
+            .page-header { @apply flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10; }
+            .page-title-group { @apply flex items-center gap-4 w-full; }
+            .page-title-decorator { @apply w-1.5 h-14 bg-gradient-to-b from-accent-cyan to-blue-500 rounded-full shadow-[0_0_15px_rgba(102,252,241,0.5)] shrink-0; }
+            .page-title { @apply text-3xl md:text-4xl font-display font-bold text-white mb-1 tracking-wide uppercase; }
+            .page-title-highlight { @apply text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500; }
+            .page-subtitle { @apply text-gray-400 text-sm font-sans normal-case tracking-normal; }
+            .page-actions { @apply flex flex-col sm:flex-row gap-3 w-full lg:w-auto mt-4 lg:mt-0 items-start sm:items-center shrink-0; }
+        }
+    </style>
     <style>
         /* Custom scrollbar for sidebar */
         .no-scrollbar::-webkit-scrollbar {
@@ -66,11 +82,30 @@
 
     <!-- Sidebar -->
     <aside
-        class="w-64 h-full bg-brand-dark/90 border-r border-white/5 flex flex-col z-50 transition-all duration-300 mobile-sidebar hidden md:flex">
-        <!-- Logo -->
-        <div class="p-6 border-b border-white/5 flex items-center gap-3">
-            <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-8 h-8 object-contain">
-            <span class="text-lg font-display font-bold text-white tracking-wider">E-GAME SCOUT</span>
+        class="w-64 h-full bg-brand-dark/90 border-r border-white/5 flex flex-col z-50 shrink-0 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-300 mobile-sidebar">
+        <!-- Sidebar Header / Logo -->
+        <div class="h-20 flex items-center justify-between px-5 border-b border-white/5 relative overflow-hidden shrink-0 bg-black/10">
+            <!-- Subtle ambient glow behind logo -->
+            <div class="absolute left-0 top-0 w-32 h-full bg-accent-cyan/5 blur-2xl pointer-events-none"></div>
+            <div class="flex items-center gap-3 relative z-10">
+                <!-- Logo Box -->
+                <div class="relative shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-cyan/20 to-accent-pink/10 border border-accent-cyan/40 flex items-center justify-center shadow-[0_0_20px_rgba(102,252,241,0.2)]">
+                        <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-7 h-7 object-contain drop-shadow-[0_0_8px_rgba(102,252,241,0.8)]">
+                    </div>
+                    <!-- Active dot -->
+                    <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent-cyan border-2 border-brand-dark shadow-[0_0_6px_rgba(102,252,241,0.8)]"></span>
+                </div>
+                <!-- Brand Text -->
+                <div class="flex flex-col leading-none gap-0.5">
+                    <span class="font-display font-black text-base tracking-[0.2em] text-white">EGAME<span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-pink">SCOUT</span></span>
+                    <span class="text-[9px] font-bold tracking-[0.3em] text-white/30 uppercase">Organization</span>
+                </div>
+            </div>
+            <!-- Close button for mobile -->
+            <button class="md:hidden text-white/60 hover:text-white relative z-10" onclick="toggleSidebar()">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
         </div>
 
         <!-- Navigation -->
@@ -104,7 +139,47 @@
                 <span class="font-medium group-hover:text-white transition-colors">My Players</span>
             </a>
 
+            <a href="{% url 'org_scout_players' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'org_scout_players' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i class="fa-solid fa-users-viewfinder text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Scout Players</span>
+            </a>
 
+            <a href="{% url 'org_player_contact_page' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'org_player_contact_page' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i class="fa-solid fa-address-book text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Player Contacts</span>
+            </a>
+
+            <a href="{% url 'org_bidding_dashboard' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'org_bidding_dashboard' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i class="fa-solid fa-gavel text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Bidding Hub</span>
+            </a>
+
+            <a href="{% url 'org_contract_list' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if 'contract' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i class="fa-solid fa-file-signature text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Contracts</span>
+            </a>
+
+            <a href="{% url 'scorecard_tool' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'scorecard_tool' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i class="fa-solid fa-wand-magic-sparkles text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Scorecard Tool</span>
+            </a>
+
+            <a href="{% url 'org_transaction_history' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'org_transaction_history' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i class="fa-solid fa-receipt text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">Transactions</span>
+            </a>
+
+            <a href="{% url 'manage_profile' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'manage_profile' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
+                <i class="fa-solid fa-user-gear text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
+                <span class="font-medium group-hover:text-white transition-colors">My Profile</span>
+            </a>
 
 
 
@@ -125,24 +200,63 @@
     <div class="flex-1 flex flex-col h-full relative overflow-hidden">
 
         <!-- Top Navbar -->
-        <header
-            class="h-20 border-b border-white/5 bg-brand-dark/50 backdrop-blur-md flex items-center justify-between px-6 z-40">
-            <!-- Mobile Menu Button -->
-            <button class="md:hidden text-white text-xl mr-4" onclick="toggleSidebar()">
-                <i class="fa-solid fa-bars"></i>
-            </button>
+        <header class="border-b border-white/[0.08] bg-black/30 backdrop-blur-xl z-40 shadow-[0_4px_30px_rgba(0,0,0,0.4)] relative">
+            <!-- Glassy bottom glow line -->
+            <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-cyan/30 to-transparent"></div>
+            <!-- Bidding Season Banner -->
+            {% if bidding_status %}
+            <div class="px-3 md:px-6 py-1.5 flex flex-wrap md:flex-nowrap items-center gap-2 md:gap-3 border-b border-white/5
+                {% if bidding_status.is_active %}bg-green-500/5{% else %}bg-yellow-500/5{% endif %}">
+                <span class="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-widest
+                    {% if bidding_status.is_active %}text-green-400{% else %}text-yellow-400{% endif %}">
+                    <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
+                    {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING CLOSED{% endif %}
+                </span>
+                
+                {% if bidding_status.is_active %}
+                <span class="text-white/30 text-[10px] hidden md:inline">|</span>
+                <span class="text-white/60 text-[10px] md:text-[11px] font-mono hidden md:inline">
+                    <span class="text-white/40">Season:</span>
+                    <span class="text-white font-bold">{{ bidding_status.season_name }}</span>
+                </span>
+                <span class="text-white/30 text-[10px]">|</span>
+                <span class="text-[10px] md:text-[11px] font-mono font-bold text-accent-pink" id="orgBiddingCountdown"
+                    data-start="{{ bidding_status.start_date|date:'c' }}"
+                    data-end="{{ bidding_status.end_date|date:'c' }}"
+                    data-active="true">--:--:--</span>
+                {% else %}
+                <span class="text-white/30 text-[10px]">|</span>
+                <span class="text-[10px] md:text-[11px] font-mono font-bold text-yellow-500" id="orgBiddingCountdown"
+                    data-start="{{ bidding_status.next_season_start|date:'c' }}"
+                    data-active="false">--:--:--</span>
+                {% endif %}
+                
+                <a href="{% url 'org_bidding_dashboard' %}" class="ml-auto text-[9px] md:text-[10px] font-bold text-accent-cyan hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1">
+                    <i class="fa-solid fa-gavel text-[10px]"></i> <span class="hidden md:inline">Bidding Hub</span>
+                </a>
+            </div>
+            {% endif %}
+            <!-- Main Header Row -->
+            <div class="h-20 flex items-center justify-between px-4 md:px-6 w-full">
+            
+            <div class="flex items-center gap-4">
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-white/60 hover:text-white text-xl" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
 
-            <!-- Page Title -->
-            <div>
-                <h2 class="text-xl font-display font-bold text-white tracking-wider">
-                    ORGANIZATION <span
-                        class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500">DASHBOARD</span>
-                </h2>
-                <p class="text-xs text-gray-500 font-mono">Manage your esports organization</p>
+                <!-- Page Title -->
+                <div class="hidden sm:block">
+                    <h2 class="text-lg md:text-xl font-display font-bold text-white tracking-wider">
+                        ORGANIZATION <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500">DASHBOARD</span>
+                    </h2>
+                    <p class="text-[10px] md:text-xs text-gray-500 font-mono">Manage your esports organization</p>
+                </div>
             </div>
 
             <!-- Right Actions -->
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4 md:gap-6">
                 <!-- Search (Visual) -->
                 <div
                     class="hidden md:flex items-center bg-black/20 border border-white/10 rounded-full px-4 py-2 w-64 focus-within:border-accent-cyan/50 transition-colors">
@@ -193,85 +307,93 @@
                             <!-- Notification Item -->
                             <div class="p-3 border-b border-white/5 hover:bg-white/5 transition-colors group relative">
                                 <a href="{{ notification.link }}" class="flex gap-3 pr-6">
-                                    class="w-2 h-2 rounded-full {% if notification.type == 'tournament' %}bg-accent-cyan
-                                    shadow-[0_0_5px_#66FCF1]{% else %}bg-green-500 shadow-[0_0_5px_#22c55e]{% endif %}
-                                    mt-1.5 shrink-0">
+                                    <div
+                                        class="w-2 h-2 rounded-full shrink-0 mt-1.5
+                                        {% if notification.type == 'tournament' %}bg-accent-cyan shadow-[0_0_5px_#66FCF1]{% else %}bg-green-500 shadow-[0_0_5px_#22c55e]{% endif %}">
+                                    </div>
+                                    <div class="flex-1">
+                                        <p
+                                            class="text-xs text-white leading-relaxed group-hover:text-accent-cyan transition-colors">
+                                            {{ notification.message }}</p>
+                                        <p class="text-[10px] text-gray-500 mt-1">{{ notification.time|timesince }} ago
+                                        </p>
+                                    </div>
+                                </a>
+                                <!-- Delete Button -->
+                                <a href="{% url 'delete_notification' notification.id %}"
+                                    class="absolute top-3 right-3 text-gray-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1"
+                                    title="Delete Notification">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
                             </div>
-                            <div class="flex-1">
-                                <p
-                                    class="text-xs text-white leading-relaxed group-hover:text-accent-cyan transition-colors">
-                                    {{ notification.message }}</p>
-                                <p class="text-[10px] text-gray-500 mt-1">{{ notification.time|timesince }} ago
-                                </p>
+                            {% endfor %}
+                            {% else %}
+                            <div class="p-8 text-center">
+                                <i class="fa-regular fa-bell-slash text-gray-600 text-2xl mb-2"></i>
+                                <p class="text-xs text-gray-500">No new notifications</p>
                             </div>
-                            </a>
-
-                            <!-- Delete Button -->
-                            <a href="{% url 'delete_notification' notification.id %}"
-                                class="absolute top-3 right-3 text-gray-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1"
-                                title="Delete Notification">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </a>
-
-
+                            {% endif %}
                         </div>
-                        {% endfor %}
+                        <a href="{% url 'org_notifications' %}"
+                            class="block p-2 text-center bg-white/5 hover:bg-white/10 transition-colors cursor-pointer border-t border-white/5 text-[10px] font-bold text-accent-cyan uppercase tracking-wider">
+                            View All
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Profile Management -->
+                <a href="{% url 'manage_profile' %}"
+                    class="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group"
+                    title="Manage Profile">
+
+                    <!-- Org Details -->
+                    <div class="hidden md:flex flex-col items-end">
+                        <span class="text-white font-bold text-sm leading-tight flex items-center">
+                            {{ org.Organization_Name }}
+                            {% if org.is_verified %}
+                            <i class="fa-solid fa-circle-check text-yellow-500 text-sm ml-1" title="Verified Organization"></i>
+                            {% endif %}
+                        </span>
+                        <span class="text-[10px] text-gray-500 group-hover:text-gray-300 transition-colors">
+                            {{ org.Organization_Email }}</span>
+                    </div>
+
+                    <div
+                        class="w-9 h-9 rounded-full bg-brand-gray flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-accent-cyan/50 transition-colors shadow-lg">
+                        {% if org.profile_photo %}
+                        <img src="{{ org.profile_photo.url }}" class="w-full h-full object-cover">
                         {% else %}
-                        <div class="p-8 text-center">
-                            <i class="fa-regular fa-bell-slash text-gray-600 text-2xl mb-2"></i>
-                            <p class="text-xs text-gray-500">No new notifications</p>
-                        </div>
+                        <i class="fa-solid fa-user text-sm"></i>
                         {% endif %}
                     </div>
-                    <a href="{% url 'org_notifications' %}"
-                        class="block p-2 text-center bg-white/5 hover:bg-white/10 transition-colors cursor-pointer border-t border-white/5 text-[10px] font-bold text-accent-cyan uppercase tracking-wider">
-                        View All
-                    </a>
-                </div>
+                </a>
             </div>
+            </div><!-- /h-20 header row -->
+        </header>
 
-            <!-- Profile Management -->
-            <a href="{% url 'manage_profile' %}"
-                class="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group"
-                title="Manage Profile">
-
-                <!-- Org Details -->
-                <div class="hidden md:flex flex-col items-end">
-                    <span
-                        class="text-sm font-bold text-white group-hover:text-accent-cyan transition-colors font-display tracking-wide">
-                        {{ org.Organization_Name }}</span>
-                    <span class="text-[10px] text-gray-500 group-hover:text-gray-300 transition-colors">
-                        {{ org.Organization_Email }}</span>
-                </div>
-
+        <!-- Content Scroll Area -->
+        <main class="flex-1 overflow-y-auto p-6 md:p-8 relative">
+            <!-- Decoration Orbs -->
+            <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+                <div class="absolute top-10 right-10 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px]"></div>
+                <!-- Pink Ambient Glow -->
+                <div class="absolute bottom-10 left-10 w-64 h-64 bg-accent-pink/5 rounded-full blur-[80px]"></div>
                 <div
-                    class="w-9 h-9 rounded-full bg-brand-gray flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-accent-cyan/50 transition-colors shadow-lg">
-                    {% if org.profile_photo %}
-                    <img src="{{ org.profile_photo.url }}" class="w-full h-full object-cover">
-                    {% else %}
-                    <i class="fa-solid fa-user text-sm"></i>
-                    {% endif %}
+                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent-pink/5 rounded-full blur-[120px] opacity-30">
                 </div>
-            </a>
-    </div>
-    </header>
-
-    <!-- Content Scroll Area -->
-    <main class="flex-1 overflow-y-auto p-6 md:p-8 relative">
-        <!-- Decoration Orbs -->
-        <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-            <div class="absolute top-10 right-10 w-96 h-96 bg-accent-cyan/5 rounded-full blur-[100px]"></div>
-            <!-- Pink Ambient Glow -->
-            <div class="absolute bottom-10 left-10 w-64 h-64 bg-accent-pink/5 rounded-full blur-[80px]"></div>
-            <div
-                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent-pink/5 rounded-full blur-[120px] opacity-30">
             </div>
-        </div>
 
-        <!-- Messages -->
-        {% block content %}{% endblock %}
-    </main>
+            {% block content %}{% endblock %}
+
+            <footer class="py-6 flex flex-col items-center gap-2 text-gray-600 text-xs border-t border-white/5">
+                <div>&copy; 2026 E-Game Scout Organization Dashboard.</div>
+                <div class="flex items-center gap-4 mt-1">
+                    <a href="{% url 'terms' %}" class="text-xs text-gray-400 hover:text-accent-cyan transition-colors">Terms & Conditions</a>
+                </div>
+            </footer>
+        </main>
     </div>
+
 
     <!-- Mobile Sidebar Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/80 z-40 hidden md:hidden backdrop-blur-sm"
@@ -371,13 +493,11 @@
             const sidebar = document.querySelector('.mobile-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
 
-            if (sidebar.classList.contains('hidden')) {
-                sidebar.classList.remove('hidden');
-                sidebar.classList.add('absolute', 'top-0', 'left-0', 'h-full', 'shadow-2xl');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
                 overlay.classList.remove('hidden');
             } else {
-                sidebar.classList.add('hidden');
-                sidebar.classList.remove('absolute', 'top-0', 'left-0', 'h-full', 'shadow-2xl');
+                sidebar.classList.add('-translate-x-full');
                 overlay.classList.add('hidden');
             }
         }
@@ -407,7 +527,6 @@
             }
         });
     </script>
-    </script>
     <script>
         // Global Validation Script
         document.addEventListener('DOMContentLoaded', () => {
@@ -429,6 +548,46 @@
                 });
             });
         });
+    </script>
+    <!-- Bidding Banner Countdown Script -->
+    <script>
+        (function() {
+            const el = document.getElementById('orgBiddingCountdown');
+            if (!el) return;
+            const endStr = el.dataset.end;
+            const startStr = el.dataset.start;
+            const isActive = el.dataset.active === 'true';
+            if (!endStr && !startStr) return;
+            function pad(n) { return String(n).padStart(2, '0'); }
+            function updateOrgCountdown() {
+                const now = new Date();
+                if (isActive && endStr) {
+                    const end = new Date(endStr);
+                    const diff = end - now;
+                    if (diff <= 0) { el.textContent = 'Season Ended'; return; }
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    const d = Math.floor(h / 24);
+                    el.textContent = d > 0
+                        ? `Ends in: ${d}d ${pad(h%24)}h ${pad(m)}m ${pad(s)}s`
+                        : `Ends in: ${pad(h)}:${pad(m)}:${pad(s)}`;
+                } else if (!isActive && startStr) {
+                    const start = new Date(startStr);
+                    const diff = start - now;
+                    if (diff <= 0) { el.textContent = 'Starting soon…'; return; }
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    const d = Math.floor(h / 24);
+                    el.textContent = d > 0
+                        ? `Starts in: ${d}d ${pad(h%24)}h ${pad(m)}m ${pad(s)}s`
+                        : `Starts in: ${pad(h)}:${pad(m)}:${pad(s)}`;
+                }
+            }
+            setInterval(updateOrgCountdown, 1000);
+            updateOrgCountdown();
+        })();
     </script>
     {% block scripts %}{% endblock %}
 </body>

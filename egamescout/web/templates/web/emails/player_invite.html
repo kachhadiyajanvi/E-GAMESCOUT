@@ -1,0 +1,63 @@
+{% extends 'web/emails/base_email.html' %}
+{% block theme_class %}theme-blue{% endblock %}
+{% block title %}You've Been Invited – E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle">📩</div>
+</div>
+
+<h1>YOU'VE BEEN <span style="color: #45B6FE;">INVITED</span></h1>
+
+<p>Hello <strong style="color:#ffffff;">{{ invite.name }}</strong>,</p>
+
+<p>
+    <strong>{{ org.Organization_Name }}</strong> has personally invited you to join their roster on
+    <strong style="color: #45B6FE;">E-GameScout</strong> — the premier esports scouting platform.
+</p>
+
+<div class="highlight-box">
+    <div class="highlight-title" style="color: #45B6FE;">Invitation Details</div>
+    <div style="background: rgba(69, 182, 254, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(69, 182, 254, 0.2);">
+        <div style="margin-bottom: 10px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 10px;">
+            <span style="color: rgba(255,255,255,0.6); font-size: 13px; text-transform: uppercase;">Organization</span>
+            <span style="float: right; color: #ffffff; font-weight: 700;">{{ org.Organization_Name }}</span>
+        </div>
+        <div style="margin-bottom: 10px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 10px;">
+            <span style="color: rgba(255,255,255,0.6); font-size: 13px; text-transform: uppercase;">Player Name</span>
+            <span style="float: right; color: #ffffff; font-weight: 700;">{{ invite.name }}</span>
+        </div>
+        {% if invite.game_id %}
+        <div style="margin-bottom: 10px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 10px;">
+            <span style="color: rgba(255,255,255,0.6); font-size: 13px; text-transform: uppercase;">Game ID</span>
+            <span style="float: right; color: #45B6FE; font-weight: 700; font-family: 'Orbitron', monospace;">{{ invite.game_id }}</span>
+        </div>
+        {% endif %}
+        <div>
+            <span style="color: rgba(255,255,255,0.6); font-size: 13px; text-transform: uppercase;">Expires In</span>
+            <span style="float: right; color: #FFD700; font-weight: 700;">3 Days</span>
+        </div>
+    </div>
+</div>
+
+<!-- One-click notice -->
+<div style="background: rgba(69,182,254,0.07); border: 1px solid rgba(69,182,254,0.25); border-radius: 8px; padding: 14px 18px; margin: 20px 0; text-align: center;">
+    <span style="font-size: 13px; color: #45B6FE; font-weight: 700; letter-spacing: 1px;">
+        ✅&nbsp; ONE-CLICK VERIFICATION — NO ACCOUNT OR LOGIN REQUIRED
+    </span>
+</div>
+
+<p>Simply click the button below to verify and join the team. No sign-up or login needed — the link does everything automatically.</p>
+
+<div class="btn-wrapper">
+    <a href="{{ invite_url }}" class="cta-button">VERIFY &amp; ACCEPT INVITATION</a>
+</div>
+
+<p style="font-size: 13px; color: rgba(255,255,255,0.5); text-align: center; margin-top: 20px;">
+    This link expires in <strong style="color: rgba(255,255,255,0.7);">3 days</strong>. If you did not expect this invitation, you can safely ignore this email.
+</p>
+{% endblock %}
+
+{% block footer_extra %}
+You are receiving this email because {{ org.Organization_Name }} invited you to E-GameScout.
+{% endblock %}

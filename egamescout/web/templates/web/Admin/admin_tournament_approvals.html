@@ -1,0 +1,292 @@
+{% extends 'web/Admin/admin_page_base.html' %}
+
+{% block header_icon %}<i class="fa-solid fa-clipboard-check text-green-400"></i>{% endblock %}
+{% block header_title %}APPROVALS{% endblock %}
+{% block header_desc %}Review and approve tournaments before they are published.{% endblock %}
+
+{% block header_actions %}
+<div class="flex gap-3">
+    <form method="GET" action="{% url 'admin_tournament_approvals' %}" class="relative w-64 group">
+        <input type="hidden" name="tab" value="{{ current_tab }}">
+        <input type="text" name="q" value="{{ request.GET.q|default_if_none:'' }}" placeholder="Search..." class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-green-400 focus:border-transparent outline-none transition-all placeholder-white/30">
+        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-green-400 transition-colors text-xs bg-transparent border-none cursor-pointer">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block page_content %}
+
+    <!-- Tabs -->
+    <div class="flex gap-4 border-b border-white/10 mb-6">
+        <a href="?tab=pending" class="pb-3 px-2 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors {% if current_tab == 'pending' %}border-purple-500 text-white{% else %}border-transparent text-white/40 hover:text-white{% endif %}">
+            Pending
+        </a>
+        <a href="?tab=history" class="pb-3 px-2 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors {% if current_tab == 'history' %}border-purple-500 text-white{% else %}border-transparent text-white/40 hover:text-white{% endif %}">
+            History (Approved/Rejected)
+        </a>
+    </div>
+
+    <!-- Approvals Table -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
+        <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
+                    <th class="p-4 font-bold">Tournament</th>
+                    <th class="p-4 font-bold">Organizer</th>
+                    <th class="p-4 font-bold">Details</th>
+                    <th class="p-4 font-bold">{% if current_tab == 'history' %}Processed{% else %}Submitted{% endif %}</th>
+                    <th class="p-4 font-bold text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm">
+                {% for tournament in tournaments %}
+                <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br {% if tournament.approval_status == 'APPROVED' %}from-green-500 to-emerald-600{% elif tournament.approval_status == 'REJECTED' %}from-red-500 to-pink-600{% else %}from-yellow-500 to-orange-500{% endif %} p-[2px]">
+                                <div class="w-full h-full rounded-[6px] bg-black flex items-center justify-center">
+                                    {% if tournament.approval_status == 'APPROVED' %}
+                                        <i class="fa-solid fa-check text-green-400"></i>
+                                    {% elif tournament.approval_status == 'REJECTED' %}
+                                        <i class="fa-solid fa-xmark text-red-400"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-hourglass-half text-yellow-400"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white group-hover:text-purple-400 transition-colors">
+                                    {{ tournament.Name }}</h4>
+                                <p class="text-xs text-white/40">ID: #{{ tournament.Tournament_ID }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 text-white/80">
+                        <span class="flex items-center gap-2">
+                            {{ tournament.Organization_Name.Organization_Name }}
+                            {% if tournament.Organization_Name.is_verified %}
+                            <i class="fa-solid fa-circle-check text-yellow-400 text-xs" title="Verified Organization"></i>
+                            {% endif %}
+                        </span>
+                        <p class="text-xs text-white/40">{{ tournament.Organization_Name.Organization_Email }}</p>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs font-mono text-brand-blue">{{ tournament.PrizePool }} INR</span>
+                            <span class="text-[10px] text-white/40 uppercase">{{ tournament.max_teams }} Teams • {% if tournament.is_offline %}Offline{% else %}Online{% endif %}</span>
+                        </div>
+                    </td>
+                    <td class="p-4 text-white/40">
+                         {% if current_tab == 'history' %}
+                            {{ tournament.UpdatedAt|date:"M d, Y" }}
+                         {% else %}
+                            {{ tournament.CreatedAt|date:"M d, Y" }}
+                         {% endif %}
+                    </td>
+                    <td class="p-4 text-right">
+                        <button onclick="openTournamentViewModal(this)" data-name="{{ tournament.Name }}"
+                            data-id="{{ tournament.Tournament_ID }}"
+                            data-org="{{ tournament.Organization_Name.Organization_Name }}"
+                            data-status="{{ tournament.Status }}" data-prizepool="{{ tournament.PrizePool }}"
+                            data-created="{{ tournament.CreatedAt|date:'M d, Y' }}"
+                            data-start="{{ tournament.start_date|date:'M d, Y' }}"
+                            data-end="{{ tournament.end_date|date:'M d, Y' }}" data-teams="{{ tournament.max_teams }}"
+                            data-type="{% if tournament.is_offline %}Offline{% else %}Online{% endif %}"
+                            class="text-white/40 hover:text-accent-cyan transition-colors px-2" title="View Details">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+
+                        {% if current_tab == 'pending' %}
+                            <form method="POST" action="{% url 'admin_approve_tournament' tournament.Tournament_ID %}" class="inline ml-2">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="px-3 py-1 bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white rounded text-xs font-bold uppercase transition-colors" title="Approve Tournament">
+                                    <i class="fa-solid fa-check mr-1"></i> Approve
+                                </button>
+                            </form>
+
+                            <button
+                                onclick="openRejectModal('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
+                                class="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded text-xs font-bold uppercase transition-colors ml-2" title="Reject Tournament">
+                                <i class="fa-solid fa-xmark mr-1"></i> Reject
+                            </button>
+                        {% else %}
+                             <span class="text-xs font-bold px-2 py-1 rounded {% if tournament.approval_status == 'APPROVED' %}text-green-400 bg-green-500/10{% else %}text-red-400 bg-red-500/10{% endif %}">
+                                 {{ tournament.approval_status }}
+                             </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="p-12 text-center">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-clipboard-check text-2xl text-white/20"></i>
+                        </div>
+                        <p class="text-white/60 font-bold">No {% if current_tab == 'history' %}History{% else %}Pending Approvals{% endif %}</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination could go here if needed -->
+    </div>
+
+    <!-- View Tournament Modal (Copied from Detail view, stylized for review) -->
+    <div id="viewTournamentModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
+        <div class="bg-brand-gray border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div class="p-6 border-b border-white/10 bg-black/20 flex items-center justify-between">
+                <h3 class="font-display font-bold text-xl text-white flex items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass text-accent-cyan"></i> Tournament Review
+                </h3>
+                <button type="button" onclick="closeModal('viewTournamentModal')" class="text-white/40 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-8 overflow-y-auto">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Left: Basic Info -->
+                    <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-white/10 pb-6 md:pb-0 md:pr-6 text-center">
+                        <div class="w-24 h-24 mx-auto bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl p-0.5 mb-4 shadow-lg shadow-yellow-500/20">
+                            <div class="w-full h-full bg-black rounded-[10px] flex items-center justify-center">
+                                <i class="fa-solid fa-hourglass-half text-4xl text-white"></i>
+                            </div>
+                        </div>
+                        <h2 id="viewTournName" class="text-xl font-display font-bold text-white mb-1"></h2>
+                        <p class="text-xs text-yellow-400 font-bold uppercase tracking-wider mb-4">Pending Approval</p>
+
+                        <div class="bg-white/5 rounded-lg p-3 border border-white/5">
+                            <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Organizer</p>
+                            <p id="viewTournOrg" class="text-white font-bold text-sm"></p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Details -->
+                    <div class="flex-1 space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Prize Pool</p>
+                                <p class="text-accent-cyan font-bold font-mono">₹<span id="viewTournPrize"></span></p>
+                            </div>
+                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Type</p>
+                                <p id="viewTournType" class="text-white font-bold"></p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] text-white/40 uppercase font-bold mb-2">Schedule</p>
+                            <div class="flex items-center gap-3 text-sm text-gray-300 bg-black/20 p-3 rounded-lg border border-white/5">
+                                <i class="fa-regular fa-calendar text-yellow-500"></i>
+                                <span id="viewTournStart"></span>
+                                <span class="text-white/20">to</span>
+                                <span id="viewTournEnd"></span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Max Teams</p>
+                                <p id="viewTournTeams" class="text-white">---</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Created On</p>
+                                <p id="viewTournCreated" class="text-white text-xs">---</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-black/20 border-t border-white/10 flex justify-end">
+                <button type="button" onclick="closeModal('viewTournamentModal')" class="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold uppercase text-sm transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Confirmation Modal -->
+    <div id="rejectModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
+        <div class="bg-brand-gray border border-red-500/30 rounded-xl w-full max-w-md shadow-2xl relative flex flex-col">
+            <!-- Header -->
+            <div class="p-6 border-b border-white/10 bg-black/20 flex items-center justify-between">
+                <h3 class="font-display font-bold text-xl text-white flex items-center gap-2">
+                    <i class="fa-solid fa-circle-xmark text-red-500"></i> Reject Tournament
+                </h3>
+                <button type="button" onclick="closeModal('rejectModal')" class="text-white/40 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="rejectForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="p-6">
+                    <p class="text-white mb-4 text-sm">You are rejecting <strong id="rejectTournName" class="text-red-400"></strong>.</p>
+                    <p class="text-white/60 mb-2 text-xs">Please provide a reason to notify the organizer.</p>
+                    <textarea name="reason" rows="4" required class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm focus:ring-1 focus:ring-red-500 focus:border-transparent outline-none transition-all placeholder-white/20 resize-none" placeholder="Reason for rejection (e.g. Needs more details, Inappropriate content, etc.)"></textarea>
+                </div>
+                
+                <div class="p-4 bg-black/20 border-t border-white/10 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('rejectModal')"
+                        class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white font-bold uppercase text-sm transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white font-bold uppercase text-sm shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all">Reject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    function openTournamentViewModal(btn) {
+        const data = btn.dataset;
+        document.getElementById('viewTournName').textContent = data.name;
+        document.getElementById('viewTournOrg').textContent = data.org;
+        document.getElementById('viewTournPrize').textContent = data.prizepool;
+        document.getElementById('viewTournCreated').textContent = data.created;
+        document.getElementById('viewTournStart').textContent = data.start;
+        document.getElementById('viewTournEnd').textContent = data.end;
+        document.getElementById('viewTournTeams').textContent = data.teams;
+        document.getElementById('viewTournType').textContent = data.type;
+
+        openModal('viewTournamentModal');
+    }
+
+    function openRejectModal(id, name) {
+        const form = document.getElementById('rejectForm');
+        document.getElementById('rejectTournName').textContent = name;
+        form.action = `/admin/tournament/approvals/reject/${id}/`;
+        openModal('rejectModal');
+    }
+
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // Close on click outside
+    window.onclick = function (event) {
+        if (event.target.classList.contains('fixed')) {
+            event.target.classList.add('hidden');
+            event.target.classList.remove('flex');
+        }
+    }
+</script>
+{% endblock %}

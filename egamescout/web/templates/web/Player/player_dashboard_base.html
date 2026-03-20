@@ -63,7 +63,7 @@
             <div class="h-24 flex items-center px-8 border-b border-white/5">
                 <a href="{% url 'index' %}" class="flex items-center gap-3">
                     <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-8 h-8 object-contain">
-                    <span class="font-display font-bold text-white tracking-wider">E-GAME SCOUT</span>
+                    <span class="font-display font-bold logo-text-multi tracking-wider">EGAMESCOUT</span>
                 </a>
             </div>
             <div class="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
@@ -75,6 +75,11 @@
                 <a href="{% url 'player_upcoming_tournaments' %}"
                     class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'upcoming' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
                     <i class="fa-solid fa-trophy text-lg group-hover:text-accent-cyan"></i> Upcoming Tournaments
+                </a>
+
+                <a href="{% url 'player_bidding_dashboard' %}"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if request.resolver_match.url_name == 'player_bidding_dashboard' %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
+                    <i class="fa-solid fa-gavel text-lg group-hover:text-accent-cyan"></i> Bidding Hub
                 </a>
             </div>
             <div class="p-4 border-t border-white/5">
@@ -94,7 +99,7 @@
             <div class="h-24 flex items-center px-8 border-b border-white/5">
                 <a href="{% url 'index' %}" class="flex items-center gap-3">
                     <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-8 h-8 object-contain">
-                    <span class="font-display font-bold text-white tracking-wider">E-GAME SCOUT</span>
+                    <span class="font-display font-bold logo-text-multi tracking-wider">EGAMESCOUT</span>
                 </a>
             </div>
 
@@ -113,6 +118,12 @@
                     <i class="fa-solid fa-trophy text-lg"></i>
                     Upcoming Tournaments
                 </a>
+
+                <a href="{% url 'player_bidding_dashboard' %}"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if request.resolver_match.url_name == 'player_bidding_dashboard' %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
+                    <i class="fa-solid fa-gavel text-lg"></i>
+                    Bidding Hub
+                </a>
             </div>
 
             <!-- Logout Area -->
@@ -129,8 +140,42 @@
         <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 w-full">
 
             <!-- Top Navbar -->
-            <header
-                class="h-20 border-b border-white/5 bg-[#0B0C10]/80 backdrop-blur-md sticky top-0 z-40 px-6 md:px-8 flex items-center justify-between">
+            <header class="border-b border-white/5 bg-[#0B0C10]/80 backdrop-blur-md sticky top-0 z-40">
+                <!-- Bidding Season Banner -->
+                {% if bidding_status %}
+                <div class="px-3 md:px-8 py-1.5 flex flex-wrap md:flex-nowrap items-center gap-2 md:gap-3 border-b border-white/5
+                    {% if bidding_status.is_active %}bg-green-500/5{% else %}bg-yellow-500/5{% endif %}">
+                    <span class="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-widest
+                        {% if bidding_status.is_active %}text-green-400{% else %}text-yellow-400{% endif %}">
+                        <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
+                        {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING CLOSED{% endif %}
+                    </span>
+                    
+                    {% if bidding_status.is_active %}
+                    <span class="text-white/30 text-[10px] hidden md:inline">|</span>
+                    <span class="text-white/60 text-[10px] md:text-[11px] font-mono hidden md:inline">
+                        <span class="text-white/40">Season:</span>
+                        <span class="text-white font-bold">{{ bidding_status.season_name }}</span>
+                    </span>
+                    <span class="text-white/30 text-[10px]">|</span>
+                    <span class="text-[10px] md:text-[11px] font-mono font-bold text-neon-pink" id="playerBiddingCountdown"
+                        data-start="{{ bidding_status.start_date|date:'c' }}"
+                        data-end="{{ bidding_status.end_date|date:'c' }}"
+                        data-active="true">--:--:--</span>
+                    {% else %}
+                    <span class="text-white/30 text-[10px]">|</span>
+                    <span class="text-[10px] md:text-[11px] font-mono font-bold text-yellow-500" id="playerBiddingCountdown"
+                        data-start="{{ bidding_status.next_season_start|date:'c' }}"
+                        data-active="false">--:--:--</span>
+                    {% endif %}
+                    
+                    <a href="{% url 'player_bidding_dashboard' %}" class="ml-auto text-[9px] md:text-[10px] font-bold text-accent-cyan hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1">
+                        <i class="fa-solid fa-gavel text-[10px]"></i> <span class="hidden md:inline">Bidding Hub</span>
+                    </a>
+                </div>
+                {% endif %}
+                <!-- Main Header Row -->
+                <div class="h-20 px-4 md:px-8 flex items-center justify-between w-full">
 
                 <!-- Mobile Toggle & Breadcrumbs -->
                 <div class="flex items-center gap-4">
@@ -140,15 +185,24 @@
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
 
-                    <div class="flex flex-col justify-center">
+                    <div class="hidden sm:flex flex-col justify-center">
                         <nav class="flex text-xs font-mono text-gray-500 mb-1" aria-label="Breadcrumb">
                             <ol class="inline-flex items-center space-x-1">
                                 <li class="inline-flex items-center">
-                                    <a href="{% url 'player_dashboard' %}"
+                                    <a href="{% url 'index' %}"
                                         class="hover:text-accent-cyan transition-colors flex items-center gap-1.5 focus:outline-none focus:text-accent-cyan">
                                         <i class="fa-solid fa-house text-[10px]"></i>
-                                        Player Portal
+                                        Home
                                     </a>
+                                </li>
+                                <li>
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-chevron-right text-[8px] text-gray-600 mx-1.5"></i>
+                                        <a href="{% url 'player_dashboard' %}"
+                                            class="hover:text-accent-cyan transition-colors flex items-center gap-1.5 focus:outline-none focus:text-accent-cyan">
+                                            Player Portal
+                                        </a>
+                                    </div>
                                 </li>
                                 {% if request.resolver_match.url_name != 'player_dashboard' %}
                                 <li>
@@ -158,6 +212,7 @@
                                             {% if request.resolver_match.url_name == 'player_profile' %}My Profile
                                             {% elif 'upcoming' in request.resolver_match.url_name %}Upcoming Tournaments
                                             {% elif request.resolver_match.url_name == 'player_delete_account'%}Settings
+                                            {% elif request.resolver_match.url_name == 'player_bidding_dashboard' %}Bidding Hub
                                             {% else %}Current Page
                                             {% endif %}
                                         </span>
@@ -177,7 +232,7 @@
                         </nav>
 
                         <!-- Page Title Header -->
-                        <h2 class="text-xl font-display font-bold text-white tracking-wider flex items-center gap-3">
+                        <h2 class="text-lg md:text-xl font-display font-bold text-white tracking-wider flex items-center gap-3">
                             {% if request.resolver_match.url_name == 'player_dashboard' %}
                             <i class="fa-solid fa-border-all text-accent-cyan opacity-80"></i> DASHBOARD
                             {% elif request.resolver_match.url_name == 'player_profile' %}
@@ -186,6 +241,8 @@
                             <i class="fa-solid fa-trophy text-accent-cyan opacity-80"></i> UPCOMING TOURNAMENTS
                             {% elif request.resolver_match.url_name == 'player_delete_account' %}
                             <i class="fa-solid fa-gear text-accent-cyan opacity-80"></i> SETTINGS
+                            {% elif request.resolver_match.url_name == 'player_bidding_dashboard' %}
+                            <i class="fa-solid fa-gavel text-accent-cyan opacity-80"></i> BIDDING HUB
                             {% else %}
                             <i class="fa-solid fa-cube text-accent-cyan opacity-80"></i> PORTAL
                             {% endif %}
@@ -209,7 +266,11 @@
                         </div>
                     </div>
                     <div class="text-right hidden md:block">
-                        <h4 class="text-white font-bold text-sm leading-tight">{{ player.full_name|default:"Player" }}
+                        <h4 class="text-white font-bold text-sm leading-tight flex items-center">
+                            {{ player.full_name|default:"Player" }}
+                            {% if player.is_verified %}
+                            <i class="fa-solid fa-circle-check text-blue-500 text-sm ml-1" title="Verified Player"></i>
+                            {% endif %}
                         </h4>
                         <p class="text-xs text-brand-light/40">{{ player.email|default:"" }}</p>
                     </div>
@@ -284,6 +345,7 @@
                         </div>
                     </a>
                 </div>
+                </div><!-- /h-20 header row -->
             </header>
 
             <!-- Page Content -->
@@ -291,8 +353,11 @@
                 {% block content %}{% endblock %}
             </main>
 
-            <footer class="py-6 text-center text-gray-600 text-xs border-t border-white/5">
-                &copy; 2026 E-Game Scout Player Portal.
+            <footer class="py-6 flex flex-col items-center gap-2 text-gray-600 text-xs border-t border-white/5">
+                <div>&copy; 2026 E-Game Scout Player Portal.</div>
+                <div class="flex items-center gap-4 mt-1">
+                    <a href="{% url 'terms' %}" class="text-xs text-gray-400 hover:text-accent-cyan transition-colors">Terms & Conditions</a>
+                </div>
             </footer>
         </div>
     </div>
@@ -451,6 +516,46 @@
             }
         });
 
+    </script>
+    <!-- Bidding Banner Countdown Script -->
+    <script>
+        (function() {
+            const el = document.getElementById('playerBiddingCountdown');
+            if (!el) return;
+            const endStr = el.dataset.end;
+            const startStr = el.dataset.start;
+            const isActive = el.dataset.active === 'true';
+            if (!endStr && !startStr) return;
+            function pad(n) { return String(n).padStart(2, '0'); }
+            function updatePlayerCountdown() {
+                const now = new Date();
+                if (isActive && endStr) {
+                    const end = new Date(endStr);
+                    const diff = end - now;
+                    if (diff <= 0) { el.textContent = 'Season Ended'; return; }
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    const d = Math.floor(h / 24);
+                    el.textContent = d > 0
+                        ? `Ends in: ${d}d ${pad(h%24)}h ${pad(m)}m ${pad(s)}s`
+                        : `Ends in: ${pad(h)}:${pad(m)}:${pad(s)}`;
+                } else if (!isActive && startStr) {
+                    const start = new Date(startStr);
+                    const diff = start - now;
+                    if (diff <= 0) { el.textContent = 'Starting soon…'; return; }
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    const d = Math.floor(h / 24);
+                    el.textContent = d > 0
+                        ? `Starts in: ${d}d ${pad(h%24)}h ${pad(m)}m ${pad(s)}s`
+                        : `Starts in: ${pad(h)}:${pad(m)}:${pad(s)}`;
+                }
+            }
+            setInterval(updatePlayerCountdown, 1000);
+            updatePlayerCountdown();
+        })();
     </script>
     {% block scripts %}{% endblock %}
 </body>

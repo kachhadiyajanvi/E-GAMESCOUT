@@ -1,40 +1,26 @@
-{% extends 'web/Admin/admin_dashboard.html' %}
+{% extends 'web/Admin/admin_page_base.html' %}
 
-{% block content %}
-<div class="flex-1 overflow-y-auto p-8 space-y-8">
+{% block header_icon %}<i class="fa-solid fa-sitemap"></i>{% endblock %}
+{% block header_title %}ORGANIZATIONS{% endblock %}
+{% block header_desc %}Manage gaming organizations and teams.{% endblock %}
 
-    <!-- Breadcrumbs -->
-    <div class="flex items-center gap-2 text-xs text-white/40 mb-2 font-mono">
-        <a href="{% url 'admin_dashboard' %}" class="hover:text-brand-blue transition-colors">Dashboard</a>
-        <span>/</span>
-        <span class="text-white">Organizations</span>
-    </div>
+{% block header_actions %}
+<form method="GET" action="{% url 'admin_organization_detail' %}" class="relative w-full sm:w-64 group">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search Orgs..." class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-pink focus:border-transparent outline-none transition-all placeholder-white/30">
+    <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-pink transition-colors text-xs bg-transparent border-none cursor-pointer">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
+</form>
+<button onclick="openModal('orgs')" class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center justify-center gap-2 whitespace-nowrap">
+    <i class="fa-solid fa-bullhorn"></i> Notify
+</button>
+{% endblock %}
 
-    <!-- Page Title -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="font-display font-bold text-3xl text-white mb-1">ORGANIZATIONS</h1>
-            <p class="text-white/40 text-sm">Manage gaming organizations and teams.</p>
-        </div>
-        <div class="flex gap-4">
-            <form method="GET" action="{% url 'admin_organization_detail' %}" class="relative w-64 group">
-                <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search Orgs..."
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-pink focus:border-transparent outline-none transition-all placeholder-white/30">
-                <button type="submit"
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-pink transition-colors text-xs bg-transparent border-none cursor-pointer">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </button>
-            </form>
-            <button onclick="openModal('orgs')"
-                class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center gap-2">
-                <i class="fa-solid fa-bullhorn"></i> Notify
-            </button>
-        </div>
-    </div>
+{% block page_content %}
 
     <!-- Organizations Table -->
-    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl">
-        <table class="w-full text-left border-collapse">
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
+        <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
             <thead>
                 <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
                     <th class="p-4 font-bold">Organization</th>
@@ -62,8 +48,11 @@
                                 {% endif %}
                             </div>
                             <div>
-                                <h4 class="font-bold text-white group-hover:text-brand-pink transition-colors">
+                                <h4 class="font-bold text-white group-hover:text-brand-pink transition-colors flex items-center gap-2">
                                     {{ org.Organization_Name }}
+                                    {% if org.is_verified %}
+                                    <i class="fa-solid fa-circle-check text-yellow-400 text-xs" title="Verified Organization"></i>
+                                    {% endif %}
                                 </h4>
                                 <p class="text-xs text-white/40">{{ org.Organization_Email }}</p>
                             </div>
@@ -94,6 +83,12 @@
                     <td class="p-4 text-white/80 font-mono text-xs">{{ org.Organization_Contact }}</td>
                     <td class="p-4 text-white/40">{{ org.CreatedAt|date:"M d, Y" }}</td>
                     <td class="p-4 text-right">
+                        {% if org.is_verified %}
+                        <button class="text-yellow-400/50 cursor-not-allowed px-2 text-xs" title="Verified Organization" disabled>
+                            <i class="fa-solid fa-star"></i>
+                        </button>
+                        {% endif %}
+
                         <button onclick="openOrgViewModal(this)" data-name="{{ org.Organization_Name }}"
                             data-username="{{ org.Organization_UserName|default:'' }}"
                             data-email="{{ org.Organization_Email }}" data-contact="{{ org.Organization_Contact }}"
@@ -104,7 +99,7 @@
                             <i class="fa-solid fa-eye"></i>
                         </button>
 
-                        <button onclick="openOrgStatusModal('{{ org.id }}', '{{ org.status }}')"
+                        <button onclick="openOrgStatusModal('{{ org.id }}', '{{ org.status }}', '{{ org.is_verified }}', '{{ org.is_active_account|lower }}')"
                             class="text-white/40 hover:text-brand-blue transition-colors px-2" title="Edit Status">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
@@ -156,7 +151,7 @@
 
 
     <!-- View Org Details Modal -->
-    <div id="viewOrgModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div id="viewOrgModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div
             class="bg-brand-gray border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
             <!-- Modal Header -->
@@ -235,7 +230,7 @@
     </div>
 
     <!-- Edit Org Status Modal -->
-    <div id="statusOrgModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div id="statusOrgModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="bg-brand-gray border border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl relative">
             <button type="button" onclick="closeOrgModal('statusOrgModal')"
                 class="absolute top-4 right-4 text-white/40 hover:text-white">
@@ -268,6 +263,16 @@
                         </label>
                     </div>
                 </div>
+                
+                <div id="verificationSection" class="mb-6 p-4 rounded-lg border border-yellow-500/20 bg-yellow-500/5 hidden">
+                    <p id="orgVerifyTitle" class="font-bold text-sm mb-2"></p>
+                    <p id="orgVerifyDesc" class="text-white/60 text-xs mb-3"></p>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="verifyCheckbox" class="rounded bg-black/50 border-white/20">
+                        <span id="orgVerifyLabel" class="text-sm text-white"></span>
+                    </label>
+                </div>
+                
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="closeOrgModal('statusOrgModal')"
                         class="px-4 py-2 text-gray-400 hover:text-white text-sm font-bold uppercase">Cancel</button>
@@ -280,7 +285,7 @@
     </div>
 
     <!-- Delete Org Confirmation Modal -->
-    <div id="deleteOrgModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div id="deleteOrgModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div class="bg-brand-gray border border-red-500/30 rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
@@ -302,8 +307,9 @@
         </div>
     </div>
 
-</div>
+{% endblock %}
 
+{% block page_scripts %}
 <script>
     function openOrgViewModal(button) {
         const modal = document.getElementById('viewOrgModal');
@@ -344,15 +350,60 @@
         modal.classList.add('flex');
     }
 
-    function openOrgStatusModal(orgId, currentStatus) {
+    function openOrgStatusModal(orgId, currentStatus, isVerified, isActiveAccount) {
         const modal = document.getElementById('statusOrgModal');
         const form = document.getElementById('statusOrgForm');
+        const verifySection = document.getElementById('verificationSection');
+        const verifyCheckbox = document.getElementById('verifyCheckbox');
+        const orgVerifyTitle = document.getElementById('orgVerifyTitle');
+        const orgVerifyDesc = document.getElementById('orgVerifyDesc');
+        const orgVerifyLabel = document.getElementById('orgVerifyLabel');
 
         // Ensure this maps to your actual update URL
         form.action = `/admin/organizations/edit/${orgId}/`;
 
-        const radio = form.querySelector(`input[value="${currentStatus}"]`);
+        const radio = form.querySelector(`input[name="status"][value="${currentStatus}"]`);
         if (radio) radio.checked = true;
+
+        const activeRadio = form.querySelector(`input[name="is_active_account"][value="${isActiveAccount}"]`);
+        if (activeRadio) activeRadio.checked = true;
+
+        verifyCheckbox.checked = false;
+        verifySection.classList.remove('hidden');
+
+        if (isVerified === 'True') {
+            verifySection.className = 'mb-6 p-4 rounded-lg border border-red-500/20 bg-red-500/5';
+            orgVerifyTitle.className = 'font-bold text-sm mb-2 text-red-400';
+            orgVerifyTitle.textContent = '⚠ Revoke Verification';
+            orgVerifyDesc.textContent = 'This will remove the verified badge and trusted status from this organization.';
+            orgVerifyLabel.textContent = 'Yes, revoke verification from this organization.';
+        } else {
+            verifySection.className = 'mb-6 p-4 rounded-lg border border-yellow-500/20 bg-yellow-500/5';
+            orgVerifyTitle.className = 'font-bold text-sm mb-2 text-yellow-400';
+            orgVerifyTitle.textContent = '★ Grant Verification';
+            orgVerifyDesc.textContent = 'Verifying this organization grants them trusted status on the platform.';
+            orgVerifyLabel.textContent = 'Yes, I confirm this organization is legitimate and should be verified.';
+        }
+
+        // Add verification logic on submit
+        form.onsubmit = function(e) {
+            if (verifyCheckbox.checked) {
+                const action = isVerified === 'True' ? 'REVOKE VERIFICATION from' : 'GRANT VERIFICATION to';
+                const isConfirmed = confirm(`Are you absolutely sure you want to ${action} this organization?`);
+                if (!isConfirmed) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                form.querySelectorAll('input[name="grant_verification"], input[name="revoke_verification"]').forEach(el => el.remove());
+                const verifyInput = document.createElement('input');
+                verifyInput.type = 'hidden';
+                verifyInput.name = isVerified === 'True' ? 'revoke_verification' : 'grant_verification';
+                verifyInput.value = 'true';
+                form.appendChild(verifyInput);
+            }
+            return true;
+        };
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');

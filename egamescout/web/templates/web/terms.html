@@ -1,0 +1,103 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block title %}E-Game Scout | Terms & Conditions{% endblock %}
+
+{% block content %}
+    <!-- Terms Content -->
+    <main class="pt-32 pb-24 px-6 md:px-12 min-h-screen relative overflow-hidden">
+        <!-- Ambient Glows -->
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-accent-cyan/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+
+        <div class="container mx-auto max-w-4xl relative z-10 w-full">
+            <!-- Header -->
+            <div class="text-center mb-16 animate-fade-in-up">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-accent-cyan/30 bg-accent-cyan/5 text-accent-cyan text-xs font-bold tracking-widest uppercase mb-6">
+                    <i class="fa-solid fa-shield-halved"></i> Legal Document
+                </div>
+                <h1 class="text-4xl md:text-6xl font-display font-black text-white mb-4 uppercase tracking-wider">
+                    Terms & <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">Conditions</span>
+                </h1>
+                <p class="text-gray-500 text-base font-mono">Last Updated: March 2026</p>
+            </div>
+
+            <!-- Sections -->
+            <div class="space-y-8 animate-fade-in-up" style="animation-delay:0.15s;">
+
+                <!-- Section Template Helper -->
+                {% with sections='' %}
+
+                <!-- 01. Introduction -->
+                <div class="bg-black/40 border border-white/10 rounded-2xl p-8 hover:border-accent-cyan/20 transition-colors">
+                    <h2 class="text-xl font-display font-bold text-white mb-4 flex items-center gap-3">
+                        <span class="text-accent-cyan font-mono text-sm opacity-60">01.</span>
+                        Introduction
+                    </h2>
+                    <p class="text-gray-400 leading-relaxed text-[15px]">
+                        Welcome to E-Game Scout. By accessing our platform, you agree to be bound by these Terms and Conditions. Please read them carefully. These terms act as a legally binding agreement between you ("User", "Player", "Organization") and E-Game Scout.
+                    </p>
+                </div>
+
+                <!-- 02. User Responsibilities -->
+                <div class="bg-black/40 border border-white/10 rounded-2xl p-8 hover:border-accent-cyan/20 transition-colors">
+                    <h2 class="text-xl font-display font-bold text-white mb-4 flex items-center gap-3">
+                        <span class="text-accent-cyan font-mono text-sm opacity-60">02.</span>
+                        User Responsibilities
+                    </h2>
+                    <ul class="text-gray-400 leading-relaxed text-[15px] space-y-3 list-none">
+                        <li class="flex items-start gap-3"><span class="text-accent-cyan mt-1 shrink-0">✓</span> Maintain the confidentiality of your account credentials and sessions.</li>
+                        <li class="flex items-start gap-3"><span class="text-accent-cyan mt-1 shrink-0">✓</span> Provide accurate and truthful information regarding your gaming statistics, performance, and identity.</li>
+                        <li class="flex items-start gap-3"><span class="text-accent-cyan mt-1 shrink-0">✓</span> Do not engage in any form of cheating, account boosting, or fraudulent activity during tournaments or scouting evaluations.</li>
+                        <li class="flex items-start gap-3"><span class="text-accent-cyan mt-1 shrink-0">✓</span> Organizations committing fraud after hosting a "Verified by E-GameScout" tournament will face an immediate ban from the platform for a minimum of one month.</li>
+                        <li class="flex items-start gap-3"><span class="text-accent-cyan mt-1 shrink-0">✓</span> Respect other players and organizations in all communications and collaborations.</li>
+                    </ul>
+                </div>
+
+                <!-- 03. Privacy -->
+                <div class="bg-black/40 border border-white/10 rounded-2xl p-8 hover:border-accent-cyan/20 transition-colors">
+                    <h2 class="text-xl font-display font-bold text-white mb-4 flex items-center gap-3">
+                        <span class="text-accent-cyan font-mono text-sm opacity-60">03.</span>
+                        Privacy & Data Collection
+                    </h2>
+                    <p class="text-gray-400 leading-relaxed text-[15px]">
+                        Your privacy is crucial to us. We collect necessary data such as session locations, IPs, and in-game statistics strictly to facilitate fair scouting and maintain platform security. We will never sell your personal data to third parties. For complete details, refer to our extended Privacy Policy.
+                    </p>
+                </div>
+
+                <!-- 04. Usage Policy -->
+                <div class="bg-black/40 border border-white/10 rounded-2xl p-8 hover:border-accent-cyan/20 transition-colors">
+                    <h2 class="text-xl font-display font-bold text-white mb-4 flex items-center gap-3">
+                        <span class="text-accent-cyan font-mono text-sm opacity-60">04.</span>
+                        Usage Policy
+                    </h2>
+                    <p class="text-gray-400 leading-relaxed text-[15px]">
+                        The E-Game Scout platform is intended for esports scouting, tournament organization, and verified contracting. Any attempt to reverse engineer, disrupt server integrity, hijack user sessions, or distribute unauthorized scraping tools against our APIs will result in immediate termination of your account.
+                    </p>
+                </div>
+
+                <!-- 05. Liability -->
+                <div class="bg-black/40 border border-white/10 rounded-2xl p-8 hover:border-accent-cyan/20 transition-colors">
+                    <h2 class="text-xl font-display font-bold text-white mb-4 flex items-center gap-3">
+                        <span class="text-accent-cyan font-mono text-sm opacity-60">05.</span>
+                        Liability
+                    </h2>
+                    <p class="text-gray-400 leading-relaxed text-[15px]">
+                        E-Game Scout acts as an intermediary platform to connect players and professional organizations. We are not liable for any disputes, contract breaches, or financial losses occurring directly between players and organizations. Users engage in bidding and signing contracts at their own risk.
+                    </p>
+                </div>
+
+                {% endwith %}
+            </div>
+
+            <!-- Back CTA -->
+            <div class="mt-14 text-center animate-fade-in-up" style="animation-delay:0.3s;">
+                <a href="{% url 'index' %}" class="inline-flex items-center gap-2 px-8 py-3 border border-accent-cyan/40 text-accent-cyan text-sm font-bold uppercase tracking-widest rounded-lg hover:bg-accent-cyan hover:text-black transition-all shadow-[0_0_15px_rgba(102,252,241,0.1)] hover:shadow-[0_0_25px_rgba(102,252,241,0.4)]">
+                    <i class="fa-solid fa-arrow-left"></i> Return Home
+                </a>
+            </div>
+        </div>
+    </main>
+
+    </main>
+{% endblock %}

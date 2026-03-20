@@ -4,27 +4,90 @@
 <div class="p-8 pb-0">
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm mb-6">
-        <a href="{% url 'organizer_dashboard' %}"
+        <a href="{% url 'index' %}"
             class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </a>
         <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
+        <a href="{% url 'organizer_dashboard' %}" class="text-gray-400 hover:text-accent-cyan transition-colors">Organization</a>
+        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
         <span class="text-white font-semibold">Scorecard AI</span>
     </nav>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-8 pt-0">
-    <!-- Left: Upload & New Analysis -->
-    <div class="lg:col-span-2 space-y-6">
-        <h1 class="text-3xl font-display font-bold text-white mb-6">
-            Scorecard <span class="text-accent-cyan">AI Analysis</span>
-        </h1>
+<div class="p-8 pt-0">
+    <!-- Unpublished Tournaments (Highly Prominent) -->
+    {% if unpublished_tournaments %}
+    <div class="glass-card p-6 rounded-xl border-2 border-orange-500 mb-10 bg-orange-500/10 shadow-[0_0_30px_rgba(255,165,0,0.2)] animate-pulse-subtle">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/20">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white text-2xl shadow-lg">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </div>
+                <div>
+                    <h3 class="font-display font-bold text-white text-xl">PENDING PUBLICATION</h3>
+                    <p class="text-sm text-gray-400">Your analysis is ready. Click the button to make it public on the history page.</p>
+                </div>
+            </div>
+        </div>
+        <div class="space-y-4">
+            {% for pt in unpublished_tournaments %}
+            <div class="bg-black/60 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-white/10 hover:border-orange-500/50 transition-all group">
+                <div>
+                    <h4 class="font-bold text-accent-cyan text-lg uppercase tracking-wider group-hover:text-white transition-colors">{{ pt.tournament_name }}</h4>
+                    <div class="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                        <span><i class="fa-regular fa-calendar mr-1.5 text-orange-500"></i> {{ pt.date|date:"M d, Y" }}</span>
+                        <span class="w-1 h-1 bg-gray-600 rounded-full"></span>
+                        <span><i class="fa-solid fa-crown mr-1.5 text-yellow-500"></i> {{ pt.winner_team|default:"TBD" }}</span>
+                    </div>
+                </div>
+                <form action="{% url 'publish_previous_tournament' pt.id %}" method="post" class="w-full md:w-auto">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full md:w-auto bg-orange-500 text-white font-black py-4 px-10 rounded text-sm uppercase tracking-[0.2em] hover:bg-white hover:text-orange-500 transition-all shadow-[0_0_20px_rgba(255,165,0,0.4)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] transform hover:scale-105 active:scale-95">
+                        PUBLISH NOW
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
-        <!-- Upload Card -->
-        <div class="glass-card p-8 rounded-xl border border-white/10 relative overflow-hidden group">
-            <div
-                class="absolute inset-0 bg-accent-cyan/5 group-hover:bg-accent-cyan/10 transition-colors pointer-events-none">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left: Upload & New Analysis -->
+        <div class="lg:col-span-2 space-y-8">
+            <h1 class="text-3xl font-display font-bold text-white mb-2 uppercase tracking-tight">
+                Scorecard <span class="text-accent-cyan">AI Generator</span>
+            </h1>
+            <p class="text-gray-400 text-sm mb-8">Process tournament standings and generate professional match reports using AI.</p>
+
+            <!-- Tournament Selection -->
+            <div class="relative z-10 mb-8 max-w-md mx-auto">
+                <label for="tournament-select" class="block text-xs font-mono text-gray-400 uppercase tracking-widest mb-2">Target Tournament</label>
+                <div class="relative group mb-4">
+                    <select name="tournament_id" id="tournament-select" 
+                            class="w-full bg-black/60 border border-white/10 rounded-lg py-3 px-4 text-white appearance-none focus:outline-none focus:border-accent-cyan transition-all cursor-pointer group-hover:border-white/20">
+                        <option value="" disabled selected>-- Select an Approved Tournament --</option>
+                        {% for t in approved_tournaments %}
+                            <option value="{{ t.Tournament_ID }}">{{ t.Name }} ({{ t.start_date|date:"Y" }})</option>
+                        {% endfor %}
+                        <option value="new">+ Manually Create New Record</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+
+                <!-- Manual Entry for New Tournament -->
+                <div id="new-tournament-input-container" class="hidden mb-4 animate-fade-in">
+                    <label for="new_tournament_name" class="block text-xs font-mono text-accent-cyan uppercase tracking-widest mb-2">New Tournament Name</label>
+                    <input type="text" name="new_tournament_name" id="new_tournament_name" 
+                           placeholder="e.g., BGMI Pro League 2026"
+                           class="w-full bg-black/60 border border-accent-cyan/30 rounded-lg py-3 px-4 text-white placeholder-gray-600 focus:outline-none focus:border-accent-cyan transition-all">
+                </div>
+
+                <p class="text-[10px] text-gray-500 italic">This analysis will be linked to the selected tournament and stored in its match history.</p>
             </div>
 
             <form method="post" enctype="multipart/form-data"
@@ -53,7 +116,6 @@
                 <div class="w-16 h-16 border-4 border-accent-cyan border-t-transparent rounded-full animate-spin mb-4">
                 </div>
                 <h3 class="text-xl font-display font-bold text-white animate-pulse">Analyzing Match Data...</h3>
-                <p class="text-gray-400 text-xs mt-2">Powered by Gemini & Groq AI</p>
             </div>
         </div>
 
@@ -61,17 +123,144 @@
         {% if history.first %}
         <div class="glass-card p-6 rounded-xl border border-white/10">
             <div class="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
-                <h3 class="font-display font-bold text-white"><i
+                <div class="flex items-center gap-3">
+                    <h3 class="font-display font-bold text-white"><i
                         class="fa-solid fa-square-poll-vertical text-accent-cyan mr-2"></i> LATEST REPORT</h3>
-                <span class="text-xs text-gray-500">{{ history.first.created_at|timesince }} ago</span>
+                    {% if history.first.tournament %}
+                        <span class="text-[10px] bg-accent-cyan/10 text-accent-cyan px-2 py-0.5 border border-accent-cyan/20 rounded font-mono uppercase">
+                            {{ history.first.tournament.tournament_name }}
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <span class="text-xs text-gray-500">{{ history.first.created_at|timesince }} ago</span>
+                    {% if history.first.tournament and not history.first.tournament.published %}
+                        <form action="{% url 'publish_previous_tournament' history.first.tournament.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="text-[10px] bg-orange-500 text-white font-bold px-3 py-1 rounded hover:bg-white hover:text-orange-500 transition-colors uppercase tracking-widest shadow-[0_0_10px_rgba(255,165,0,0.3)]">
+                                <i class="fa-solid fa-bullhorn mr-1"></i> Publish Now
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
             </div>
 
             <div class="prose prose-invert prose-sm max-w-none text-gray-300">
-                {{ history.first.summary_text|linebreaks }}
+                {{ history.first.summary_text|force_escape|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+        <!-- All Previous Tournaments -->
+        {% if all_previous_tournaments %}
+        <div class="mt-8">
+            <!-- Section Header -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-lg flex items-center justify-center border border-yellow-500/30">
+                        <i class="fa-solid fa-clock-rotate-left text-yellow-400 text-xs"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white uppercase tracking-widest">Tournament History</h3>
+                        <p class="text-[10px] text-gray-500">Manage publication of your AI-processed tournament records</p>
+                    </div>
+                </div>
+                <span class="text-[10px] font-mono bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/10">
+                    {{ all_previous_tournaments|length }} record{{ all_previous_tournaments|length|pluralize }}
+                </span>
+            </div>
+
+            <!-- Tournament Cards -->
+            <div class="space-y-3">
+                {% for pt in all_previous_tournaments %}
+                <div class="group relative bg-gradient-to-r from-black/60 to-black/40 rounded-xl border border-white/8 hover:border-white/20 transition-all duration-300 overflow-hidden">
+                    <!-- Status Glow Line -->
+                    <div class="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl {% if pt.published %}bg-accent-cyan shadow-[0_0_8px_rgba(102,252,241,0.6)]{% else %}bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.4)]{% endif %}"></div>
+                    
+                    <div class="pl-4 pr-4 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <!-- Left: Info -->
+                        <div class="flex items-center gap-4 flex-1 min-w-0">
+                            <!-- Status Badge -->
+                            <div class="flex-shrink-0">
+                                {% if pt.published %}
+                                <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/30">
+                                    <span class="w-1.5 h-1.5 bg-accent-cyan rounded-full animate-pulse"></span> LIVE
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
+                                    <span class="w-1.5 h-1.5 bg-yellow-400 rounded-full"></span> DRAFT
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Details -->
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-white text-sm uppercase tracking-wide truncate group-hover:text-accent-cyan transition-colors">{{ pt.tournament_name }}</h4>
+                                <div class="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1">
+                                    <span class="text-[10px] text-gray-500 flex items-center gap-1">
+                                        <i class="fa-regular fa-calendar text-gray-600"></i> {{ pt.date|date:"M d, Y" }}
+                                    </span>
+                                    {% if pt.winner_team %}
+                                    <span class="text-[10px] text-yellow-500 flex items-center gap-1">
+                                        <i class="fa-solid fa-crown text-yellow-500/70"></i> {{ pt.winner_team }}
+                                    </span>
+                                    {% endif %}
+                                    {% if pt.game_name %}
+                                    <span class="text-[10px] text-gray-500 flex items-center gap-1">
+                                        <i class="fa-solid fa-gamepad text-gray-600"></i> {{ pt.game_name }}
+                                    </span>
+                                    {% endif %}
+                                    <span class="text-[10px] text-gray-600 flex items-center gap-1">
+                                        <i class="fa-solid fa-layer-group text-gray-700"></i> {{ pt.scorecards.count }} match{{ pt.scorecards.count|pluralize:"es" }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Action Buttons -->
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <!-- Edit Button -->
+                            <a href="{% url 'edit_previous_tournament' pt.id %}" 
+                               title="Edit tournament details"
+                               class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/30 hover:bg-white/10 transition-all duration-200">
+                                <i class="fa-solid fa-pen text-[10px]"></i>
+                            </a>
+                            
+                            <!-- Publish / Unpublish Toggle -->
+                            <form action="{% url 'publish_previous_tournament' pt.id %}" method="post" class="inline-block"
+                                  {% if pt.published %}onsubmit="return confirm('Unpublish this tournament? It will be hidden from the public page.');"{% endif %}>
+                                {% csrf_token %}
+                                {% if pt.published %}
+                                <button type="submit" title="Unpublish"
+                                    class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200">
+                                    <i class="fa-solid fa-eye-slash text-[9px]"></i> Unpublish
+                                </button>
+                                {% else %}
+                                <button type="submit" title="Publish to public history"
+                                    class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/30 hover:bg-accent-cyan hover:text-brand-dark hover:border-accent-cyan transition-all duration-200">
+                                    <i class="fa-solid fa-globe text-[9px]"></i> Publish
+                                </button>
+                                {% endif %}
+                            </form>
+                            
+                            <!-- Delete Button -->
+                            <form action="{% url 'delete_previous_tournament' pt.id %}" method="post" class="inline-block"
+                                  onsubmit="return confirm('Permanently delete \'{{ pt.tournament_name }}\'? This cannot be undone and will remove all associated scorecards and team data.');">
+                                {% csrf_token %}
+                                <button type="submit" title="Delete permanently"
+                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/5 border border-red-500/20 text-red-600 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200">
+                                    <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
         {% endif %}
     </div>
+    <!-- End of lg:col-span-2 -->
 
     <!-- Right: History Sidebar -->
     <div class="lg:col-span-1 space-y-4">
@@ -79,23 +268,79 @@
 
         <div class="space-y-4">
             {% for item in history %}
-            <div
-                class="glass-card p-4 rounded-lg border border-white/10 hover:border-accent-cyan/30 transition-colors group cursor-pointer">
-                <div class="flex gap-3">
-                    <div class="w-16 h-16 bg-black/40 rounded overflow-hidden flex-shrink-0">
+            <div class="glass-card p-4 rounded-xl border border-white/10 hover:border-accent-cyan/40 transition-all group cursor-pointer bg-black/20 hover:bg-black/40 relative overflow-hidden">
+                {% if item.tournament and not item.tournament.published %}
+                <div class="absolute top-0 right-0">
+                    <div class="bg-orange-500 text-[8px] font-black text-white px-2 py-0.5 rounded-bl uppercase tracking-tighter">Draft</div>
+                </div>
+                {% elif item.tournament and item.tournament.published %}
+                <div class="absolute top-0 right-0">
+                    <div class="bg-accent-cyan text-[8px] font-black text-brand-dark px-2 py-0.5 rounded-bl uppercase tracking-tighter shadow-[0_0_10px_rgba(102,252,241,0.3)]">Live</div>
+                </div>
+                {% endif %}
+
+                <div class="flex gap-4">
+                    <div class="w-14 h-14 bg-black/60 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center border border-white/10 group-hover:border-accent-cyan/30 transition-colors">
                         {% if item.image %}
                         <img src="{{ item.image.url }}"
-                            class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity">
+                             class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500 scale-110 group-hover:scale-100"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <i class="fa-solid fa-image text-gray-700 hidden"></i>
+                        {% else %}
+                        <i class="fa-solid fa-image text-gray-700"></i>
                         {% endif %}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-start mb-1">
-                            <span class="text-xs font-bold text-white truncate">Analysis #{{ item.id }}</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-gray-400 uppercase">{{
-                                item.ai_provider }}</span>
+                        <div class="flex flex-col h-full justify-between">
+                            <div>
+                                <div class="flex justify-between items-start gap-2">
+                                    <h4 class="text-xs font-black text-white truncate uppercase tracking-widest group-hover:text-accent-cyan transition-colors">
+                                        {% if item.tournament %}
+                                            {{ item.tournament.tournament_name }}
+                                        {% else %}
+                                            Analysis #{{ item.id }}
+                                        {% endif %}
+                                    </h4>
+                                    <div class="flex items-center gap-2 ml-2">
+                                        {% if item.ai_provider == 'failed' %}
+                                        <a href="{% url 'retry_scorecard_analysis' item.id %}" class="text-[9px] text-accent-cyan hover:underline bg-accent-cyan/10 px-2 py-0.5 rounded border border-accent-cyan/20">Retry</a>
+                                        {% elif item.ai_provider == 'pending' %}
+                                        <span class="text-[9px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20">Analyzing <i class="fa-solid fa-spinner fa-spin ms-1"></i></span>
+                                        {% endif %}
+                                        <form action="{% url 'delete_scorecard_analysis' item.id %}" method="POST" class="inline m-0 p-0" onsubmit="return confirm('Delete this analysis record?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="text-gray-500 hover:text-red-500 transition-colors bg-transparent border-0"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-[9px] text-gray-500 font-mono italic">{{ item.created_at|date:"M d, Y" }}</span>
+                                    {% if item.raw_data.winner_team %}
+                                        <span class="text-[9px] text-gray-700">|</span>
+                                        <span class="text-[9px] text-orange-500 font-bold uppercase"><i class="fa-solid fa-crown mr-1"></i> {{ item.raw_data.winner_team }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if item.raw_data.teams %}
+                                <div class="mt-2 flex flex-wrap gap-1">
+                                    {% for team in item.raw_data.teams|slice:":2" %}
+                                        <span class="text-[8px] bg-white/5 text-gray-400 px-1 py-0.5 rounded border border-white/5 truncate max-w-[80px]">
+                                            #{{ team.rank }} {{ team.team_name }}
+                                        </span>
+                                    {% endfor %}
+                                    {% if item.raw_data.teams|length > 2 %}
+                                        <span class="text-[8px] text-gray-600 self-center">+{{ item.raw_data.teams|length|add:"-2" }} more</span>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mt-3 flex items-center justify-between">
+                                <p class="text-[10px] text-gray-500 truncate pr-4 italic">"{{ item.summary_text|truncatechars:30 }}"</p>
+                                <button class="text-[8px] font-bold text-accent-cyan hover:text-white uppercase tracking-widest flex items-center gap-1 group/btn min-w-fit">
+                                    VIEW <i class="fa-solid fa-arrow-right text-[7px] group-hover/btn:translate-x-0.5 transition-transform"></i>
+                                </button>
+                            </div>
                         </div>
-                        <p class="text-xs text-gray-400 line-clamp-2">{{ item.summary_text }}</p>
-                        <p class="text-[10px] text-gray-600 mt-2 text-right">{{ item.created_at|date:"M d, H:i" }}</p>
                     </div>
                 </div>
             </div>
@@ -104,6 +349,23 @@
                 No analysis history yet.
             </div>
             {% endfor %}
+            {% if history.has_other_pages %}
+            <div class="flex justify-between items-center mt-4 border-t border-white/10 pt-4">
+                {% if history.has_previous %}
+                <a href="?page={{ history.previous_page_number }}" class="text-xs text-accent-cyan hover:underline"><i class="fa-solid fa-chevron-left mr-1"></i>Prev</a>
+                {% else %}
+                <span class="text-xs text-gray-600"><i class="fa-solid fa-chevron-left mr-1"></i>Prev</span>
+                {% endif %}
+                
+                <span class="text-xs text-gray-400">Page {{ history.number }} of {{ history.paginator.num_pages }}</span>
+                
+                {% if history.has_next %}
+                <a href="?page={{ history.next_page_number }}" class="text-xs text-accent-cyan hover:underline">Next<i class="fa-solid fa-chevron-right ml-1"></i></a>
+                {% else %}
+                <span class="text-xs text-gray-600">Next<i class="fa-solid fa-chevron-right ml-1"></i></span>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -115,6 +377,21 @@
         const loadingOverlay = document.getElementById('loading-overlay');
         const selectBtn = document.getElementById('select-btn');
         const uploadUi = document.getElementById('upload-ui');
+        const tournamentSelect = document.getElementById('tournament-select');
+
+        // Toggle New Tournament Input
+        const newTournamentContainer = document.getElementById('new-tournament-input-container');
+        const newTournamentInput = document.getElementById('new_tournament_name');
+
+        tournamentSelect.addEventListener('change', () => {
+            if (tournamentSelect.value === 'new') {
+                newTournamentContainer.classList.remove('hidden');
+                newTournamentInput.required = true;
+            } else {
+                newTournamentContainer.classList.add('hidden');
+                newTournamentInput.required = false;
+            }
+        });
 
         // Button Click
         selectBtn.addEventListener('click', (e) => {
@@ -130,6 +407,34 @@
         // File Selection -> Submit
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) {
+                // Validation
+                if (!tournamentSelect.value) {
+                    alert("Please select a tournament OR choose 'Create New' first.");
+                    fileInput.value = "";
+                    return;
+                }
+
+                if (tournamentSelect.value === 'new' && !newTournamentInput.value) {
+                    alert("Please enter a name for the new tournament.");
+                    fileInput.value = "";
+                    return;
+                }
+
+                // Ensure tournament_id and new_name are part of the form submission
+                const hiddenId = document.createElement('input');
+                hiddenId.type = 'hidden';
+                hiddenId.name = 'tournament_id';
+                hiddenId.value = tournamentSelect.value;
+                form.appendChild(hiddenId);
+
+                if (tournamentSelect.value === 'new') {
+                    const hiddenName = document.createElement('input');
+                    hiddenName.type = 'hidden';
+                    hiddenName.name = 'new_tournament_name';
+                    hiddenName.value = newTournamentInput.value;
+                    form.appendChild(hiddenName);
+                }
+
                 loadingOverlay.classList.remove('hidden');
                 loadingOverlay.classList.add('flex');
                 form.submit();
@@ -169,7 +474,34 @@
             const files = dt.files;
 
             if (files.length > 0) {
+                 // Validation
+                if (!tournamentSelect.value) {
+                    alert("Please select a tournament OR choose 'Create New' first.");
+                    return;
+                }
+
+                if (tournamentSelect.value === 'new' && !newTournamentInput.value) {
+                    alert("Please enter a name for the new tournament.");
+                    return;
+                }
+
                 fileInput.files = files;
+                
+                // Ensure tournament_id and new_name are part of the form submission
+                const hiddenId = document.createElement('input');
+                hiddenId.type = 'hidden';
+                hiddenId.name = 'tournament_id';
+                hiddenId.value = tournamentSelect.value;
+                form.appendChild(hiddenId);
+
+                if (tournamentSelect.value === 'new') {
+                    const hiddenName = document.createElement('input');
+                    hiddenName.type = 'hidden';
+                    hiddenName.name = 'new_tournament_name';
+                    hiddenName.value = newTournamentInput.value;
+                    form.appendChild(hiddenName);
+                }
+
                 loadingOverlay.classList.remove('hidden');
                 loadingOverlay.classList.add('flex');
                 form.submit();

@@ -1,0 +1,76 @@
+{% extends 'web/Organization/dashboard_base.html' %}
+
+{% block content %}
+<div class="p-6 md:p-8 space-y-6">
+    <div class="flex items-center justify-between">
+        <h2 class="text-3xl font-display font-bold text-white mb-2">WALLET TRANSACTIONS</h2>
+        <div class="bg-accent-cyan/10 border border-accent-cyan/30 px-4 py-2 rounded-lg">
+            <span class="text-brand-light/60 text-xs uppercase tracking-wider block">Current Balance</span>
+            <span class="text-2xl font-mono font-bold text-accent-cyan">₹{{ org.coins|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    <div class="glass-panel p-0 rounded-xl overflow-hidden border border-white/10">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-black/40 text-brand-light/50 text-xs uppercase tracking-wider border-b border-white/10">
+                    <tr>
+                        <th class="p-4 font-bold">Details</th>
+                        <th class="p-4 font-bold">Type</th>
+                        <th class="p-4 font-bold">From/To</th>
+                        <th class="p-4 font-bold text-right">Amount</th>
+                        <th class="p-4 font-bold text-right">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm divide-y divide-white/5">
+                    {% for txn in transactions %}
+                    <tr class="hover:bg-white/5 transition-colors group">
+                        <td class="p-4">
+                            <div class="font-bold text-white">{{ txn.description|default:"-" }}</div>
+                            <div class="text-[10px] text-brand-light/40 font-mono">{{ txn.id }}</div>
+                        </td>
+                        <td class="p-4">
+                            <span class="px-2 py-1 rounded text-[10px] uppercase font-bold tracking-wider
+                                {% if txn.transaction_type == 'DEPOSIT' or txn.transaction_type == 'ADMIN_GRANT' or txn.transaction_type == 'BID_REFUND' %}bg-green-500/20 text-green-400 border border-green-500/30{% endif %}
+                                {% if txn.transaction_type == 'WITHDRAWAL' or txn.transaction_type == 'BID_LOCKED' or txn.transaction_type == 'BID_PAYMENT' %}bg-red-500/20 text-red-400 border border-red-500/30{% endif %}
+                                {% if txn.transaction_type == 'OTHER' %}bg-gray-500/20 text-gray-400 border border-gray-500/30{% endif %}
+                            ">
+                                {{ txn.get_transaction_type_display }}
+                            </span>
+                        </td>
+                        <td class="p-4 text-brand-light/70 font-mono">
+                            {% if txn.sender == org %}
+                                <span class="text-red-400">Sent -> 
+                                    {% if txn.recipient %}
+                                        {{ txn.recipient.Organization_Name }}
+                                    {% elif txn.recipient_player %}
+                                        {{ txn.recipient_player.full_name }}
+                                    {% else %}
+                                        System
+                                    {% endif %}
+                                </span>
+                            {% elif txn.recipient == org %}
+                                <span class="text-green-400">Received <- {{ txn.sender.Organization_Name|default:"System" }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-right font-mono font-bold
+                            {% if txn.recipient == org %}text-green-400{% else %}text-red-400{% endif %}">
+                            {% if txn.recipient == org %}+{% else %}-{% endif %}₹{{ txn.amount|floatformat:2 }}
+                        </td>
+                        <td class="p-4 text-right text-brand-light/50 font-mono text-xs">
+                            {{ txn.timestamp|date:"M d, Y H:i" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="p-8 text-center text-brand-light/30">No transactions recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

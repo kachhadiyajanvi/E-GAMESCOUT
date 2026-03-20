@@ -1,0 +1,54 @@
+{% extends 'web/emails/base_email.html' %}
+{% block theme_class %}theme-green{% endblock %}
+{% block title %}Welcome to E-GameScout – Complete Your Registration{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle">🏆</div>
+</div>
+
+<h1>WELCOME TO <span style="color: #22C55E;">E-GAMESCOUT</span></h1>
+
+<p>Hello <strong style="color:#ffffff;">{{ invite.name }}</strong>,</p>
+
+<p>
+    You have successfully joined <strong>{{ org.Organization_Name }}</strong> as an <strong style="color: #22C55E;">External Verified Player</strong>!
+    To unlock the full power of E-GameScout — including your player profile, stats, bidding system, and more — complete your free registration.
+</p>
+
+<div class="highlight-box">
+    <div class="highlight-title" style="color: #22C55E;">What You Get by Registering</div>
+    <div style="background: rgba(34, 197, 94, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2);">
+        <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.1);">
+            <span style="color: #22C55E; margin-right: 10px;">✓</span>
+            <span style="color: rgba(255,255,255,0.8);">Public player profile visible to all organizations</span>
+        </div>
+        <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.1);">
+            <span style="color: #22C55E; margin-right: 10px;">✓</span>
+            <span style="color: rgba(255,255,255,0.8);">Access to the bidding & scouting system</span>
+        </div>
+        <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.1);">
+            <span style="color: #22C55E; margin-right: 10px;">✓</span>
+            <span style="color: rgba(255,255,255,0.8);">Tournament notifications & real-time updates</span>
+        </div>
+        <div>
+            <span style="color: #22C55E; margin-right: 10px;">✓</span>
+            <span style="color: rgba(255,255,255,0.8);">Earn coins and track your career stats</span>
+        </div>
+    </div>
+</div>
+
+<p>Your team is waiting — register now and take your esports career to the next level!</p>
+
+<div class="btn-wrapper">
+    <a href="{{ register_url }}" class="cta-button">COMPLETE REGISTRATION</a>
+</div>
+
+<p style="font-size: 13px; color: rgba(255,255,255,0.5); text-align: center; margin-top: 20px;">
+    Already have an account? Simply log in and link your profile to <strong style="color: rgba(255,255,255,0.6);">{{ org.Organization_Name }}</strong>.
+</p>
+{% endblock %}
+
+{% block footer_extra %}
+You are receiving this email because you accepted an invitation from {{ org.Organization_Name }} on E-GameScout.
+{% endblock %}

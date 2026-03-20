@@ -1,0 +1,44 @@
+{% extends 'web/emails/base_email.html' %}
+{% block theme_class %}theme-gold{% endblock %}
+{% block title %}Negotiation Request – E-Game Scout{% endblock %}
+
+{% block content %}
+<div class="icon-container">
+    <div class="icon-circle">⚖️</div>
+</div>
+
+<h1>NEGOTIATION <span style="color: #FFD700;">REQUESTED</span></h1>
+
+<p>Hello <strong style="color:#ffffff;">{{ org.Organization_Name }}</strong>,</p>
+
+<p>A player has requested a negotiation on your original bid. They are interested, but would like to discuss the offer.</p>
+
+<div class="highlight-box">
+    <div style="margin-bottom: 20px; text-align: center;">
+        <span style="font-size: 14px; color: rgba(255,255,255,0.6); text-transform: uppercase;">FROM PLAYER</span><br>
+        <span style="font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: #ffffff;">{{ player.full_name|default:player.username }}</span>
+    </div>
+    
+    <div style="background: rgba(255, 215, 0, 0.05); border: 1px solid rgba(255, 215, 0, 0.3); padding: 15px; border-radius: 8px;">
+        <div style="margin-bottom: 8px;">
+            <span style="color: rgba(255,255,255,0.6); font-size: 13px;">YOUR ORIGINAL BID</span>
+            <span style="float: right; color: rgba(255,255,255,0.8); font-weight: 700;">₹{{ bid.Current_Bid_Price }}</span>
+        </div>
+        <div style="margin-bottom: 8px;">
+            <span style="color: rgba(255,255,255,0.6); font-size: 13px;">REQUESTED AMOUNT</span>
+            <span style="float: right; color: #FFD700; font-weight: 700; font-size: 16px;">₹{{ negotiation.requested_amount }}</span>
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+        <div style="font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 700; margin-bottom: 5px;">PLAYER MESSAGE:</div>
+        <p style="font-size: 14px; color: #ffffff; margin: 0; font-style: italic;">"{{ negotiation.message|default:'No message provided.' }}"</p>
+    </div>
+</div>
+
+<p>Go to your dashboard to Accept or Decline this counter-offer.</p>
+
+<div class="btn-wrapper">
+    <a href="{{ dashboard_url|default:'http://127.0.0.1:8000/organization/negotiations/' }}" class="cta-button">RESPOND NOW</a>
+</div>
+{% endblock %}

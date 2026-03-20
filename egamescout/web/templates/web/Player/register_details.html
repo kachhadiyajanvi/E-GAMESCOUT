@@ -26,8 +26,52 @@
             {% csrf_token %}
 
             <div class="md:col-span-2">
+                {% if external_name %}
+                <div class="mb-6 bg-[rgba(69,182,254,0.05)] border border-[rgba(69,182,254,0.2)] rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-full bg-accent-cyan/20 flex items-center justify-center border border-accent-cyan/50 text-accent-cyan">
+                            <i class="fa-solid fa-id-badge text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-accent-cyan font-display font-bold text-sm tracking-wider uppercase">Choose Profile Name</h3>
+                            <p class="text-xs text-gray-400">Select how your name will appear on the platform.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="relative flex items-center p-3 cursor-pointer rounded-lg border border-white/10 hover:bg-white/5 transition-colors group">
+                            <input type="radio" name="name_preference" value="aadhar" class="peer sr-only " checked>
+                            <div class="w-4 h-4 rounded-full border border-gray-500 mr-3 peer-checked:border-accent-cyan peer-checked:border-[4px] transition-all"></div>
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase tracking-wider mb-0.5 font-bold">Aadhar Name</p>
+                                <p class="text-white text-sm font-semibold truncate">{{ aadhar_name }}</p>
+                            </div>
+                            <div class="absolute inset-0 rounded-lg border border-transparent peer-checked:border-accent-cyan/50 pointer-events-none transition-colors"></div>
+                        </label>
+                        
+                        <label class="relative flex items-center p-3 cursor-pointer rounded-lg border border-white/10 hover:bg-white/5 transition-colors group">
+                            <input type="radio" name="name_preference" value="external" class="peer sr-only">
+                            <div class="w-4 h-4 rounded-full border border-gray-500 mr-3 peer-checked:border-accent-cyan peer-checked:border-[4px] transition-all"></div>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-0.5 font-bold">Invited Name <span class="text-[10px] bg-accent-cyan/20 text-accent-cyan px-1.5 py-0.5 rounded ml-1">Org</span></p>
+                                <p class="text-white text-sm font-semibold truncate" id="js-external-name">{{ external_name }}</p>
+                            </div>
+                            <div class="absolute inset-0 rounded-lg border border-transparent peer-checked:border-accent-cyan/50 pointer-events-none transition-colors"></div>
+                        </label>
+                    </div>
+                </div>
+                <!-- Hidden inputs to store the actual name strings for JS -->
+                <input type="hidden" id="raw_aadhar_name" value="{{ aadhar_name }}">
+                <input type="hidden" id="raw_external_name" value="{{ external_name }}">
+                {% endif %}
+
                 <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Full Name</label>
-                {{ form.full_name }}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-accent-cyan transition-colors">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    {{ form.full_name }}
+                </div>
                 <p id="fullname-error" class="text-red-500 text-xs mt-1 font-bold hidden"><i class="fa-solid fa-circle-exclamation mr-1"></i> Full name is required</p>
                 {% if form.full_name.errors %}
                 <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{ form.full_name.errors.0 }}</p>
@@ -36,7 +80,12 @@
 
             <div class="md:col-span-1">
                 <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Age</label>
-                {{ form.age }}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-accent-cyan transition-colors">
+                        <i class="fa-solid fa-calendar-day"></i>
+                    </div>
+                    {{ form.age }}
+                </div>
                 {% if form.age.errors %}
                 <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{ form.age.errors.0 }}</p>
                 {% endif %}
@@ -44,7 +93,12 @@
 
             <div class="md:col-span-1">
                 <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Aadhar Number</label>
-                {{ form.aadhar_number }}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-accent-cyan transition-colors">
+                        <i class="fa-solid fa-id-card"></i>
+                    </div>
+                    {{ form.aadhar_number }}
+                </div>
                 {% if form.aadhar_number.errors %}
                 <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{ form.aadhar_number.errors.0 }}</p>
                 {% endif %}
@@ -52,7 +106,12 @@
 
             <div>
                 <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Game UID</label>
-                {{ form.uid }}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-accent-cyan transition-colors">
+                        <i class="fa-solid fa-gamepad"></i>
+                    </div>
+                    {{ form.uid }}
+                </div>
                 <p id="uid-error" class="text-red-500 text-xs mt-1 font-bold hidden"><i class="fa-solid fa-circle-exclamation mr-1"></i> Invalid UID</p>
                 {% if form.uid.errors %}
                 <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{ form.uid.errors.0 }}</p>
@@ -61,16 +120,46 @@
 
             <div>
                 <label class="block text-accent-cyan text-xs font-bold uppercase tracking-widest mb-1">Mobile No</label>
-                {{ form.mobile_no }}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-accent-cyan transition-colors">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                    </div>
+                    {{ form.mobile_no }}
+                </div>
                 <p id="mobile-error" class="text-red-500 text-xs mt-1 font-bold hidden"><i class="fa-solid fa-circle-exclamation mr-1"></i> Invalid Mobile Number</p>
                 {% if form.mobile_no.errors %}
                 <p class="text-red-500 text-xs mt-1 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{ form.mobile_no.errors.0 }}</p>
                 {% endif %}
             </div>
 
+            <!-- Terms & Conditions -->
+            <div class="md:col-span-2">
+                <label class="flex items-start gap-3 cursor-pointer group select-none">
+                    <div class="relative mt-0.5 shrink-0">
+                        <input id="terms-check-player" type="checkbox" required
+                            class="peer sr-only">
+                        <div class="w-5 h-5 rounded border-2 border-white/20 bg-white/5 peer-checked:bg-accent-cyan peer-checked:border-accent-cyan transition-all flex items-center justify-center">
+                            <i class="fa-solid fa-check text-[10px] text-black opacity-0 peer-checked:opacity-100 transition-opacity" id="terms-icon-player"></i>
+                        </div>
+                    </div>
+                    <span class="text-gray-400 text-xs leading-relaxed group-hover:text-gray-300 transition-colors">
+                        I have read and agree to the
+                        <a href="{% url 'terms' %}" target="_blank"
+                            class="text-accent-cyan hover:text-white underline underline-offset-2 font-semibold transition-colors">
+                            Terms &amp; Conditions
+                        </a>
+                        of E-Game Scout. I confirm that all information provided is accurate.
+                    </span>
+                </label>
+                <p id="terms-error-player" class="text-red-500 text-xs mt-2 font-bold hidden">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> You must accept the Terms &amp; Conditions to register.
+                </p>
+            </div>
+
             <div class="md:col-span-2 mt-4">
-                <button type="submit"
-                    class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded-xl transition-colors group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)]">
+                <button id="submit-btn-player" type="submit"
+                    class="w-full py-4 bg-accent-cyan hover:bg-white text-black font-display font-bold uppercase tracking-wider rounded-xl transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(102,252,241,0.4)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent-cyan"
+                    disabled>
                     Activate Profile <i class="fa-solid fa-rocket ml-2"></i>
                 </button>
             </div>
@@ -90,6 +179,48 @@ document.addEventListener('DOMContentLoaded', function () {
     const nameError = document.getElementById('fullname-error');
     const uidError = document.getElementById('uid-error');
     const mobileError = document.getElementById('mobile-error');
+
+    // T&C checkbox
+    const termsCheck = document.getElementById('terms-check-player');
+    const termsError = document.getElementById('terms-error-player');
+    const submitBtn = document.getElementById('submit-btn-player');
+    const termsIcon = document.getElementById('terms-icon-player');
+
+    // Name toggle logic for invited players
+    const nameRadios = document.querySelectorAll('input[name="name_preference"]');
+    const rawAadharInput = document.getElementById('raw_aadhar_name');
+    const rawExternalInput = document.getElementById('raw_external_name');
+
+    if (nameRadios.length > 0 && rawAadharInput && rawExternalInput) {
+        nameRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'aadhar') {
+                    nameInput.value = rawAadharInput.value;
+                } else {
+                    nameInput.value = rawExternalInput.value;
+                }
+                // Trigger validation logic for name input
+                nameInput.dispatchEvent(new Event('input'));
+            });
+        });
+    }
+
+    if (termsCheck && submitBtn) {
+        termsCheck.addEventListener('change', function () {
+            submitBtn.disabled = !this.checked;
+            if (termsIcon) termsIcon.style.opacity = this.checked ? '1' : '0';
+            if (termsError && this.checked) termsError.classList.add('hidden');
+        });
+
+        // Show error on submit attempt if unchecked
+        submitBtn.closest('form').addEventListener('submit', function (e) {
+            if (!termsCheck.checked) {
+                e.preventDefault();
+                if (termsError) termsError.classList.remove('hidden');
+                termsCheck.parentElement.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    }
 
     if (nameInput && nameError) {
         nameInput.addEventListener('input', function () {

@@ -1,0 +1,346 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block extra_head %}
+    <meta property="og:title" content="{{ tournament.tournament_name }} | E-Game Scout">
+    <meta property="og:description" content="{{ tournament.description|default:'View the results and match history of this esports tournament.'|truncatechars:150 }}">
+    {% if tournament.cover_image %}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ tournament.cover_image.url }}">
+    {% else %}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'web/images/logo.png' %}">
+    {% endif %}
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+{% endblock %}
+
+{% block content %}
+<main class="min-h-screen pt-24 pb-16 px-4 md:px-8 bg-black relative">
+    <!-- Grid Background -->
+    <div class="absolute inset-0 z-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
+    <div class="absolute top-0 right-1/4 w-96 h-96 bg-accent-cyan/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-accent-pink/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10 space-y-12">
+        <!-- 1. Tournament Overview Header -->
+        <div class="glass-card rounded-2xl overflow-hidden border border-white/10 relative">
+            <!-- Animated neon border background -->
+            <div class="absolute -inset-0.5 bg-gradient-to-r from-accent-cyan via-accent-pink to-accent-cyan rounded-2xl blur opacity-20"></div>
+            
+            <div class="relative bg-brand-dark p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center border border-white/10 rounded-2xl">
+                <div class="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-accent-pink/5 mix-blend-screen group-hover:bg-accent-pink/20 transition-colors"></div>
+                    <i class="fa-solid fa-trophy text-6xl md:text-8xl text-accent-pink/40 group-hover:text-accent-pink group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(255,0,128,0.3)]"></i>
+                </div>
+                
+                <div class="flex-1 text-center md:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-black/60 border border-white/10 text-[10px] font-mono text-accent-cyan tracking-widest uppercase mb-4 shadow-lg">
+                        <i class="fa-solid fa-calendar-alt"></i> {{ tournament.date|date:"F d, Y" }}
+                    </div>
+                    <h1 class="text-3xl md:text-5xl font-display font-bold text-white mb-4 tracking-wide uppercase">
+                        {{ tournament.tournament_name }}
+                    </h1>
+                    {% if tournament.description %}
+                    <p class="text-gray-400 max-w-2xl leading-relaxed mb-6">
+                        {{ tournament.description }}
+                    </p>
+                    {% endif %}
+                    
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
+                        <div class="bg-black/50 border border-yellow-500/30 rounded-lg p-4 flex-1 min-w-[200px] hover:border-yellow-500/60 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)] transition-all">
+                            <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Champion</div>
+                            <div class="font-bold text-white text-lg flex items-center">
+                                <i class="fa-solid fa-crown text-yellow-500 mr-2 drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]"></i>
+                                {{ tournament.winner_team|default:"TBD" }}
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black/50 border border-gray-400/30 rounded-lg p-4 flex-1 min-w-[200px] hover:border-gray-400/60 hover:shadow-[0_0_20px_rgba(156,163,175,0.15)] transition-all">
+                            <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Runner Up</div>
+                            <div class="font-bold text-gray-300 text-lg flex items-center">
+                                <i class="fa-solid fa-medal text-gray-400 mr-2 drop-shadow-[0_0_5px_rgba(156,163,175,0.8)]"></i>
+                                {{ tournament.runner_up_team|default:"TBD" }}
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black/50 border border-accent-cyan/30 rounded-lg p-4 flex-1 min-w-[150px]">
+                            <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Total Teams</div>
+                            <div class="font-bold text-accent-cyan text-lg flex items-center">
+                                <i class="fa-solid fa-users mr-2"></i>
+                                {{ teams|length }}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 flex-1 min-w-[150px] justify-start md:justify-end">
+                            <span class="text-xs text-gray-500 font-mono tracking-widest uppercase mr-2 hidden md:inline">Share:</span>
+                            <a href="https://twitter.com/intent/tweet?text={{ tournament.tournament_name|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-[#1DA1F2]/10 text-[#1DA1F2] border border-[#1DA1F2]/30 flex items-center justify-center hover:bg-[#1DA1F2] hover:text-white transition-all hover:shadow-[0_0_15px_rgba(29,161,242,0.5)]">
+                                <i class="fa-brands fa-twitter"></i>
+                            </a>
+                            <a href="https://api.whatsapp.com/send?text={{ tournament.tournament_name|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 flex items-center justify-center hover:bg-[#25D366] hover:text-white transition-all hover:shadow-[0_0_15px_rgba(37,211,102,0.5)]">
+                                <i class="fa-brands fa-whatsapp text-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content Area -->
+            <div class="lg:col-span-2 space-y-12">
+                <!-- 3. Participating Teams Table -->
+                <section>
+                    <div class="flex items-center gap-3 mb-6">
+                        <h2 class="text-2xl font-display font-bold text-white uppercase"><i class="fa-solid fa-ranking-star text-accent-cyan mr-2"></i> Final Standings</h2>
+                        <div class="flex-1 h-px bg-gradient-to-r from-accent-cyan/50 to-transparent"></div>
+                    </div>
+                    
+                    <div class="glass-card rounded-xl border border-white/10 overflow-hidden bg-[#0F1115]">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-black/80 border-b border-white/10 text-[10px] font-mono tracking-widest text-gray-500 uppercase">
+                                        <th class="p-4 font-normal">Rank</th>
+                                        <th class="p-4 font-normal">Team</th>
+                                        <th class="p-4 font-normal">Organization</th>
+                                        <th class="p-4 font-normal text-right">Points</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">
+                                    {% for team in teams %}
+                                    <tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                                        <td class="p-4 font-mono font-bold w-16 text-center">
+                                            {% if forloop.counter == 1 %}
+                                                <span class="text-yellow-500 font-bold">#1</span>
+                                            {% elif forloop.counter == 2 %}
+                                                <span class="text-gray-400 font-bold">#2</span>
+                                            {% elif forloop.counter == 3 %}
+                                                <span class="text-amber-600 font-bold">#3</span>
+                                            {% else %}
+                                                <span class="text-gray-600 group-hover:text-gray-400">#{{ forloop.counter }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="p-4 font-bold text-white group-hover:text-accent-cyan transition-colors">{{ team.team_name }}</td>
+                                        <td class="p-4 text-gray-400">{{ team.organization|default:"-" }}</td>
+                                        <td class="p-4 text-right font-mono font-bold text-accent-pink">{{ team.points }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="p-8 text-center text-gray-500 text-sm">No teams found for this tournament.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Match Scorecard History -->
+                <section>
+                    <div class="flex items-center gap-3 mb-6">
+                        <h2 class="text-2xl font-display font-bold text-white uppercase"><i class="fa-solid fa-gamepad text-accent-pink mr-2"></i> Match History</h2>
+                        <div class="flex-1 h-px bg-gradient-to-r from-accent-pink/50 to-transparent"></div>
+                        {% if scorecards %}
+                        <span class="text-[10px] font-mono text-gray-500 bg-white/5 border border-white/10 px-3 py-1 rounded-full">{{ scorecards|length }} match{{ scorecards|length|pluralize:"es" }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-5">
+                        {% for match in scorecards %}
+                        <div class="glass-card rounded-xl border border-white/10 overflow-hidden bg-brand-dark/80 hover:border-white/20 transition-all duration-300 group" id="match-{{ match.id }}">
+                            
+                            <!-- Match Header -->
+                            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-5 border-b border-white/8 bg-black/30">
+                                <div class="flex items-center gap-4">
+                                    <!-- Match Number Badge -->
+                                    <div class="w-14 h-14 bg-black/60 rounded-xl flex flex-col items-center justify-center border border-accent-cyan/20 shadow-[0_0_12px_rgba(102,252,241,0.1)] flex-shrink-0">
+                                        <span class="text-[9px] text-accent-cyan/60 font-mono uppercase tracking-widest">MATCH</span>
+                                        <span class="text-xl font-display font-bold text-accent-cyan leading-none">#{{ match.match_number }}</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-white text-base">Match {{ match.match_number }} — Standings</h3>
+                                        {% if match.match_data.teams %}
+                                        <p class="text-[10px] text-gray-500 mt-0.5 font-mono">
+                                            <i class="fa-solid fa-users mr-1"></i>{{ match.match_data.teams|length }} teams &nbsp;·&nbsp;
+                                            {% with winner=match.match_data.teams.0 %}
+                                            <i class="fa-solid fa-crown text-yellow-500 mr-1"></i>{{ winner.team_name }}
+                                            {% endwith %}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Toggle Button -->
+                                <button onclick="toggleMatch('{{ match.id }}')" 
+                                        class="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest px-4 py-2 border border-white/10 text-gray-400 hover:border-accent-cyan/50 hover:text-accent-cyan transition-all rounded-lg" 
+                                        id="btn-{{ match.id }}">
+                                    <i class="fa-solid fa-table-list mr-1"></i> View Scoreboard
+                                    <i class="fa-solid fa-chevron-down text-[8px] transition-transform duration-300" id="chevron-{{ match.id }}"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Collapsible Body -->
+                            <div id="body-{{ match.id }}" class="hidden">
+                                
+                                <!-- Scorecard Image + Summary Strip -->
+                                {% with analysis=ai_analyses|slice:forloop.counter|last %}
+                                {% if analysis and analysis.image %}
+                                <div class="flex flex-col sm:flex-row gap-5 p-5 border-b border-white/5 bg-black/20">
+                                    <!-- Image Thumbnail -->
+                                    <div class="flex-shrink-0">
+                                        <a href="{{ analysis.image.url }}" target="_blank" title="View full scorecard image" 
+                                           class="block w-full sm:w-44 h-32 rounded-lg overflow-hidden border border-white/10 hover:border-accent-cyan/50 transition-all group/img relative">
+                                            <img src="{{ analysis.image.url }}" alt="Match {{ match.match_number }} Scorecard"
+                                                 class="w-full h-full object-cover opacity-80 group-hover/img:opacity-100 group-hover/img:scale-105 transition-all duration-500">
+                                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm">
+                                                <i class="fa-solid fa-magnifying-glass-plus text-white text-lg drop-shadow"></i>
+                                            </div>
+                                        </a>
+                                        <p class="text-[9px] text-gray-600 font-mono mt-1.5 text-center">Original Scorecard</p>
+                                    </div>
+                                    <!-- AI Summary -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i class="fa-solid fa-robot text-accent-cyan text-[10px]"></i>
+                                            <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">AI Summary</span>
+                                            <span class="text-[8px] font-mono text-gray-700 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">{{ analysis.ai_provider }}</span>
+                                        </div>
+                                        <p class="text-gray-300 text-sm leading-relaxed">{{ analysis.summary_text|truncatechars:400 }}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+
+                                {% if match.match_data.teams %}
+                                <!-- Standings Table -->
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr class="bg-black/50 text-[9px] font-mono tracking-widest text-gray-600 uppercase border-b border-white/5">
+                                                <th class="px-5 py-3 font-normal w-16 text-center">Rank</th>
+                                                <th class="px-5 py-3 font-normal">Team Name</th>
+                                                <th class="px-5 py-3 font-normal text-right">Points</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for team in match.match_data.teams %}
+                                            <tr class="border-b border-white/5 hover:bg-white/3 transition-colors">
+                                                <td class="px-5 py-3 text-center">
+                                                    {% if team.rank == 1 %}
+                                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-bold text-xs shadow-[0_0_8px_rgba(234,179,8,0.2)]">1</span>
+                                                    {% elif team.rank == 2 %}
+                                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-400/10 border border-gray-400/30 text-gray-300 font-bold text-xs">2</span>
+                                                    {% elif team.rank == 3 %}
+                                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700/10 border border-amber-700/30 text-amber-600 font-bold text-xs">3</span>
+                                                    {% else %}
+                                                        <span class="text-gray-600 font-mono text-xs">#{{ team.rank }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="px-5 py-3">
+                                                    <span class="font-semibold text-sm {% if team.rank == 1 %}text-white{% else %}text-gray-300{% endif %}">{{ team.team_name }}</span>
+                                                </td>
+                                                <td class="px-5 py-3 text-right">
+                                                    <span class="font-mono font-bold text-sm {% if team.rank == 1 %}text-accent-pink{% else %}text-gray-400{% endif %}">{{ team.points }}</span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- AI Report -->
+                                {% if match.ai_analysis %}
+                                <div class="p-5 border-t border-white/5 bg-black/20">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <i class="fa-solid fa-robot text-accent-cyan text-xs"></i>
+                                        <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">AI Match Report</span>
+                                    </div>
+                                    <div class="text-gray-400 text-sm leading-relaxed font-mono bg-black/30 rounded-lg p-4 border border-white/5 relative overflow-hidden">
+                                        <div class="absolute inset-0 bg-[linear-gradient(rgba(102,252,241,0.02)_1px,transparent_1px)] bg-[size:100%_20px] pointer-events-none"></div>
+                                        {{ match.ai_analysis|force_escape|linebreaks }}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-12 border border-dashed border-white/10 rounded-xl bg-black/20">
+                            <i class="fa-solid fa-file-invoice text-4xl text-gray-700 mb-3 block"></i>
+                            <p class="text-gray-500 text-sm">No match scorecards published for this tournament yet.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lg:col-span-1 space-y-8">
+                <!-- 2. Participating Organizations -->
+                <div class="glass-card rounded-xl border border-white/10 p-6 bg-[#0F1115]">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-widest mb-4 pb-2 border-b border-white/10 flex items-center justify-between">
+                        <span><i class="fa-solid fa-building text-gray-400 mr-2"></i> Organizations</span>
+                        <span class="text-accent-cyan">{{ actual_organizations|length|add:unlinked_organizations|length }}</span>
+                    </h3>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        <!-- Verified Organizations -->
+                        {% for org in actual_organizations %}
+                        <span class="px-3 py-1.5 bg-accent-cyan/10 border border-accent-cyan/30 rounded text-xs text-accent-cyan font-bold cursor-default flex items-center gap-1 shadow-[0_0_10px_rgba(102,252,241,0.1)]" title="Verified E-Game Scout Organization">
+                            <i class="fa-solid fa-circle-check"></i> {{ org.Organization_Name }}
+                        </span>
+                        {% endfor %}
+                        
+                        <!-- Unverified / Auto-extracted Organizations -->
+                        {% for org in unlinked_organizations %}
+                        <span class="px-3 py-1.5 bg-black/50 border border-white/5 rounded text-xs text-gray-400 font-bold hover:text-white transition-colors cursor-default" title="Auto-extracted by AI">
+                            {{ org }}
+                        </span>
+                        {% endfor %}
+                        
+                        {% if not actual_organizations and not unlinked_organizations %}
+                        <p class="text-gray-500 text-xs italic">No associated organizations found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Quick Info -->
+                <div class="glass-card rounded-xl border border-white/10 p-6 bg-[#0F1115]">
+                     <h3 class="text-sm font-bold text-white uppercase tracking-widest mb-4 pb-2 border-b border-white/10">
+                        <i class="fa-solid fa-circle-info text-gray-400 mr-2"></i> Details
+                    </h3>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex justify-between items-center text-gray-400">
+                            <span>Status</span>
+                            <span class="text-green-400 font-bold text-xs px-2 py-0.5 bg-green-400/10 border border-green-400/20 rounded">CONCLUDED</span>
+                        </li>
+                        <li class="flex justify-between items-center text-gray-400">
+                            <span>Matches Logged</span>
+                            <span class="text-white font-mono">{{ scorecards|length }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    function toggleMatch(matchId) {
+        const body = document.getElementById(`body-${matchId}`);
+        const chevron = document.getElementById(`chevron-${matchId}`);
+        const btn = document.getElementById(`btn-${matchId}`);
+
+        const isOpen = !body.classList.contains('hidden');
+        if (isOpen) {
+            body.classList.add('hidden');
+            chevron.style.transform = 'rotate(0deg)';
+            btn.querySelector('i.fa-table-list') && (btn.innerHTML = btn.innerHTML.replace('Hide', 'View'));
+        } else {
+            body.classList.remove('hidden');
+            chevron.style.transform = 'rotate(180deg)';
+        }
+    }
+</script>
+{% endblock %}

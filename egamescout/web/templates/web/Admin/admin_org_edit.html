@@ -1,4 +1,4 @@
-{% extends 'web/Admin/admin_dashboard.html' %}
+{% extends 'web/Admin/admin_base.html' %}
 
 {% block content %}
 <div class="flex-1 overflow-y-auto p-8 flex justify-center">
@@ -51,10 +51,10 @@
                     <div class="relative">
                         <select name="status"
                             class="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all appearance-none cursor-pointer">
-                            <option value="Active" {% if org.status=="Active" %}selected{% endif %}>Active</option>
-                            <option value="Suspended" {% if org.status=="Suspended" %}selected{% endif %}>Suspended
+                            <option value="Active" {% if org.status == "Active" %}selected{% endif %}>Active</option>
+                            <option value="Suspended" {% if org.status == "Suspended" %}selected{% endif %}>Suspended
                             </option>
-                            <option value="Pending" {% if org.status=="Pending" %}selected{% endif %}>Pending</option>
+                            <option value="Pending" {% if org.status == "Pending" %}selected{% endif %}>Pending</option>
                         </select>
                         <i
                             class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none"></i>

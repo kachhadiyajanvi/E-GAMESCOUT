@@ -5,37 +5,38 @@
 {% block content %}
 <div class="p-8">
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm mb-6">
-        <a href="{% url 'organizer_dashboard' %}"
-            class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
+    <nav class="page-breadcrumb">
+        <a href="{% url 'index' %}" class="breadcrumb-link">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </a>
-        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">Organization</a>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
 
         {% if source == 'upcoming' %}
-        <a href="{% url 'org_upcoming_tournaments' %}" class="text-gray-400 hover:text-accent-cyan transition-colors">
-            <span>Upcoming Tournaments</span>
+        <a href="{% url 'org_upcoming_tournaments' %}" class="breadcrumb-link">
+            <span>Upcoming</span>
         </a>
         {% else %}
-        <a href="{% url 'tournament_list' %}" class="text-gray-400 hover:text-accent-cyan transition-colors">
+        <a href="{% url 'tournament_list' %}" class="breadcrumb-link">
             <span>Tournaments</span>
         </a>
         {% endif %}
 
-        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
-        <span class="text-white font-semibold">{{ tournament.Name }}</span>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <span class="breadcrumb-active">{{ tournament.Name }}</span>
     </nav>
 
-    <div class="flex justify-between items-start mb-8">
-        <div>
+    <div class="page-header items-start">
+        <div class="flex-1">
             <div class="flex items-center gap-4 mb-2">
                 <a href="{% if source == 'upcoming' %}{% url 'org_upcoming_tournaments' %}{% else %}{% url 'tournament_list' %}{% endif %}"
                     class="text-brand-light/50 hover:text-accent-cyan transition-colors">
                     <i class="fa-solid fa-arrow-left"></i>
                 </a>
-                <h1 class="text-3xl font-display font-bold text-white">{{ tournament.Name }}</h1>
-                <span class="px-3 py-1 rounded-full text-xs font-bold
+                <h1 class="page-title">{{ tournament.Name }}</h1>
+                <span class="px-3 py-1 rounded-full text-xs font-bold shrink-0
                     {% if tournament.Status == 'Scheduled' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
                     {% elif tournament.Status == 'Ongoing' %}bg-green-500/20 text-green-400 border border-green-500/30
                     {% elif tournament.Status == 'Completed' %}bg-gray-500/20 text-gray-400 border border-gray-500/30
@@ -43,10 +44,10 @@
                     {{ tournament.Status }}
                 </span>
             </div>
-            <p class="text-gray-400 max-w-2xl">{{ tournament.description|truncatewords:20 }}</p>
+            <p class="page-subtitle max-w-2xl">{{ tournament.description|truncatewords:20 }}</p>
         </div>
 
-        <div class="flex gap-3">
+        <div class="page-actions shrink-0">
             {% if is_owner %}
             <!-- Edit/Delete only available in list view -->
             {% elif is_participant %}
