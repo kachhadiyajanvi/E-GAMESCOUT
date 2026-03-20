@@ -113,6 +113,37 @@
                     </div>
                 </div>
 
+                <!-- Security & 2FA Section -->
+                <div class="mt-8 pt-8 border-t border-white/5 flex flex-col gap-4">
+                    <div>
+                        <h4 class="text-white font-bold mb-4 flex items-center gap-2 font-display text-sm tracking-wide">
+                            <i class="fa-solid fa-lock text-accent-cyan text-xs"></i> SECURITY
+                        </h4>
+                        <div class="p-3 bg-black/50 rounded border flex items-center justify-between relative overflow-hidden {% if org.is_2fa_enabled %}border-green-500/20{% else %}border-white/10{% endif %}">
+                            <div class="relative">
+                                <p class="text-[10px] text-brand-light/40 uppercase tracking-wider mb-1">Two-Factor Authentication</p>
+                                <p class="{% if org.is_2fa_enabled %}text-green-400{% else %}text-brand-light/60{% endif %} font-bold font-display tracking-wide flex items-center gap-2 text-sm">
+                                    {% if org.is_2fa_enabled %}ENABLED{% else %}DISABLED{% endif %}
+                                </p>
+                            </div>
+                            <i class="fa-solid {% if org.is_2fa_enabled %}fa-shield-halved text-green-500/20{% else %}fa-shield text-brand-light/10{% endif %} text-2xl relative"></i>
+                        </div>
+                    </div>
+                    
+                    {% if org.is_2fa_enabled %}
+                        <form action="{% url 'org_2fa_disable' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full py-2 bg-orange-500/10 hover:bg-orange-500 text-orange-500 hover:text-white rounded border border-orange-500/30 transition-all font-bold uppercase tracking-wider text-[10px] flex items-center justify-center gap-2" onclick="return confirm('Are you sure you want to disable 2FA? This will reduce your account security.');">
+                                <i class="fa-solid fa-lock-open"></i> Disable 2FA
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'org_2fa_setup' %}" class="w-full py-2 bg-accent-cyan/10 hover:bg-accent-cyan text-accent-cyan hover:text-black rounded border border-accent-cyan/30 transition-all font-bold uppercase tracking-wider text-[10px] flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-lock"></i> Enable 2FA
+                        </a>
+                    {% endif %}
+                </div>
+
                 <!-- Delete Account Section -->
                 <div class="mt-8 pt-8 border-t border-white/5 flex flex-col gap-4">
                     <div>

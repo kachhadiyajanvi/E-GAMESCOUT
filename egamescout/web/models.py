@@ -29,6 +29,10 @@ class Organization(models.Model):
     is_verified = models.BooleanField(default=False)
     organization_signature = models.ImageField(upload_to='organization_signatures/', null=True, blank=True)
     CreatedAt = models.DateTimeField(auto_now_add=True)
+    
+    # 2FA Fields
+    totp_secret = models.CharField(max_length=32, null=True, blank=True)
+    is_2fa_enabled = models.BooleanField(default=False)
 
     def __str__(self):
         return self.Organization_Name
@@ -443,3 +447,20 @@ class Contract(models.Model):
 
     def __str__(self):
         return f"Contract: {self.organization.Organization_Name} - {self.player.full_name}"
+
+class SystemLog(models.Model):
+    USER_TYPES = [
+        ('PLAYER', 'Player'),
+        ('ORGANIZATION', 'Organization'),
+        ('ADMIN', 'Admin'),
+        ('SYSTEM', 'System'),
+    ]
+    user_type = models.CharField(max_length=20, choices=USER_TYPES)
+    user_id = models.IntegerField(null=True, blank=True)
+    action = models.CharField(max_length=100)
+    details = models.TextField(blank=True, null=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user_type} - {self.action} at {self.timestamp}"

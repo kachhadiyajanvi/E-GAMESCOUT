@@ -33,7 +33,7 @@ from web.models import (
     Transaction, OrganizationPlayer, ExternalPlayerInvite, PlayerNotification,
     AdminNotification, BiddingSeason, BiddingSeasonLog, Bid, Negotiation,
     SystemSettings, PlayerTask, OrganizationNotification, UserSession, ScorecardAnalysis,
-    PreviousTournament, TournamentTeam, TournamentScorecard, Contract
+    PreviousTournament, TournamentTeam, TournamentScorecard, Contract, SystemLog
 )
 from web.decorators import login_required_organization
 from web.auth_services import handle_secure_login, handle_secure_logout
@@ -47,6 +47,19 @@ from io import BytesIO
 
 def terms_and_conditions(request):
     return render(request, 'web/terms.html')
+
+def log_system_action(request, user_type, user_id, action, details=""):
+    ip_address = request.META.get('REMOTE_ADDR')
+    forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if forwarded_for:
+        ip_address = forwarded_for.split(',')[0]
+    SystemLog.objects.create(
+        user_type=user_type,
+        user_id=user_id,
+        action=action,
+        details=details,
+        ip_address=ip_address
+    )
 
 def maintenance_page(request):
     from web.models import SystemSettings
@@ -500,6 +513,7 @@ def auth_verify_otp(request):
                     
                     # Secure Tracking Login
                     handle_secure_login(request, user_id=player.id, user_type='PLAYER')
+                    log_system_action(request, 'PLAYER', player.id, 'LOGIN', 'Player logged in successfully via OTP.')
                     
                     return redirect('player_dashboard')
                 except Player.DoesNotExist:
@@ -559,6 +573,7 @@ def auth_2fa_verify(request):
             
             # Secure Tracking Login
             handle_secure_login(request, user_id=player.id, user_type='PLAYER')
+            log_system_action(request, 'PLAYER', player.id, 'LOGIN_2FA', 'Player logged in successfully with 2FA.')
             
             messages.success(request, 'Login successful.')
             return redirect('player_dashboard')
@@ -997,6 +1012,7 @@ def player_2fa_verify_setup(request):
         if totp.verify(otp_code):
             player.is_2fa_enabled = True
             player.save()
+            log_system_action(request, 'PLAYER', player.id, '2FA_SETUP', 'Player successfully enabled Two-Factor Authentication.')
             messages.success(request, 'Two-Factor Authentication has been successfully enabled.')
             return redirect('player_profile')
         else:
@@ -1014,6 +1030,7 @@ def player_2fa_disable(request):
         player.is_2fa_enabled = False
         player.totp_secret = None
         player.save()
+        log_system_action(request, 'PLAYER', player.id, '2FA_DISABLE', 'Player disabled Two-Factor Authentication.')
         messages.success(request, 'Two-Factor Authentication has been disabled.')
         return redirect('player_profile')
     return redirect('player_profile')
@@ -1101,12 +1118,18 @@ def player_delete_account(request):
     return render(request, 'web/Player/delete_account_confirm.html')
 
 def auth_logout(request):
+    player_id = request.session.get('player_id')
+    if player_id:
+        log_system_action(request, 'PLAYER', player_id, 'LOGOUT', 'Player logged out.')
     handle_secure_logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('index')
 
 def org_logout(request):
     """Logout organization and clear session"""
+    org_id = request.session.get('organizer_id')
+    if org_id:
+        log_system_action(request, 'ORGANIZATION', org_id, 'LOGOUT', 'Organization logged out.')
     handle_secure_logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('index')
@@ -1461,7 +1484,14 @@ def org_login_otp(request):
                 if request.user.is_authenticated: logout(request)
                 if 'player_id' in request.session: del request.session['player_id']
 
+                # Check 2FA for Organization
                 org = Organization.objects.get(Organization_Email=email)
+                if org.is_2fa_enabled and org.totp_secret:
+                    request.session['pending_org_2fa_id'] = org.id
+                    return redirect('org_2fa_verify_login')
+
+                # Log login
+                log_system_action(request, 'ORGANIZATION', org.id, 'LOGIN', 'Organization logged in successfully via OTP.')
                 
                 # Set generic session ID for Django to recognize
                 if not request.session.session_key:
@@ -1739,11 +1769,16 @@ def scorecard_tool(request):
             return redirect('scorecard_tool')
         
         # 1. Create initial record
+        raw_context = {
+            'selected_tournament_id': selected_tournament_id,
+            'new_tournament_name': new_tournament_name
+        }
         analysis = ScorecardAnalysis.objects.create(
             organization=org,
             image=image_file,
             ai_provider='pending',
-            summary_text='Analyzing...'
+            summary_text='Analyzing...',
+            raw_data=raw_context
         )
         import threading
         threading.Thread(
@@ -1778,7 +1813,8 @@ def scorecard_tool(request):
 
     approved_tournaments = Tournament.objects.filter(
         Organization_Name=org,
-        approval_status='APPROVED'
+        approval_status='APPROVED',
+        start_date__date=timezone.now().date()
     ).order_by('-CreatedAt')
     
     return render(request, 'web/Organization/org_scorecard_tool.html', {
@@ -1814,6 +1850,86 @@ def delete_scorecard_analysis(request, analysis_id):
         analysis.delete()
         messages.success(request, 'Analysis record deleted successfully.')
     return redirect('scorecard_tool')
+
+@login_required_organization
+def scorecard_status_api(request, analysis_id):
+    org_id = request.session.get('organizer_id')
+    try:
+        analysis = ScorecardAnalysis.objects.get(id=analysis_id, organization_id=org_id)
+        if analysis.ai_provider == 'pending':
+            return JsonResponse({'status': 'pending'})
+        elif analysis.ai_provider == 'failed':
+            return JsonResponse({'status': 'failed', 'error': analysis.summary_text})
+        else:
+            return JsonResponse({
+                'status': 'completed',
+                'raw_data': analysis.raw_data,
+                'summary': analysis.summary_text
+            })
+    except ScorecardAnalysis.DoesNotExist:
+        return JsonResponse({'status': 'failed', 'error': 'Analysis not found'}, status=404)
+
+@login_required_organization
+def save_reviewed_scorecard(request, analysis_id):
+    import json
+    from django.utils import timezone
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+    analysis = get_object_or_404(ScorecardAnalysis, id=analysis_id, organization=org)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            teams_data = data.get('teams', [])
+            
+            # Retrieve the original intent
+            raw_context = analysis.raw_data or {}
+            selected_tournament_id = raw_context.get('selected_tournament_id')
+            new_tournament_name = raw_context.get('new_tournament_name', '')
+            
+            # Identify the tournament name
+            pt_name = new_tournament_name if (selected_tournament_id == 'new' and new_tournament_name) else raw_context.get("tournament_name", "Unknown Tournament")
+            
+            if selected_tournament_id and selected_tournament_id != 'new':
+                try:
+                    t = Tournament.objects.get(Tournament_ID=selected_tournament_id, Organization_Name=org)
+                    pt_name = t.Name
+                except Tournament.DoesNotExist:
+                    pass
+                    
+            # Create or Get the overall Tournament Record (Match level removed)
+            prev_tournament, created = PreviousTournament.objects.get_or_create(
+                tournament_name=pt_name,
+                organization=org,
+                defaults={
+                    'winner_team': raw_context.get("winner_team", ""),
+                    'runner_up_team': raw_context.get("runner_up_team", ""),
+                    'description': analysis.summary_text[:200] + "...",
+                    'published': False,
+                    'date': timezone.now().date()
+                }
+            )
+            
+            # Wipe existing teams to replace with edited list
+            TournamentTeam.objects.filter(tournament=prev_tournament).delete()
+            
+            # Save edited teams
+            for team_data in teams_data:
+                TournamentTeam.objects.create(
+                    tournament=prev_tournament,
+                    team_name=team_data.get("team_name", "Unknown"),
+                    placement=team_data.get("rank", 99),
+                    points=team_data.get("points", 0)
+                )
+
+            # Link analysis
+            analysis.tournament = prev_tournament
+            analysis.save()
+            
+            return JsonResponse({'status': 'success', 'message': 'Standings successfully saved and published!'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
 def run_scorecard_analysis_thread(analysis_id, org_id, selected_tournament_id=None, new_tournament_name=None):
     import json, base64, os
@@ -1945,58 +2061,18 @@ def run_scorecard_analysis_thread(analysis_id, org_id, selected_tournament_id=No
             try:
                 data = json.loads(cleaned_text.strip())
                 
+                # Merge the extracted data into raw_data while preserving context (e.g. selected_tournament_id)
+                existing_data = analysis.raw_data or {}
+                if isinstance(existing_data, dict):
+                    existing_data.update(data)
+                else:
+                    existing_data = data
+                    
                 analysis.summary_text = data.get("analysis_report", "Analysis generated successfully.")
+                analysis.raw_data = existing_data
                 analysis.ai_provider = used_provider
                 analysis.save()
                 
-                # Map the target tournament name based on user selection
-                pt_name = new_tournament_name if (selected_tournament_id == 'new' and new_tournament_name) else data.get("tournament_name", "Unknown Tournament")
-                
-                if selected_tournament_id and selected_tournament_id != 'new':
-                    try:
-                        # If they selected an active tournament, use its strict name
-                        t = Tournament.objects.get(Tournament_ID=selected_tournament_id)
-                        pt_name = t.Name
-                    except Tournament.DoesNotExist:
-                        pass
-                        
-                # Create or Get the overall Tournament Record
-                prev_tournament, created = PreviousTournament.objects.get_or_create(
-                    tournament_name=pt_name,
-                    organization=org,
-                    defaults={
-                        'winner_team': data.get("winner_team", ""),
-                        'runner_up_team': data.get("runner_up_team", ""),
-                        'description': data.get("analysis_report", "")[:200] + "...",
-                        'published': False
-                    }
-                )
-                
-                # Link the ScorecardAnalysis record to the PreviousTournament
-                analysis.tournament = prev_tournament
-                analysis.save()
-                
-                # Save Match Scorecard
-                match_data_json = {
-                    "teams": data.get("teams", [])
-                }
-                TournamentScorecard.objects.create(
-                    tournament=prev_tournament,
-                    match_number=data.get("match_number", 1),
-                    match_data=match_data_json,
-                    ai_analysis=data.get("analysis_report", "")
-                )
-                
-                # If this is a newly created tournament, add the teams
-                if created:
-                    for team_data in data.get("teams", []):
-                        TournamentTeam.objects.create(
-                            tournament=prev_tournament,
-                            team_name=team_data.get("team_name", "Unknown"),
-                            placement=team_data.get("rank", 99),
-                            points=team_data.get("points", 0)
-                        )
-                        
             except json.JSONDecodeError as e:
                 print(f"JSON Parse Error: {e} - Raw output: {response_text}")
                 analysis.summary_text = "Analysis succeeded but format was invalid. Saved raw output:\n\n" + str(response_text)
@@ -2015,20 +2091,8 @@ def run_scorecard_analysis_thread(analysis_id, org_id, selected_tournament_id=No
             analysis.ai_provider = 'failed'
             analysis.save()
 
-    # GET Request: Show history
-    history = ScorecardAnalysis.objects.filter(organization=org).order_by('-created_at')
-    
-    # Get unpublished tournaments that can be reviewed and published
-    unpublished_tournaments = PreviousTournament.objects.filter(
-        organization=org, 
-        published=False
-    ).order_by('-date')
-    
-    return render(request, 'web/Organization/org_scorecard_tool.html', {
-        'org': org, 
-        'history': history,
-        'unpublished_tournaments': unpublished_tournaments
-    })
+    # Views end after the Thread definition
+    pass
 
 # --- Profile Management ---
 
@@ -2695,6 +2759,18 @@ def handler403(request, exception):
 
 def handler400(request, exception):
     return custom_error_view(request, exception=exception, status_code=400)
+
+def org_2fa_setup(request):
+    pass
+
+def org_2fa_verify_setup(request):
+    pass
+
+def org_2fa_disable(request):
+    pass
+
+def org_2fa_verify_login(request):
+    pass
 
 # --- Tournament Management ---
 

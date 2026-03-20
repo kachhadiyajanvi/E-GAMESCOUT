@@ -25,6 +25,10 @@ urlpatterns = [
     
     # Profile Management
     path('organization/profile/', views.manage_profile, name='manage_profile'),
+    path('organization/profile/2fa/setup/', views.org_2fa_setup, name='org_2fa_setup'),
+    path('organization/profile/2fa/verify/', views.org_2fa_verify_setup, name='org_2fa_verify_setup'),
+    path('organization/profile/2fa/disable/', views.org_2fa_disable, name='org_2fa_disable'),
+    path('organization/login/2fa-verify/', views.org_2fa_verify_login, name='org_2fa_verify_login'),
     path('organization/profile/update/', views.update_profile, name='update_profile'),
     path('organization/profile/photo/update/', views.update_profile_photo, name='update_profile_photo'),
     path('organization/deactivate/', views.org_deactivate_account, name='org_deactivate_account'),
@@ -35,6 +39,8 @@ urlpatterns = [
     path('organization/tools/scorecard/', views.scorecard_tool, name='scorecard_tool'),
     path('organization/tools/scorecard/retry/<int:analysis_id>/', views.retry_scorecard_analysis, name='retry_scorecard_analysis'),
     path('organization/tools/scorecard/delete/<int:analysis_id>/', views.delete_scorecard_analysis, name='delete_scorecard_analysis'),
+    path('organization/tools/scorecard/api/status/<int:analysis_id>/', views.scorecard_status_api, name='scorecard_status_api'),
+    path('organization/tools/scorecard/api/save/<int:analysis_id>/', views.save_reviewed_scorecard, name='save_reviewed_scorecard'),
     path('organization/tools/scorecard/edit/<int:pt_id>/', views.edit_previous_tournament, name='edit_previous_tournament'),
     
     # Tournament Management
