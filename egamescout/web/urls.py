@@ -56,8 +56,12 @@ urlpatterns = [
     path('auth/verify/', views.auth_verify_otp, name='auth_verify_otp'),
     path('auth/register/upload/', views.auth_register_upload, name='auth_register_upload'),
     path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
+    path('auth/2fa-verify/', views.auth_2fa_verify, name='auth_2fa_verify'),
     path('player/dashboard/', views.player_dashboard, name='player_dashboard'),
     path('player/profile/', views.player_profile, name='player_profile'),
+    path('player/profile/2fa/setup/', views.player_2fa_setup, name='player_2fa_setup'),
+    path('player/profile/2fa/verify/', views.player_2fa_verify_setup, name='player_2fa_verify_setup'),
+    path('player/profile/2fa/disable/', views.player_2fa_disable, name='player_2fa_disable'),
     
 
     path('player/delete/', views.player_delete_account, name='player_delete_account'),

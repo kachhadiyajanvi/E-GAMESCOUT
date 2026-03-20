@@ -109,6 +109,10 @@ class Player(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='players')
     is_archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # 2FA Fields
+    totp_secret = models.CharField(max_length=32, null=True, blank=True)
+    is_2fa_enabled = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.full_name} ({self.uid})"

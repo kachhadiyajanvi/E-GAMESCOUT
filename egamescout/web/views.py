@@ -22,6 +22,10 @@ import json
 from django.http import JsonResponse
 
 from django.core.cache import cache
+import pyotp
+import qrcode
+import base64
+from io import BytesIO
 
 @csrf_exempt
 def api_send_otp(request):
@@ -417,6 +421,10 @@ def auth_verify_otp(request):
                     player = Player.objects.get(email=email)
                     # Login User
                     # Clear conflicting sessions
+                    if player.is_2fa_enabled and player.totp_secret:
+                        request.session['pending_2fa_player_id'] = player.id
+                        return redirect('auth_2fa_verify')
+
                     if request.user.is_authenticated: logout(request)
                     if 'organizer_id' in request.session: del request.session['organizer_id']
                     
@@ -431,6 +439,33 @@ def auth_verify_otp(request):
         form = OTPVerifyForm()
         
     return render(request, 'web/Player/verify_otp.html', {'form': form, 'email': email})
+
+def auth_2fa_verify(request):
+    if request.session.get('player_id'):
+        return redirect('player_dashboard')
+
+    player_id = request.session.get('pending_2fa_player_id')
+    if not player_id:
+        return redirect('auth_login')
+
+    player = get_object_or_404(Player, id=player_id)
+
+    if request.method == 'POST':
+        otp_code = request.POST.get('otp_code', '').strip()
+        totp = pyotp.TOTP(player.totp_secret)
+
+        if totp.verify(otp_code):
+            if request.user.is_authenticated: logout(request)
+            if 'organizer_id' in request.session: del request.session['organizer_id']
+            
+            request.session['player_id'] = player.id
+            del request.session['pending_2fa_player_id']
+            messages.success(request, 'Login successful.')
+            return redirect('player_dashboard')
+        else:
+            messages.error(request, 'Invalid Authenticator Code.')
+    
+    return render(request, 'web/Player/2fa_verify_login.html')
 
 from .helpers import extract_aadhar_details
 from .forms import AadharUploadForm
@@ -640,6 +675,70 @@ def player_profile(request):
         form = PlayerProfileForm(instance=player)
         
     return render(request, 'web/Player/profile.html', {'player': player, 'form': form})
+
+def player_2fa_setup(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+    player = get_object_or_404(Player, id=player_id)
+
+    if player.is_2fa_enabled:
+        messages.info(request, '2FA is already enabled.')
+        return redirect('player_profile')
+
+    # Generate a secret if they don't have one pending
+    if not player.totp_secret:
+        player.totp_secret = pyotp.random_base32()
+        player.save()
+
+    totp = pyotp.TOTP(player.totp_secret)
+    provisioning_uri = totp.provisioning_uri(name=player.email, issuer_name='E-Game Scout')
+
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(provisioning_uri)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode()
+    qr_code_uri = f"data:image/png;base64,{qr_code_base64}"
+
+    return render(request, 'web/Player/2fa_setup.html', {'qr_code_uri': qr_code_uri, 'secret': player.totp_secret})
+
+def player_2fa_verify_setup(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+    player = get_object_or_404(Player, id=player_id)
+
+    if request.method == 'POST':
+        otp_code = request.POST.get('otp_code', '').strip()
+        totp = pyotp.TOTP(player.totp_secret)
+
+        if totp.verify(otp_code):
+            player.is_2fa_enabled = True
+            player.save()
+            messages.success(request, 'Two-Factor Authentication has been successfully enabled.')
+            return redirect('player_profile')
+        else:
+            messages.error(request, 'Invalid code. Please try again.')
+            return redirect('player_2fa_setup')
+    return redirect('player_2fa_setup')
+
+def player_2fa_disable(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+    player = get_object_or_404(Player, id=player_id)
+
+    if request.method == 'POST':
+        player.is_2fa_enabled = False
+        player.totp_secret = None
+        player.save()
+        messages.success(request, 'Two-Factor Authentication has been disabled.')
+        return redirect('player_profile')
+    return redirect('player_profile')
 
 def player_delete_account(request):
     player_id = request.session.get('player_id')
