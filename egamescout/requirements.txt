@@ -31,5 +31,14 @@ groq==1.0.0
 
 # User agent parsing (for device detection in auth)
 user-agents==2.2.0
+
+# Two-Factor Authentication
+pyotp==2.9.0
+
+# QR Code Generation
+qrcode==8.0
+
 # PDF Generation
 xhtml2pdf==0.2.16
+
+
