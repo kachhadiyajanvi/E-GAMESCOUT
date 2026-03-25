@@ -937,7 +937,8 @@ def admin_bidding_dashboard(request):
     # We will assume all active players or players with bids are in auction
     total_players_in_auction = Player.objects.filter(is_archived=False).count()
     
-    bids = Bid.objects.filter(season=active_season) if active_season else Bid.objects.none()
+    # Base queryset for overall metrics to ensure the dashboard remains dynamic even when inactive
+    bids = Bid.objects.all()
     
     total_bids = bids.count()
     accepted_bids = bids.filter(status='Accepted')

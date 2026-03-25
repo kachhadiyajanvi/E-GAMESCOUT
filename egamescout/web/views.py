@@ -2981,6 +2981,50 @@ def player_upcoming_tournaments(request):
     
     return render(request, 'web/Player/player_upcoming_list.html', {'tournaments': tournaments, 'player': player})
 
+# --- New Player-Specific Tournament Detail View ---
+def player_tournament_detail(request, tournament_id):
+    """View a specific tournament from within the Player Dashboard"""
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    player = get_object_or_404(Player, id=player_id)
+    tournament = get_object_or_404(
+        Tournament, 
+        Tournament_ID=tournament_id,
+        is_published=True,
+        approval_status='APPROVED',
+        is_archived=False
+    )
+    
+    # Get formatting details
+    stages = None
+    if tournament.roadmap_content:
+        import json
+        try:
+            stages = json.loads(tournament.roadmap_content)
+            if isinstance(stages, dict) and 'stages' in stages:
+                stages = stages['stages']
+        except:
+            stages = []
+            
+    prize_distribution = None
+    try:
+        if tournament.prize_distribution:
+            import json
+            prize_distribution = json.loads(tournament.prize_distribution)
+    except:
+        prize_distribution = None
+
+    context = {
+        'player': player,
+        'tournament': tournament,
+        'stages': stages,
+        'prize_distribution': prize_distribution,
+    }
+    
+    return render(request, 'web/Player/player_tournament_detail.html', context)
+
 
 
 
@@ -3224,25 +3268,27 @@ def player_bidding_dashboard(request):
     if not (active_season and active_season.is_active):
         auction_status = "Awaiting Auction Start"
 
-    if highest_accepted:
-        auction_status = f"Sold to {highest_accepted.organization.Organization_Name} for ₹{highest_accepted.amount}"
-    elif in_negotiation:
-        auction_status = "In Negotiation"
-        
     # Deal Finalization Context
     signed_org = player.organization
     signed_date = player.created_at
     signed_amount = None
     
     if signed_org:
-        if highest_accepted:
+        if highest_accepted and highest_accepted.organization == signed_org:
             signed_amount = highest_accepted.amount
             signed_date = highest_accepted.created_at
+            auction_status = f"Sold to {signed_org.Organization_Name} for ₹{signed_amount}"
         else:
+            auction_status = f"Signed with {signed_org.Organization_Name}"
             from .models import OrganizationPlayer
             org_player_record = OrganizationPlayer.objects.filter(player=player, organization=signed_org).first()
             if org_player_record:
                 signed_date = org_player_record.created_at
+    elif highest_accepted:
+        # Edge case: Accepted bid exists but player.organization was cleared
+        auction_status = f"Sold to {highest_accepted.organization.Organization_Name} for ₹{highest_accepted.amount}"
+    elif in_negotiation:
+        auction_status = "In Negotiation"
 
     context = {
         'player': player,

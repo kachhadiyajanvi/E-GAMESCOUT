@@ -153,6 +153,7 @@ urlpatterns = [
     path('organization/tournaments/<int:tournament_id>/join/', views.org_join_tournament, name='org_join_tournament'),
     path('organization/player/accept-invite/<uuid:token>/', views.accept_player_invite, name='accept_player_invite'),
     path('player/tournaments/upcoming/', views.player_upcoming_tournaments, name='player_upcoming_tournaments'),
+    path('player/tournaments/upcoming/<int:tournament_id>/', views.player_tournament_detail, name='player_tournament_detail'),
     
     # Notifications
     path('api/organization/notifications/', views.get_org_notifications, name='get_org_notifications'),
