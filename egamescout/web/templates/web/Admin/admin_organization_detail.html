@@ -11,7 +11,7 @@
         <i class="fa-solid fa-magnifying-glass"></i>
     </button>
 </form>
-<button onclick="openModal('orgs')" class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center justify-center gap-2 whitespace-nowrap">
+<button onclick="openNotifyOrgModal('all', 'All Organizations')" class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center justify-center gap-2 whitespace-nowrap">
     <i class="fa-solid fa-bullhorn"></i> Notify
 </button>
 {% endblock %}
@@ -97,6 +97,11 @@
                             class="text-white/40 hover:text-accent-cyan transition-colors px-2"
                             title="View Full Details">
                             <i class="fa-solid fa-eye"></i>
+                        </button>
+
+                        <button onclick="openNotifyOrgModal('{{ org.id }}', '{{ org.Organization_Name|escapejs }}')"
+                            class="text-white/40 hover:text-yellow-400 transition-colors px-2" title="Notify Organization">
+                            <i class="fa-solid fa-bell"></i>
                         </button>
 
                         <button onclick="openOrgStatusModal('{{ org.id }}', '{{ org.status }}', '{{ org.is_verified }}', '{{ org.is_active_account|lower }}')"
@@ -388,19 +393,34 @@
         // Add verification logic on submit
         form.onsubmit = function(e) {
             if (verifyCheckbox.checked) {
+                e.preventDefault();
                 const action = isVerified === 'True' ? 'REVOKE VERIFICATION from' : 'GRANT VERIFICATION to';
-                const isConfirmed = confirm(`Are you absolutely sure you want to ${action} this organization?`);
-                if (!isConfirmed) {
-                    e.preventDefault();
-                    return false;
-                }
-                
-                form.querySelectorAll('input[name="grant_verification"], input[name="revoke_verification"]').forEach(el => el.remove());
-                const verifyInput = document.createElement('input');
-                verifyInput.type = 'hidden';
-                verifyInput.name = isVerified === 'True' ? 'revoke_verification' : 'grant_verification';
-                verifyInput.value = 'true';
-                form.appendChild(verifyInput);
+                Swal.fire({
+                    title: 'Verification Action',
+                    text: `Are you absolutely sure you want to ${action} this organization?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#00f3ff',
+                    cancelButtonColor: '#1F2833',
+                    background: '#111827',
+                    color: '#fff',
+                    confirmButtonText: 'Yes, Proceed',
+                    customClass: {
+                        popup: 'custom-swal-popup',
+                        confirmButton: 'text-black font-bold uppercase tracking-widest',
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.querySelectorAll('input[name="grant_verification"], input[name="revoke_verification"]').forEach(el => el.remove());
+                        const verifyInput = document.createElement('input');
+                        verifyInput.type = 'hidden';
+                        verifyInput.name = isVerified === 'True' ? 'revoke_verification' : 'grant_verification';
+                        verifyInput.value = 'true';
+                        form.appendChild(verifyInput);
+                        form.submit();
+                    }
+                });
+                return false;
             }
             return true;
         };
@@ -433,5 +453,67 @@
             event.target.classList.remove('flex');
         }
     }
+
+    function openNotifyOrgModal(targetId, targetName) {
+        document.getElementById('notifyOrgTargetId').value = targetId;
+        const titleEl = document.getElementById('notifyOrgModalTitle');
+        const descEl = document.getElementById('notifyOrgModalDesc');
+        
+        if (targetId === 'all') {
+            titleEl.textContent = 'Notify All Organizations';
+            descEl.textContent = 'Sends an in-app notification to all active organizations';
+        } else {
+            titleEl.textContent = 'Notify ' + targetName;
+            descEl.textContent = 'Sends an in-app notification directly to this organization';
+        }
+        
+        document.getElementById('notifyOrgModal').classList.remove('hidden');
+        document.getElementById('notifyOrgModal').classList.add('flex');
+    }
+
+    function closeNotifyOrgModal() {
+        document.getElementById('notifyOrgModal').classList.add('hidden');
+        document.getElementById('notifyOrgModal').classList.remove('flex');
+    }
 </script>
+
+<!-- Notify Organizations Modal -->
+<div id="notifyOrgModal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div class="bg-[#0f0f0f] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+        <button onclick="closeNotifyOrgModal()" class="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-brand-pink/10 flex items-center justify-center border border-brand-pink/20">
+                <i class="fa-solid fa-bullhorn text-brand-pink"></i>
+            </div>
+            <div>
+                <h2 id="notifyOrgModalTitle" class="text-white font-display font-bold text-lg leading-none">Notify All Organizations</h2>
+                <p id="notifyOrgModalDesc" class="text-white/40 text-xs mt-1">Sends an in-app notification to all active organizations</p>
+            </div>
+        </div>
+        <form method="POST" action="{% url 'admin_notify_orgs' %}">
+            {% csrf_token %}
+            <input type="hidden" name="target_id" id="notifyOrgTargetId" value="all">
+            <div class="mb-4">
+                <label class="block text-xs text-white/60 font-bold uppercase tracking-widest mb-2">Message *</label>
+                <textarea name="message" rows="4" required placeholder="Enter your notification message here..."
+                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-brand-pink outline-none resize-none placeholder-white/20"></textarea>
+            </div>
+            <div class="mb-6">
+                <label class="block text-xs text-white/60 font-bold uppercase tracking-widest mb-2">Link (optional)</label>
+                <input type="text" name="link" placeholder="e.g. /organization/dashboard/"
+                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-pink outline-none placeholder-white/20">
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeNotifyOrgModal()"
+                    class="flex-1 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white font-bold text-sm transition-all">Cancel</button>
+                <button type="submit"
+                    class="flex-1 py-2 rounded-lg bg-brand-pink text-white font-bold text-sm tracking-wider uppercase hover:bg-white hover:text-black transition-all">
+                    <i class="fa-solid fa-paper-plane mr-2"></i>Send
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

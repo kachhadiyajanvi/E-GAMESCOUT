@@ -81,12 +81,12 @@
                 {% if bidding_status.is_active %}
                 <p class="text-white/50 text-xs font-mono mt-1">
                     <span class="text-white/30">Bidding Closes:</span>
-                    <span class="text-white font-bold">{{ bidding_status.end_date|date:"d F Y" }}</span>
+                    <span class="text-white font-bold">{{ bidding_status.end_date|date:"d F Y"|default:"TBA" }}</span>
                 </p>
                 {% else %}
                 <p class="text-white/50 text-xs font-mono mt-1">
                     <span class="text-white/30">Next Bidding Season Starts:</span>
-                    <span class="text-yellow-500 font-bold border-b border-yellow-500/30 pb-0.5">{{ bidding_status.next_season_start|date:"d F Y" }}</span>
+                    <span class="text-yellow-500 font-bold border-b border-yellow-500/30 pb-0.5">{{ bidding_status.next_season_start|date:"d F Y"|default:"TBA" }}</span>
                 </p>
                 {% endif %}
             </div>
@@ -877,11 +877,18 @@
         const endStr = el.dataset.end;
         const startStr = el.dataset.start;
         const isActive = el.dataset.active === 'true';
-        if (!endStr && !startStr) return;
+        if (!endStr && !startStr) {
+            el.textContent = 'TBA';
+            return;
+        }
         function pad(n) { return String(n).padStart(2, '0'); }
         function updateOrgPageCountdown() {
             const now = new Date();
-            if (isActive && endStr) {
+            if (isActive) {
+                if (!endStr) {
+                    el.textContent = 'No End Date';
+                    return;
+                }
                 const end = new Date(endStr);
                 const diff = end - now;
                 if (diff <= 0) { el.textContent = 'Season Ended'; return; }
@@ -892,7 +899,11 @@
                 el.textContent = d > 0
                     ? `${d}d ${pad(h%24)}:${pad(m)}:${pad(s)}`
                     : `${pad(h)}:${pad(m)}:${pad(s)}`;
-            } else if (!isActive && startStr) {
+            } else {
+                if (!startStr) {
+                    el.textContent = 'TBA';
+                    return;
+                }
                 const start = new Date(startStr);
                 const diff = start - now;
                 if (diff <= 0) { el.textContent = 'Starting…'; return; }

@@ -40,6 +40,14 @@
         }
     </script>
     <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .custom-swal-popup {
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            border-radius: 0.75rem !important;
+        }
+    </style>
     <style type="text/tailwindcss">
         @layer components {
             .page-breadcrumb { @apply flex items-center gap-2 text-sm mb-6 font-mono text-gray-400; }
@@ -65,6 +73,12 @@
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
+        }
+
+        /* Make Date Picker Calendar Icon Visible on Dark Background */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
         }
     </style>
 </head>
@@ -585,10 +599,86 @@
                         : `Starts in: ${pad(h)}:${pad(m)}:${pad(s)}`;
                 }
             }
-            setInterval(updateOrgCountdown, 1000);
+            // Initial fetch after 2 seconds to not block page load
+            setTimeout(updateOrgCountdown, 1000);
             updateOrgCountdown();
         })();
     </script>
+
+    <!-- Organization Notification Polling -->
+    <script>
+        let lastOrgNotifId = {% if notifications %}{{ notifications.0.id|default:"0" }}{% else %}0{% endif %};
+        function pollOrgNotifications() {
+            fetch(`/api/organization/notifications/?last_id=${lastOrgNotifId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.notifications && data.notifications.length > 0) {
+                        data.notifications.forEach(n => {
+                            if (n.id > lastOrgNotifId) {
+                                lastOrgNotifId = n.id;
+                                showToast(n.message, ['info']); // show Toast
+                                
+                                // Update bell count
+                                const btn = document.getElementById('notification-btn');
+                                if(btn) {
+                                    let badge = btn.querySelector('span');
+                                    if(!badge) {
+                                        badge = document.createElement('span');
+                                        badge.className = 'absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-accent-cyan text-brand-dark text-[10px] font-bold rounded-full';
+                                        badge.textContent = '1';
+                                        btn.appendChild(badge);
+                                    } else {
+                                        let current = parseInt(badge.textContent) || 0;
+                                        let next = current + 1;
+                                        badge.textContent = next > 4 ? '4+' : next;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(err => console.error("Notification Poll Error:", err));
+        }
+        
+        // Start polling every 30 seconds
+        setInterval(pollOrgNotifications, 30000);
+        setTimeout(pollOrgNotifications, 2000);
+    </script>
+    
+    <!-- Global SweetAlert2 Confirmation -->
+    <script>
+        function customConfirm(event, message, actionText) {
+            event.preventDefault();
+            const target = event.currentTarget;
+            
+            Swal.fire({
+                title: 'Are you sure?',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#66FCF1',
+                cancelButtonColor: '#1F2833',
+                background: '#0B0C10',
+                color: '#fff',
+                confirmButtonText: actionText || 'Yes, proceed',
+                customClass: {
+                    popup: 'custom-swal-popup',
+                    confirmButton: 'text-black font-bold uppercase tracking-widest',
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (target.tagName.toLowerCase() === 'form') {
+                        target.submit();
+                    } else if (target.tagName.toLowerCase() === 'a') {
+                        window.location.href = target.href;
+                    } else if (target.closest('form')) {
+                        target.closest('form').submit();
+                    }
+                }
+            });
+        }
+    </script>
+    
     {% block scripts %}{% endblock %}
 </body>
 

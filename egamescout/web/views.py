@@ -1147,7 +1147,7 @@ def index(request):
     # Upcoming Tournaments (Verified & Published)
     now = timezone.now()
     upcoming_tournaments = list(Tournament.objects.filter(
-        start_date__gte=now,
+        Status='Scheduled',
         is_published=True,
         approval_status='APPROVED',
         is_archived=False
@@ -1175,24 +1175,28 @@ def public_tournaments(request):
     current_year = now.year
     
     # 1. Active & Scheduled (Current Month Only)
+    # Use explicit date ranges for SQLite + USE_TZ=True compatibility
+    import datetime
+    from calendar import monthrange
+    
+    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    days_in_month = monthrange(now.year, now.month)[1]
+    end_of_month = start_of_month + datetime.timedelta(days=days_in_month)
+
     tournaments = Tournament.objects.filter(
-        start_date__year=current_year,
-        start_date__month=current_month,
+        start_date__gte=start_of_month,
+        start_date__lt=end_of_month,
         is_published=True,
         approval_status='APPROVED',
         is_archived=False
     ).order_by('start_date')
 
     # 2. Coming Soon (Future Months)
-    # We can exclude current month by filtering start_date > end of this month, or simply exclude current month
     coming_soon = Tournament.objects.filter(
-        start_date__gt=now,
+        start_date__gte=end_of_month,
         is_published=True,
         approval_status='APPROVED',
         is_archived=False
-    ).exclude(
-        start_date__year=current_year, 
-        start_date__month=current_month
     ).order_by('start_date')
 
     # Bidding system removed
@@ -1205,6 +1209,48 @@ def public_tournaments(request):
         'joined_tournament_ids': joined_tournament_ids,
         'player_id': player_id,
     })
+
+def public_tournament_detail(request, tournament_id):
+    """Public detail view for a specific upcoming tournament"""
+    tournament = get_object_or_404(
+        Tournament, 
+        Tournament_ID=tournament_id,
+        is_published=True,
+        approval_status='APPROVED',
+        is_archived=False
+    )
+    
+    player_id = request.session.get('player_id')
+    is_joined = False
+
+    # Get formatting details
+    stages = None
+    if tournament.roadmap_content:
+        import json
+        try:
+            stages = json.loads(tournament.roadmap_content)
+            # Make sure it's a list
+            if isinstance(stages, dict) and 'stages' in stages:
+                stages = stages['stages']
+        except:
+            stages = []
+            
+    prize_distribution = None
+    try:
+        if tournament.prize_distribution:
+            import json
+            prize_distribution = json.loads(tournament.prize_distribution)
+    except:
+        prize_distribution = None
+
+    context = {
+        'tournament': tournament,
+        'stages': stages,
+        'prize_distribution': prize_distribution,
+        'player_id': player_id,
+    }
+    
+    return render(request, 'web/public_tournament_detail.html', context)
 
 def public_previous_tournaments(request):
     """Public view for all historic/previous tournaments with search and pagination"""
@@ -1340,7 +1386,7 @@ def org_register_otp(request):
             
             # Check Expiry
             created_at = request.session.get('reg_otp_created_at')
-            if created_at and (time.time() - float(created_at) > 300):
+            if created_at and (time.time() - float(created_at) > 120):
                  messages.error(request, 'OTP Expired. Please register again.')
                  return redirect('org_register_start')
 
@@ -1474,7 +1520,7 @@ def org_login_otp(request):
             
             # Check Expiry
             created_at = request.session.get('login_otp_created_at')
-            if created_at and (time.time() - float(created_at) > 300):
+            if created_at and (time.time() - float(created_at) > 120):
                  messages.error(request, 'OTP Expired. Please login again.')
                  return redirect('org_login_start')
 
@@ -1523,20 +1569,23 @@ def update_tournament_statuses(org):
     Tournament.objects.filter(
         Organization_Name=org,
         start_date__lte=now,
-        end_date__gt=now
+        end_date__gt=now,
+        approval_status='APPROVED'
     ).exclude(Status__in=['Ongoing', 'Completed', 'Cancelled']).update(Status='Ongoing')
     
     # 2. Update to 'Completed': End Date passed
     Tournament.objects.filter(
         Organization_Name=org,
-        end_date__lte=now
+        end_date__lte=now,
+        approval_status='APPROVED'
     ).exclude(Status__in=['Completed', 'Cancelled']).update(Status='Completed')
     
     # 3. Optional: Revert to 'Scheduled' if dates pushed back? 
     # Important: Do NOT revert if manually marked as Completed early.
     Tournament.objects.filter(
         Organization_Name=org,
-        start_date__gt=now
+        start_date__gt=now,
+        approval_status='APPROVED'
     ).exclude(Status__in=['Scheduled', 'Completed', 'Cancelled']).update(Status='Scheduled')
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -1585,7 +1634,7 @@ def organizer_dashboard(request):
             'id': n.id,
             'type': n.notification_type, # 'BIDDING_INVITE' or 'INFO'
             'message': n.message,
-            'time': n.created_at,
+            'created_at': n.created_at,  # Changed from 'time' to 'created_at' to match Model layout in template
             'link': '#', # Placeholder
             'is_invite': n.notification_type == 'BIDDING_INVITE',
             'related_tournament_id': n.related_tournament.Tournament_ID if n.related_tournament else None
@@ -2975,6 +3024,33 @@ def org_notifications(request):
     return render(request, 'web/Organization/org_notifications.html', context)
 
 @login_required_organization
+def get_org_notifications(request):
+    """API endpoint to get latest unread organization notifications"""
+    org = request.org
+    try:
+        last_id = int(request.GET.get('last_id', 0))
+    except ValueError:
+        last_id = 0
+        
+    notifications = OrganizationNotification.objects.filter(
+        recipient=org,
+        is_read=False,
+        id__gt=last_id
+    ).order_by('created_at')[:5]
+    
+    data = []
+    for notif in notifications:
+        data.append({
+            'id': notif.id,
+            'message': notif.message,
+            'type': notif.notification_type,
+            'link': notif.link,
+            'time': notif.created_at.strftime("%b %d, %H:%M")
+        })
+        
+    return JsonResponse({'notifications': data, 'count': len(data)})
+
+@login_required_organization
 def org_bidding_dashboard(request):
     """View for organizations to see available players, their roster, and bidding wallet."""
     org_id = request.session.get('organizer_id')
@@ -3007,7 +3083,7 @@ def org_bidding_dashboard(request):
     ).exclude(
         end_date__lt=now
     ).order_by('start_date')
-    next_season = upcoming_seasons.filter(start_date__gte=now).first()
+    next_season = upcoming_seasons.first()
     if active_season:
         bidding_status = {
             'is_active': True,
@@ -3028,10 +3104,10 @@ def org_bidding_dashboard(request):
     else:
         bidding_status = None
     
-    # 1. Available Players (Not Sold yet and Active Account)
+    # 1. Available Players (Not Sold yet and Active Account and Not in any organization)
     sold_player_ids = Bid.objects.filter(status='Accepted').values_list('player_id', flat=True)
     all_active_players = Player.objects.filter(is_archived=False, status='ACTIVE', is_active_account=True)
-    available_players = all_active_players.exclude(id__in=sold_player_ids)
+    available_players = all_active_players.exclude(id__in=sold_player_ids).filter(organization__isnull=True)
     
     # Check if all players are sold out
     all_sold = (all_active_players.exists() and not available_players.exists())
@@ -3153,6 +3229,21 @@ def player_bidding_dashboard(request):
     elif in_negotiation:
         auction_status = "In Negotiation"
         
+    # Deal Finalization Context
+    signed_org = player.organization
+    signed_date = player.created_at
+    signed_amount = None
+    
+    if signed_org:
+        if highest_accepted:
+            signed_amount = highest_accepted.amount
+            signed_date = highest_accepted.created_at
+        else:
+            from .models import OrganizationPlayer
+            org_player_record = OrganizationPlayer.objects.filter(player=player, organization=signed_org).first()
+            if org_player_record:
+                signed_date = org_player_record.created_at
+
     context = {
         'player': player,
         'active_season': active_season,
@@ -3166,7 +3257,10 @@ def player_bidding_dashboard(request):
         'notifications': notifications,
         'total_bids_count': total_bids_count,
         'unique_orgs_count': unique_orgs_count,
-        'highest_bid_amount': highest_bid_amount
+        'highest_bid_amount': highest_bid_amount,
+        'signed_org': signed_org,
+        'signed_date': signed_date,
+        'signed_amount': signed_amount
     }
     return render(request, 'web/Player/player_bidding.html', context)
 
@@ -3214,8 +3308,8 @@ def place_bid(request, player_id):
         
     # Check if all players are sold out
     sold_player_ids = Bid.objects.filter(status='Accepted').values_list('player_id', flat=True)
-    all_active_players = Player.objects.filter(is_archived=False, status='ACTIVE')
-    available_players = all_active_players.exclude(id__in=sold_player_ids)
+    all_active_players = Player.objects.filter(is_archived=False, status='ACTIVE', is_active_account=True)
+    available_players = all_active_players.exclude(id__in=sold_player_ids).filter(organization__isnull=True)
     
     if all_active_players.exists() and not available_players.exists():
         messages.error(request, 'All players are sold out. Bidding participation is disabled.')

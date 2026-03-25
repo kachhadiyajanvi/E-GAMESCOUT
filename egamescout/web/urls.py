@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('maintenance/', views.maintenance_page, name='maintenance_page'),
     path('tournaments/', views.public_tournaments, name='public_tournaments'),
+    path('tournaments/<int:tournament_id>/', views.public_tournament_detail, name='public_tournament_detail'),
     path('previous-tournaments/', views.public_previous_tournaments, name='public_previous_tournaments'),
     path('tournament-history/<int:tournament_id>/', views.tournament_history_detail, name='tournament_history_detail'),
     
@@ -102,6 +103,7 @@ urlpatterns = [
     # Admin Portal
     path('admin/login/', admin_views.admin_login, name='admin_login'),
     path('admin/login/verify-otp/', admin_views.admin_verify_otp, name='admin_verify_otp'),
+    path('admin/login/resend-otp/', admin_views.admin_resend_otp, name='admin_resend_otp'),
     path('admin/logout/', admin_views.admin_logout, name='admin_logout'),
     path('admin/', admin_views.admin_dashboard, name='admin_dashboard'),
     path('admin/players/', admin_views.admin_players_detail, name='admin_players_detail'),
@@ -153,6 +155,7 @@ urlpatterns = [
     path('player/tournaments/upcoming/', views.player_upcoming_tournaments, name='player_upcoming_tournaments'),
     
     # Notifications
+    path('api/organization/notifications/', views.get_org_notifications, name='get_org_notifications'),
     path('organization/notifications/mark-all-read/', views.org_mark_all_notifications_read, name='org_mark_all_notifications_read'),
     path('organization/notifications/delete/<int:notification_id>/', views.delete_notification, name='delete_notification'),
     path('organization/notifications/', views.org_notifications, name='org_notifications'),
@@ -189,5 +192,8 @@ urlpatterns = [
     path('admin/archive/org/<int:org_id>/delete/', admin_views.admin_delete_archived_organization, name='admin_delete_archived_organization'),
     path('admin/archive/tournament/<int:tournament_id>/delete/', admin_views.admin_delete_archived_tournament, name='admin_delete_archived_tournament'),
     
+    # Admin Bulk Notify
+    path('admin/notify/players/', admin_views.admin_notify_players, name='admin_notify_players'),
+    path('admin/notify/orgs/', admin_views.admin_notify_orgs, name='admin_notify_orgs'),
 
 ]

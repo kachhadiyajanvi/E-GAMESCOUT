@@ -506,7 +506,7 @@
                                     <div class="text-green-400 font-mono font-bold">₹{{ tournament.PrizePool|floatformat:0 }}</div>
                                 </div>
                                 
-                                <a href="{% url 'public_tournaments' %}" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white hover:bg-accent-cyan hover:text-black transition-all group-hover:scale-110">
+                                <a href="{% url 'public_tournament_detail' tournament.Tournament_ID %}" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white hover:bg-accent-cyan hover:text-black transition-all group-hover:scale-110">
                                     <i class="fa-solid fa-arrow-right -rotate-45 group-hover:rotate-0 transition-transform"></i>
                                 </a>
                             </div>

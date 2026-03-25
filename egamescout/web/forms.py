@@ -239,11 +239,13 @@ class TournamentForm(forms.ModelForm):
             }),
             'start_date': forms.DateTimeInput(attrs={
                 'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'style': 'color-scheme: dark;',
                 'type': 'datetime-local',
                 'required': 'required'
             }),
             'end_date': forms.DateTimeInput(attrs={
                  'class': 'w-full bg-[#0B0C10] border border-[#45A29E]/20 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#66FCF1] focus:ring-1 focus:ring-[#66FCF1] transition-all cyber-input',
+                'style': 'color-scheme: dark;',
                 'type': 'datetime-local',
                 'required': 'required'
             }),
