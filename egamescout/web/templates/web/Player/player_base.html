@@ -55,7 +55,7 @@
     <nav
         class="w-full py-6 px-6 md:px-12 flex items-center justify-between border-b border-white/5 bg-brand-dark/50 backdrop-blur-md sticky top-0 z-50">
         <div class="flex items-center gap-2">
-            <a href="{% url 'index' %}" class="flex items-center gap-3 group shrink-0">
+            <a href="{% if request.session.player_id %}{% url 'player_dashboard' %}{% else %}{% url 'index' %}{% endif %}" class="flex items-center gap-3 group shrink-0">
                 <img src="{% static 'web/images/logo.png' %}" alt="E-Game Scout Logo"
                     class="w-9 h-9 object-contain drop-shadow-[0_0_10px_rgba(102,252,241,0.6)] group-hover:drop-shadow-[0_0_18px_rgba(102,252,241,0.9)] transition-all">
                 <span class="text-lg font-display font-black tracking-[0.15em] text-white group-hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.5)] transition-all">
@@ -64,7 +64,7 @@
             </a>
         </div>
         <div class="flex items-center gap-4">
-            <a href="{% url 'index' %}"
+            <a href="{% if request.session.player_id %}{% url 'player_dashboard' %}{% else %}{% url 'index' %}{% endif %}"
                 class="text-sm font-bold text-gray-400 hover:text-white transition-colors">HOME</a>
             {% if not request.session.player_id %}
             {% url 'auth_login' as login_url %}
