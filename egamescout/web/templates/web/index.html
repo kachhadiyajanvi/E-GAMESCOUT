@@ -59,9 +59,9 @@
                         </a>
 
                         <a href="{% url 'org_login_start' %}"
-                            class="group relative px-6 py-3 rounded-full bg-transparent border border-white text-white font-display font-bold flex items-center justify-center gap-3 transition-all duration-300 hover:bg-white/10 hover:border-accent-cyan hover:text-accent-cyan hover:scale-105 hover:shadow-[0_0_20px_rgba(102,252,241,0.3)] whitespace-nowrap">
+                            class="group relative px-6 py-3 rounded-full bg-transparent border border-white text-white font-display font-bold flex items-center justify-center gap-3 transition-all duration-300 hover:bg-white/10 hover:border-neon-pink hover:text-neon-pink hover:scale-105 hover:shadow-[0_0_20px_rgba(255,42,109,0.3)] whitespace-nowrap">
                             <span class="text-sm transition-transform group-hover:scale-105"><i
-                                    class="fa-solid fa-trophy mr-2 group-hover:text-yellow-400 transition-colors"></i>
+                                    class="fa-solid fa-trophy mr-2 group-hover:text-neon-pink transition-colors"></i>
                                 JOIN AS ORGANIZATION</span>
                         </a>
                     </div>
@@ -72,10 +72,10 @@
                     class="lg:col-span-6 relative h-auto lg:h-[800px] flex flex-col lg:block items-center justify-center perspective-1000 mt-10 lg:mt-0">
                     <!-- Floating Gradient Orbs -->
                     <div
-                        class="absolute top-20 right-0 w-64 h-64 bg-purple-600/30 rounded-full blur-[60px] animate-float opacity-60">
+                        class="absolute top-20 right-0 w-64 h-64 bg-[#c49ec6]/30 rounded-full blur-[60px] animate-float opacity-60">
                     </div>
                     <div
-                        class="absolute bottom-20 left-10 w-48 h-48 bg-blue-600/30 rounded-full blur-[50px] animate-float-slow opacity-60">
+                        class="absolute bottom-20 left-10 w-48 h-48 bg-accent-cyan/30 rounded-full blur-[50px] animate-float-slow opacity-60">
                     </div>
 
                     <!-- Main Character Image Container with 3D Float -->
@@ -209,11 +209,11 @@
                     onerror="this.style.display='none'">
                 {% endif %}
                 <span
-                    class="text-transparent bg-clip-text {% cycle 'bg-gradient-to-r from-accent-cyan to-blue-500 hover:from-blue-400 hover:to-accent-cyan' 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-rose-400 hover:to-pink-400' 'bg-gradient-to-r from-green-400 to-emerald-600 hover:from-emerald-400 hover:to-green-400' 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-indigo-400 hover:to-purple-400' 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-orange-400 hover:to-yellow-400' %} transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-neon-pink hover:from-neon-pink hover:to-accent-cyan transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
                     {{ org.Organization_Name|upper }}
                 </span>
                 {% if org.is_verified %}
-                <i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-1 drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]" title="Verified Organization"></i>
+                <i class="fa-solid fa-circle-check text-accent-cyan text-lg ml-1 drop-shadow-[0_0_8px_rgba(102,252,241,0.6)]" title="Verified Organization"></i>
                 {% endif %}
             </div>
             {% endfor %}
@@ -227,11 +227,11 @@
                     onerror="this.style.display='none'">
                 {% endif %}
                 <span
-                    class="text-transparent bg-clip-text {% cycle 'bg-gradient-to-r from-accent-cyan to-blue-500 hover:from-blue-400 hover:to-accent-cyan' 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-rose-400 hover:to-pink-400' 'bg-gradient-to-r from-green-400 to-emerald-600 hover:from-emerald-400 hover:to-green-400' 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-indigo-400 hover:to-purple-400' 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-orange-400 hover:to-yellow-400' %} transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-neon-pink hover:from-neon-pink hover:to-accent-cyan transition-all duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
                     {{ org.Organization_Name|upper }}
                 </span>
                 {% if org.is_verified %}
-                <i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-1 drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]" title="Verified Organization"></i>
+                <i class="fa-solid fa-circle-check text-accent-cyan text-lg ml-1 drop-shadow-[0_0_8px_rgba(102,252,241,0.6)]" title="Verified Organization"></i>
                 {% endif %}
             </div>
             {% endfor %}
@@ -273,7 +273,7 @@
     <section id="featured-game" class="py-20 px-6 md:px-12 relative overflow-hidden bg-[#0F1115]">
         <!-- BGMI Gradient Background -->
         <div
-            class="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-transparent opacity-50 pointer-events-none">
+            class="absolute inset-0 bg-gradient-to-br from-neon-pink/5 via-transparent to-transparent opacity-50 pointer-events-none">
         </div>
 
         <div class="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
@@ -282,20 +282,20 @@
             <div class="reveal-on-scroll">
                 <div class="flex items-center gap-3 mb-6">
                     <span
-                        class="px-3 py-1 bg-orange-500/10 border border-orange-500/50 text-orange-500 text-xs font-display font-bold uppercase tracking-widest rounded-sm">
+                        class="px-3 py-1 bg-neon-pink/10 border border-neon-pink/50 text-neon-pink text-xs font-display font-bold uppercase tracking-widest rounded-sm">
                         Featured Title
                     </span>
-                    <span class="w-16 h-[1px] bg-orange-500/50"></span>
+                    <span class="w-16 h-[1px] bg-neon-pink/50"></span>
                 </div>
 
                 <h2 class="text-4xl md:text-6xl font-display font-black text-white mb-6 leading-tight">
                     BATTLEGROUNDS <br>
                     <span
-                        class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-500 decoration-clone">MOBILE
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-neon-pink to-accent-cyan decoration-clone">MOBILE
                         INDIA</span>
                 </h2>
 
-                <p class="text-gray-400 text-lg mb-8 leading-relaxed border-l-4 border-orange-500 pl-6">
+                <p class="text-gray-400 text-lg mb-8 leading-relaxed border-l-4 border-neon-pink pl-6">
                     The ultimate platform for BGMI esports. Connect with top-tier squads, participate in daily scrims,
                     and track your performance stats in real-time.
                 </p>
@@ -308,7 +308,7 @@
             <div class="relative perspective-1000 reveal-on-scroll delay-200">
                 <!-- Decorative Elements -->
                 <div
-                    class="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-[60px] animate-pulse-slow">
+                    class="absolute -top-10 -right-10 w-40 h-40 bg-neon-pink/20 rounded-full blur-[60px] animate-pulse-slow">
                 </div>
 
                 <div
@@ -316,14 +316,14 @@
 
                     <!-- Neon Frame Container -->
                     <div
-                        class="relative rounded-xl border-2 border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5),inset_0_0_15px_rgba(249,115,22,0.2)] overflow-hidden bg-black">
+                        class="relative rounded-xl border-2 border-neon-pink shadow-[0_0_15px_rgba(255,42,109,0.5),inset_0_0_15px_rgba(255,42,109,0.2)] overflow-hidden bg-black">
 
                         <!-- Animated Border Lines -->
                         <div
-                            class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-orange-400 to-transparent animate-scanline">
+                            class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-neon-pink to-transparent animate-scanline">
                         </div>
                         <div
-                            class="absolute bottom-0 right-0 w-full h-[2px] bg-gradient-to-r from-transparent via-orange-400 to-transparent animate-scanline hidden">
+                            class="absolute bottom-0 right-0 w-full h-[2px] bg-gradient-to-r from-transparent via-neon-pink to-transparent animate-scanline hidden">
                         </div>
 
                         <!-- Image -->
@@ -333,11 +333,11 @@
                         </div>
 
                         <!-- Corner Accents -->
-                        <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-orange-400 z-20"></div>
-                        <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-orange-400 z-20"></div>
-                        <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-orange-400 z-20">
+                        <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-accent-cyan z-20"></div>
+                        <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-accent-cyan z-20"></div>
+                        <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-accent-cyan z-20">
                         </div>
-                        <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-orange-400 z-20">
+                        <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-accent-cyan z-20">
                         </div>
                     </div>
                 </div>
@@ -361,7 +361,7 @@
         <div class="relative max-w-6xl mx-auto z-10 reveal-on-scroll delay-100">
             <!-- Desktop Connecting Line with Arrows -->
             <div class="hidden md:block absolute top-[45px] left-[10%] right-[10%] h-[2px] bg-white/5 z-0">
-                <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-accent-cyan via-blue-500 to-accent-cyan animate-scanline" style="width: 100%;"></div>
+                <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-accent-cyan via-neon-pink to-accent-cyan animate-scanline" style="width: 100%;"></div>
                 
                 <!-- Arrow 1 -->
                 <div class="absolute top-1/2 left-[25%] -translate-y-1/2 -translate-x-1/2 flex items-center justify-center">
@@ -369,7 +369,7 @@
                 </div>
                 <!-- Arrow 2 -->
                 <div class="absolute top-1/2 left-[50%] -translate-y-1/2 -translate-x-1/2 flex items-center justify-center">
-                    <div class="w-3 h-3 border-t-2 border-r-2 border-blue-500 rotate-45 animate-pulse" style="animation-delay: 0.2s;"></div>
+                    <div class="w-3 h-3 border-t-2 border-r-2 border-neon-pink rotate-45 animate-pulse" style="animation-delay: 0.2s;"></div>
                 </div>
                 <!-- Arrow 3 -->
                 <div class="absolute top-1/2 left-[75%] -translate-y-1/2 -translate-x-1/2 flex items-center justify-center">
@@ -819,7 +819,7 @@
                 <h2 class="text-4xl md:text-5xl font-display font-black text-white mb-6 leading-tight uppercase">
                     Automated <br>
                     <span
-                        class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">Intelligence</span>
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-neon-pink">Intelligence</span>
                 </h2>
 
                 <p class="text-gray-400 text-lg mb-8 leading-relaxed">
@@ -831,14 +831,14 @@
                 <div class="flex items-center gap-6">
                     <div class="flex flex-col">
                         <span class="text-3xl font-display font-bold text-white mb-1"><i
-                                class="fa-solid fa-bolt text-yellow-400 mr-2"></i>0.5s</span>
+                                class="fa-solid fa-bolt text-accent-cyan mr-2"></i>0.5s</span>
                         <span class="text-xs text-brand-light/50 font-display tracking-widest uppercase">Parse
                             Time</span>
                     </div>
                     <div class="w-px h-12 bg-white/10"></div>
                     <div class="flex flex-col">
                         <span class="text-3xl font-display font-bold text-white mb-1"><i
-                                class="fa-solid fa-shield-halved text-green-400 mr-2"></i>99.9%</span>
+                                class="fa-solid fa-shield-halved text-neon-pink mr-2"></i>99.9%</span>
                         <span class="text-xs text-brand-light/50 font-display tracking-widest uppercase">Accuracy</span>
                     </div>
                 </div>
@@ -853,7 +853,7 @@
                         class="absolute inset-0 opacity-40 mix-blend-luminosity group-hover:scale-105 transition-transform duration-700 flex flex-col items-center justify-center p-6 bg-[#0a0a0c]">
                         <!-- Top Text -->
                         <div
-                            class="text-orange-500 font-display text-xl md:text-2xl font-black mb-1 tracking-widest uppercase transform -rotate-1">
+                            class="text-neon-pink font-display text-xl md:text-2xl font-black mb-1 tracking-widest uppercase transform -rotate-1">
                             MATCH WON</div>
                         <div
                             class="text-white text-2xl md:text-3xl font-display font-black mb-8 tracking-wide uppercase transform rotate-1 drop-shadow-md">
@@ -875,7 +875,7 @@
                             </div>
                             <div class="bg-white/5 border border-white/10 rounded pt-2 pb-3 px-2 text-center">
                                 <div class="text-gray-400 text-[10px] font-mono mb-1 uppercase">Review</div>
-                                <div class="text-green-400 text-xl font-bold font-mono">S+</div>
+                                <div class="text-accent-cyan text-xl font-bold font-mono">S+</div>
                             </div>
                         </div>
 
@@ -888,7 +888,7 @@
                             <div class="text-left leading-tight">
                                 <div class="text-white font-bold font-display text-[10px] tracking-wider">PLAYER_ONE
                                 </div>
-                                <div class="text-orange-400 text-[8px] font-mono tracking-widest mt-0.5">MVP</div>
+                                <div class="text-neon-pink text-[8px] font-mono tracking-widest mt-0.5">MVP</div>
                             </div>
                         </div>
                     </div>
@@ -925,7 +925,7 @@
                                     invitations.</div>
                                 <div class="flex items-end gap-3">
                                     <span class="text-3xl font-display font-bold text-white leading-none">4.82</span>
-                                    <span class="text-green-400 text-xs mb-1 font-mono tracking-wider"><i
+                                    <span class="text-accent-cyan text-xs mb-1 font-mono tracking-wider"><i
                                             class="fa-solid fa-arrow-trend-up"></i> +12% YoY</span>
                                 </div>
                             </div>
@@ -938,7 +938,7 @@
                                     <div class="text-[10px] text-accent-cyan font-mono font-bold">85%</div>
                                 </div>
                                 <div class="w-full bg-gray-800 rounded-full h-1 mt-1 overflow-hidden relative">
-                                    <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-accent-cyan h-full"
+                                    <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-neon-pink to-accent-cyan h-full"
                                         style="width: 85%"></div>
                                     <div
                                         class="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhYWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==')] opacity-50">
@@ -993,7 +993,7 @@
 
             <h2 class="text-4xl md:text-6xl font-display font-bold text-white mb-6 leading-tight uppercase relative">
                 Global <span
-                    class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-blue-500">Talent</span>
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-neon-pink">Talent</span>
                 <br>
                 Grid
                 <div class="absolute -left-6 top-2 h-full w-1 bg-accent-cyan/50 hidden md:block"></div>
@@ -1131,7 +1131,7 @@
                                 <div class="h-full bg-accent-cyan w-[65%] animate-pulse"></div>
                             </div>
                             <div class="h-1 bg-white/5 rounded-full overflow-hidden">
-                                <div class="h-full bg-blue-500 w-[85%] animate-pulse" style="animation-delay: 0.2s;"></div>
+                                <div class="h-full bg-neon-pink w-[85%] animate-pulse" style="animation-delay: 0.2s;"></div>
                             </div>
                             <div class="h-1 bg-white/5 rounded-full overflow-hidden">
                                 <div class="h-full bg-white/20 w-[45%] animate-pulse" style="animation-delay: 0.4s;"></div>
@@ -1215,7 +1215,7 @@
                 FEATURED GAME
             </div>
             <div
-                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-orange-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#f97316]">
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-neon-pink group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#FF2A6D]">
             </div>
         </a>
 
@@ -1226,7 +1226,7 @@
                 HOW IT WORKS
             </div>
             <div
-                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-blue-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#3b82f6]">
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-purple-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#a855f7]">
             </div>
         </a>
 
@@ -1248,7 +1248,7 @@
                 BIDDING SEASON
             </div>
             <div
-                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-green-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#22c55e]">
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-accent-cyan group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#66FCF1]">
             </div>
         </a>
 
@@ -1259,7 +1259,7 @@
                 SYSTEM CRITICAL
             </div>
             <div
-                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-red-500 group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#ef4444]">
+                class="w-1.5 h-1.5 rounded-full bg-gray-500/50 transition-all duration-300 nav-dot group-hover/item:bg-neon-pink group-hover/item:scale-[2.5] group-hover/item:shadow-[0_0_15px_#FF2A6D]">
             </div>
         </a>
 
@@ -1326,21 +1326,21 @@
                                 }
 
                                 if (id === 'featured-game') {
-                                    dot.classList.add('bg-orange-500', 'scale-[2.5]', 'shadow-[0_0_15px_#f97316]');
+                                    dot.classList.add('bg-neon-pink', 'scale-[2.5]', 'shadow-[0_0_15px_#FF2A6D]');
                                     dot.classList.remove('bg-gray-500/50');
-                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-orange-500/40');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-neon-pink/40');
                                 } else if (id === 'how-it-works') {
-                                    dot.classList.add('bg-blue-500', 'scale-[2.5]', 'shadow-[0_0_15px_#3b82f6]');
+                                    dot.classList.add('bg-purple-500', 'scale-[2.5]', 'shadow-[0_0_15px_#a855f7]');
                                     dot.classList.remove('bg-gray-500/50');
-                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-blue-500/40');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-purple-500/40');
                                 } else if (id === 'bidding-season') {
-                                    dot.classList.add('bg-green-500', 'scale-[2.5]', 'shadow-[0_0_15px_#22c55e]');
+                                    dot.classList.add('bg-accent-cyan', 'scale-[2.5]', 'shadow-[0_0_15px_#66FCF1]');
                                     dot.classList.remove('bg-gray-500/50');
-                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-green-500/40');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-accent-cyan/40');
                                 } else if (id === 'problems') {
-                                    dot.classList.add('bg-red-500', 'scale-[2.5]', 'shadow-[0_0_15px_#ef4444]');
+                                    dot.classList.add('bg-neon-pink', 'scale-[2.5]', 'shadow-[0_0_15px_#FF2A6D]');
                                     dot.classList.remove('bg-gray-500/50');
-                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-red-500/40');
+                                    if (scrollnavGlow) scrollnavGlow.classList.add('from-neon-pink/40');
                                 } else if (id === 'ai-automation') {
                                     dot.classList.add('bg-purple-500', 'scale-[2.5]', 'shadow-[0_0_15px_#a855f7]');
                                     dot.classList.remove('bg-gray-500/50');
@@ -1352,7 +1352,7 @@
                                 }
                             } else {
                                 // Remove active classes
-                                dot.classList.remove('bg-orange-500', 'bg-red-500', 'bg-blue-500', 'bg-purple-500', 'bg-accent-cyan', 'bg-green-500', 'scale-[2.5]', 'shadow-[0_0_15px_#f97316]', 'shadow-[0_0_15px_#ef4444]', 'shadow-[0_0_15px_#3b82f6]', 'shadow-[0_0_15px_#a855f7]', 'shadow-[0_0_15px_#66FCF1]', 'shadow-[0_0_15px_#22c55e]');
+                                dot.classList.remove('bg-neon-pink', 'bg-purple-500', 'bg-accent-cyan', 'scale-[2.5]', 'shadow-[0_0_15px_#FF2A6D]', 'shadow-[0_0_15px_#a855f7]', 'shadow-[0_0_15px_#66FCF1]');
                                 dot.classList.add('bg-gray-500/50');
                             }
                         });
