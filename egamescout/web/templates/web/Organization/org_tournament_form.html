@@ -241,6 +241,18 @@
 {% endblock %}
 
 {% block scripts %}
+<style>
+    /* Remove number input spinners */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type="number"] {
+        -moz-appearance: textfield; /* Firefox */
+    }
+</style>
+
 <!-- CKEditor 5 -->
 <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 
@@ -401,11 +413,125 @@
         }
 
         // Verify form validity (HTML5)
-        if (form.checkValidity()) {
-            form.submit(); // Submit successfully
-        } else {
+        if (!form.checkValidity()) {
             form.reportValidity(); // Show errors
+            return;
         }
+
+        // Venue Validation
+        const typeToggle = document.getElementById('typeToggle');
+        const venueInput = document.querySelector('input[name="venue"]');
+        if (typeToggle && typeToggle.checked && venueInput && !venueInput.value.trim()) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Venue Required',
+                text: 'Please specify the venue location for LAN (Offline) tournaments.',
+                background: '#0B0C10',
+                color: '#fff',
+                confirmButtonColor: '#66FCF1',
+                customClass: {
+                    popup: 'border border-accent-cyan/30 rounded-xl shadow-[0_0_20px_rgba(102,252,241,0.2)]'
+                }
+            });
+            return;
+        }
+
+        // Prize Validation
+        if (prizes.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Prize Required',
+                text: 'At least one prize distribution (e.g. 1st Place) must be added.',
+                background: '#0B0C10',
+                color: '#fff',
+                confirmButtonColor: '#66FCF1',
+                customClass: {
+                    popup: 'border border-accent-cyan/30 rounded-xl shadow-[0_0_20px_rgba(102,252,241,0.2)]'
+                }
+            });
+            return;
+        }
+
+        let totalDistribution = 0;
+        for (let i = 0; i < prizes.length; i++) {
+            let pAmt = parseFloat(prizes[i].amount);
+            if (!pAmt || pAmt <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Prize',
+                    text: 'Prize value is mandatory and must be greater than 0 for all positions.',
+                    background: '#0B0C10',
+                    color: '#fff',
+                    confirmButtonColor: '#66FCF1',
+                    customClass: {
+                        popup: 'border border-accent-cyan/30 rounded-xl shadow-[0_0_20px_rgba(102,252,241,0.2)]'
+                    }
+                });
+                return;
+            }
+            totalDistribution += pAmt;
+        }
+
+        const prizePool = parseFloat(document.querySelector('input[name="PrizePool"]').value);
+        if (totalDistribution > prizePool) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Distribution',
+                text: 'Total prize distribution amount cannot exceed the total tournament prize pool.',
+                background: '#0B0C10',
+                color: '#fff',
+                confirmButtonColor: '#66FCF1',
+                customClass: {
+                    popup: 'border border-accent-cyan/30 rounded-xl shadow-[0_0_20px_rgba(102,252,241,0.2)]'
+                }
+            });
+            return;
+        }
+
+        // Date Validation
+        const startDateInput = document.querySelector('input[name="start_date"]');
+        const endDateInput = document.querySelector('input[name="end_date"]');
+        
+        if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+            const now = new Date();
+            
+            // Allow 5 minutes buffer for form filling time
+            now.setMinutes(now.getMinutes() - 5);
+            
+            if (startDate < now) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Date',
+                    text: 'Start date cannot be in the past.',
+                    background: '#0B0C10',
+                    color: '#fff',
+                    confirmButtonColor: '#66FCF1',
+                    customClass: {
+                        popup: 'border border-accent-cyan/30 rounded-xl shadow-[0_0_20px_rgba(102,252,241,0.2)]'
+                    }
+                });
+                return;
+            }
+            if (endDate < startDate) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Date',
+                    text: 'End date must be after or equal to the start date.',
+                    background: '#0B0C10',
+                    color: '#fff',
+                    confirmButtonColor: '#66FCF1',
+                    customClass: {
+                        popup: 'border border-accent-cyan/30 rounded-xl shadow-[0_0_20px_rgba(102,252,241,0.2)]'
+                    }
+                });
+                return;
+            }
+        }
+
+        // Submit successfully
+        form.submit();
     }
 </script>
 {% endblock %}

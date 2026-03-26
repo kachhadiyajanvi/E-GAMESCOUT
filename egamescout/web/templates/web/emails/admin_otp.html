@@ -1,41 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #050505; color: #ffffff; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #1a1a1a; padding: 30px; border-radius: 10px; border: 1px solid #00f3ff40; }
-        .header { text-align: center; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
-        .logo-text { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
-        .text-brand { color: #00f3ff; }
-        .content { font-size: 16px; line-height: 1.6; }
-        .otp-box { text-align: center; margin: 30px 0; }
-        .otp-code { font-size: 32px; font-weight: bold; font-family: monospace; letter-spacing: 5px; background: #000; padding: 15px 30px; border-radius: 8px; color: #00f3ff; border: 1px solid #00f3ff40; display: inline-block; }
-        .footer { text-align: center; font-size: 12px; color: #888; margin-top: 30px; border-top: 1px solid #333; padding-top: 20px; }
-    </style>
+    <meta charset="utf-8">
+    <title>Admin OTP</title>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo-text">EGAME<span class="text-brand">SCOUT</span></div>
-            <div style="font-size: 12px; color: #888; letter-spacing: 3px; text-transform: uppercase;">Administrator</div>
-        </div>
-        
-        <div class="content">
-            <p>Hello Admin,</p>
-            <p>We received a secure login request for your administrator account.</p>
-            <p>Please use the following One-Time Password (OTP) to complete your login. This code will expire in <strong>2 minutes</strong>.</p>
-            
-            <div class="otp-box">
-                <span class="otp-code">{{ otp }}</span>
-            </div>
-            
-            <p>If you did not initiate this login request, please ignore this email or consider updating your password immediately.</p>
-        </div>
-        
-        <div class="footer">
-            <p>&copy; {% now "Y" %} E-GameScout. All rights reserved.</p>
-            <p>This is an automated message. Please do not reply.</p>
-        </div>
-    </div>
+<body style="font-family: Arial, sans-serif; background-color: #050505; color: #ffffff; padding: 20px; margin: 0;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #050505; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #1a1a1a; padding: 30px; border-radius: 10px; border: 1px solid rgba(0, 243, 255, 0.25);">
+                    <tr>
+                        <td style="text-align: center; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;">
+                            <div style="font-size: 24px; font-weight: bold; letter-spacing: 2px; color: white;">EGAME<span style="color: #FF2A6D;">SCOUT</span></div>
+                            <div style="font-size: 12px; color: #888; letter-spacing: 3px; text-transform: uppercase; margin-top: 5px;">Administrator</div>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="font-size: 16px; line-height: 1.6; padding-top: 20px;">
+                            <p style="margin-top: 0;">Hello Admin,</p>
+                            <p>We received a secure login request for your administrator account.</p>
+                            <p>Please use the following One-Time Password (OTP) to complete your login. This code will expire in <strong>2 minutes</strong>.</p>
+                            
+                            <div style="text-align: center; margin: 30px 0;">
+                                <span style="font-size: 32px; font-weight: bold; font-family: monospace; letter-spacing: 5px; background: #000; padding: 15px 30px; border-radius: 8px; color: #00f3ff; border: 1px solid rgba(0, 243, 255, 0.25); display: inline-block;">{{ otp }}</span>
+                            </div>
+                            
+                            <p>If you did not initiate this login request, please ignore this email or consider updating your password immediately.</p>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="text-align: center; font-size: 12px; color: #888; margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
+                            <p style="margin: 0 0 5px 0;">&copy; {% now "Y" %} E-GameScout. All rights reserved.</p>
+                            <p style="margin: 0;">This is an automated message. Please do not reply.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

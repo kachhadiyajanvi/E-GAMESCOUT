@@ -255,7 +255,7 @@ class PlayerTask(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='tasks')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
-    due_date = models.DateTimeField()
+    due_date = models.DateTimeField(null=True, blank=True)
     is_completed = models.BooleanField(default=False)
     task_type = models.CharField(max_length=10, choices=TASK_TYPES, default='TASK')
     created_at = models.DateTimeField(auto_now_add=True)
