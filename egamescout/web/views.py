@@ -1863,8 +1863,8 @@ def scorecard_tool(request):
     approved_tournaments = Tournament.objects.filter(
         Organization_Name=org,
         approval_status='APPROVED',
-        start_date__date=timezone.now().date()
-    ).order_by('-CreatedAt')
+        Status='Completed'
+    ).order_by('-end_date')
     
     return render(request, 'web/Organization/org_scorecard_tool.html', {
         'org': org, 
