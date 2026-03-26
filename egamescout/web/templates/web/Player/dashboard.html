@@ -24,63 +24,63 @@
     <div class="space-y-8">
 
         <!-- Quick Stats Row -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="grid grid-cols-3 gap-3 md:gap-6">
             <!-- Stat 1 -->
             <div
-                class="bg-[#111217] border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:border-accent-cyan/30 transition-all duration-300 shadow-xl">
+                class="bg-[#111217] border border-white/5 p-3 md:p-6 rounded-2xl md:rounded-3xl relative overflow-hidden group hover:border-accent-cyan/30 transition-all duration-300 shadow-xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none">
                 </div>
                 <div
-                    class="absolute -bottom-6 -right-6 p-6 opacity-5 group-hover:opacity-10 transform group-hover:scale-110 group-hover:-rotate-12 transition-all duration-500">
-                    <i class="fa-solid fa-trophy text-8xl text-accent-cyan"></i>
+                    class="absolute -bottom-4 md:-bottom-6 -right-4 md:-right-6 p-4 md:p-6 opacity-5 group-hover:opacity-10 transform group-hover:scale-110 group-hover:-rotate-12 transition-all duration-500">
+                    <i class="fa-solid fa-trophy text-5xl md:text-8xl text-accent-cyan"></i>
                 </div>
                 <div class="relative z-10">
                     <div
-                        class="w-10 h-10 rounded-xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan mb-4 border border-accent-cyan/20">
-                        <i class="fa-solid fa-trophy"></i>
+                        class="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan mb-3 md:mb-4 border border-accent-cyan/20">
+                        <i class="fa-solid fa-trophy text-sm md:text-base"></i>
                     </div>
-                    <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Tournaments Joined
+                    <p class="text-[8px] md:text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1 leading-tight line-clamp-2 md:line-clamp-1">Tournaments
                     </p>
-                    <h3 class="text-3xl font-display font-black text-white mix-blend-screen">
+                    <h3 class="text-lg md:text-3xl font-display font-black text-white mix-blend-screen leading-none mt-1">
                         {{ total_tournaments_joined}}</h3>
                 </div>
             </div>
 
             <!-- Stat 2 -->
             <div
-                class="bg-[#111217] border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:border-white/10 transition-all duration-300 shadow-xl">
+                class="bg-[#111217] border border-white/5 p-3 md:p-6 rounded-2xl md:rounded-3xl relative overflow-hidden group hover:border-white/10 transition-all duration-300 shadow-xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none">
                 </div>
                 <div
-                    class="absolute -bottom-6 -right-6 p-6 opacity-5 group-hover:opacity-10 transform group-hover:scale-110 group-hover:-rotate-12 transition-all duration-500">
-                    <i class="fa-solid fa-crosshairs text-8xl text-purple-500"></i>
+                    class="absolute -bottom-4 md:-bottom-6 -right-4 md:-right-6 p-4 md:p-6 opacity-5 group-hover:opacity-10 transform group-hover:scale-110 group-hover:-rotate-12 transition-all duration-500">
+                    <i class="fa-solid fa-crosshairs text-5xl md:text-8xl text-purple-500"></i>
                 </div>
                 <div class="relative z-10">
                     <div
-                        class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-4 border border-purple-500/20">
-                        <i class="fa-solid fa-crosshairs"></i>
+                        class="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-3 md:mb-4 border border-purple-500/20">
+                        <i class="fa-solid fa-crosshairs text-sm md:text-base"></i>
                     </div>
-                    <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Matches Played</p>
-                    <h3 class="text-3xl font-display font-black text-white mix-blend-screen">{{ matches_played }}</h3>
+                    <p class="text-[8px] md:text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1 leading-tight line-clamp-2 md:line-clamp-1">Matches</p>
+                    <h3 class="text-lg md:text-3xl font-display font-black text-white mix-blend-screen leading-none mt-1">{{ matches_played }}</h3>
                 </div>
             </div>
 
             <!-- Stat 3 -->
             <div
-                class="bg-[#111217] border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:border-white/10 transition-all duration-300 shadow-xl">
+                class="bg-[#111217] border border-white/5 p-3 md:p-6 rounded-2xl md:rounded-3xl relative overflow-hidden group hover:border-white/10 transition-all duration-300 shadow-xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none">
                 </div>
                 <div
-                    class="absolute -bottom-6 -right-6 p-6 opacity-5 group-hover:opacity-10 transform group-hover:scale-110 group-hover:-rotate-12 transition-all duration-500">
-                    <i class="fa-solid fa-coins text-8xl text-yellow-500"></i>
+                    class="absolute -bottom-4 md:-bottom-6 -right-4 md:-right-6 p-4 md:p-6 opacity-5 group-hover:opacity-10 transform group-hover:scale-110 group-hover:-rotate-12 transition-all duration-500">
+                    <i class="fa-solid fa-coins text-5xl md:text-8xl text-yellow-500"></i>
                 </div>
                 <div class="relative z-10">
                     <div
-                        class="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center text-yellow-500 mb-4 border border-yellow-500/20">
-                        <i class="fa-solid fa-coins"></i>
+                        class="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-yellow-500/10 flex items-center justify-center text-yellow-500 mb-3 md:mb-4 border border-yellow-500/20">
+                        <i class="fa-solid fa-coins text-sm md:text-base"></i>
                     </div>
-                    <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Available Credits</p>
-                    <h3 class="text-3xl font-display font-bold text-yellow-500">
+                    <p class="text-[8px] md:text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1 leading-tight line-clamp-2 md:line-clamp-1">Credits</p>
+                    <h3 class="text-lg md:text-3xl font-display font-bold text-yellow-500 leading-none mt-1">
                         {{ player_credits|floatformat:2 }}</h3>
                 </div>
             </div>
@@ -99,14 +99,14 @@
                     <div
                         class="bg-[#111217] border border-white/5 rounded-3xl p-6 flex flex-col min-h-[220px] shadow-xl relative overflow-hidden group">
                         <div
-                            class="absolute inset-0 bg-gradient-to-br from-orange-500/[0.02] to-transparent pointer-events-none">
+                            class="absolute inset-0 bg-gradient-to-br from-neon-pink/[0.02] to-transparent pointer-events-none">
                         </div>
 
                         <div class="flex justify-between items-center mb-4 relative z-10 border-b border-white/5 pb-3">
                             <h3
                                 class="font-display font-bold text-white text-base flex items-center gap-3 tracking-wide">
                                 <div
-                                    class="w-7 h-7 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/20">
+                                    class="w-7 h-7 rounded-lg bg-neon-pink/10 flex items-center justify-center text-neon-pink border border-neon-pink/20">
                                     <i class="fa-solid fa-fire animate-pulse text-xs"></i>
                                 </div>
                                 Active Series
@@ -118,10 +118,10 @@
                         <div class="space-y-3 flex-1 overflow-y-auto custom-scrollbar max-h-[260px] pr-2 relative z-10">
                             {% for tournament in active_tournaments %}
                             <div
-                                class="bg-black/40 border border-white/5 rounded-2xl p-4 flex justify-between items-center hover:bg-white/5 hover:border-orange-500/30 transition-all group/item">
+                                class="bg-black/40 border border-white/5 rounded-2xl p-4 flex justify-between items-center hover:bg-white/5 hover:border-neon-pink/30 transition-all group/item">
                                 <div class="overflow-hidden flex-1 pr-3">
                                     <h4
-                                        class="text-white font-bold font-display text-sm truncate group-hover/item:text-orange-400 transition-colors">
+                                        class="text-white font-bold font-display text-sm truncate group-hover/item:text-neon-pink transition-colors">
                                         {{ tournament.Name }}</h4>
                                     <p
                                         class="text-[10px] text-gray-500 uppercase tracking-widest mt-1.5 flex items-center gap-1.5">
@@ -129,10 +129,11 @@
                                             class="truncate">{{tournament.Organization_Name.Organization_Name }}</span>
                                     </p>
                                 </div>
-                                <div class="text-right shrink-0">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse ml-auto mb-1"></div>
-                                    <span
-                                        class="text-[9px] text-green-400 font-bold uppercase tracking-widest">Ongoing</span>
+                                <div class="shrink-0 ml-2">
+                                    <span class="inline-flex items-center gap-1.5 bg-neon-pink/10 border border-neon-pink/20 px-2 py-1 rounded text-[9px] text-neon-pink font-bold uppercase tracking-widest shadow-[0_0_10px_rgba(255,42,109,0.1)]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-neon-pink animate-pulse"></span>
+                                        Ongoing
+                                    </span>
                                 </div>
                             </div>
                             {% endfor %}
@@ -257,5 +258,228 @@
                     </div>
                     {% endif %}
                 </div>
+            </div>
+
+            <!-- RIGHT COLUMN (Sidebar tools) -->
+            <div class="space-y-8">
+
+                <!-- Micro-Calendar -->
+                <div
+                    class="bg-[#111217] border border-white/5 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col">
+                    <div class="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none">
+                    </div>
+
+                    <!-- JSON Data -->
+                    <input type="hidden" id="calendar-data" value="{{ calendar_events_json|default:'[]' }}">
+
+                    <div
+                        class="flex items-center justify-between mb-6 relative z-10 border-b border-white/5 pb-4 shrink-0">
+                        <h3 class="font-display font-bold text-white text-lg flex items-center gap-3 tracking-wide">
+                            <div
+                                class="w-8 h-8 rounded-lg bg-gray-500/10 flex items-center justify-center text-gray-300 border border-gray-500/20">
+                                <i class="fa-regular fa-calendar text-sm"></i>
+                            </div>
+                            Schedule
+                        </h3>
+
+                        <div class="flex items-center gap-2">
+                            <button onclick="changeMonth(-1)"
+                                class="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors text-brand-light/50 hover:text-white">
+                                <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                            </button>
+                            <span
+                                class="text-xs text-brand-light/70 font-bold uppercase tracking-widest bg-black/40 px-3 py-1 rounded-lg border border-white/5"
+                                id="month-display">
+                            </span>
+                            <button onclick="changeMonth(1)"
+                                class="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors text-brand-light/50 hover:text-white">
+                                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Compact Calendar Grid -->
+                    <div class="relative z-10 bg-black/30 rounded-2xl p-4 border border-white/5">
+                        <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider py-1">Su</div>
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider py-1">Mo</div>
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider py-1">Tu</div>
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider py-1">We</div>
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider py-1">Th</div>
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider py-1">Fr</div>
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider py-1">Sa</div>
+                        </div>
+                        <div id="days-scroller" class="grid grid-cols-7 gap-1 text-center text-xs font-medium">
+                            <!-- Dynamic Days -->
+                        </div>
+                    </div>
+                    <!-- Timeline / Events -->
+                    <div class="mt-4 space-y-3 relative overflow-y-auto custom-scrollbar min-h-[100px] max-h-[250px] z-10"
+                        id="events-container">
+                        <!-- Dynamic Events -->
+                    </div>
+                </div>
+
+                <script>
+                    // --- Calendar Logic ---
+                    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                    const daysShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+                    let currentDate = new Date();
+                    let selectedDate = new Date(); // Tracks the clicked day
+                    let eventsData = [];
+
+                    try {
+                        eventsData = JSON.parse(document.getElementById('calendar-data').value || '[]');
+                    } catch (e) {
+                        console.error("Error parsing calendar data", e);
+                    }
+
+                    function initCalendar() {
+                        renderHeader();
+                        renderDays();
+                        renderEvents(selectedDate);
+                    }
+
+                    function renderHeader() {
+                        const monthDisplay = document.getElementById('month-display');
+                        const monthName = monthNames[currentDate.getMonth()];
+                        const year = currentDate.getFullYear();
+                        monthDisplay.innerHTML = `${monthName} <span class="text-white">${year}</span>`;
+                    }
+
+                    function renderDays() {
+                        const scroller = document.getElementById('days-scroller');
+                        scroller.innerHTML = '';
+
+                        const year = currentDate.getFullYear();
+                        const month = currentDate.getMonth();
+
+                        // Get number of days in month
+                        const daysInMonth = new Date(year, month + 1, 0).getDate();
+                        const firstDayOfMonth = new Date(year, month, 1).getDay();
+
+                        // Add blank leading days
+                        for (let i = 0; i < firstDayOfMonth; i++) {
+                            scroller.innerHTML += '<div class="py-1.5 opacity-0 pointer-events-none"></div>';
+                        }
+
+                        for (let i = 1; i <= daysInMonth; i++) {
+                            const dateParams = new Date(year, month, i);
+                            const isSelected = isSameDay(dateParams, selectedDate);
+                            const hasEvent = checkEventOnDay(dateParams);
+
+                            const dayEl = document.createElement('div');
+
+                            if (isSelected) {
+                                dayEl.className = "py-1.5 rounded-lg text-black bg-accent-cyan cursor-pointer font-bold relative flex justify-center items-center transition-all scale-105";
+                            } else if (isSameDay(dateParams, new Date())) {
+                                dayEl.className = "py-1.5 rounded-lg text-white bg-white/10 border border-white/20 cursor-pointer font-bold relative flex justify-center items-center transition-all hover:bg-white/20";
+                            } else {
+                                dayEl.className = "py-1.5 rounded-lg text-gray-400 hover:bg-white/10 cursor-pointer transition-colors relative flex justify-center items-center";
+                            }
+
+                            let html = `<span>${i}</span>`;
+                            if (hasEvent && !isSelected) {
+                                html += '<div class="absolute bottom-1 w-1 h-1 rounded-full bg-accent-cyan"></div>';
+                            } else if (hasEvent && isSelected) {
+                                html += '<div class="absolute bottom-1 w-1 h-1 rounded-full bg-black"></div>';
+                            }
+
+                            dayEl.innerHTML = html;
+
+                            dayEl.onclick = () => {
+                                selectedDate = new Date(year, month, i);
+                                renderDays();
+                                renderEvents(selectedDate);
+                            };
+
+                            scroller.appendChild(dayEl);
+                        }
+                    }
+
+                    function checkEventOnDay(date) {
+                        const dateStr = formatDate(date);
+                        return eventsData.some(e => e.date === dateStr);
+                    }
+
+                    function renderEvents(date) {
+                        const container = document.getElementById('events-container');
+                        container.innerHTML = '';
+
+                        // Time Line Decoration
+                        const timeLine = document.createElement('div');
+                        timeLine.className = 'absolute left-[40px] top-0 bottom-0 w-[1px] bg-white/5 z-0';
+                        container.appendChild(timeLine);
+
+                        const dateStr = formatDate(date);
+                        const daysEvents = eventsData.filter(e => e.date === dateStr);
+
+                        if (daysEvents.length === 0) {
+                            const emptyState = document.createElement('div');
+                            emptyState.className = "flex flex-col items-center justify-center p-4 text-center bg-black/20 rounded-xl border border-white/5 border-dashed mt-2 z-10 relative";
+                            emptyState.innerHTML = '<i class="fa-regular fa-calendar-xmark text-gray-500 mb-2"></i><p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest">No Events</p>';
+                            container.appendChild(emptyState);
+                            return;
+                        }
+
+                        daysEvents.sort((a, b) => a.time.localeCompare(b.time));
+
+                        daysEvents.forEach(event => {
+                            const el = document.createElement('div');
+                            el.className = "relative z-10 pl-14 group py-1 animate-fade-in";
+
+                            let borderColor = 'hover:border-white/20';
+                            let textColor = 'group-hover:text-white';
+                            let badgeClass = 'text-brand-light/50 bg-white/5';
+
+                            if (event.type === 'TOURNAMENT') {
+                                borderColor = 'border-l-2 border-l-accent-cyan hover:border-accent-cyan/50';
+                                textColor = 'group-hover:text-accent-cyan text-white';
+                                badgeClass = 'text-accent-cyan bg-accent-cyan/10';
+                            } else if (event.type === 'TASK') {
+                                borderColor = 'border-l-2 border-l-green-400 hover:border-green-500/50';
+                                textColor = 'group-hover:text-green-400 text-white';
+                                badgeClass = 'text-green-400 bg-green-400/10';
+                            }
+
+                            el.innerHTML = `
+                             <div class="p-3 rounded-xl bg-black/40 border border-white/5 ${borderColor} shadow-sm transition-all cursor-pointer group hover:bg-white/5">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="font-bold text-xs tracking-wide font-display ${textColor} transition-colors truncate max-w-[140px]">${event.title}</h4>
+                                            <p class="text-[9px] text-brand-light/40 font-bold tracking-wider uppercase mt-1">${event.type}</p>
+                                        </div>
+                                        <span class="text-[8px] font-bold ${badgeClass} px-1.5 py-0.5 rounded ml-2 shrink-0">${event.time}</span>
+                                    </div>
+                            </div>
+                         `;
+                            container.appendChild(el);
+                        });
+                    }
+
+                    function changeMonth(step) {
+                        currentDate.setMonth(currentDate.getMonth() + step);
+                        renderHeader();
+                        renderDays();
+                    }
+
+                    function isSameDay(d1, d2) {
+                        return d1.getFullYear() === d2.getFullYear() &&
+                            d1.getMonth() === d2.getMonth() &&
+                            d1.getDate() === d2.getDate();
+                    }
+
+                    function formatDate(date) {
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    }
+
+                    document.addEventListener('DOMContentLoaded', initCalendar);
+                </script>
+
+                <!-- Tasks Removed -->
             </div>
 {% endblock %}
