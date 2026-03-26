@@ -333,6 +333,15 @@
                                             <div class="text-xs font-mono text-white/40">ID: #{{ tour.Tournament_ID }}</div>
                                         </td>
                                         <td class="p-4">
+                                            {% if tour.Organization_Name %}
+                                            <div class="font-bold text-white/80">{{ tour.Organization_Name.Organization_Name }}</div>
+                                            {% else %}
+                                            <span class="text-white/30 italic">Unknown</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="p-4">
+                                            <span class="px-2 py-1 bg-white/5 rounded border border-white/10 text-xs font-bold text-white/60">{{ tour.Status }}</span>
+                                        </td>
                                         <td class="p-4 text-white/50 text-xs font-mono">
                                             {% if tour.archived_at %}
                                                 {{ tour.archived_at|date:"d M Y" }}
@@ -340,13 +349,6 @@
                                                 <span class="text-white/20 italic">Unknown</span>
                                             {% endif %}
                                         </td>
-                                            {% if tour.Organization_Name %}
-                                            <div class="font-bold text-white/80">{{ tour.Organization_Name.Organization_Name }}</div>
-                                            {% else %}
-                                            <span class="text-white/30 italic">Unknown</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="p-4"><span class="px-2 py-1 bg-white/5 rounded border border-white/10 text-xs font-bold text-white/60">{{ tour.Status }}</span></td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -446,9 +448,25 @@
     }
 
     function confirmDelete(formId) {
-        if (confirm("Are you sure you want to PERMANENTLY DELETE the selected records?\\n\\nThis action cannot be undone and will remove all associated data.")) {
-            document.getElementById(formId).submit();
-        }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Are you sure you want to PERMANENTLY DELETE the selected records?\n\nThis action cannot be undone and will remove all associated data.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#1F2833',
+            background: '#111827',
+            color: '#fff',
+            confirmButtonText: 'Yes, Delete Permanently',
+            customClass: {
+                popup: 'custom-swal-popup',
+                confirmButton: 'text-black font-bold uppercase tracking-widest',
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(formId).submit();
+            }
+        });
     }
 </script>
 

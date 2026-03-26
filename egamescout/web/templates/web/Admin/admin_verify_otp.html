@@ -113,7 +113,7 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit"
+            <button type="submit" id="verifyBtn"
                 class="w-full relative overflow-hidden rounded-lg bg-brand-blue/10 border border-brand-blue/30 group/btn transition-all duration-300 hover:bg-brand-blue/20 hover:border-brand-blue hover:shadow-[0_0_20px_rgba(0,243,255,0.2)]">
                 <div class="py-3.5 px-6 flex items-center justify-center gap-3">
                     <span
@@ -123,9 +123,20 @@
                 </div>
             </button>
             
-            <!-- Back to Login -->
-            <div class="text-center pt-2">
-                <a href="{% url 'admin_login' %}" class="text-[12px] text-white/40 hover:text-brand-blue uppercase tracking-widest transition-colors">
+            <!-- Timer & Actions -->
+            <div class="flex flex-col items-center justify-center gap-2 pt-2">
+                <div id="timerContainer" class="text-white/60 text-xs tracking-wider flex items-center gap-1.5 font-mono">
+                    <i class="fa-regular fa-clock text-accent-cyan"></i> 
+                    Expires in: <span id="countdown" class="font-bold text-accent-cyan">--:--</span>
+                </div>
+                
+                <div id="resendContainer" class="hidden">
+                    <a href="{% url 'admin_resend_otp' %}" class="text-[12px] font-bold text-brand-blue hover:text-white uppercase tracking-widest transition-colors flex items-center gap-1.5 px-4 py-2 rounded bg-brand-blue/5 hover:bg-brand-blue/20 border border-brand-blue/20">
+                        <i class="fa-solid fa-rotate-right"></i> Resend OTP
+                    </a>
+                </div>
+
+                <a href="{% url 'admin_login' %}" class="text-[11px] text-white/40 hover:text-brand-blue uppercase tracking-widest transition-colors mt-2">
                     <i class="fa-solid fa-arrow-left mr-1"></i> Return to Login
                 </a>
             </div>
@@ -137,6 +148,44 @@
     <div id="toast-container" class="fixed top-8 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
 
     <script>
+        // Countdown Timer Logic
+        let timeLeft = parseInt('{{ remaining_time|default:"0" }}');
+        const countdownEl = document.getElementById('countdown');
+        const timerContainer = document.getElementById('timerContainer');
+        const resendContainer = document.getElementById('resendContainer');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const otpInput = document.querySelector('input[name="otp"]');
+
+        function updateTimer() {
+            if (timeLeft <= 0) {
+                countdownEl.textContent = '00:00';
+                timerContainer.classList.add('text-red-500');
+                countdownEl.classList.replace('text-accent-cyan', 'text-red-500');
+                countdownEl.parentElement.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500"></i> OTP EXPIRED';
+                
+                // Show Resend button, Disable verify
+                resendContainer.classList.remove('hidden');
+                verifyBtn.disabled = true;
+                verifyBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
+                otpInput.disabled = true;
+                otpInput.classList.add('opacity-50', 'cursor-not-allowed');
+                return;
+            }
+
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            timeLeft--;
+            setTimeout(updateTimer, 1000);
+        }
+
+        if (timeLeft > 0) {
+            updateTimer();
+        } else {
+            timeLeft = 0;
+            updateTimer();
+        }
+
         // Toast Notifications
         function showToast(message, tags) {
             const container = document.getElementById('toast-container');

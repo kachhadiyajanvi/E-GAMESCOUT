@@ -38,6 +38,14 @@
     </script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .custom-swal-popup {
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            border-radius: 0.75rem !important;
+        }
+    </style>
     {% block extra_head %}{% endblock %}
     <style>
         @keyframes marquee {
@@ -78,7 +86,7 @@
             border-bottom: 1px solid rgba(102,252,241,0.08);
             box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
         }
-        #main-navbar.scrolled {
+        #main-navbar.scrolled, #main-navbar.solid-nav-always {
             background: rgba(6,7,10,0.88) !important;
             backdrop-filter: blur(24px) saturate(180%) !important;
             -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
@@ -114,7 +122,7 @@
 
     <!-- Navbar -->
     <nav id="main-navbar"
-        class="fixed w-full z-50 transition-all duration-300 py-3 md:py-4 px-4 md:px-12 flex items-center justify-between">
+        class="fixed w-full z-50 transition-all duration-300 py-3 md:py-4 px-4 md:px-12 flex items-center justify-between {% block nav_class %}{% endblock %}">
 
         <!-- Brand / Logo -->
         <a href="{% url 'index' %}" class="flex items-center gap-3 group shrink-0">
@@ -151,6 +159,10 @@
                 Features
             </a>
         </div>
+
+        <!-- Action Buttons 
+        (Removed extra login button as per user request to streamline the nav)
+        -->
 
     </nav>
 
@@ -502,6 +514,40 @@
                 }
             }
         });
+    </script>
+    
+    <!-- Global SweetAlert2 Confirmation -->
+    <script>
+        function customConfirm(event, message, actionText) {
+            event.preventDefault();
+            const target = event.currentTarget;
+            
+            Swal.fire({
+                title: 'Are you sure?',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#66FCF1',
+                cancelButtonColor: '#1F2833',
+                background: '#0a0a0a',
+                color: '#fff',
+                confirmButtonText: actionText || 'Yes, proceed',
+                customClass: {
+                    popup: 'custom-swal-popup',
+                    confirmButton: 'text-black font-bold uppercase tracking-widest',
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (target.tagName.toLowerCase() === 'form') {
+                        target.submit();
+                    } else if (target.tagName.toLowerCase() === 'a') {
+                        window.location.href = target.href;
+                    } else if (target.closest('form')) {
+                        target.closest('form').submit();
+                    }
+                }
+            });
+        }
     </script>
     
     {% block scripts %}{% endblock %}

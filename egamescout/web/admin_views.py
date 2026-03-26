@@ -84,8 +84,8 @@ def admin_verify_otp(request):
         stored_otp = request.session.get('admin_login_otp')
         otp_time = request.session.get('admin_login_otp_time', 0)
         
-        # Check expiry (5 minutes)
-        if time_module.time() - otp_time > 300:
+        # Check expiry (2 minutes)
+        if time_module.time() - otp_time > 120:
             del request.session['admin_login_otp']
             messages.error(request, "OTP has expired. Please login again.")
             return redirect('admin_login')
@@ -114,7 +114,43 @@ def admin_verify_otp(request):
         else:
             messages.error(request, "Invalid OTP.")
 
-    return render(request, 'web/Admin/admin_verify_otp.html')
+    otp_time = request.session.get('admin_login_otp_time', 0)
+    remaining_time = max(0, int(120 - (time_module.time() - float(otp_time)))) if otp_time else 0
+    return render(request, 'web/Admin/admin_verify_otp.html', {'remaining_time': remaining_time})
+
+def admin_resend_otp(request):
+    if 'admin_login_user_id' not in request.session:
+        messages.error(request, "Session expired. Please start over.")
+        return redirect('admin_login')
+        
+    user_id = request.session.get('admin_login_user_id')
+    user = get_object_or_404(User, id=user_id)
+    
+    # Generate new 6-digit OTP
+    otp = str(random.randint(100000, 999999))
+    request.session['admin_login_otp'] = otp
+    request.session['admin_login_otp_time'] = time_module.time()
+    
+    try:
+        from django.template.loader import render_to_string
+        from django.utils.html import strip_tags
+        
+        html_message = render_to_string('web/emails/admin_otp.html', {'otp': otp, 'user': user})
+        plain_message = strip_tags(html_message)
+        
+        send_mail(
+            'Admin Secure Login OTP - E-GameScout',
+            plain_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            html_message=html_message
+        )
+        messages.success(request, "A new OTP has been sent to your email.")
+    except Exception as e:
+        print(f"OTP SEND FAIL: {otp} - Error: {str(e)}")
+        messages.error(request, "Failed to send email. Check console if testing.")
+        
+    return redirect('admin_verify_otp')
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_logout(request):
@@ -176,8 +212,8 @@ def admin_change_password_verify(request):
         stored_otp = request.session.get('admin_password_otp')
         otp_time = request.session.get('admin_password_otp_time', 0)
         
-        # Check expiry (5 minutes)
-        if time_module.time() - otp_time > 300:
+        # Check expiry (2 minutes)
+        if time_module.time() - otp_time > 120:
             del request.session['admin_password_otp']
             messages.error(request, "OTP has expired. Please initiate request again.")
             return redirect('admin_profile')
@@ -544,6 +580,85 @@ def admin_edit_player(request, player_id):
     
     return render(request, 'web/Admin/admin_player_edit.html', {'player': player})
 
+
+# --- Admin Bulk Notification Views ---
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_notify_players(request):
+    """Send a notification to all active players or a specific player"""
+    if request.method == 'POST':
+        message = request.POST.get('message', '').strip()
+        link = request.POST.get('link', '').strip() or None
+        target_id = request.POST.get('target_id', 'all')
+
+        if not message:
+            messages.error(request, "Notification message cannot be empty.")
+            return redirect('admin_players_detail')
+
+        from web.models import PlayerNotification, Player
+        
+        if target_id == 'all':
+            active_players = Player.objects.filter(is_active_account=True, is_archived=False)
+            success_msg = f"Notification sent to {active_players.count()} active player(s)."
+        else:
+            active_players = Player.objects.filter(id=target_id)
+            if active_players.exists():
+                success_msg = f"Notification sent to {active_players.first().full_name}."
+            else:
+                messages.error(request, "Player not found.")
+                return redirect('admin_players_detail')
+                
+        notifs = [
+            PlayerNotification(
+                recipient=p,
+                message=message,
+                link=link,
+                notification_type='ADMIN_MESSAGE',
+            )
+            for p in active_players
+        ]
+        PlayerNotification.objects.bulk_create(notifs)
+        messages.success(request, success_msg)
+    return redirect('admin_players_detail')
+
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_notify_orgs(request):
+    """Send a notification to all active organizations or a specific organization"""
+    if request.method == 'POST':
+        message = request.POST.get('message', '').strip()
+        link = request.POST.get('link', '').strip() or None
+        target_id = request.POST.get('target_id', 'all')
+
+        if not message:
+            messages.error(request, "Notification message cannot be empty.")
+            return redirect('admin_organization_detail')
+
+        from web.models import OrganizationNotification, Organization
+        
+        if target_id == 'all':
+            active_orgs = Organization.objects.filter(status='Active', is_archived=False)
+            success_msg = f"Notification sent to {active_orgs.count()} active organization(s)."
+        else:
+            active_orgs = Organization.objects.filter(id=target_id)
+            if active_orgs.exists():
+                success_msg = f"Notification sent to {active_orgs.first().Organization_Name}."
+            else:
+                messages.error(request, "Organization not found.")
+                return redirect('admin_organization_detail')
+
+        notifs = [
+            OrganizationNotification(
+                recipient=org,
+                message=message,
+                notification_type='ADMIN_MESSAGE',
+            )
+            for org in active_orgs
+        ]
+        OrganizationNotification.objects.bulk_create(notifs)
+        messages.success(request, success_msg)
+    return redirect('admin_organization_detail')
+
 # --- Notification APIs ---
 from django.http import JsonResponse
 from web.models import AdminNotification
@@ -822,7 +937,8 @@ def admin_bidding_dashboard(request):
     # We will assume all active players or players with bids are in auction
     total_players_in_auction = Player.objects.filter(is_archived=False).count()
     
-    bids = Bid.objects.filter(season=active_season) if active_season else Bid.objects.none()
+    # Base queryset for overall metrics to ensure the dashboard remains dynamic even when inactive
+    bids = Bid.objects.all()
     
     total_bids = bids.count()
     accepted_bids = bids.filter(status='Accepted')
@@ -1135,6 +1251,14 @@ def admin_end_bidding_season(request):
             BiddingSeasonLog.objects.create(season=season, action='END', message="Bidding Ended by Admin")
             
             # Feature #3: Wallet Reset After Auction
+            orgs_with_coins = Organization.objects.filter(coins__gt=0)
+            for org in orgs_with_coins:
+                Transaction.objects.create(
+                    recipient=org,
+                    amount=org.coins,
+                    transaction_type='WITHDRAWAL',
+                    description="Wallet reset upon bidding close"
+                )
             Organization.objects.all().update(coins=0)
             BiddingSeasonLog.objects.create(season=season, action='RESET', message="Organization Wallets Reset to 0")
 

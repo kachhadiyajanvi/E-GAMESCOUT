@@ -23,7 +23,7 @@
         </button>
     </div>
 </form>
-<button onclick="openModal('players')" class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center justify-center gap-2 whitespace-nowrap">
+<button onclick="openNotifyModal('player', 'all', 'All Players')" class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center justify-center gap-2 whitespace-nowrap">
     <i class="fa-solid fa-bullhorn"></i> Notify
 </button>
 {% endblock %}
@@ -36,6 +36,7 @@
                 <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
                     <th class="p-4 font-bold">Player Details</th>
                     <th class="p-4 font-bold">Status</th>
+                    <th class="p-4 font-bold">Organization</th>
                     <th class="p-4 font-bold">Joined</th>
                     <th class="p-4 font-bold text-right">Actions</th>
                 </tr>
@@ -97,6 +98,22 @@
                         {% endif %}
                     </td>
                     <td class="p-4 text-white/40">{{ player.created_at|date:"M d, Y" }}</td>
+                    <td class="p-4">
+                        {% if player.organization %}
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center shrink-0 overflow-hidden">
+                                {% if player.organization.profile_photo %}
+                                <img src="{{ player.organization.profile_photo.url }}" class="w-full h-full object-cover">
+                                {% else %}
+                                <i class="fa-solid fa-building text-accent-cyan text-[9px]"></i>
+                                {% endif %}
+                            </div>
+                            <span class="text-xs font-bold text-accent-cyan/80 truncate max-w-[100px]" title="{{ player.organization.Organization_Name }}">{{ player.organization.Organization_Name }}</span>
+                        </div>
+                        {% else %}
+                        <span class="text-[10px] font-mono text-white/20 uppercase tracking-widest">— Free Agent</span>
+                        {% endif %}
+                    </td>
                     <td class="p-4 text-right">
                         {% if player.is_verified %}
                         <button class="text-blue-400/50 cursor-not-allowed px-2 text-xs" title="Verified Player" disabled>
@@ -112,6 +129,10 @@
                             class="text-white/40 hover:text-accent-cyan transition-colors px-2"
                             title="View Full Details">
                             <i class="fa-solid fa-eye"></i>
+                        </button>
+                        <button onclick="openNotifyModal('player', '{{ player.id }}', '{{ player.full_name|escapejs }}')"
+                            class="text-white/40 hover:text-yellow-400 transition-colors px-2" title="Notify Player">
+                            <i class="fa-solid fa-bell"></i>
                         </button>
                         <button onclick="openStatusModal('{{ player.id }}', '{{ player.status }}', '{{ player.is_verified }}', '{{ player.is_active_account|lower }}')"
                             class="text-white/40 hover:text-brand-blue transition-colors px-2" title="Edit Status">
@@ -410,17 +431,35 @@
 
         form.onsubmit = function(e) {
             if (checkbox.checked) {
+                e.preventDefault();
                 const action = isVerified === 'True' ? 'REVOKE VERIFICATION from' : 'GRANT VERIFICATION to';
-                if (!confirm(`Are you absolutely sure you want to ${action} this player?`)) {
-                    e.preventDefault(); return false;
-                }
-                const inp = document.createElement('input');
-                inp.type = 'hidden';
-                inp.name = isVerified === 'True' ? 'revoke_verification' : 'grant_verification';
-                inp.value = 'true';
-                // remove any previous hidden inputs to avoid duplicates
-                form.querySelectorAll('input[name="grant_verification"], input[name="revoke_verification"]').forEach(el => el.remove());
-                form.appendChild(inp);
+                Swal.fire({
+                    title: 'Verification Action',
+                    text: `Are you absolutely sure you want to ${action} this player?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#00f3ff',
+                    cancelButtonColor: '#1F2833',
+                    background: '#111827',
+                    color: '#fff',
+                    confirmButtonText: 'Yes, Proceed',
+                    customClass: {
+                        popup: 'custom-swal-popup',
+                        confirmButton: 'text-black font-bold uppercase tracking-widest',
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const inp = document.createElement('input');
+                        inp.type = 'hidden';
+                        inp.name = isVerified === 'True' ? 'revoke_verification' : 'grant_verification';
+                        inp.value = 'true';
+                        // remove any previous hidden inputs to avoid duplicates
+                        form.querySelectorAll('input[name="grant_verification"], input[name="revoke_verification"]').forEach(el => el.remove());
+                        form.appendChild(inp);
+                        form.submit();
+                    }
+                });
+                return false;
             }
             return true;
         };
@@ -447,12 +486,66 @@
         modal.classList.remove('flex');
     }
 
-    // Close modal when clicking outside
-    window.onclick = function (event) {
-        if (event.target.classList.contains('fixed')) {
-            event.target.classList.add('hidden');
-            event.target.classList.remove('flex');
+    function openNotifyModal(type, targetId, targetName) {
+        document.getElementById('notifyTargetId').value = targetId;
+        const titleEl = document.getElementById('notifyModalTitle');
+        const descEl = document.getElementById('notifyModalDesc');
+        
+        if (targetId === 'all') {
+            titleEl.textContent = 'Notify All Players';
+            descEl.textContent = 'Sends an in-app notification to all active players';
+        } else {
+            titleEl.textContent = 'Notify ' + targetName;
+            descEl.textContent = 'Sends an in-app notification directly to this player';
         }
+        
+        document.getElementById('notifyModal').classList.remove('hidden');
+        document.getElementById('notifyModal').classList.add('flex');
+    }
+
+    function closeModal() {
+        document.getElementById('notifyModal').classList.add('hidden');
+        document.getElementById('notifyModal').classList.remove('flex');
     }
 </script>
+
+<!-- Notify Players Modal -->
+<div id="notifyModal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div class="bg-[#0f0f0f] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20">
+                <i class="fa-solid fa-bullhorn text-brand-blue"></i>
+            </div>
+            <div>
+                <h2 id="notifyModalTitle" class="text-white font-display font-bold text-lg leading-none">Notify All Players</h2>
+                <p id="notifyModalDesc" class="text-white/40 text-xs mt-1">Sends an in-app notification to all active players</p>
+            </div>
+        </div>
+        <form method="POST" action="{% url 'admin_notify_players' %}">
+            {% csrf_token %}
+            <input type="hidden" name="target_id" id="notifyTargetId" value="all">
+            <div class="mb-4">
+                <label class="block text-xs text-white/60 font-bold uppercase tracking-widest mb-2">Message *</label>
+                <textarea name="message" rows="4" required placeholder="Enter your notification message here..."
+                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-brand-blue outline-none resize-none placeholder-white/20"></textarea>
+            </div>
+            <div class="mb-6">
+                <label class="block text-xs text-white/60 font-bold uppercase tracking-widest mb-2">Link (optional)</label>
+                <input type="text" name="link" placeholder="e.g. /players/dashboard/"
+                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue outline-none placeholder-white/20">
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeModal()"
+                    class="flex-1 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white font-bold text-sm transition-all">Cancel</button>
+                <button type="submit"
+                    class="flex-1 py-2 rounded-lg bg-brand-blue text-black font-bold text-sm tracking-wider uppercase hover:bg-white transition-all">
+                    <i class="fa-solid fa-paper-plane mr-2"></i>Send
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

@@ -41,6 +41,14 @@
         }
     </script>
     <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .custom-swal-popup {
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            border-radius: 0.75rem !important;
+        }
+    </style>
 </head>
 
 <body
@@ -557,6 +565,41 @@
             updatePlayerCountdown();
         })();
     </script>
+
+    <!-- Global SweetAlert2 Confirmation -->
+    <script>
+        function customConfirm(event, message, actionText) {
+            event.preventDefault();
+            const target = event.currentTarget;
+            
+            Swal.fire({
+                title: 'Are you sure?',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#66FCF1',
+                cancelButtonColor: '#1F2833',
+                background: '#0B0C10',
+                color: '#fff',
+                confirmButtonText: actionText || 'Yes, proceed',
+                customClass: {
+                    popup: 'custom-swal-popup',
+                    confirmButton: 'text-black font-bold uppercase tracking-widest',
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (target.tagName.toLowerCase() === 'form') {
+                        target.submit();
+                    } else if (target.tagName.toLowerCase() === 'a') {
+                        window.location.href = target.href;
+                    } else if (target.closest('form')) {
+                        target.closest('form').submit();
+                    }
+                }
+            });
+        }
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 
