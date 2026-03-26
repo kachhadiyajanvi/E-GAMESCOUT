@@ -274,8 +274,36 @@ class TournamentForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        
+        # Date Validation
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        
+        if not start_date:
+            self.add_error('start_date', "Start date is mandatory.")
+        if not end_date:
+            self.add_error('end_date', "End date is mandatory.")
+        
+        if start_date and end_date:
+            from django.utils import timezone
+            # Allow a small buffer (e.g., 5 mins) for "now" to account for form fill time
+            if start_date < timezone.now() - timezone.timedelta(minutes=5):
+                self.add_error('start_date', "Start date cannot be in the past.")
+            if end_date < start_date:
+                self.add_error('end_date', "End date must be after or equal to the start date.")
+        
+        # Venue Validation
+        is_offline = cleaned_data.get('is_offline')
+        venue = cleaned_data.get('venue')
+        if is_offline and not venue:
+            self.add_error('venue', "Venue is required for offline (LAN) tournaments.")
+            
+        # Prize Validation
         prize_pool = cleaned_data.get('PrizePool')
         prize_distribution = cleaned_data.get('prize_distribution')
+
+        if not prize_distribution or prize_distribution == "[]" or prize_distribution == "":
+            raise forms.ValidationError("At least one prize distribution (e.g., 1st Place) must be added.")
 
         if prize_pool is not None and prize_distribution:
             # If it comes as a string (from hidden input), try to parse it
@@ -286,19 +314,23 @@ class TournamentForm(forms.ModelForm):
                 except json.JSONDecodeError:
                     raise forms.ValidationError("Invalid Prize Distribution Format")
 
+            if not prize_distribution or len(prize_distribution) == 0:
+                raise forms.ValidationError("At least one prize distribution must be added.")
+
             total_distribution = 0.0
             if isinstance(prize_distribution, list):
                 for item in prize_distribution:
                     # Item could be dict like {'position': 1, 'amount': 1000} or just amount
                     amount = item.get('amount') if isinstance(item, dict) else item
                     try:
-                        if amount is not None:
-                            total_distribution += float(amount)
+                        if amount is None or float(amount) <= 0:
+                             raise forms.ValidationError("Prize value is mandatory and must be greater than 0 for all positions.")
+                        total_distribution += float(amount)
                     except (ValueError, TypeError):
-                        pass
+                        raise forms.ValidationError("Invalid prize amount provided.")
 
             if float(prize_pool) < total_distribution:
-                raise forms.ValidationError("Tournament prize cannot be higher than total distribution amount.")
+                raise forms.ValidationError("Total prize distribution cannot exceed the tournament prize pool.")
                 
             # Keep parsed data
             cleaned_data['prize_distribution'] = prize_distribution
