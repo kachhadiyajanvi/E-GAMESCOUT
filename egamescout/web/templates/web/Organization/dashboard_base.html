@@ -32,6 +32,7 @@
                         'brand-gray': '#1F2833',
                         'brand-light': '#C5C6C7',
                         'accent-cyan': '#66FCF1',
+                        'neon-pink': '#FF2A6D',
                         'accent-dark-cyan': '#45A29E',
                         'accent-pink': '#FF2A6D', // Cyberpunk Pink
                     }
@@ -259,8 +260,16 @@
                     <i class="fa-solid fa-bars"></i>
                 </button>
 
+                <!-- Mobile Logo Area -->
+                <a href="{% url 'organizer_dashboard' %}" class="md:hidden flex items-center gap-2.5">
+                    <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-7 h-7 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+                    <span class="font-display font-bold text-base tracking-wider leading-none text-white">
+                        EGAME<span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-neon-pink drop-shadow-[0_0_8px_rgba(102,252,241,0.5)]">SCOUT</span>
+                    </span>
+                </a>
+
                 <!-- Page Title -->
-                <div class="hidden sm:block">
+                <div class="hidden md:block">
                     <h2 class="text-lg md:text-xl font-display font-bold text-white tracking-wider">
                         ORGANIZATION <span
                             class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-purple-500">DASHBOARD</span>

@@ -63,8 +63,12 @@
             margin: 0; 
         }
         .logo-highlight { 
-            color: #FF2A6D; 
-            text-shadow: 0 0 10px rgba(255, 42, 109, 0.5); 
+            background: linear-gradient(90deg, #66FCF1 0%, #FF2A6D 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: #66FCF1; /* Email fallback */
+            filter: drop-shadow(0 0 8px rgba(102, 252, 241, 0.5));
         }
 
         /* Content Area */
