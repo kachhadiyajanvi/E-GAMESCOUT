@@ -148,7 +148,7 @@
                         <p class="text-[10px] text-brand-light/50 font-display uppercase tracking-wider mb-1">Format
                         </p>
                         <p class="text-xs font-bold text-white">
-                            <i class="fa-solid fa-wifi text-green-400 mr-1"></i> ONLINE
+                            <i class="fa-solid fa-wifi text-green-400 mr-1"></i> {% if tournament.is_offline %}OFFLINE{% else %}ONLINE{% endif %}
                         </p>
                         {% endif %}
                     </div>
