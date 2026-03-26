@@ -215,9 +215,12 @@
 
                 <!-- Mobile Toggle & Breadcrumbs -->
                 <div class="flex items-center gap-4">
-                    <!-- Mobile Logo (Replaces Hamburger) -->
-                    <a href="{% url 'index' %}" class="lg:hidden flex items-center gap-2">
+                    <!-- Mobile Logo Area -->
+                    <a href="{% url 'index' %}" class="lg:hidden flex items-center gap-2.5">
                         <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-7 h-7 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+                        <span class="font-display font-bold text-base tracking-wider leading-none">
+                            EGAME<span class="text-accent-cyan">SCOUT</span>
+                        </span>
                     </a>
 
                     <div class="hidden sm:flex flex-col justify-center">
