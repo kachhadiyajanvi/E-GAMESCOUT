@@ -14,6 +14,7 @@ class SecureSessionValidationMiddleware:
             '/organization/login/',
             '/organization/register/',
             '/organization/resend-otp/',
+            '/organization/player/accept-invite/',
             '/player/login/', # if applicable
         ]
 
