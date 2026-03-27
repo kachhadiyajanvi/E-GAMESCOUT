@@ -1,4 +1,4 @@
-{% extends 'web/Admin/admin_base.html' %}
+{% extends request.META.HTTP_X_REQUESTED_WITH|yesno:"web/Admin/admin_partial.html,web/Admin/admin_base.html" %}
 {% load static %}
 
 {% block content %}

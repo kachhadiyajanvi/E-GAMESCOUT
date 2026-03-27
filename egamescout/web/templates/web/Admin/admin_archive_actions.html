@@ -11,49 +11,52 @@
     <div class="container mx-auto px-4 py-8 space-y-12">
 
         <!-- DASHBOARD OVERVIEW CARDS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-3 gap-2 md:gap-6">
             <!-- Players Card -->
-            <div onclick="showSection('players')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-2xl p-6 hover:border-brand-blue/50 hover:bg-brand-blue/5 transition-all group relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <i class="fa-solid fa-user-slash text-6xl"></i>
+            <div onclick="showSection('players')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl md:rounded-2xl p-2 sm:p-4 md:p-6 hover:border-brand-blue/50 hover:bg-brand-blue/5 transition-all group relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="fa-solid fa-user-slash text-3xl md:text-6xl"></i>
                 </div>
-                <div class="relative z-10">
-                    <div class="text-white/50 text-xs font-bold uppercase tracking-widest mb-2">Archived Players</div>
-                    <div class="text-4xl font-display font-bold text-brand-blue mb-4">{{ total_players }}</div>
-                    <div class="flex items-center text-xs text-white/40 group-hover:text-brand-blue transition-colors">
-                        <span>View Details</span>
-                        <i class="fa-solid fa-arrow-right ml-2 opacity-0 -translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all"></i>
-                    </div>
+                <div class="relative z-10 mb-2 md:mb-4">
+                    <div class="text-white/50 text-[9px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest mb-1 md:mb-2 truncate" title="Archived Players">Archived Players</div>
+                    <div class="text-xl md:text-4xl font-display font-bold text-brand-blue">{{ total_players }}</div>
+                </div>
+                <div class="relative z-10 flex items-center text-[9px] md:text-xs text-white/40 group-hover:text-brand-blue transition-colors mt-auto">
+                    <span class="hidden sm:inline">View Details</span>
+                    <span class="sm:hidden">View</span>
+                    <i class="fa-solid fa-arrow-right ml-1 sm:ml-2 opacity-100 md:opacity-0 md:-translate-x-2 md:group-hover:translate-x-0 md:group-hover:opacity-100 transition-all"></i>
                 </div>
             </div>
 
             <!-- Organizations Card -->
-            <div onclick="showSection('orgs')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-2xl p-6 hover:border-brand-pink/50 hover:bg-brand-pink/5 transition-all group relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <i class="fa-solid fa-building-circle-xmark text-6xl"></i>
+            <div onclick="showSection('orgs')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl md:rounded-2xl p-2 sm:p-4 md:p-6 hover:border-brand-pink/50 hover:bg-brand-pink/5 transition-all group relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="fa-solid fa-building-circle-xmark text-3xl md:text-6xl"></i>
                 </div>
-                <div class="relative z-10">
-                    <div class="text-white/50 text-xs font-bold uppercase tracking-widest mb-2">Archived Organizations</div>
-                    <div class="text-4xl font-display font-bold text-brand-pink mb-4">{{ total_orgs }}</div>
-                    <div class="flex items-center text-xs text-white/40 group-hover:text-brand-pink transition-colors">
-                        <span>View Details</span>
-                        <i class="fa-solid fa-arrow-right ml-2 opacity-0 -translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all"></i>
-                    </div>
+                <div class="relative z-10 mb-2 md:mb-4">
+                    <div class="text-white/50 text-[9px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest mb-1 md:mb-2 truncate" title="Archived Organizations">Archived Orgs</div>
+                    <div class="text-xl md:text-4xl font-display font-bold text-brand-pink">{{ total_orgs }}</div>
+                </div>
+                <div class="relative z-10 flex items-center text-[9px] md:text-xs text-white/40 group-hover:text-brand-pink transition-colors mt-auto">
+                    <span class="hidden sm:inline">View Details</span>
+                    <span class="sm:hidden">View</span>
+                    <i class="fa-solid fa-arrow-right ml-1 sm:ml-2 opacity-100 md:opacity-0 md:-translate-x-2 md:group-hover:translate-x-0 md:group-hover:opacity-100 transition-all"></i>
                 </div>
             </div>
 
             <!-- Tournaments Card -->
-            <div onclick="showSection('tournaments')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-2xl p-6 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all group relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <i class="fa-solid fa-calendar-xmark text-6xl"></i>
+            <div onclick="showSection('tournaments')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl md:rounded-2xl p-2 sm:p-4 md:p-6 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all group relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="fa-solid fa-calendar-xmark text-3xl md:text-6xl"></i>
                 </div>
-                <div class="relative z-10">
-                    <div class="text-white/50 text-xs font-bold uppercase tracking-widest mb-2">Archived Tournaments</div>
-                    <div class="text-4xl font-display font-bold text-purple-500 mb-4">{{ total_tours }}</div>
-                    <div class="flex items-center text-xs text-white/40 group-hover:text-purple-400 transition-colors">
-                        <span>View Details</span>
-                        <i class="fa-solid fa-arrow-right ml-2 opacity-0 -translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all"></i>
-                    </div>
+                <div class="relative z-10 mb-2 md:mb-4">
+                    <div class="text-white/50 text-[9px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest mb-1 md:mb-2 truncate" title="Archived Tournaments">Archived Tours</div>
+                    <div class="text-xl md:text-4xl font-display font-bold text-purple-500">{{ total_tours }}</div>
+                </div>
+                <div class="relative z-10 flex items-center text-[9px] md:text-xs text-white/40 group-hover:text-purple-400 transition-colors mt-auto">
+                    <span class="hidden sm:inline">View Details</span>
+                    <span class="sm:hidden">View</span>
+                    <i class="fa-solid fa-arrow-right ml-1 sm:ml-2 opacity-100 md:opacity-0 md:-translate-x-2 md:group-hover:translate-x-0 md:group-hover:opacity-100 transition-all"></i>
                 </div>
             </div>
         </div>
@@ -381,50 +384,84 @@
         }
     }
 
-    // Default Section Logic (Keep search active)
-    document.addEventListener('DOMContentLoaded', function() {
+    // Initialization Logic (SPA Compatible)
+    function initArchiveDashboard() {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('org_q')) showSection('orgs');
-        else if (urlParams.has('tour_q')) showSection('tournaments');
-        else if (!document.querySelector('.archive-section:not(.hidden)')) {
-             showSection('players');
+        // By default show players if no specific search
+        if (urlParams.has('org_q')) {
+            showSection('orgs');
+        } else if (urlParams.has('tour_q')) {
+            showSection('tournaments');
+        } else if (!document.querySelector('.archive-section:not(.hidden)')) {
+            showSection('players');
         }
 
-        // Initialize Charts
-        initCharts();
-    });
+        // Wait for Chart.js to load
+        initChartsWhenReady();
+    }
 
-    function initCharts() {
-        const ctx = document.getElementById('distributionChart').getContext('2d');
-        const data = JSON.parse('{{ distribution_chart_data|safe }}');
+    function initChartsWhenReady() {
+        if (typeof Chart !== 'undefined') {
+            initArchiveCharts();
+        } else {
+            // Keep checking every 100ms
+            setTimeout(initChartsWhenReady, 100);
+        }
+    }
+
+    function initArchiveCharts() {
+        const canvas = document.getElementById('distributionChart');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
         
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    data: data.data,
-                    backgroundColor: [
-                        'rgba(59, 130, 246, 0.8)', // Blue (Players)
-                        'rgba(236, 72, 153, 0.8)', // Pink (Orgs)
-                        'rgba(168, 85, 247, 0.8)'  // Purple (Tournaments)
-                    ],
-                    borderColor: 'transparent',
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } }
-                    }
+        // Destroy existing instance to prevent duplication
+        if (window.archiveDistributionChart instanceof Chart) {
+            window.archiveDistributionChart.destroy();
+        }
+
+        const dataStr = '{{ distribution_chart_data|escapejs }}';
+        if(!dataStr || dataStr === '""' || dataStr === "''") return;
+        
+        try {
+            const data = JSON.parse(dataStr);
+            window.archiveDistributionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.data,
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)', // Blue (Players)
+                            'rgba(236, 72, 153, 0.8)', // Pink (Orgs)
+                            'rgba(168, 85, 247, 0.8)'  // Purple (Tournaments)
+                        ],
+                        borderColor: 'transparent',
+                        hoverOffset: 4
+                    }]
                 },
-                cutout: '70%',
-            }
-        });
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } }
+                        }
+                    },
+                    cutout: '70%',
+                }
+            });
+        } catch(e) {
+            console.error("Error parsing distribution chart data:", e);
+        }
+    }
+
+    // Execute initialization bypassing DOMContentLoaded constraint in SPA
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initArchiveDashboard);
+    } else {
+        initArchiveDashboard();
     }
 
     // --- Original Logic for Checkboxes ---

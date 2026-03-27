@@ -358,7 +358,7 @@ def admin_players_detail(request):
     search_query = request.GET.get('q', '')
     status_filter = request.GET.get('status', '')
     
-    players_list = Player.objects.filter(is_archived=False)
+    players_list = Player.objects.filter(is_archived=False).select_related('organization')
 
     if search_query:
         players_list = players_list.filter(
@@ -673,16 +673,24 @@ from web.models import AdminNotification
 @user_passes_test(is_superuser, login_url='admin_login')
 def get_notifications(request):
     """API to fetch unread notifications"""
-    notifications = AdminNotification.objects.filter(is_read=False).order_by('-created_at')
-    data = [{
-        'id': n.id,
-        'message': n.message,
-        'type': n.notification_type,
-        'created_at': n.created_at.strftime('%Y-%m-%d %H:%M'),
-        'link': n.link or '#'
-    } for n in notifications]
+    from django.core.cache import cache
+    cache_key = f'admin_notifications_{request.user.id}'
+    data_dict = cache.get(cache_key)
     
-    return JsonResponse({'notifications': data, 'count': len(data)})
+    if data_dict is None:
+        notifications = AdminNotification.objects.filter(is_read=False).order_by('-created_at')[:10]
+        data = [{
+            'id': n.id,
+            'message': n.message,
+            'type': n.notification_type,
+            'created_at': n.created_at.strftime('%Y-%m-%d %H:%M'),
+            'link': n.link or '#'
+        } for n in notifications]
+        
+        data_dict = {'notifications': data, 'count': len(data)}
+        cache.set(cache_key, data_dict, 60)
+        
+    return JsonResponse(data_dict)
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def mark_notification_read(request, notif_id):
@@ -692,6 +700,8 @@ def mark_notification_read(request, notif_id):
             notif = AdminNotification.objects.get(id=notif_id)
             notif.is_read = True
             notif.save()
+            from django.core.cache import cache
+            cache.delete(f'admin_notifications_{request.user.id}')
             return JsonResponse({'success': True})
         except AdminNotification.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Not found'}, status=404)
@@ -702,6 +712,8 @@ def mark_all_notifications_read(request):
     """API to mark all notifications as read"""
     if request.method == 'POST':
         AdminNotification.objects.filter(is_read=False).update(is_read=True)
+        from django.core.cache import cache
+        cache.delete(f'admin_notifications_{request.user.id}')
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 

@@ -97,10 +97,17 @@
     <!-- Mobile Sidebar Backdrop -->
     <div id="mobileSidebarBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
 
+    <!-- Mobile Sidebar Close Button (floating outside panel) -->
+    <button id="mobileSidebarCloseBtn"
+        class="hidden fixed top-3 left-[268px] z-[60] md:hidden items-center justify-center w-9 h-9 rounded-full border border-white/20 bg-black/80 backdrop-blur-sm text-white/70 hover:text-white hover:bg-red-500/30 hover:border-red-500/50 transition-all shadow-lg"
+        onclick="toggleSidebar()">
+        <i class="fa-solid fa-xmark text-base"></i>
+    </button>
+
     <!-- Sidebar -->
     <aside id="adminSidebar" class="w-64 h-full bg-white/5 backdrop-blur-md border-r border-white/10 flex flex-col z-50 shrink-0 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-300">
         <!-- Sidebar Header -->
-        <div class="h-20 flex items-center justify-between px-5 border-b border-white/5 relative overflow-hidden">
+        <div class="h-20 flex items-center px-5 border-b border-white/5 relative overflow-hidden">
             <!-- Subtle ambient glow behind logo -->
             <div class="absolute left-0 top-0 w-32 h-full bg-brand-blue/5 blur-2xl pointer-events-none"></div>
             <div class="flex items-center gap-3 relative z-10">
@@ -114,14 +121,10 @@
                 </div>
                 <!-- Brand Text -->
                 <div class="flex flex-col leading-none gap-0.5">
-                    <span class="font-display font-black text-base tracking-[0.2em] text-white">EGAME<span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-neon-pink drop-shadow-[0_0_8px_rgba(102,252,241,0.5)]">SCOUT</span></span>
+                    <span class="font-display font-black text-base tracking-[0.2em] text-white">EGAME<span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f3ff] to-[#ec4899]">SCOUT</span></span>
                     <span class="text-[9px] font-bold tracking-[0.3em] text-white/30 uppercase">Admin Console</span>
                 </div>
             </div>
-            <!-- Close button for mobile -->
-            <button class="md:hidden text-white/60 hover:text-white" onclick="toggleSidebar()">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
         </div>
 
         <!-- Navigation -->
@@ -237,7 +240,7 @@
                     <a href="{% url 'admin_dashboard' %}" class="md:hidden flex items-center gap-2.5">
                         <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-7 h-7 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
                         <span class="font-display font-bold text-base tracking-wider leading-none text-white">
-                            EGAME<span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-neon-pink drop-shadow-[0_0_8px_rgba(102,252,241,0.5)]">SCOUT</span>
+                            EGAME<span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f3ff] to-[#ec4899]">SCOUT</span>
                         </span>
                     </a>
 
@@ -305,7 +308,9 @@
             </div><!-- /h-20 header row -->
         </header>
 
-        {% block content %}{% endblock %}
+        <div id="main-content" class="flex-1 flex flex-col relative w-full h-full overflow-hidden text-left">
+            {% block content %}{% endblock %}
+        </div>
 
     </main>
 
@@ -374,12 +379,15 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('adminSidebar');
             const backdrop = document.getElementById('mobileSidebarBackdrop');
+            const closeBtn = document.getElementById('mobileSidebarCloseBtn');
             if (sidebar.classList.contains('-translate-x-full')) {
                 sidebar.classList.remove('-translate-x-full');
                 backdrop.classList.remove('hidden');
+                if (closeBtn) { closeBtn.classList.remove('hidden'); closeBtn.classList.add('flex'); }
             } else {
                 sidebar.classList.add('-translate-x-full');
                 backdrop.classList.add('hidden');
+                if (closeBtn) { closeBtn.classList.add('hidden'); closeBtn.classList.remove('flex'); }
             }
         }
 
@@ -438,69 +446,77 @@
             }, 5000);
         }
 
-        // Global Notification Fetcher
-        function fetchNotifications() {
-            fetch('/admin/api/notifications/')
-                .then(res => res.json())
-                .then(data => {
-                    const badge = document.getElementById('notificationBadge');
-                    const count = document.getElementById('notificationCount');
-
-                    if (data.count > 0) {
-                        badge.classList.remove('hidden');
-                        count.textContent = data.count;
-                    } else {
-                        badge.classList.add('hidden');
-                    }
-                })
-                .catch(err => console.error("Could not fetch notifications:", err));
-        }
-
         const modal = document.getElementById('notificationModal');
         const modalContent = document.getElementById('modalContent');
         const modalBackdrop = document.getElementById('modalBackdrop');
         const notifList = document.getElementById('notificationList');
         const markAllBtn = document.getElementById('markAllReadBtn');
 
-        function openNotificationModal() {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+        let lastNotificationData = null;
 
-            // Fetch layout
-            notifList.innerHTML = `<div class="p-8 flex justify-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-blue text-2xl"></i></div>`;
+        function updateNotificationUI(data) {
+            const badge = document.getElementById('notificationBadge');
+            const count = document.getElementById('notificationCount');
 
+            if (data.count > 0) {
+                badge.classList.remove('hidden');
+                count.textContent = data.count;
+            } else {
+                badge.classList.add('hidden');
+            }
+            
+            if (data.count > 0) {
+                markAllBtn.classList.remove('hidden');
+                notifList.innerHTML = data.notifications.map(n => `
+                    <div class="p-4 hover:bg-white/5 rounded-xl transition-colors border-b border-white/5 last:border-0 cursor-pointer group flex gap-4 items-start" onclick="markRead(${n.id}, '${n.link}')">
+                        <div class="w-8 h-8 rounded-full bg-brand-blue/10 flex items-center justify-center shrink-0 mt-1">
+                            <i class="fa-solid fa-bell text-brand-blue text-xs group-hover:scale-110 transition-transform"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-white/90 font-medium leading-snug">${n.message}</p>
+                            <p class="text-[10px] text-white/40 mt-1 font-mono uppercase tracking-wider">${n.created_at}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                markAllBtn.classList.add('hidden');
+                notifList.innerHTML = `
+                    <div class="p-8 text-center text-white/30 flex flex-col items-center justify-center h-48">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-bell-slash text-2xl"></i>
+                        </div>
+                        <p class="text-sm font-medium">No new notifications</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Global Notification Fetcher
+        function fetchNotifications() {
             fetch('/admin/api/notifications/')
                 .then(res => res.json())
                 .then(data => {
-                    if (data.count > 0) {
-                        markAllBtn.classList.remove('hidden');
-                        notifList.innerHTML = data.notifications.map(n => `
-                            <div class="p-4 hover:bg-white/5 rounded-xl transition-colors border-b border-white/5 last:border-0 cursor-pointer group flex gap-4 items-start" onclick="markRead(${n.id}, '${n.link}')">
-                                <div class="w-8 h-8 rounded-full bg-brand-blue/10 flex items-center justify-center shrink-0 mt-1">
-                                    <i class="fa-solid fa-bell text-brand-blue text-xs group-hover:scale-110 transition-transform"></i>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-white/90 font-medium leading-snug">${n.message}</p>
-                                    <p class="text-[10px] text-white/40 mt-1 font-mono uppercase tracking-wider">${n.created_at}</p>
-                                </div>
-                            </div>
-                        `).join('');
-                    } else {
-                        markAllBtn.classList.add('hidden');
-                        notifList.innerHTML = `
-                            <div class="p-8 text-center text-white/30 flex flex-col items-center justify-center h-48">
-                                <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-3">
-                                    <i class="fa-solid fa-bell-slash text-2xl"></i>
-                                </div>
-                                <p class="text-sm font-medium">No new notifications</p>
-                            </div>
-                        `;
+                    const dataStr = JSON.stringify(data);
+                    if (lastNotificationData !== dataStr) {
+                        lastNotificationData = dataStr;
+                        updateNotificationUI(data);
                     }
+                })
+                .catch(err => console.error("Could not fetch notifications:", err));
+        }
 
-                    setTimeout(() => {
-                        modalContent.classList.remove('scale-95', 'opacity-0');
-                    }, 10);
-                });
+        function openNotificationModal() {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            if (!lastNotificationData) {
+                notifList.innerHTML = `<div class="p-8 flex justify-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-blue text-2xl"></i></div>`;
+                fetchNotifications();
+            }
+
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+            }, 10);
         }
 
         function closeNotificationModal() {
@@ -612,6 +628,107 @@
             setInterval(updateAdminCountdown, 1000);
             updateAdminCountdown();
         })();
+    </script>
+    <!-- SPA Router -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContentContainer = document.getElementById('main-content');
+            
+            // Listen to all clicks
+            document.body.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (!link) return;
+                
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+                
+                // Intercept GET requests matching admin URLs, barring file downloads or logout
+                if (href.startsWith('/admin/') && !href.includes('logout') && !href.includes('export') && link.target !== '_blank') {
+                    e.preventDefault();
+                    if (window.innerWidth < 768) {
+                        const sidebar = document.getElementById('adminSidebar');
+                        const backdrop = document.getElementById('mobileSidebarBackdrop');
+                        if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                            sidebar.classList.add('-translate-x-full');
+                            backdrop.classList.add('hidden');
+                        }
+                    }
+                    navigateTo(href);
+                }
+            });
+
+            // Handle back/forward tracking
+            window.addEventListener('popstate', (e) => {
+                navigateTo(window.location.pathname + window.location.search, false);
+            });
+
+            async function navigateTo(url, push = true) {
+                // Show loading spinner safely without stripping the whole container abruptly
+                const loader = document.createElement('div');
+                loader.id = 'spa-loader';
+                loader.className = 'absolute inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300';
+                loader.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-brand-blue text-5xl"></i>';
+                mainContentContainer.style.position = 'relative';
+                mainContentContainer.appendChild(loader);
+                
+                // Highlight sidebar active state
+                document.querySelectorAll('#adminSidebar a').forEach(a => {
+                    const aHref = a.getAttribute('href');
+                    if (aHref === url || (aHref !== '/admin/' && url.startsWith(aHref))) {
+                        a.className = "flex items-center gap-4 px-4 py-3 rounded-xl transition-all group bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue text-sm font-bold tracking-wider";
+                    } else {
+                        if (a.className.includes('bg-gradient')) {
+                            a.className = "flex items-center gap-4 px-4 py-3 rounded-xl transition-all group text-white/60 hover:text-white hover:bg-white/5 text-sm font-bold tracking-wider";
+                        }
+                    }
+                });
+
+                try {
+                    const response = await fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    
+                    if (!response.ok) throw new Error('Network response error');
+                    
+                    const html = await response.text();
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    
+                    // Update Title
+                    const titleTag = tempDiv.querySelector('title');
+                    if (titleTag) {
+                        document.title = titleTag.innerText;
+                        titleTag.remove();
+                    }
+                    
+                    // Replace UI smoothly
+                    mainContentContainer.innerHTML = tempDiv.innerHTML;
+                    
+                    if (push) {
+                        history.pushState(null, '', url);
+                    }
+
+                    // Re-execute scripts in the loaded content
+                    const scripts = mainContentContainer.querySelectorAll('script');
+                    scripts.forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+
+                } catch (error) {
+                    console.error('SPA Navigation Error:', error);
+                    mainContentContainer.innerHTML = `
+                        <div class="flex flex-col items-center justify-center h-full text-center p-8">
+                            <i class="fa-solid fa-triangle-exclamation text-red-500 text-5xl mb-4"></i>
+                            <h3 class="text-xl font-bold text-white mb-2">Failed to load content</h3>
+                            <button onclick="window.location.reload()" class="px-6 py-2 bg-brand-blue text-black font-bold uppercase rounded-lg mt-4">Refresh Page</button>
+                        </div>
+                    `;
+                }
+            }
+        });
     </script>
 </body>
 

@@ -18,160 +18,160 @@
 {% block page_content %}
 
     <!-- PRIMARY METRICS - Tier 1 (Main KPIs) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <!-- Players Card -->
         <div
-            class="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-cyan-500/30 rounded-xl p-6 backdrop-blur-md hover:border-cyan-400/60 transition-all group">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <p class="text-cyan-300/80 text-xs font-bold tracking-widest uppercase mb-1">Active Players</p>
-                    <h3 class="text-3xl font-display font-bold text-cyan-300">{{ active_players|intcomma }}</h3>
+            class="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-cyan-500/30 rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-cyan-400/60 transition-all group">
+            <div class="flex justify-between items-start mb-3 sm:mb-4">
+                <div class="min-w-0 pr-2">
+                    <p class="text-cyan-300/80 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">Active Players</p>
+                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-cyan-300">{{ active_players|intcomma }}</h3>
                 </div>
-                <div class="text-4xl opacity-20 group-hover:opacity-40 transition-opacity"><i
-                        class="fa-solid fa-user"></i></div>
+                <div class="text-3xl sm:text-4xl opacity-20 group-hover:opacity-40 transition-opacity shrink-0">
+                    <i class="fa-solid fa-user"></i>
+                </div>
             </div>
-            <div class="space-y-2">
-                <div class="flex justify-between text-xs font-mono">
+            <div class="space-y-1.5 sm:space-y-2">
+                <div class="flex justify-between text-[10px] sm:text-xs font-mono">
                     <span class="text-white/40">Total</span>
                     <span class="text-cyan-300">{{ total_players|intcomma }}</span>
                 </div>
-                <div class="flex justify-between text-xs font-mono">
+                <div class="flex justify-between text-[10px] sm:text-xs font-mono">
                     <span class="text-white/40">Conversion</span>
                     <span class="text-green-400">{{ player_conversion|floatformat:1 }}%</span>
                 </div>
-                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2">
+                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-1 sm:mt-2">
                     <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 w-[var(--progress)]"
                         style="--progress: {{ player_conversion|floatformat:0 }}%;">
                     </div>
                 </div>
-                <div class="text-xs text-green-400 pt-2">↑ +{{ new_players_month }} this month</div>
+                <div class="text-[10px] sm:text-xs text-green-400 pt-1 sm:pt-2">↑ +{{ new_players_month }} this mo</div>
             </div>
         </div>
 
         <!-- Organizations Card -->
         <div
-            class="bg-gradient-to-br from-pink-600/20 to-rose-600/20 border border-pink-500/30 rounded-xl p-6 backdrop-blur-md hover:border-pink-400/60 transition-all group">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <p class="text-pink-300/80 text-xs font-bold tracking-widest uppercase mb-1">Active Organizations
-                    </p>
-                    <h3 class="text-3xl font-display font-bold text-pink-300">{{ active_orgs|intcomma }}</h3>
+            class="bg-gradient-to-br from-pink-600/20 to-rose-600/20 border border-pink-500/30 rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-pink-400/60 transition-all group">
+            <div class="flex justify-between items-start mb-3 sm:mb-4">
+                <div class="min-w-0 pr-2">
+                    <p class="text-pink-300/80 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">Active Orgs</p>
+                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-pink-300">{{ active_orgs|intcomma }}</h3>
                 </div>
-                <div class="text-4xl opacity-20 group-hover:opacity-40 transition-opacity"><i
-                        class="fa-solid fa-building"></i></div>
+                <div class="text-3xl sm:text-4xl opacity-20 group-hover:opacity-40 transition-opacity shrink-0">
+                    <i class="fa-solid fa-building"></i>
+                </div>
             </div>
-            <div class="space-y-2">
-                <div class="flex justify-between text-xs font-mono">
+            <div class="space-y-1.5 sm:space-y-2">
+                <div class="flex justify-between text-[10px] sm:text-xs font-mono">
                     <span class="text-white/40">Total</span>
                     <span class="text-pink-300">{{ total_orgs|intcomma }}</span>
                 </div>
-                <div class="flex justify-between text-xs font-mono">
+                <div class="flex justify-between text-[10px] sm:text-xs font-mono">
                     <span class="text-white/40">Conversion</span>
                     <span class="text-green-400">{{ org_conversion|floatformat:1 }}%</span>
                 </div>
-                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2">
+                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-1 sm:mt-2">
                     <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 w-[var(--progress)]"
                         style="--progress: {{ org_conversion|floatformat:0 }}%;">
                     </div>
                 </div>
-                <div class="text-xs text-green-400 pt-2">↑ +{{ new_orgs_month }} this month</div>
+                <div class="text-[10px] sm:text-xs text-green-400 pt-1 sm:pt-2">↑ +{{ new_orgs_month }} this mo</div>
             </div>
         </div>
 
         <!-- Tournaments Card -->
         <div
-            class="bg-gradient-to-br from-purple-600/20 to-violet-600/20 border border-purple-500/30 rounded-xl p-6 backdrop-blur-md hover:border-purple-400/60 transition-all group">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <p class="text-purple-300/80 text-xs font-bold tracking-widest uppercase mb-1">Active Tournaments
-                    </p>
-                    <h3 class="text-3xl font-display font-bold text-purple-300">{{ ongoing_tournaments|intcomma }}</h3>
+            class="bg-gradient-to-br from-purple-600/20 to-violet-600/20 border border-purple-500/30 rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-purple-400/60 transition-all group">
+            <div class="flex justify-between items-start mb-3 sm:mb-4">
+                <div class="min-w-0 pr-2">
+                    <p class="text-purple-300/80 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">Tournaments</p>
+                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-purple-300">{{ ongoing_tournaments|intcomma }}</h3>
                 </div>
-                <div class="text-4xl opacity-20 group-hover:opacity-40 transition-opacity"><i
-                        class="fa-solid fa-trophy"></i></div>
+                <div class="text-3xl sm:text-4xl opacity-20 group-hover:opacity-40 transition-opacity shrink-0">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
             </div>
-            <div class="space-y-2">
-                <div class="flex justify-between text-xs font-mono">
+            <div class="space-y-1.5 sm:space-y-2">
+                <div class="flex justify-between text-[10px] sm:text-xs font-mono">
                     <span class="text-white/40">Total</span>
                     <span class="text-purple-300">{{ total_tournaments|intcomma }}</span>
                 </div>
-                <div class="flex justify-between text-xs font-mono">
+                <div class="flex justify-between text-[10px] sm:text-xs font-mono">
                     <span class="text-white/40">Completed</span>
                     <span class="text-amber-400">{{ completed_tournaments }}</span>
                 </div>
-                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2">
+                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-1 sm:mt-2">
                     <div class="h-full bg-gradient-to-r from-purple-500 to-violet-500 w-[var(--progress)]"
                         style="--progress: {{ ongoing_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                     </div>
                 </div>
-                <div class="text-xs text-green-400 pt-2">↑ +{{ new_tournaments_month }} this month</div>
+                <div class="text-[10px] sm:text-xs text-green-400 pt-1 sm:pt-2">↑ +{{ new_tournaments_month }} this mo</div>
             </div>
         </div>
 
         <!-- System Health Card -->
         <div
-            class="bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 rounded-xl p-6 backdrop-blur-md hover:border-emerald-400/60 transition-all group">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <p class="text-emerald-300/80 text-xs font-bold tracking-widest uppercase mb-1">System Health</p>
-                    <h3 class="text-3xl font-display font-bold text-emerald-300">98.5%</h3>
+            class="bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-emerald-400/60 transition-all group">
+            <div class="flex justify-between items-start mb-3 sm:mb-4">
+                <div class="min-w-0 pr-2">
+                    <p class="text-emerald-300/80 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">System Health</p>
+                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-emerald-300">98.5%</h3>
                 </div>
-                <div class="text-4xl opacity-20 group-hover:opacity-40 transition-opacity"><i
-                        class="fa-solid fa-bolt"></i></div>
+                <div class="text-3xl sm:text-4xl opacity-20 group-hover:opacity-40 transition-opacity shrink-0">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
             </div>
-            <div class="space-y-2">
-                <div class="flex gap-2 flex-wrap">
+            <div class="space-y-1.5 sm:space-y-2">
+                <div class="flex gap-1.5 flex-wrap">
                     <span
-                        class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs px-2 py-1 rounded">API
-                        ✓</span>
+                        class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-[10px] px-1.5 py-0.5 rounded">API ✓</span>
                     <span
-                        class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs px-2 py-1 rounded">DB
-                        ✓</span>
+                        class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-[10px] px-1.5 py-0.5 rounded">DB ✓</span>
                 </div>
-                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-3">
+                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2 sm:mt-3">
                     <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500" style="width: 98.5%"></div>
                 </div>
-                <div class="text-xs text-green-400 pt-2">All systems operational</div>
+                <div class="text-[10px] sm:text-xs text-green-400 pt-1 sm:pt-2">All systems running</div>
             </div>
         </div>
     </div>
 
     <!-- USER STATUS BREAKDOWN -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-3 gap-2 md:gap-4">
         <!-- Player Status -->
-        <div class="bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur-md">
-            <h3 class="text-white font-bold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-users text-cyan-400"></i> Player Status
+        <div class="bg-white/5 border border-white/10 rounded-xl p-3 md:p-5 backdrop-blur-md">
+            <h3 class="text-white font-bold text-[9px] md:text-sm uppercase tracking-wider mb-3 md:mb-4 flex items-center justify-center md:justify-start gap-1.5 md:gap-2">
+                <i class="fa-solid fa-users text-cyan-400"></i> <span class="truncate">Player Status</span>
             </h3>
-            <div class="space-y-2 text-sm">
-                <div class="flex justify-between items-center">
+            <div class="space-y-2 md:space-y-2 text-[10px] md:text-sm">
+                <div class="flex justify-between items-center text-center md:text-left">
                     <span class="text-white/70">Active</span>
                     <div class="flex items-center gap-2">
-                        <div class="text-right">
+                        <div class="text-center md:text-right">
                             <span class="font-bold text-cyan-300">{{ active_players }}</span>
                         </div>
-                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
                             <div class="h-full bg-cyan-500 w-[var(--progress)]"
                                 style="--progress: {{ player_conversion|floatformat:0 }}%;"></div>
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center text-center md:text-left">
                     <span class="text-white/70">Pending</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-yellow-400">{{ pending_players }}</span>
-                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
                             <div class="h-full bg-yellow-500 w-[var(--progress)]"
                                 style="--progress: {{ pending_players|percentage:total_players|floatformat:0 }}%;">
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center text-center md:text-left">
                     <span class="text-white/70">Suspended</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-red-400">{{ suspended_players }}</span>
-                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
                             <div class="h-full bg-red-500 w-[var(--progress)]"
                                 style="--progress: {{ suspended_players|percentage:total_players|floatformat:0 }}%;">
                             </div>
@@ -182,37 +182,37 @@
         </div>
 
         <!-- Organization Status -->
-        <div class="bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur-md">
-            <h3 class="text-white font-bold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-building text-pink-400"></i> Organization Status
+        <div class="bg-white/5 border border-white/10 rounded-xl p-3 md:p-5 backdrop-blur-md">
+            <h3 class="text-white font-bold text-[9px] md:text-sm uppercase tracking-wider mb-3 md:mb-4 flex items-center justify-center md:justify-start gap-1.5 md:gap-2">
+                <i class="fa-solid fa-building text-pink-400"></i> <span class="truncate">Org Status</span>
             </h3>
-            <div class="space-y-2 text-sm">
-                <div class="flex justify-between items-center">
+            <div class="space-y-2 md:space-y-2 text-[10px] md:text-sm">
+                <div class="flex justify-between items-center text-center md:text-left">
                     <span class="text-white/70">Active</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-pink-300">{{ active_orgs }}</span>
-                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
                             <div class="h-full bg-pink-500 w-[var(--progress)]"
                                 style="--progress: {{ org_conversion|floatformat:0 }}%;"></div>
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center text-center md:text-left">
                     <span class="text-white/70">Pending</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-yellow-400">{{ pending_orgs }}</span>
-                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
                             <div class="h-full bg-yellow-500 w-[var(--progress)]"
                                 style="--progress: {{ pending_orgs|percentage:total_orgs|floatformat:0 }}%;">
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center text-center md:text-left">
                     <span class="text-white/70">Suspended</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-red-400">{{ suspended_orgs }}</span>
-                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
                             <div class="h-full bg-red-500 w-[var(--progress)]"
                                 style="--progress: {{ suspended_orgs|percentage:total_orgs|floatformat:0 }}%;">
                             </div>
@@ -223,38 +223,38 @@
         </div>
 
         <!-- Tournament Status -->
-        <div class="bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur-md">
-            <h3 class="text-white font-bold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-trophy text-purple-400"></i> Tournament Status
+        <div class="bg-white/5 border border-white/10 rounded-xl p-3 md:p-5 backdrop-blur-md">
+            <h3 class="text-white font-bold text-[9px] md:text-sm uppercase tracking-wider mb-3 md:mb-4 flex items-center justify-center md:justify-start gap-1.5 md:gap-2">
+                <i class="fa-solid fa-trophy text-purple-400"></i> <span class="truncate">Tourneys</span>
             </h3>
-            <div class="space-y-2 text-sm">
-                <div class="flex justify-between items-center">
+            <div class="space-y-2 md:space-y-2 text-[10px] md:text-sm">
+                <div class="flex justify-between items-center text-center md:text-left">
                     <span class="text-white/70">Ongoing</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-blue-400">{{ ongoing_tournaments }}</span>
-                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
                             <div class="h-full bg-blue-500 w-[var(--progress)]"
                                 style="--progress: {{ ongoing_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center text-center md:text-left">
                     <span class="text-white/70">Scheduled</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-green-400">{{ scheduled_tournaments }}</span>
-                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
                             <div class="h-full bg-green-500 w-[var(--progress)]"
                                 style="--progress: {{ scheduled_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center text-center md:text-left">
                     <span class="text-white/70">Completed</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-amber-400">{{ completed_tournaments }}</span>
-                        <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
                             <div class="h-full bg-amber-500 w-[var(--progress)]"
                                 style="--progress: {{ completed_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                             </div>
@@ -266,28 +266,28 @@
     </div>
 
     <!-- FINANCIAL METRICS -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-4">
         <!-- Prize Pool -->
         <div
-            class="bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border border-amber-500/30 rounded-xl p-6 backdrop-blur-md">
+            class="bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border border-amber-500/30 rounded-xl p-4 md:p-6 backdrop-blur-md">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-amber-300/80 text-xs font-bold tracking-widest uppercase mb-2">Total Prize Pool</p>
-                    <h3 class="text-2xl font-display font-bold text-amber-300">₹{{ total_prize_pool|intcomma }}</h3>
+                    <p class="text-amber-300/80 text-[10px] md:text-xs font-bold tracking-widest md:tracking-widest uppercase mb-1 md:mb-2">Total Prize Pool</p>
+                    <h3 class="text-xl md:text-2xl font-display font-bold text-amber-300">₹{{ total_prize_pool|intcomma }}</h3>
                 </div>
-                <i class="fa-solid fa-coins text-amber-400/30 text-4xl"></i>
+                <i class="fa-solid fa-coins text-amber-400/30 text-3xl md:text-4xl"></i>
             </div>
         </div>
 
         <!-- System Coins -->
         <div
-            class="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 rounded-xl p-6 backdrop-blur-md">
+            class="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 rounded-xl p-4 md:p-6 backdrop-blur-md">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-cyan-300/80 text-xs font-bold tracking-widest uppercase mb-2">Circulating Coins</p>
-                    <h3 class="text-2xl font-display font-bold text-cyan-300">₹{{ total_coins|intcomma }}</h3>
+                    <p class="text-cyan-300/80 text-[10px] md:text-xs font-bold tracking-widest md:tracking-widest uppercase mb-1 md:mb-2">Circulating Coins</p>
+                    <h3 class="text-xl md:text-2xl font-display font-bold text-cyan-300">₹{{ total_coins|intcomma }}</h3>
                 </div>
-                <i class="fa-solid fa-gem text-cyan-400/30 text-4xl"></i>
+                <i class="fa-solid fa-gem text-cyan-400/30 text-3xl md:text-4xl"></i>
             </div>
         </div>
 
@@ -361,11 +361,8 @@
     {{ total_orgs|json_script:"total-orgs-count" }}
 
     <!-- Chart Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let mainChart;
-
-        const dataStore = {
+        window.adminAnalyticsDataStore = {
             week: {
                 labels: JSON.parse(document.getElementById('week-labels').textContent),
                 player: JSON.parse(document.getElementById('player-data-week').textContent),
@@ -386,9 +383,10 @@
             }
         };
 
-        function updateChart(period) {
+        window.updateChart = function(period) {
             ['week', 'month', 'year'].forEach(p => {
                 const btn = document.getElementById(`btn-${p}`);
+                if (!btn) return;
                 if (p === period) {
                     btn.className = "px-3 py-1.5 rounded-md text-xs font-bold bg-brand-blue text-black shadow-lg";
                 } else {
@@ -396,19 +394,30 @@
                 }
             });
 
-            document.getElementById('chartPeriodLabel').innerText = dataStore[period].desc;
+            document.getElementById('chartPeriodLabel').innerText = window.adminAnalyticsDataStore[period].desc;
 
-            if (mainChart) {
-                mainChart.data.labels = dataStore[period].labels;
-                mainChart.data.datasets[0].data = dataStore[period].player;
-                mainChart.data.datasets[1].data = dataStore[period].org;
-                mainChart.update();
+            if (window.mainAnalyticsChart) {
+                window.mainAnalyticsChart.data.labels = window.adminAnalyticsDataStore[period].labels;
+                window.mainAnalyticsChart.data.datasets[0].data = window.adminAnalyticsDataStore[period].player;
+                window.mainAnalyticsChart.data.datasets[1].data = window.adminAnalyticsDataStore[period].org;
+                window.mainAnalyticsChart.update();
             }
-        }
+        };
 
-        document.addEventListener('DOMContentLoaded', function () {
-            // Main Chart
-            const ctx = document.getElementById('analyticsChart').getContext('2d');
+        (function initAnalyticsCharts() {
+            if (typeof Chart === 'undefined') {
+                setTimeout(initAnalyticsCharts, 50);
+                return;
+            }
+
+            const canvas = document.getElementById('analyticsChart');
+            if (!canvas) return; // safety check if DOM unloaded
+
+            if (window.mainAnalyticsChart) {
+                window.mainAnalyticsChart.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
             const gradientPlayer = ctx.createLinearGradient(0, 0, 0, 400);
             gradientPlayer.addColorStop(0, 'rgba(0, 243, 255, 0.5)');
             gradientPlayer.addColorStop(1, 'rgba(0, 243, 255, 0)');
@@ -417,14 +426,14 @@
             gradientOrg.addColorStop(0, 'rgba(236, 72, 153, 0.5)');
             gradientOrg.addColorStop(1, 'rgba(236, 72, 153, 0)');
 
-            mainChart = new Chart(ctx, {
+            window.mainAnalyticsChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: dataStore.month.labels,
+                    labels: window.adminAnalyticsDataStore.month.labels,
                     datasets: [
                         {
                             label: 'Players',
-                            data: dataStore.month.player,
+                            data: window.adminAnalyticsDataStore.month.player,
                             borderColor: '#00f3ff',
                             backgroundColor: gradientPlayer,
                             borderWidth: 3,
@@ -437,7 +446,7 @@
                         },
                         {
                             label: 'Organizations',
-                            data: dataStore.month.org,
+                            data: window.adminAnalyticsDataStore.month.org,
                             borderColor: '#ec4899',
                             backgroundColor: gradientOrg,
                             borderWidth: 3,
@@ -491,32 +500,37 @@
                 console.error("Error parsing user totals", e);
             }
 
-            const ctxDist = document.getElementById('userDistributionChart').getContext('2d');
-            new Chart(ctxDist, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Players', 'Organizations'],
-                    datasets: [{
-                        data: [totalPlayers, totalOrgs],
-                        backgroundColor: ['#00f3ff', '#ec4899'],
-                        borderColor: ['#00f3ff33', '#ec489933'],
-                        borderWidth: 2,
-                        hoverOffset: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '65%',
-                    plugins: {
-                        legend: { display: false }
+            const canvasDist = document.getElementById('userDistributionChart');
+            if (canvasDist) {
+                if (window.distAnalyticsChart) window.distAnalyticsChart.destroy();
+                const ctxDist = canvasDist.getContext('2d');
+                window.distAnalyticsChart = new Chart(ctxDist, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Players', 'Organizations'],
+                        datasets: [{
+                            data: [totalPlayers, totalOrgs],
+                            backgroundColor: ['#00f3ff', '#ec4899'],
+                            borderColor: ['#00f3ff33', '#ec489933'],
+                            borderWidth: 2,
+                            hoverOffset: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: { display: false }
+                        }
                     }
-                }
-            });
-        });
+                });
+            }
+        })();
 
-        function exportData() {
+        window.exportData = function() {
             alert('Export feature coming soon!');
-        }
+        };
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}

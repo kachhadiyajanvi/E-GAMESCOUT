@@ -13,72 +13,72 @@
 {% block page_content %}
 
             <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                 <!-- Stat Card 1: Players -->
                 <div
-                    class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-brand-blue/30 transition-all group relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <i class="fa-solid fa-users text-6xl text-brand-blue"></i>
+                    class="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm hover:border-brand-blue/30 transition-all group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fa-solid fa-users text-4xl md:text-6xl text-brand-blue"></i>
                     </div>
-                    <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div class="flex justify-between items-start mb-3 md:mb-4 relative z-10">
                         <div
-                            class="p-3 rounded-lg bg-brand-blue/10 text-brand-blue group-hover:bg-brand-blue group-hover:text-black transition-all">
-                            <i class="fa-solid fa-users text-xl"></i>
+                            class="p-2 md:p-3 rounded-lg bg-brand-blue/10 text-brand-blue group-hover:bg-brand-blue group-hover:text-black transition-all">
+                            <i class="fa-solid fa-users text-base md:text-xl"></i>
                         </div>
                         {% if new_players_today > 0 %}
                         <span
-                            class="text-green-400 text-xs font-bold flex items-center gap-1 bg-green-400/10 px-2 py-1 rounded-full">
+                            class="text-green-400 text-[9px] md:text-xs font-bold flex items-center gap-1 bg-green-400/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">
                             <i class="fa-solid fa-arrow-up"></i> +{{ new_players_today }} Today
                         </span>
                         {% endif %}
                     </div>
-                    <h3 class="text-3xl font-display font-bold text-white mb-1 relative z-10">{{ player_count }}</h3>
-                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase relative z-10">
+                    <h3 class="text-2xl md:text-3xl font-display font-bold text-white mb-1 relative z-10">{{ player_count }}</h3>
+                    <p class="text-white/40 text-[9px] md:text-xs font-bold tracking-wider uppercase relative z-10">
                         Total Players ({{active_players }} Active)</p>
                 </div>
 
                 <!-- Stat Card 2: Tournaments -->
                 <div
-                    class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-brand-pink/30 transition-all group relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <i class="fa-solid fa-trophy text-6xl text-brand-pink"></i>
+                    class="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm hover:border-brand-pink/30 transition-all group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fa-solid fa-trophy text-4xl md:text-6xl text-brand-pink"></i>
                     </div>
-                    <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div class="flex justify-between items-start mb-3 md:mb-4 relative z-10">
                         <div
-                            class="p-3 rounded-lg bg-brand-pink/10 text-brand-pink group-hover:bg-brand-pink group-hover:text-black transition-all">
-                            <i class="fa-solid fa-gamepad text-xl"></i>
+                            class="p-2 md:p-3 rounded-lg bg-brand-pink/10 text-brand-pink group-hover:bg-brand-pink group-hover:text-black transition-all">
+                            <i class="fa-solid fa-gamepad text-base md:text-xl"></i>
                         </div>
                         <span
-                            class="text-brand-pink text-xs font-bold flex items-center gap-1 bg-brand-pink/10 px-2 py-1 rounded-full">
+                            class="text-brand-pink text-[9px] md:text-xs font-bold flex items-center gap-1 bg-brand-pink/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">
                             {{ active_tournaments }} Active
                         </span>
                     </div>
-                    <h3 class="text-3xl font-display font-bold text-white mb-1 relative z-10">{{ tournament_count }}
+                    <h3 class="text-2xl md:text-3xl font-display font-bold text-white mb-1 relative z-10">{{ tournament_count }}
                     </h3>
-                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase relative z-10">Total Tournaments
+                    <p class="text-white/40 text-[9px] md:text-xs font-bold tracking-wider uppercase relative z-10">Total Tournaments
                     </p>
                 </div>
 
                 <!-- Stat Card 3: Organizations -->
                 <div
-                    class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-purple-500/30 transition-all group relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <i class="fa-solid fa-building text-6xl text-purple-500"></i>
+                    class="col-span-2 lg:col-span-1 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm hover:border-purple-500/30 transition-all group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fa-solid fa-building text-4xl md:text-6xl text-purple-500"></i>
                     </div>
-                    <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div class="flex justify-between items-start mb-3 md:mb-4 relative z-10">
                         <div
-                            class="p-3 rounded-lg bg-purple-500/10 text-purple-400 group-hover:bg-purple-500 group-hover:text-black transition-all">
-                            <i class="fa-solid fa-sitemap text-xl"></i>
+                            class="p-2 md:p-3 rounded-lg bg-purple-500/10 text-purple-400 group-hover:bg-purple-500 group-hover:text-black transition-all">
+                            <i class="fa-solid fa-sitemap text-base md:text-xl"></i>
                         </div>
                         {% if new_orgs_today > 0 %}
                         <span
-                            class="text-green-400 text-xs font-bold flex items-center gap-1 bg-green-400/10 px-2 py-1 rounded-full">
+                            class="text-green-400 text-[9px] md:text-xs font-bold flex items-center gap-1 bg-green-400/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">
                             <i class="fa-solid fa-arrow-up"></i> +{{ new_orgs_today }} Today
                         </span>
                         {% endif %}
                     </div>
-                    <h3 class="text-3xl font-display font-bold text-white mb-1 relative z-10">{{ org_count }}</h3>
-                    <p class="text-white/40 text-xs font-bold tracking-wider uppercase relative z-10">
+                    <h3 class="text-2xl md:text-3xl font-display font-bold text-white mb-1 relative z-10">{{ org_count }}</h3>
+                    <p class="text-white/40 text-[9px] md:text-xs font-bold tracking-wider uppercase relative z-10">
                         Organizations ({{active_orgs }} Active)</p>
                 </div>
             </div>
@@ -177,13 +177,27 @@
 {% endblock %}
 {% block scripts %}
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
+            (function initDashboardCharts() {
+                if (typeof Chart === 'undefined') {
+                    // Wait for the dynamically injected chart.js script to load
+                    setTimeout(initDashboardCharts, 50);
+                    return;
+                }
+                
                 // Parse Data from JSON Scripts
-                const chartLabels = JSON.parse(document.getElementById('chart-labels-data').textContent);
-                const playerTrend = JSON.parse(document.getElementById('player-trend-data').textContent);
-                const orgTrend = JSON.parse(document.getElementById('org-trend-data').textContent);
+                const chartLabelsEl = document.getElementById('chart-labels-data');
+                const playerTrendEl = document.getElementById('player-trend-data');
+                const orgTrendEl = document.getElementById('org-trend-data');
+                
+                if (!chartLabelsEl || !playerTrendEl || !orgTrendEl) return;
+                
+                const chartLabels = JSON.parse(chartLabelsEl.textContent);
+                const playerTrend = JSON.parse(playerTrendEl.textContent);
+                const orgTrend = JSON.parse(orgTrendEl.textContent);
 
-                const ctx = document.getElementById('growthChart').getContext('2d');
+                const canvas = document.getElementById('growthChart');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
 
                 // Gradient for Players
                 const gradientPlayer = ctx.createLinearGradient(0, 0, 0, 400);
@@ -259,7 +273,7 @@
                         }
                     }
                 });
-            });
+            })();
         </script>
         {% if chart_labels %}
         <!-- Chart.js Integration -->

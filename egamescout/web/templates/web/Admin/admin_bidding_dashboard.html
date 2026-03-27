@@ -170,7 +170,7 @@
     </div>
 
     <!-- Live Auction Summary -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <div onclick="window.location.href='{% url 'admin_bidding_details' %}'" class="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-cyan-500/30 rounded-xl p-6 cursor-pointer hover:border-cyan-400 group transition-all relative overflow-hidden">
             <p class="text-cyan-300/80 text-xs font-bold tracking-widest uppercase mb-1">Total Bids</p>
             <h3 class="text-3xl font-display font-bold text-cyan-300">{{ total_bids }}</h3>
