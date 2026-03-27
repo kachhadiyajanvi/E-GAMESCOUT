@@ -254,96 +254,103 @@ def admin_change_password_verify(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_dashboard(request):
-    # --- Real-time Counters ---
-    # Players
-    player_qs = Player.objects.filter(is_archived=False)
-    player_count = player_qs.count()
-    active_players = player_qs.filter(status='ACTIVE').count()
+    from django.core.cache import cache
+    context = cache.get('admin_dashboard_context')
     
-    # Organizations
-    org_qs = Organization.objects.filter(is_archived=False)
-    org_count = org_qs.count()
-    active_orgs = org_qs.filter(status='Active').count()
-    
-    # Tournaments
-    tournament_qs = Tournament.objects.filter(is_archived=False)
-    tournament_count = tournament_qs.count()
-    active_tournaments = tournament_qs.filter(Status='Ongoing').count()
+    if not context:
+        # --- Real-time Counters ---
+        # Players
+        player_qs = Player.objects.filter(is_archived=False)
+        player_count = player_qs.count()
+        active_players = player_qs.filter(status='ACTIVE').count()
+        
+        # Organizations
+        org_qs = Organization.objects.filter(is_archived=False)
+        org_count = org_qs.count()
+        active_orgs = org_qs.filter(status='Active').count()
+        
+        # Tournaments
+        tournament_qs = Tournament.objects.filter(is_archived=False)
+        tournament_count = tournament_qs.count()
+        active_tournaments = tournament_qs.filter(Status='Ongoing').count()
 
-    # --- New Today Calculation ---
-    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    new_players_today = player_qs.filter(created_at__gte=today_start).count()
-    new_orgs_today = org_qs.filter(CreatedAt__gte=today_start).count()
-    
-    # --- Chart Data (Last 7 Days) ---
-    days = 7
-    chart_labels = []
-    player_trend = []
-    org_trend = []
-    
-    for i in range(days):
-        day_date = timezone.now().date() - timedelta(days=6-i)
-        chart_labels.append(day_date.strftime('%a')) # Mon, Tue...
+        # --- New Today Calculation ---
+        today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        new_players_today = player_qs.filter(created_at__gte=today_start).count()
+        new_orgs_today = org_qs.filter(CreatedAt__gte=today_start).count()
         
-        # Create aware start/end times
-        day_start = timezone.make_aware(datetime.combine(day_date, time.min))
-        day_end = timezone.make_aware(datetime.combine(day_date, time.max))
+        # --- Chart Data (Last 7 Days) ---
+        days = 7
+        chart_labels = []
+        player_trend = []
+        org_trend = []
         
-        # Count for specific day
-        p_count = player_qs.filter(created_at__range=(day_start, day_end)).count()
-        o_count = org_qs.filter(CreatedAt__range=(day_start, day_end)).count()
-        
-        player_trend.append(p_count)
-        org_trend.append(o_count)
+        for i in range(days):
+            day_date = timezone.now().date() - timedelta(days=6-i)
+            chart_labels.append(day_date.strftime('%a')) # Mon, Tue...
+            
+            # Create aware start/end times
+            day_start = timezone.make_aware(datetime.combine(day_date, time.min))
+            day_end = timezone.make_aware(datetime.combine(day_date, time.max))
+            
+            # Count for specific day
+            p_count = player_qs.filter(created_at__range=(day_start, day_end)).count()
+            o_count = org_qs.filter(CreatedAt__range=(day_start, day_end)).count()
+            
+            player_trend.append(p_count)
+            org_trend.append(o_count)
 
-    # --- Unified Recent Activity ---
-    # Fetch top 5 from both, combine and sort
-    recent_p = list(player_qs.order_by('-created_at')[:5])
-    recent_o = list(org_qs.order_by('-CreatedAt')[:5])
-    
-    recent_activity = []
-    for p in recent_p:
-        recent_activity.append({
-            'type': 'PLAYER',
-            'name': p.full_name,
-            'uid': p.uid,
-            'time': p.created_at,
-            'initial': p.full_name[:2].upper()
-        })
-    for o in recent_o:
-        recent_activity.append({
-            'type': 'ORG',
-            'name': o.Organization_Name,
-            'uid': o.Organization_UserName,
-            'time': o.CreatedAt,
-            'initial': o.Organization_Name[:2].upper()
-        })
-    
-    # Sort by time desc and take top 10
-    recent_activity.sort(key=lambda x: x['time'], reverse=True)
-    recent_activity = recent_activity[:10]
+        # --- Unified Recent Activity ---
+        # Fetch top 5 from both, combine and sort
+        recent_p = list(player_qs.order_by('-created_at')[:5])
+        recent_o = list(org_qs.order_by('-CreatedAt')[:5])
+        
+        recent_activity = []
+        for p in recent_p:
+            recent_activity.append({
+                'type': 'PLAYER',
+                'name': p.full_name,
+                'uid': p.uid,
+                'time': p.created_at,
+                'initial': p.full_name[:2].upper()
+            })
+        for o in recent_o:
+            recent_activity.append({
+                'type': 'ORG',
+                'name': o.Organization_Name,
+                'uid': o.Organization_UserName,
+                'time': o.CreatedAt,
+                'initial': o.Organization_Name[:2].upper()
+            })
+        
+        # Sort by time desc and take top 10
+        recent_activity.sort(key=lambda x: x['time'], reverse=True)
+        recent_activity = recent_activity[:10]
 
-    context = {
-        # Counts
-        'player_count': player_count,
-        'active_players': active_players,
-        'new_players_today': new_players_today,
+        context = {
+            # Counts
+            'player_count': player_count,
+            'active_players': active_players,
+            'new_players_today': new_players_today,
+            
+            'org_count': org_count,
+            'active_orgs': active_orgs,
+            'new_orgs_today': new_orgs_today,
+            
+            'tournament_count': tournament_count,
+            'active_tournaments': active_tournaments,
+            
+            # Chart Data
+            'chart_labels': chart_labels,
+            'player_trend': player_trend,
+            'org_trend': org_trend,
+            
+            # List
+            'recent_activity': recent_activity
+        }
         
-        'org_count': org_count,
-        'active_orgs': active_orgs,
-        'new_orgs_today': new_orgs_today,
+        cache.set('admin_dashboard_context', context, 60)
         
-        'tournament_count': tournament_count,
-        'active_tournaments': active_tournaments,
-        
-        # Chart Data
-        'chart_labels': chart_labels,
-        'player_trend': player_trend,
-        'org_trend': org_trend,
-        
-        # List
-        'recent_activity': recent_activity
-    }
     return render(request, 'web/Admin/admin_dashboard.html', context)
 
 @user_passes_test(is_superuser, login_url='admin_login')
@@ -727,205 +734,211 @@ def admin_edit_tournament(request, tournament_id):
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_analytics(request):
-    # Time ranges
-    now = timezone.now()
-    week_start = now - timedelta(days=7)
-    month_start = now - timedelta(days=30)
-    year_start = now - timedelta(days=365)
+    from django.core.cache import cache
+    context = cache.get('admin_analytics_context')
     
-    # 1. Total Counts
-    total_players = Player.objects.filter(is_archived=False).count()
-    total_orgs = Organization.objects.filter(is_archived=False).count()
-    total_tournaments = Tournament.objects.filter(is_archived=False).count()
-    
-    # 2. Status Breakdown
-    active_players = Player.objects.filter(status='ACTIVE', is_archived=False).count()
-    pending_players = Player.objects.filter(status='PENDING', is_archived=False).count()
-    suspended_players = Player.objects.filter(status='SUSPENDED', is_archived=False).count()
-    
-    active_orgs = Organization.objects.filter(status='Active', is_archived=False).count()
-    pending_orgs = Organization.objects.filter(status='Pending', is_archived=False).count()
-    suspended_orgs = Organization.objects.filter(status='Suspended', is_archived=False).count()
-    
-    # 3. Growth (Weekly)
-    new_players_week = Player.objects.filter(created_at__gte=week_start).count()
-    new_orgs_week = Organization.objects.filter(CreatedAt__gte=week_start).count()
-    new_tournaments_week = Tournament.objects.filter(CreatedAt__gte=week_start).count()
-    
-    # 4. Growth (Monthly)
-    new_players_month = Player.objects.filter(created_at__gte=month_start).count()
-    new_orgs_month = Organization.objects.filter(CreatedAt__gte=month_start).count()
-    new_tournaments_month = Tournament.objects.filter(CreatedAt__gte=month_start).count()
-    
-    # 5. Growth (Yearly)
-    new_players_year = Player.objects.filter(created_at__gte=year_start).count()
-    new_orgs_year = Organization.objects.filter(CreatedAt__gte=year_start).count()
-    new_tournaments_year = Tournament.objects.filter(CreatedAt__gte=year_start).count()
-    
-    # 6. Financials
-    total_prize_pool = Tournament.objects.aggregate(Sum('PrizePool'))['PrizePool__sum'] or Decimal('0')
-    total_coins = Organization.objects.aggregate(Sum('coins'))['coins__sum'] or Decimal('0')
-    
+    if not context:
+        # Time ranges
+        now = timezone.now()
+        week_start = now - timedelta(days=7)
+        month_start = now - timedelta(days=30)
+        year_start = now - timedelta(days=365)
+        
+        # 1. Total Counts
+        total_players = Player.objects.filter(is_archived=False).count()
+        total_orgs = Organization.objects.filter(is_archived=False).count()
+        total_tournaments = Tournament.objects.filter(is_archived=False).count()
+        
+        # 2. Status Breakdown
+        active_players = Player.objects.filter(status='ACTIVE', is_archived=False).count()
+        pending_players = Player.objects.filter(status='PENDING', is_archived=False).count()
+        suspended_players = Player.objects.filter(status='SUSPENDED', is_archived=False).count()
+        
+        active_orgs = Organization.objects.filter(status='Active', is_archived=False).count()
+        pending_orgs = Organization.objects.filter(status='Pending', is_archived=False).count()
+        suspended_orgs = Organization.objects.filter(status='Suspended', is_archived=False).count()
+        
+        # 3. Growth (Weekly)
+        new_players_week = Player.objects.filter(created_at__gte=week_start).count()
+        new_orgs_week = Organization.objects.filter(CreatedAt__gte=week_start).count()
+        new_tournaments_week = Tournament.objects.filter(CreatedAt__gte=week_start).count()
+        
+        # 4. Growth (Monthly)
+        new_players_month = Player.objects.filter(created_at__gte=month_start).count()
+        new_orgs_month = Organization.objects.filter(CreatedAt__gte=month_start).count()
+        new_tournaments_month = Tournament.objects.filter(CreatedAt__gte=month_start).count()
+        
+        # 5. Growth (Yearly)
+        new_players_year = Player.objects.filter(created_at__gte=year_start).count()
+        new_orgs_year = Organization.objects.filter(CreatedAt__gte=year_start).count()
+        new_tournaments_year = Tournament.objects.filter(CreatedAt__gte=year_start).count()
+        
+        # 6. Financials
+        total_prize_pool = Tournament.objects.aggregate(Sum('PrizePool'))['PrizePool__sum'] or Decimal('0')
+        total_coins = Organization.objects.aggregate(Sum('coins'))['coins__sum'] or Decimal('0')
+        
 
-    # 8. Tournament Status Breakdown
-    scheduled_tournaments = Tournament.objects.filter(Status='Scheduled', is_archived=False).count()
-    ongoing_tournaments = Tournament.objects.filter(Status='Ongoing', is_archived=False).count()
-    completed_tournaments = Tournament.objects.filter(Status='Completed', is_archived=False).count()
-    cancelled_tournaments = Tournament.objects.filter(Status='Cancelled', is_archived=False).count()
-    
-    # Calculate conversion rates
-    player_conversion = (active_players / total_players * 100) if total_players > 0 else 0
-    org_conversion = (active_orgs / total_orgs * 100) if total_orgs > 0 else 0
-    
-    # 5. Charts Logic
-    # ---------------------------------------------------------
-    # WEEKLY DATA (Last 7 Days - Daily)
-    # ---------------------------------------------------------
-    week_labels = []
-    player_data_week = []
-    org_data_week = []
-    
-    # Helper for range queries
-    from datetime import datetime, time
-    
-    for i in range(7):
-        day_date = now.date() - timedelta(days=6-i)
-        week_labels.append(day_date.strftime('%a')) # Mon, Tue
+        # 8. Tournament Status Breakdown
+        scheduled_tournaments = Tournament.objects.filter(Status='Scheduled', is_archived=False).count()
+        ongoing_tournaments = Tournament.objects.filter(Status='Ongoing', is_archived=False).count()
+        completed_tournaments = Tournament.objects.filter(Status='Completed', is_archived=False).count()
+        cancelled_tournaments = Tournament.objects.filter(Status='Cancelled', is_archived=False).count()
         
-        # Create aware start/end times
-        day_start = timezone.make_aware(datetime.combine(day_date, time.min))
-        day_end = timezone.make_aware(datetime.combine(day_date, time.max))
+        # Calculate conversion rates
+        player_conversion = (active_players / total_players * 100) if total_players > 0 else 0
+        org_conversion = (active_orgs / total_orgs * 100) if total_orgs > 0 else 0
         
-        p_count = Player.objects.filter(created_at__range=(day_start, day_end)).count()
-        o_count = Organization.objects.filter(CreatedAt__range=(day_start, day_end)).count()
+        # 5. Charts Logic
+        # ---------------------------------------------------------
+        # WEEKLY DATA (Last 7 Days - Daily)
+        # ---------------------------------------------------------
+        week_labels = []
+        player_data_week = []
+        org_data_week = []
         
-        player_data_week.append(p_count)
-        org_data_week.append(o_count)
-
-    # ---------------------------------------------------------
-    # MONTHLY DATA (Last 30 Days - Daily)
-    # ---------------------------------------------------------
-    month_labels = []
-    player_data_month = []
-    org_data_month = []
-    tournament_data_month = []
-    
-    for i in range(30):
-        day_date = now.date() - timedelta(days=29-i)
-        month_labels.append(day_date.strftime('%d %b')) # 10 Feb
+        # Helper for range queries
+        from datetime import datetime, time
         
-        # Create aware start/end times
-        day_start = timezone.make_aware(datetime.combine(day_date, time.min))
-        day_end = timezone.make_aware(datetime.combine(day_date, time.max))
-        
-        p_count = Player.objects.filter(created_at__range=(day_start, day_end), is_archived=False).count()
-        o_count = Organization.objects.filter(CreatedAt__range=(day_start, day_end), is_archived=False).count()
-        t_count = Tournament.objects.filter(CreatedAt__range=(day_start, day_end), is_archived=False).count()
-        
-        player_data_month.append(p_count)
-        org_data_month.append(o_count)
-        tournament_data_month.append(t_count)
-
-    # ---------------------------------------------------------
-    # YEARLY DATA (Last 12 Months - Monthly)
-    # ---------------------------------------------------------
-    year_labels = []
-    player_data_year = []
-    org_data_year = []
-    
-    for i in range(12):
-        this_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        month_offset = 11 - i
-        target_year = this_month_start.year
-        target_month = this_month_start.month - month_offset
-        
-        while target_month <= 0:
-            target_month += 12
-            target_year -= 1
+        for i in range(7):
+            day_date = now.date() - timedelta(days=6-i)
+            week_labels.append(day_date.strftime('%a')) # Mon, Tue
             
-        loop_month_start = this_month_start.replace(year=target_year, month=target_month)
-        
-        if target_month == 12:
-            loop_month_end = loop_month_start.replace(year=target_year + 1, month=1)
-        else:
-            loop_month_end = loop_month_start.replace(month=target_month + 1)
+            # Create aware start/end times
+            day_start = timezone.make_aware(datetime.combine(day_date, time.min))
+            day_end = timezone.make_aware(datetime.combine(day_date, time.max))
             
-        year_labels.append(loop_month_start.strftime('%b %Y'))
-        
-        p_count = Player.objects.filter(created_at__gte=loop_month_start, created_at__lt=loop_month_end).count()
-        o_count = Organization.objects.filter(CreatedAt__gte=loop_month_start, CreatedAt__lt=loop_month_end).count()
-        
-        player_data_year.append(p_count)
-        org_data_year.append(o_count)
-    
-    # Account Status
-    deactivated_players = Player.objects.filter(status='SUSPENDED', is_archived=False).count()
-    deleted_players = Player.objects.filter(is_archived=True).count()
-    deactivated_orgs = Organization.objects.filter(status='Suspended', is_archived=False).count()
-    deleted_orgs = Organization.objects.filter(is_archived=True).count()
-        
-    context = {
-        # Counts
-        'total_players': total_players,
-        'active_players': active_players,
-        'pending_players': pending_players,
-        'suspended_players': suspended_players,
-        'player_conversion': round(player_conversion, 1),
-        
-        'total_orgs': total_orgs,
-        'active_orgs': active_orgs,
-        'pending_orgs': pending_orgs,
-        'suspended_orgs': suspended_orgs,
-        'org_conversion': round(org_conversion, 1),
-        
-        'total_tournaments': total_tournaments,
-        'scheduled_tournaments': scheduled_tournaments,
-        'ongoing_tournaments': ongoing_tournaments,
-        'completed_tournaments': completed_tournaments,
-        'cancelled_tournaments': cancelled_tournaments,
-        
-        # Growth Metrics
-        'new_players_week': new_players_week,
-        'new_orgs_week': new_orgs_week,
-        'new_tournaments_week': new_tournaments_week,
-        'new_players_month': new_players_month,
-        'new_orgs_month': new_orgs_month,
-        'new_tournaments_month': new_tournaments_month,
-        'new_players_year': new_players_year,
-        'new_orgs_year': new_orgs_year,
-        'new_tournaments_year': new_tournaments_year,
-        
+            p_count = Player.objects.filter(created_at__range=(day_start, day_end)).count()
+            o_count = Organization.objects.filter(CreatedAt__range=(day_start, day_end)).count()
+            
+            player_data_week.append(p_count)
+            org_data_week.append(o_count)
 
-        # Financials
-        'total_prize_pool': total_prize_pool,
-        'total_coins': total_coins,
+        # ---------------------------------------------------------
+        # MONTHLY DATA (Last 30 Days - Daily)
+        # ---------------------------------------------------------
+        month_labels = []
+        player_data_month = []
+        org_data_month = []
+        tournament_data_month = []
         
-        # Account Status Metrics
-        'deactivated_players': deactivated_players,
-        'deleted_players': deleted_players,
-        'deactivated_orgs': deactivated_orgs,
-        'deleted_orgs': deleted_orgs,
+        for i in range(30):
+            day_date = now.date() - timedelta(days=29-i)
+            month_labels.append(day_date.strftime('%d %b')) # 10 Feb
+            
+            # Create aware start/end times
+            day_start = timezone.make_aware(datetime.combine(day_date, time.min))
+            day_end = timezone.make_aware(datetime.combine(day_date, time.max))
+            
+            p_count = Player.objects.filter(created_at__range=(day_start, day_end), is_archived=False).count()
+            o_count = Organization.objects.filter(CreatedAt__range=(day_start, day_end), is_archived=False).count()
+            t_count = Tournament.objects.filter(CreatedAt__range=(day_start, day_end), is_archived=False).count()
+            
+            player_data_month.append(p_count)
+            org_data_month.append(o_count)
+            tournament_data_month.append(t_count)
+
+        # ---------------------------------------------------------
+        # YEARLY DATA (Last 12 Months - Monthly)
+        # ---------------------------------------------------------
+        year_labels = []
+        player_data_year = []
+        org_data_year = []
         
-        # Charts - Multi-period
-        'week_labels': week_labels,
-        'player_data_week': player_data_week,
-        'org_data_week': org_data_week,
+        for i in range(12):
+            this_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            month_offset = 11 - i
+            target_year = this_month_start.year
+            target_month = this_month_start.month - month_offset
+            
+            while target_month <= 0:
+                target_month += 12
+                target_year -= 1
+                
+            loop_month_start = this_month_start.replace(year=target_year, month=target_month)
+            
+            if target_month == 12:
+                loop_month_end = loop_month_start.replace(year=target_year + 1, month=1)
+            else:
+                loop_month_end = loop_month_start.replace(month=target_month + 1)
+                
+            year_labels.append(loop_month_start.strftime('%b %Y'))
+            
+            p_count = Player.objects.filter(created_at__gte=loop_month_start, created_at__lt=loop_month_end).count()
+            o_count = Organization.objects.filter(CreatedAt__gte=loop_month_start, CreatedAt__lt=loop_month_end).count()
+            
+            player_data_year.append(p_count)
+            org_data_year.append(o_count)
         
-        'month_labels': month_labels,
-        'player_data_month': player_data_month,
-        'org_data_month': org_data_month,
+        # Account Status
+        deactivated_players = Player.objects.filter(status='SUSPENDED', is_archived=False).count()
+        deleted_players = Player.objects.filter(is_archived=True).count()
+        deactivated_orgs = Organization.objects.filter(status='Suspended', is_archived=False).count()
+        deleted_orgs = Organization.objects.filter(is_archived=True).count()
+            
+        context = {
+            # Counts
+            'total_players': total_players,
+            'active_players': active_players,
+            'pending_players': pending_players,
+            'suspended_players': suspended_players,
+            'player_conversion': round(player_conversion, 1),
+            
+            'total_orgs': total_orgs,
+            'active_orgs': active_orgs,
+            'pending_orgs': pending_orgs,
+            'suspended_orgs': suspended_orgs,
+            'org_conversion': round(org_conversion, 1),
+            
+            'total_tournaments': total_tournaments,
+            'scheduled_tournaments': scheduled_tournaments,
+            'ongoing_tournaments': ongoing_tournaments,
+            'completed_tournaments': completed_tournaments,
+            'cancelled_tournaments': cancelled_tournaments,
+            
+            # Growth Metrics
+            'new_players_week': new_players_week,
+            'new_orgs_week': new_orgs_week,
+            'new_tournaments_week': new_tournaments_week,
+            'new_players_month': new_players_month,
+            'new_orgs_month': new_orgs_month,
+            'new_tournaments_month': new_tournaments_month,
+            'new_players_year': new_players_year,
+            'new_orgs_year': new_orgs_year,
+            'new_tournaments_year': new_tournaments_year,
+            
+
+            # Financials
+            'total_prize_pool': total_prize_pool,
+            'total_coins': total_coins,
+            
+            # Account Status Metrics
+            'deactivated_players': deactivated_players,
+            'deleted_players': deleted_players,
+            'deactivated_orgs': deactivated_orgs,
+            'deleted_orgs': deleted_orgs,
+            
+            # Charts - Multi-period
+            'week_labels': week_labels,
+            'player_data_week': player_data_week,
+            'org_data_week': org_data_week,
+            
+            'month_labels': month_labels,
+            'player_data_month': player_data_month,
+            'org_data_month': org_data_month,
+            
+            'year_labels': year_labels,
+            'player_data_year': player_data_year,
+            'org_data_year': org_data_year,
+            
+            'tournament_growth_data': tournament_data_month,
+            'tournament_data_month': tournament_data_month,
+            
+            'chart_labels': month_labels,
+            'player_growth_data': player_data_month,
+            'org_growth_data': org_data_month,
+        }
+        cache.set('admin_analytics_context', context, 60)
         
-        'year_labels': year_labels,
-        'player_data_year': player_data_year,
-        'org_data_year': org_data_year,
-        
-        'tournament_growth_data': tournament_data_month,
-        'tournament_data_month': tournament_data_month,
-        
-        'chart_labels': month_labels,
-        'player_growth_data': player_data_month,
-        'org_growth_data': org_data_month,
-    }
     return render(request, 'web/Admin/admin_analytics.html', context)
 
 @user_passes_test(is_superuser, login_url='admin_login')
