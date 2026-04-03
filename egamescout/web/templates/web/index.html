@@ -719,7 +719,7 @@
                                     <i class="fa-solid fa-flag-checkered text-red-400"></i> End Date
                                 </span>
                                 <span class="text-sm font-mono text-white font-bold">
-                                    {% if bidding_status.is_active %}
+                                    {% if bidding_status.end_date %}
                                         {{ bidding_status.end_date|date:"F j, Y - H:i" }}
                                     {% else %}
                                         <span class="text-gray-500">TBD</span>

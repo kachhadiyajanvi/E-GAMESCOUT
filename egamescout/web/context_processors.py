@@ -65,10 +65,16 @@ def notifications(request):
             bidding_status['is_active'] = False
             if now < jan_start:
                 bidding_status['next_season_start'] = jan_start
+                bidding_status['end_date'] = jan_end
+                bidding_status['season_name'] = f"Winter Season {year}"
             elif now < jul_start:
                 bidding_status['next_season_start'] = jul_start
+                bidding_status['end_date'] = jul_end
+                bidding_status['season_name'] = f"Summer Season {year}"
             else:
                 bidding_status['next_season_start'] = jan_start.replace(year=year + 1)
+                bidding_status['end_date'] = jan_end.replace(year=year + 1)
+                bidding_status['season_name'] = f"Winter Season {year + 1}"
 
         # Sync Database State automatically for strict scheduled windows
         if bidding_status['is_active']:
