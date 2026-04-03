@@ -262,15 +262,15 @@
                     </div>
                     <div class="mt-2">
                         {% if player.is_2fa_enabled %}
-                            <form action="{% url 'player_2fa_disable' %}" method="POST" onsubmit="customConfirm(event, 'Are you sure you want to disable 2FA? This will reduce your account security.', 'Disable 2FA');">
+                            <form action="{% url 'player_2fa_disable' %}" method="POST" onsubmit="customConfirm(event, 'Are you sure you want to disable Two-Factor Authentication? This will reduce your account security.', 'Disable Two-Factor Authentication');">
                                 {% csrf_token %}
                                 <button type="submit" class="w-full text-xs py-2 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-colors border border-red-500/20 font-bold uppercase tracking-wider">
-                                    Disable 2FA
+                                    Disable Two-Factor Authentication
                                 </button>
                             </form>
                         {% else %}
                             <a href="{% url 'player_2fa_setup' %}" class="block text-center w-full text-xs py-2 bg-purple-500/10 text-purple-400 hover:bg-purple-500 hover:text-white rounded-lg transition-colors border border-purple-500/20 font-bold uppercase tracking-wider">
-                                Enable 2FA
+                                Enable Two-Factor Authentication
                             </a>
                         {% endif %}
                     </div>

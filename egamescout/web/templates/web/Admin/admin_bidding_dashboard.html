@@ -484,5 +484,32 @@
             closeSeasonModal();
         }
     });
+    document.addEventListener('DOMContentLoaded', function() {
+        const timeInputs = document.querySelectorAll('input[type="time"]');
+        timeInputs.forEach(input => {
+            const select = document.createElement('select');
+            select.name = input.name;
+            select.className = input.className;
+            select.disabled = input.disabled;
+            
+            select.add(new Option('Select Time', ''));
+            
+            for(let h=0; h<24; h++) {
+                for(let m of ['00', '30']) {
+                    const hourStr = h.toString().padStart(2, '0');
+                    const val = `${hourStr}:${m}`;
+                    const ampm = h >= 12 ? 'PM' : 'AM';
+                    const dispH = h % 12 || 12;
+                    const label = `${dispH.toString().padStart(2, '0')}:${m} ${ampm}`;
+                    
+                    const opt = new Option(label, val);
+                    // Match existing value (some browsers don't include seconds, but 'H:i' in Django is HH:MM)
+                    if (input.value && input.value.substring(0, 5) === val) opt.selected = true;
+                    select.add(opt);
+                }
+            }
+            input.parentNode.replaceChild(select, input);
+        });
+    });
 </script>
 {% endblock %}

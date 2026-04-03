@@ -1244,7 +1244,7 @@ def admin_start_bidding_season(request):
                         orgs = Organization.objects.filter(status='Active', is_active_account=True)
                         count = 0
                         for org in orgs:
-                            org.coins = budget_amount
+                            org.coins += budget_amount  # Fixed: Add to existing balance
                             org.save()
                             
                             # create transaction record for history
@@ -1255,7 +1255,7 @@ def admin_start_bidding_season(request):
                                 description=f"Initial Bidding Budget for {season.name}"
                             )
                             count += 1
-                        BiddingSeasonLog.objects.create(season=season, action='START', message=f"Bidding Started with Budget: {budget_amount} distributed to {count} organizations.")
+                        BiddingSeasonLog.objects.create(season=season, action='START', message=f"Bidding Started with Budget: {budget_amount} added to {count} organizations.")
                     else:
                          BiddingSeasonLog.objects.create(season=season, action='START', message="Bidding Manually Started by Admin (Zero Budget)")
                 except Exception as e:
@@ -1344,9 +1344,12 @@ def admin_update_bidding_season(request):
         if start_date_str:
             naive_dt = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M')
             season.start_date = timezone.make_aware(naive_dt)
+        
         if end_date_str:
             naive_dt = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M')
             season.end_date = timezone.make_aware(naive_dt)
+        else:
+            season.end_date = None
             
         season.save()
         messages.success(request, f"Bidding Season '{season.name}' updated successfully.")

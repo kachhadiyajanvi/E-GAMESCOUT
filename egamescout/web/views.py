@@ -2823,16 +2823,105 @@ def handler400(request, exception):
     return custom_error_view(request, exception=exception, status_code=400)
 
 def org_2fa_setup(request):
-    pass
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    org = get_object_or_404(Organization, id=org_id)
+
+    if org.is_2fa_enabled:
+        messages.info(request, '2FA is already enabled.')
+        return redirect('manage_profile')
+
+    # Generate a secret if they don't have one pending
+    if not org.totp_secret:
+        org.totp_secret = pyotp.random_base32()
+        org.save()
+
+    totp = pyotp.TOTP(org.totp_secret)
+    provisioning_uri = totp.provisioning_uri(name=org.Organization_Email, issuer_name='E-Game Scout')
+
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(provisioning_uri)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    import base64
+    from io import BytesIO
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode()
+    qr_code_uri = f"data:image/png;base64,{qr_code_base64}"
+
+    return render(request, 'web/Organization/2fa_setup.html', {'qr_code_uri': qr_code_uri, 'secret': org.totp_secret})
 
 def org_2fa_verify_setup(request):
-    pass
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    org = get_object_or_404(Organization, id=org_id)
+
+    if request.method == 'POST':
+        otp_code = request.POST.get('otp_code', '').strip()
+        totp = pyotp.TOTP(org.totp_secret)
+
+        if totp.verify(otp_code):
+            org.is_2fa_enabled = True
+            org.save()
+            log_system_action(request, 'ORGANIZER', org.id, '2FA_SETUP', 'Organization successfully enabled Two-Factor Authentication.')
+            messages.success(request, 'Two-Factor Authentication has been successfully enabled.')
+            return redirect('manage_profile')
+        else:
+            messages.error(request, 'Invalid code. Please try again.')
+            return redirect('org_2fa_setup')
+    return redirect('org_2fa_setup')
 
 def org_2fa_disable(request):
-    pass
+    org_id = request.session.get('organizer_id')
+    if not org_id:
+        return redirect('org_login_start')
+    org = get_object_or_404(Organization, id=org_id)
+
+    if request.method == 'POST':
+        org.is_2fa_enabled = False
+        org.totp_secret = None
+        org.save()
+        log_system_action(request, 'ORGANIZER', org.id, '2FA_DISABLE', 'Organization disabled Two-Factor Authentication.')
+        messages.success(request, 'Two-Factor Authentication has been disabled.')
+        return redirect('manage_profile')
+    return redirect('manage_profile')
 
 def org_2fa_verify_login(request):
-    pass
+    if request.session.get('organizer_id'):
+        return redirect('organizer_dashboard')
+
+    org_id = request.session.get('pending_org_2fa_id')
+    if not org_id:
+        return redirect('org_login_start')
+
+    org = get_object_or_404(Organization, id=org_id)
+
+    if request.method == 'POST':
+        otp_code = request.POST.get('otp_code', '').strip()
+        totp = pyotp.TOTP(org.totp_secret)
+
+        if totp.verify(otp_code):
+            from django.contrib.auth import logout
+            if request.user.is_authenticated: logout(request)
+            request.session.pop('player_id', None)
+            request.session.pop('pending_org_2fa_id', None)
+            
+            if not request.session.session_key:
+                request.session.create()
+                
+            request.session['organizer_id'] = org.id
+            
+            log_system_action(request, 'ORGANIZER', org.id, 'LOGIN', 'Organization logged in successfully with 2FA.')
+            messages.success(request, f'Welcome back, {org.Organization_Name}!')
+            return redirect('organizer_dashboard')
+        else:
+            messages.error(request, 'Invalid code. Please try again.')
+    
+    return render(request, 'web/Organization/2fa_verify_login.html', {'org': org})
 
 # --- Tournament Management ---
 
