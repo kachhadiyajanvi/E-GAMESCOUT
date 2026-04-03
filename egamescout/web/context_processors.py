@@ -9,7 +9,7 @@ def notifications(request):
     """
         
     # --- AUTOMATIC & MANUAL BIDDING SYSTEM (JAN 1-31 & JUL 1-31) ---
-    now = timezone.now()
+    now = timezone.localtime()
     year = now.year
 
     # Define the strict bounds for the current year
