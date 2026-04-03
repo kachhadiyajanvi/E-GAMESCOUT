@@ -1161,11 +1161,24 @@ def index(request):
         else:
             t.is_running = False
         
+    # Dynamic stats for the grid
+    try:
+        total_organizations = Organization.objects.filter(status='Active').count()
+        total_players = Player.objects.filter(is_active_account=True, is_archived=False).count()
+        total_tournaments = Tournament.objects.filter(is_published=True, approval_status='APPROVED', is_archived=False).count()
+    except Exception:
+        total_organizations = 0
+        total_players = 0
+        total_tournaments = 0
+        
     return render(request, 'web/index.html', {
         'organizations': organizations,
         'live_scouting': live_scouting,
         'previous_tournaments': previous_tournaments,
         'upcoming_tournaments': upcoming_tournaments,
+        'total_organizations': total_organizations,
+        'total_players': total_players,
+        'total_tournaments': total_tournaments,
     })
 
 def public_tournaments(request):

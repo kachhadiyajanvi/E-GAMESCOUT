@@ -65,18 +65,6 @@
             50% { top: 100%; opacity: 1; }
         }
 
-        /* ─── Scroll-nav label color cycle ─── */
-        @keyframes navColorCycle {
-            0%   { color: #66FCF1; text-shadow: 0 0 12px rgba(102,252,241,0.8), 0 0 30px rgba(102,252,241,0.4); }
-            25%  { color: #00D4FF; text-shadow: 0 0 12px rgba(0,212,255,0.8),  0 0 30px rgba(0,212,255,0.4); }
-            50%  { color: #FF2A6D; text-shadow: 0 0 12px rgba(255,42,109,0.8),   0 0 30px rgba(255,42,109,0.4); }
-            75%  { color: #a6b4d3; text-shadow: 0 0 12px rgba(166,180,211,0.8),   0 0 30px rgba(166,180,211,0.4); }
-            100% { color: #66FCF1; text-shadow: 0 0 12px rgba(102,252,241,0.8), 0 0 30px rgba(102,252,241,0.4); }
-        }
-        .nav-label-animate {
-            animation: navColorCycle 6s linear infinite;
-        }
-
         /* ─── Navbar glass base ─── */
         #main-navbar {
             background: rgba(11,12,16,0.55);
@@ -100,7 +88,6 @@
             -webkit-backdrop-filter: blur(20px) saturate(150%);
             border: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
-            text-shadow: 0 0 16px currentColor;
         }
     </style>
 </head>
@@ -376,18 +363,45 @@
                             const dot = item.querySelector('.nav-dot');
                             if (!dot) return;
                             
+                            const colorScheme = item.getAttribute('data-color') || 'cyan';
+                            
+                            let bgClass, shadowClass, glowClass;
+                            if (colorScheme === 'yellow') {
+                                bgClass = 'bg-yellow-400';
+                                shadowClass = 'shadow-[0_0_15px_#FACC15]';
+                                glowClass = 'from-yellow-400/40';
+                            } else if (colorScheme === 'pink') {
+                                bgClass = 'bg-neon-pink';
+                                shadowClass = 'shadow-[0_0_15px_#FF2A6D]';
+                                glowClass = 'from-neon-pink/40';
+                            } else if (colorScheme === 'purple') {
+                                bgClass = 'bg-purple-500';
+                                shadowClass = 'shadow-[0_0_15px_#a855f7]';
+                                glowClass = 'from-purple-500/40';
+                            } else {
+                                bgClass = 'bg-accent-cyan';
+                                shadowClass = 'shadow-[0_0_15px_#66FCF1]';
+                                glowClass = 'from-accent-cyan/40';
+                            }
+
                             if (item.getAttribute('href') === `#${id}`) {
                                 // Add active class according to section
                                 if (scrollnavGlow) {
                                   scrollnavGlow.className = "absolute right-0 top-0 bottom-0 w-64 blur-3xl opacity-0 group-hover/scrollnav:opacity-100 transition-all duration-700 pointer-events-none -z-20 bg-gradient-to-l to-transparent";
+                                  scrollnavGlow.classList.add(glowClass);
                                 }
 
-                                dot.classList.add('bg-accent-cyan', 'scale-[2.5]', 'shadow-[0_0_15px_#66FCF1]');
+                                dot.classList.add(bgClass, 'scale-[2.5]', shadowClass);
                                 dot.classList.remove('bg-gray-500/50');
-                                if (scrollnavGlow) scrollnavGlow.classList.add('from-accent-cyan/40');
                             } else {
                                 // Remove active classes
-                                dot.classList.remove('bg-accent-cyan', 'scale-[2.5]', 'shadow-[0_0_15px_#66FCF1]');
+                                dot.classList.remove(
+                                   'bg-accent-cyan', 'shadow-[0_0_15px_#66FCF1]',
+                                   'bg-yellow-400', 'shadow-[0_0_15px_#FACC15]',
+                                   'bg-neon-pink', 'shadow-[0_0_15px_#FF2A6D]',
+                                   'bg-purple-500', 'shadow-[0_0_15px_#a855f7]',
+                                   'scale-[2.5]'
+                                );
                                 dot.classList.add('bg-gray-500/50');
                             }
                         });
