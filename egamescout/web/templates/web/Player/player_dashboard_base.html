@@ -573,11 +573,15 @@
             const endStr = el.dataset.end;
             const startStr = el.dataset.start;
             const isActive = el.dataset.active === 'true';
-            if (!endStr && !startStr) return;
+            
             function pad(n) { return String(n).padStart(2, '0'); }
             function updatePlayerCountdown() {
                 const now = new Date();
-                if (isActive && endStr) {
+                if (isActive) {
+                    if (!endStr) {
+                        el.textContent = 'No End Date';
+                        return;
+                    }
                     const end = new Date(endStr);
                     const diff = end - now;
                     if (diff <= 0) { el.textContent = 'Season Ended'; return; }
@@ -588,7 +592,11 @@
                     el.textContent = d > 0
                         ? `Ends in: ${d}d ${pad(h%24)}h ${pad(m)}m ${pad(s)}s`
                         : `Ends in: ${pad(h)}:${pad(m)}:${pad(s)}`;
-                } else if (!isActive && startStr) {
+                } else {
+                    if (!startStr) {
+                        el.textContent = 'TBA';
+                        return;
+                    }
                     const start = new Date(startStr);
                     const diff = start - now;
                     if (diff <= 0) { el.textContent = 'Starting soon…'; return; }
