@@ -228,17 +228,27 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Start Date
                             &amp; Time</label>
-                        <input type="datetime-local" name="start_date" id="startDateInput"
-                            value="{{ active_season.start_date|date:'Y-m-d\TH:i'|default:'' }}"
-                            class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:ring-brand-blue [color-scheme:dark]" disabled>
-                            <p class="text-[9px] text-gray-500 mt-1">Start date cannot be changed once active.</p>
+                        <div class="flex gap-2">
+                            <input type="date" name="start_date_date" id="startDateInput"
+                                value="{{ active_season.start_date|date:'Y-m-d'|default:'' }}"
+                                class="w-full bg-black/50 border border-white/10 rounded-lg px-2 py-2 text-white [color-scheme:dark]" disabled>
+                            <input type="time" name="start_date_time"
+                                value="{{ active_season.start_date|date:'H:i'|default:'' }}"
+                                class="w-full bg-black/50 border border-white/10 rounded-lg px-2 py-2 text-white [color-scheme:dark]" disabled>
+                        </div>
+                        <p class="text-[9px] text-gray-500 mt-1">Start date cannot be changed once active.</p>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">End Date
                             &amp; Time</label>
-                        <input type="datetime-local" name="end_date" id="endDateInput"
-                            value="{{ active_season.end_date|date:'Y-m-d\TH:i'|default:'' }}"
-                            class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:ring-brand-blue [color-scheme:dark]">
+                        <div class="flex gap-2">
+                            <input type="date" name="end_date_date" id="endDateInput"
+                                value="{{ active_season.end_date|date:'Y-m-d'|default:'' }}"
+                                class="w-full bg-black/50 border border-white/10 rounded-lg px-2 py-2 text-white focus:ring-brand-blue [color-scheme:dark]">
+                            <input type="time" name="end_date_time"
+                                value="{{ active_season.end_date|date:'H:i'|default:'' }}"
+                                class="w-full bg-black/50 border border-white/10 rounded-lg px-2 py-2 text-white focus:ring-brand-blue [color-scheme:dark]">
+                        </div>
                     </div>
                 </div>
 
@@ -379,11 +389,17 @@
             </div>
             <div class="mb-4">
                 <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Start Date & Time <span class="text-[10px] text-gray-500 normal-case">(Optional, now)</span></label>
-                <input type="datetime-local" name="start_date" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
+                <div class="flex gap-2">
+                    <input type="date" name="start_date_date" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
+                    <input type="time" name="start_date_time" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
+                </div>
             </div>
             <div class="mb-6">
                 <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Auto-End Date & Time <span class="text-[10px] text-gray-500 normal-case">(Optional)</span></label>
-                <input type="datetime-local" name="end_date" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
+                <div class="flex gap-2">
+                    <input type="date" name="end_date_date" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
+                    <input type="time" name="end_date_time" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
+                </div>
             </div>
 
             <div class="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">

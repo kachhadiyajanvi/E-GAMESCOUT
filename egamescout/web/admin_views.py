@@ -393,22 +393,36 @@ def admin_players_detail(request):
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_organization_detail(request):
     search_query = request.GET.get('q', '')
+    status_filter = request.GET.get('status', '')
+    
+    organizations_list = Organization.objects.filter(is_archived=False)
+
     if search_query:
-        organizations_list = Organization.objects.filter(
+        organizations_list = organizations_list.filter(
             Q(Organization_Name__icontains=search_query) | 
             Q(Organization_UserName__icontains=search_query) | 
-            Q(Organization_Email__icontains=search_query),
-            is_archived=False
-        ).order_by('-CreatedAt')
-    else:
-        organizations_list = Organization.objects.filter(is_archived=False).order_by('-CreatedAt')
+            Q(Organization_Email__icontains=search_query)
+        )
+        
+    if status_filter:
+        if status_filter == 'active':
+            organizations_list = organizations_list.filter(status='Active', is_active_account=True)
+        elif status_filter == 'deactivated':
+            organizations_list = organizations_list.filter(is_active_account=False)
+        elif status_filter == 'pending':
+            organizations_list = organizations_list.filter(status='Pending')
+        elif status_filter == 'suspended':
+            organizations_list = organizations_list.filter(status='Suspended')
+
+    organizations_list = organizations_list.order_by('-CreatedAt')
 
     paginator = Paginator(organizations_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'web/Admin/admin_organization_detail.html', {
         'page_obj': page_obj,
-        'search_query': search_query
+        'search_query': search_query,
+        'status_filter': status_filter
     })
 
 @user_passes_test(is_superuser, login_url='admin_login')
@@ -1178,8 +1192,18 @@ def admin_update_bid_status(request, bid_id):
 def admin_start_bidding_season(request):
     if request.method == 'POST':
         name = request.POST.get('name', f"Manual Season {timezone.now().strftime('%Y-%m-%d')}")
-        start_date_str = request.POST.get('start_date')
-        end_date_str = request.POST.get('end_date')
+        start_date_val = request.POST.get('start_date_date')
+        start_time_val = request.POST.get('start_date_time')
+        end_date_val = request.POST.get('end_date_date')
+        end_time_val = request.POST.get('end_date_time')
+        
+        start_date_str = None
+        if start_date_val:
+            start_date_str = f"{start_date_val}T{start_time_val if start_time_val else '00:00'}"
+            
+        end_date_str = None
+        if end_date_val:
+            end_date_str = f"{end_date_val}T{end_time_val if end_time_val else '23:59'}"
         # Admin Wallet Distribution (Feature #1)
         bidding_budget = request.POST.get('bidding_budget')
         
@@ -1295,8 +1319,18 @@ def admin_update_bidding_season(request):
     if request.method == 'POST':
         season_id = request.POST.get('season_id')
         name = request.POST.get('name')
-        start_date_str = request.POST.get('start_date')
-        end_date_str = request.POST.get('end_date')
+        start_date_val = request.POST.get('start_date_date')
+        start_time_val = request.POST.get('start_date_time')
+        end_date_val = request.POST.get('end_date_date')
+        end_time_val = request.POST.get('end_date_time')
+        
+        start_date_str = None
+        if start_date_val:
+            start_date_str = f"{start_date_val}T{start_time_val if start_time_val else '00:00'}"
+            
+        end_date_str = None
+        if end_date_val:
+            end_date_str = f"{end_date_val}T{end_time_val if end_time_val else '23:59'}"
         auto_start = request.POST.get('auto_start') == 'on'
 
         if season_id:
