@@ -1,20 +1,36 @@
 {% extends 'web/Organization/dashboard_base.html' %}
 
 {% block content %}
-<div class="p-8 pb-0">
+<div class="p-4 sm:p-6 md:p-8 space-y-6">
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm mb-6">
-        <a href="{% url 'index' %}" class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
-            <i class="fa-solid fa-home text-xs"></i><span>Home</span>
+    <nav class="page-breadcrumb">
+        <a href="{% url 'index' %}" class="breadcrumb-link">
+            <i class="fa-solid fa-home text-xs"></i>
+            <span>Home</span>
         </a>
-        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
-        <a href="{% url 'organizer_dashboard' %}" class="text-gray-400 hover:text-accent-cyan transition-colors">Organization</a>
-        <i class="fa-solid fa-chevron-right text-gray-600 text-xs"></i>
-        <span class="text-white font-semibold">Scorecard AI</span>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">
+            Organization
+        </a>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <span class="breadcrumb-active">Scorecard AI</span>
     </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title-group">
+            <div class="page-title-decorator"></div>
+            <div>
+                <h1 class="page-title">
+                    SCORECARD <span class="page-title-highlight">AI GENERATOR</span>
+                </h1>
+                <p class="page-subtitle mt-1">Upload tournament standings and generate data with AI</p>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="p-8 pt-0">
+<div class="p-4 sm:p-6 md:p-8 pt-0">
     <!-- Unpublished Tournaments Alert -->
     {% if unpublished_tournaments %}
     <div class="glass-card p-6 rounded-xl border-2 border-orange-500 mb-10 bg-orange-500/10 shadow-[0_0_30px_rgba(255,165,0,0.2)]">
@@ -53,18 +69,13 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Left: Upload & New Analysis -->
         <div class="lg:col-span-2 space-y-8">
-            <div>
-                <h1 class="text-3xl font-display font-bold text-white mb-2 uppercase tracking-tight">
-                    Scorecard <span class="text-accent-cyan">AI Generator</span>
-                </h1>
-                <p class="text-gray-400 text-sm">Upload a tournament standings image. AI will extract data for your review before saving.</p>
-            </div>
+
 
             <!-- === STEP 1: Upload === -->
             <div id="step-upload">
                 {% if not approved_tournaments %}
                 <!-- No tournaments today -->
-                <div class="flex flex-col items-center justify-center min-h-[280px] border-2 border-dashed border-yellow-500/40 rounded-xl bg-yellow-500/5 text-center p-8">
+                <div class="flex flex-col items-center justify-center min-h-[280px] border-2 border-dashed border-yellow-500/40 rounded-xl bg-yellow-500/5 text-center p-4 sm:p-6 md:p-8">
                     <div class="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mb-4 text-yellow-400 text-3xl">
                         <i class="fa-solid fa-calendar-xmark"></i>
                     </div>
@@ -121,7 +132,7 @@
                         <p id="upload-error" class="mt-3 text-red-400 text-xs hidden">Please select a tournament before uploading.</p>
                     </div>
                     <!-- Preview (file selected state) -->
-                    <div id="file-preview-ui" class="hidden text-center flex-col items-center gap-4 p-8">
+                    <div id="file-preview-ui" class="hidden text-center flex-col items-center gap-4 p-4 sm:p-6 md:p-8">
                         <img id="preview-img" src="" alt="Preview" class="max-h-56 rounded-lg border border-white/10 object-contain shadow-lg">
                         <p id="preview-filename" class="text-xs text-gray-400 font-mono"></p>
                         <button type="submit" class="bg-accent-cyan text-brand-dark font-black py-3 px-10 rounded uppercase tracking-widest text-sm hover:bg-white transition-colors shadow-[0_0_20px_rgba(102,252,241,0.3)]">
@@ -135,7 +146,7 @@
 
             <!-- === STEP 2: Analyzing Overlay === -->
             <div id="step-analyzing" class="hidden">
-                <div class="flex flex-col items-center justify-center min-h-[300px] border-2 border-dashed border-accent-cyan/40 rounded-xl bg-accent-cyan/5 text-center p-8">
+                <div class="flex flex-col items-center justify-center min-h-[300px] border-2 border-dashed border-accent-cyan/40 rounded-xl bg-accent-cyan/5 text-center p-4 sm:p-6 md:p-8">
                     <div class="w-20 h-20 border-4 border-accent-cyan border-t-transparent rounded-full animate-spin mb-6"></div>
                     <h3 class="text-xl font-display font-bold text-white mb-2">AI is Processing...</h3>
                     <p class="text-gray-400 text-sm">Extracting tournament standings. This can take up to 30 seconds.</p>
@@ -203,7 +214,7 @@
 
             <!-- === STEP 4: Success === -->
             <div id="step-success" class="hidden">
-                <div class="flex flex-col items-center justify-center min-h-[260px] border-2 border-dashed border-green-500/40 rounded-xl bg-green-500/5 text-center p-8">
+                <div class="flex flex-col items-center justify-center min-h-[260px] border-2 border-dashed border-green-500/40 rounded-xl bg-green-500/5 text-center p-4 sm:p-6 md:p-8">
                     <div class="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mb-4 text-green-400 text-4xl">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>

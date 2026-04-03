@@ -3,7 +3,7 @@
 {% block title %}{{ tournament.Name }} - Details{% endblock %}
 
 {% block content %}
-<div class="p-8">
+<div class="p-4 sm:p-6 md:p-8 space-y-6">
     <!-- Breadcrumb -->
     <nav class="page-breadcrumb">
         <a href="{% url 'index' %}" class="breadcrumb-link">
@@ -28,23 +28,26 @@
         <span class="breadcrumb-active">{{ tournament.Name }}</span>
     </nav>
 
-    <div class="page-header items-start">
-        <div class="flex-1">
-            <div class="flex items-center gap-4 mb-2">
-                <a href="{% if source == 'upcoming' %}{% url 'org_upcoming_tournaments' %}{% else %}{% url 'tournament_list' %}{% endif %}"
-                    class="text-brand-light/50 hover:text-accent-cyan transition-colors">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </a>
-                <h1 class="page-title">{{ tournament.Name }}</h1>
-                <span class="px-3 py-1 rounded-full text-xs font-bold shrink-0
-                    {% if tournament.Status == 'Scheduled' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
-                    {% elif tournament.Status == 'Ongoing' %}bg-green-500/20 text-green-400 border border-green-500/30
-                    {% elif tournament.Status == 'Completed' %}bg-gray-500/20 text-gray-400 border border-gray-500/30
-                    {% else %}bg-red-500/20 text-red-400 border border-red-500/30{% endif %}">
-                    {{ tournament.Status }}
-                </span>
+    <div class="page-header">
+        <div class="page-title-group">
+            <div class="page-title-decorator"></div>
+            <div>
+                <div class="flex flex-wrap items-center gap-4 mb-2">
+                    <a href="{% if source == 'upcoming' %}{% url 'org_upcoming_tournaments' %}{% else %}{% url 'tournament_list' %}{% endif %}"
+                        class="text-brand-light/50 hover:text-accent-cyan transition-colors">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                    <h1 class="page-title">{{ tournament.Name }}</h1>
+                    <span class="px-3 py-1 rounded-full text-xs font-bold shrink-0
+                        {% if tournament.Status == 'Scheduled' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
+                        {% elif tournament.Status == 'Ongoing' %}bg-green-500/20 text-green-400 border border-green-500/30
+                        {% elif tournament.Status == 'Completed' %}bg-gray-500/20 text-gray-400 border border-gray-500/30
+                        {% else %}bg-red-500/20 text-red-400 border border-red-500/30{% endif %}">
+                        {{ tournament.Status }}
+                    </span>
+                </div>
+                <p class="page-subtitle max-w-2xl mt-1">{{ tournament.description|truncatewords:20 }}</p>
             </div>
-            <p class="page-subtitle max-w-2xl">{{ tournament.description|truncatewords:20 }}</p>
         </div>
 
         <div class="page-actions shrink-0">
@@ -103,7 +106,7 @@
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-8">
             <!-- Full Description -->
-            <div class="glass-panel rounded-xl p-8">
+            <div class="glass-panel rounded-xl p-4 sm:p-6 md:p-8">
                 <h3 class="font-display font-bold text-lg text-white mb-4 border-b border-white/5 pb-2">About Tournament
                 </h3>
                 <div class="prose prose-invert max-w-none text-gray-400 text-sm leading-relaxed">
@@ -113,7 +116,7 @@
 
             <!-- Roadmap -->
             {% if tournament.roadmap_content %}
-            <div class="glass-panel rounded-xl p-8">
+            <div class="glass-panel rounded-xl p-4 sm:p-6 md:p-8">
                 <div class="flex justify-between items-center mb-4 border-b border-white/5 pb-2">
                     <h3 class="font-display font-bold text-lg text-white">Roadmap</h3>
                     {% if tournament.show_roadmap %}

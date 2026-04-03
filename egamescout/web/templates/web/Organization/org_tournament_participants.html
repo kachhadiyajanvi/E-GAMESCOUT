@@ -4,7 +4,7 @@
 {% block title %}Tournament Participants | E-Game Scout{% endblock %}
 
 {% block content %}
-<div class="p-8">
+<div class="p-4 sm:p-6 md:p-8 space-y-6">
     <!-- Breadcrumb -->
     <nav class="page-breadcrumb">
         <a href="{% url 'index' %}" class="breadcrumb-link">
@@ -29,7 +29,7 @@
                 <h1 class="page-title">
                     Tournament <span class="page-title-highlight">Participants</span>
                 </h1>
-                <p class="page-subtitle">Organizations joined in {{ tournament.Name }}.</p>
+                <p class="page-subtitle mt-1">Organizations joined in {{ tournament.Name }}.</p>
             </div>
         </div>
 

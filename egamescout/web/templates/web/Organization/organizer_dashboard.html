@@ -1,15 +1,27 @@
 {% extends 'web/Organization/dashboard_base.html' %}
 
 {% block content %}
-<div class="p-6 md:p-8 space-y-6">
+<div class="p-4 sm:p-6 md:p-8 space-y-6">
     <!-- Breadcrumb -->
-    <nav class="page-breadcrumb !mb-0">
+    <nav class="page-breadcrumb">
         <span class="breadcrumb-active flex items-center gap-1.5">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </span>
     </nav>
-    
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title-group">
+            <div class="page-title-decorator"></div>
+            <div>
+                <h1 class="page-title">
+                    Organization <span class="page-title-highlight">Dashboard</span>
+                </h1>
+                <p class="page-subtitle mt-1">Overview and quick actions</p>
+            </div>
+        </div>
+    </div>
     <!-- Player Setup Notice -->
     {% if org.roster_players.count == 0 %}
     <div class="bg-red-500/10 border border-red-500/50 rounded-lg p-4 flex items-start gap-4 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
@@ -249,7 +261,7 @@
         <!-- Decorative Header -->
         <div class="h-2 bg-gradient-to-r from-orange-600 via-yellow-500 to-orange-600 animate-gradient-x"></div>
         
-        <div class="p-8 text-center relative">
+        <div class="p-4 sm:p-6 md:p-8 text-center relative">
             <!-- Icon -->
             <div class="mx-auto w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center mb-6 border border-orange-500/30 shadow-[0_0_30px_rgba(249,115,22,0.2)] animate-pulse-slow">
                 <i class="fa-solid fa-gavel text-4xl text-orange-400"></i>

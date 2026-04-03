@@ -1,7 +1,7 @@
 {% extends 'web/Organization/dashboard_base.html' %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto">
+<div class="max-w-6xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
     <!-- Breadcrumb -->
     <nav class="page-breadcrumb">
         <a href="{% url 'index' %}" class="breadcrumb-link">
@@ -26,7 +26,7 @@
                 <h1 class="page-title">
                     {{ action|upper }} <span class="page-title-highlight">TOURNAMENT</span>
                 </h1>
-                <p class="page-subtitle">
+                <p class="page-subtitle mt-1">
                     {% if action == 'Update' %}Modify tournament details{% else %}Create a new esports tournament{% endif %}
                 </p>
             </div>
@@ -39,7 +39,7 @@
 
         <!-- Section 1: Basic Info -->
         <div
-            class="bg-brand-dark/60 border border-white/10 rounded-xl p-8 relative overflow-hidden group hover:border-accent-cyan/30 transition-all">
+            class="bg-brand-dark/60 border border-white/10 rounded-xl p-4 sm:p-6 md:p-8 relative overflow-hidden group hover:border-accent-cyan/30 transition-all">
             <div
                 class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent-cyan/50 to-transparent">
             </div>
@@ -118,7 +118,7 @@
 
         <!-- Section 2: Schedule & Format -->
         <div
-            class="bg-brand-dark/60 border border-white/10 rounded-xl p-8 relative overflow-hidden hover:border-accent-cyan/30 transition-all">
+            class="bg-brand-dark/60 border border-white/10 rounded-xl p-4 sm:p-6 md:p-8 relative overflow-hidden hover:border-accent-cyan/30 transition-all">
             <div
                 class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent-cyan/50 to-transparent">
             </div>
@@ -204,7 +204,7 @@
 
         <!-- Section 3: Prize Distribution -->
         <div
-            class="bg-brand-dark/60 border border-white/10 rounded-xl p-8 relative hover:border-accent-cyan/30 transition-all">
+            class="bg-brand-dark/60 border border-white/10 rounded-xl p-4 sm:p-6 md:p-8 relative hover:border-accent-cyan/30 transition-all">
             <div
                 class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent-cyan/50 to-transparent">
             </div>

@@ -2,16 +2,17 @@
 {% load humanize %}
 
 {% block content %}
-<div class="dashboard-container rounded-2xl p-8 min-h-[calc(100vh-80px)]">
+<div class="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm mb-6">
-        <a href="{% url 'organizer_dashboard' %}"
-            class="text-white/60 hover:text-white transition-colors flex items-center gap-1.5 font-bold">
+    <nav class="page-breadcrumb">
+        <a href="{% url 'index' %}" class="breadcrumb-link">
             <i class="fa-solid fa-home text-xs"></i>
             <span>Home</span>
         </a>
-        <span class="text-white/30">/</span>
-        <span class="text-accent-cyan font-bold tracking-wider">Bidding Hub</span>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <a href="{% url 'organizer_dashboard' %}" class="breadcrumb-link">Organization</a>
+        <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        <span class="breadcrumb-active">Bidding Hub</span>
     </nav>
 
     <!-- Django Messages -->
@@ -118,7 +119,7 @@
 
     <!-- Header & Wallet -->
 
-    <div class="page-header shrink-0">
+    <div class="page-header">
         <div class="page-title-group">
             <div class="page-title-decorator"></div>
             <div>
@@ -397,7 +398,7 @@
                 </div>
 
                 {% else %}
-                <div class="p-8 text-center bg-black/20 rounded-xl border border-white/5">
+                <div class="p-4 sm:p-6 md:p-8 text-center bg-black/20 rounded-xl border border-white/5">
                     <i class="fa-solid fa-ghost text-4xl text-white/10 mb-3"></i>
                     <p class="text-sm font-bold text-white/40">No players available in the pool right now.</p>
                 </div>
