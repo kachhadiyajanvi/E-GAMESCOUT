@@ -94,6 +94,33 @@
         class="fixed inset-0 z-0 overflow-hidden pointer-events-none opacity-[0.05] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay">
     </div>
 
+    <!-- Global Page Loader -->
+    <div id="globalPageLoader" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black transition-opacity duration-500">
+        <div class="flex flex-col items-center gap-4">
+            <div class="relative w-16 h-16">
+                <!-- Outer spinning ring -->
+                <div class="absolute inset-0 rounded-full border-4 border-white/5 border-t-brand-blue animate-spin"></div>
+                <!-- Inner spinning ring -->
+                <div class="absolute inset-2 rounded-full border-4 border-white/5 border-b-brand-pink animate-[spin_1.5s_linear_infinite_reverse]"></div>
+                <!-- Center icon -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-6 h-6 object-contain drop-shadow-[0_0_8px_rgba(0,243,255,0.8)] animate-pulse">
+                </div>
+            </div>
+            <p class="text-brand-blue font-display font-bold tracking-[0.3em] text-xs animate-pulse">LOADING...</p>
+        </div>
+    </div>
+    
+    <script>
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('globalPageLoader');
+            if (loader) {
+                loader.classList.add('opacity-0');
+                setTimeout(() => loader.remove(), 500);
+            }
+        });
+    </script>
+
     <!-- Mobile Sidebar Backdrop -->
     <div id="mobileSidebarBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
 
@@ -178,10 +205,17 @@
 
             <!-- Bidding Link -->
             <a href="{% url 'admin_bidding_dashboard' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'bidding' in request.resolver_match.url_name %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'bidding_dashboard' in request.resolver_match.url_name %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
                 <i
-                    class="fa-solid fa-gavel w-5 text-center {% if 'bidding' not in request.resolver_match.url_name %}group-hover:text-yellow-500{% endif %} transition-colors"></i>
+                    class="fa-solid fa-gavel w-5 text-center {% if 'bidding_dashboard' not in request.resolver_match.url_name %}group-hover:text-yellow-500{% endif %} transition-colors"></i>
                 <span class="font-bold tracking-wider text-sm">Bidding Actions</span>
+            </a>
+
+            <!-- Bids Report Link -->
+            <a href="{% url 'admin_bids_report' %}"
+                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'bids_report' in request.resolver_match.url_name %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+                <i class="fa-solid fa-list-ol w-5 text-center {% if 'bids_report' not in request.resolver_match.url_name %}group-hover:text-cyan-400{% endif %} transition-colors"></i>
+                <span class="font-bold tracking-wider text-sm">All Bids Report</span>
             </a>
 
             <!-- Analytics Link -->

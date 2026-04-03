@@ -173,27 +173,25 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <div onclick="window.location.href='{% url 'admin_bidding_details' %}'" class="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-cyan-500/30 rounded-xl p-6 cursor-pointer hover:border-cyan-400 group transition-all relative overflow-hidden">
             <p class="text-cyan-300/80 text-xs font-bold tracking-widest uppercase mb-1">Total Bids</p>
-            <h3 class="text-3xl font-display font-bold text-cyan-300">{{ total_bids }}</h3>
+            <h3 class="text-3xl font-display font-bold text-cyan-300" id="liveTotalBids">{{ total_bids }}</h3>
             <div class="absolute inset-0 bg-cyan-400/0 group-hover:bg-cyan-400/5 transition-colors"></div>
         </div>
         <div onclick="window.location.href='{% url 'admin_bidding_details' %}'" class="bg-gradient-to-br from-green-600/20 to-emerald-600/20 border border-emerald-500/30 rounded-xl p-6 cursor-pointer hover:border-emerald-400 group transition-all relative overflow-hidden">
             <p class="text-emerald-300/80 text-xs font-bold tracking-widest uppercase mb-1">Players Sold</p>
-            <h3 class="text-3xl font-display font-bold text-emerald-300">{{ players_sold }}</h3>
+            <h3 class="text-3xl font-display font-bold text-emerald-300" id="livePlayersSold">{{ players_sold }}</h3>
             <div class="absolute inset-0 bg-emerald-400/0 group-hover:bg-emerald-400/5 transition-colors"></div>
         </div>
         <div onclick="window.location.href='{% url 'admin_bidding_details' %}'" class="bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border border-amber-500/30 rounded-xl p-6 cursor-pointer hover:border-amber-400 group transition-all relative overflow-hidden">
             <p class="text-amber-300/80 text-xs font-bold tracking-widest uppercase mb-1">Total Coins Spent</p>
-            <h3 class="text-3xl font-display font-bold text-amber-300">₹{{ total_coins_spent|intcomma|default:"0" }}</h3>
+            <h3 class="text-3xl font-display font-bold text-amber-300" id="liveTotalCoinsSpent">₹{{ total_coins_spent|intcomma|default:"0" }}</h3>
             <div class="absolute inset-0 bg-amber-400/0 group-hover:bg-amber-400/5 transition-colors"></div>
         </div>
         <div onclick="window.location.href='{% url 'admin_bidding_details' %}'" class="bg-gradient-to-br from-purple-600/20 to-violet-600/20 border border-purple-500/30 rounded-xl p-6 cursor-pointer hover:border-purple-400 group transition-all relative overflow-hidden">
             <p class="text-purple-300/80 text-xs font-bold tracking-widest uppercase mb-1">Top Bid (MVP)</p>
-            {% if mvp_bid %}
-            <h3 class="text-xl font-display font-bold text-purple-300">₹{{ mvp_bid.amount|intcomma }}</h3>
-            <p class="text-xs text-purple-200 mt-1">{{ mvp_bid.player.username }}</p>
-            {% else %}
-            <h3 class="text-3xl font-display font-bold text-purple-300">---</h3>
-            {% endif %}
+            
+            <h3 class="text-2xl font-display font-bold text-purple-300" id="liveMvpAmount">{% if mvp_bid %}₹{{ mvp_bid.amount|intcomma }}{% else %}---{% endif %}</h3>
+            <p class="text-[10px] text-purple-200 mt-1 uppercase tracking-wider font-bold" id="liveMvpPlayer">{% if mvp_bid %}{{ mvp_bid.player.username }}{% endif %}</p>
+            
             <div class="absolute inset-0 bg-purple-400/0 group-hover:bg-purple-400/5 transition-colors"></div>
         </div>
     </div>
@@ -229,11 +227,8 @@
                         <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Start Date
                             &amp; Time</label>
                         <div class="flex gap-2">
-                            <input type="date" name="start_date_date" id="startDateInput"
-                                value="{{ active_season.start_date|date:'Y-m-d'|default:'' }}"
-                                class="w-full bg-black/50 border border-white/10 rounded-lg px-2 py-2 text-white [color-scheme:dark]" disabled>
-                            <input type="time" name="start_date_time"
-                                value="{{ active_season.start_date|date:'H:i'|default:'' }}"
+                            <input type="datetime-local" name="start_date" id="startDateInput"
+                                value="{{ active_season.start_date|date:'Y-m-d\TH:i'|default:'' }}"
                                 class="w-full bg-black/50 border border-white/10 rounded-lg px-2 py-2 text-white [color-scheme:dark]" disabled>
                         </div>
                         <p class="text-[9px] text-gray-500 mt-1">Start date cannot be changed once active.</p>
@@ -242,11 +237,8 @@
                         <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">End Date
                             &amp; Time</label>
                         <div class="flex gap-2">
-                            <input type="date" name="end_date_date" id="endDateInput"
-                                value="{{ active_season.end_date|date:'Y-m-d'|default:'' }}"
-                                class="w-full bg-black/50 border border-white/10 rounded-lg px-2 py-2 text-white focus:ring-brand-blue [color-scheme:dark]">
-                            <input type="time" name="end_date_time"
-                                value="{{ active_season.end_date|date:'H:i'|default:'' }}"
+                            <input type="datetime-local" name="end_date" id="endDateInput"
+                                value="{{ active_season.end_date|date:'Y-m-d\TH:i'|default:'' }}"
                                 class="w-full bg-black/50 border border-white/10 rounded-lg px-2 py-2 text-white focus:ring-brand-blue [color-scheme:dark]">
                         </div>
                     </div>
@@ -390,15 +382,13 @@
             <div class="mb-4">
                 <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Start Date & Time <span class="text-[10px] text-gray-500 normal-case">(Optional, now)</span></label>
                 <div class="flex gap-2">
-                    <input type="date" name="start_date_date" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
-                    <input type="time" name="start_date_time" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
+                    <input type="datetime-local" name="start_date" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
                 </div>
             </div>
             <div class="mb-6">
                 <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Auto-End Date & Time <span class="text-[10px] text-gray-500 normal-case">(Optional)</span></label>
                 <div class="flex gap-2">
-                    <input type="date" name="end_date_date" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
-                    <input type="time" name="end_date_time" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
+                    <input type="datetime-local" name="end_date" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 [color-scheme:dark]">
                 </div>
             </div>
 
@@ -485,31 +475,29 @@
         }
     });
     document.addEventListener('DOMContentLoaded', function() {
-        const timeInputs = document.querySelectorAll('input[type="time"]');
-        timeInputs.forEach(input => {
-            const select = document.createElement('select');
-            select.name = input.name;
-            select.className = input.className;
-            select.disabled = input.disabled;
-            
-            select.add(new Option('Select Time', ''));
-            
-            for(let h=0; h<24; h++) {
-                for(let m of ['00', '30']) {
-                    const hourStr = h.toString().padStart(2, '0');
-                    const val = `${hourStr}:${m}`;
-                    const ampm = h >= 12 ? 'PM' : 'AM';
-                    const dispH = h % 12 || 12;
-                    const label = `${dispH.toString().padStart(2, '0')}:${m} ${ampm}`;
-                    
-                    const opt = new Option(label, val);
-                    // Match existing value (some browsers don't include seconds, but 'H:i' in Django is HH:MM)
-                    if (input.value && input.value.substring(0, 5) === val) opt.selected = true;
-                    select.add(opt);
-                }
-            }
-            input.parentNode.replaceChild(select, input);
-        });
+
+        // Live stats polling
+        if (window.biddingInterval) clearInterval(window.biddingInterval);
+        function fetchLiveStats() {
+            fetch("{% url 'api_admin_live_bidding_stats' %}")
+                .then(res => res.json())
+                .then(data => {
+                    const totalBidsEl = document.getElementById('liveTotalBids');
+                    const playersSoldEl = document.getElementById('livePlayersSold');
+                    const totalCoinsEl = document.getElementById('liveTotalCoinsSpent');
+                    const mvpAmountEl = document.getElementById('liveMvpAmount');
+                    const mvpPlayerEl = document.getElementById('liveMvpPlayer');
+
+                    if (totalBidsEl) totalBidsEl.innerText = data.total_bids;
+                    if (playersSoldEl) playersSoldEl.innerText = data.players_sold;
+                    if (totalCoinsEl) totalCoinsEl.innerText = data.total_coins_spent;
+                    if (mvpAmountEl) mvpAmountEl.innerText = data.mvp_amount;
+                    if (mvpPlayerEl) mvpPlayerEl.innerText = data.mvp_player;
+                })
+                .catch(err => console.error("Error fetching live stats:", err));
+        }
+
+        window.biddingInterval = setInterval(fetchLiveStats, 3000);
     });
 </script>
 {% endblock %}

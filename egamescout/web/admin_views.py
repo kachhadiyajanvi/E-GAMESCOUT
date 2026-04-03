@@ -1192,18 +1192,9 @@ def admin_update_bid_status(request, bid_id):
 def admin_start_bidding_season(request):
     if request.method == 'POST':
         name = request.POST.get('name', f"Manual Season {timezone.now().strftime('%Y-%m-%d')}")
-        start_date_val = request.POST.get('start_date_date')
-        start_time_val = request.POST.get('start_date_time')
-        end_date_val = request.POST.get('end_date_date')
-        end_time_val = request.POST.get('end_date_time')
+        start_date_str = request.POST.get('start_date')
+        end_date_str = request.POST.get('end_date')
         
-        start_date_str = None
-        if start_date_val:
-            start_date_str = f"{start_date_val}T{start_time_val if start_time_val else '00:00'}"
-            
-        end_date_str = None
-        if end_date_val:
-            end_date_str = f"{end_date_val}T{end_time_val if end_time_val else '23:59'}"
         # Admin Wallet Distribution (Feature #1)
         bidding_budget = request.POST.get('bidding_budget')
         
@@ -1295,7 +1286,10 @@ def admin_end_bidding_season(request):
             season = BiddingSeason.objects.filter(is_active=True).first()
         if season:
             season.is_active = False
-            season.end_date = timezone.now()
+            now = timezone.now()
+            if season.start_date and season.start_date >= now:
+                season.start_date = now - timedelta(seconds=1)
+            season.end_date = now
             season.save()
             BiddingSeasonLog.objects.create(season=season, action='END', message="Bidding Ended by Admin")
             
@@ -1319,18 +1313,9 @@ def admin_update_bidding_season(request):
     if request.method == 'POST':
         season_id = request.POST.get('season_id')
         name = request.POST.get('name')
-        start_date_val = request.POST.get('start_date_date')
-        start_time_val = request.POST.get('start_date_time')
-        end_date_val = request.POST.get('end_date_date')
-        end_time_val = request.POST.get('end_date_time')
+        start_date_str = request.POST.get('start_date')
+        end_date_str = request.POST.get('end_date')
         
-        start_date_str = None
-        if start_date_val:
-            start_date_str = f"{start_date_val}T{start_time_val if start_time_val else '00:00'}"
-            
-        end_date_str = None
-        if end_date_val:
-            end_date_str = f"{end_date_val}T{end_time_val if end_time_val else '23:59'}"
         auto_start = request.POST.get('auto_start') == 'on'
 
         if season_id:
@@ -1354,6 +1339,51 @@ def admin_update_bidding_season(request):
         season.save()
         messages.success(request, f"Bidding Season '{season.name}' updated successfully.")
     return redirect('admin_bidding_dashboard')
+
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def api_admin_live_bidding_stats(request):
+    """Returns live JSON stats for the admin bidding dashboard."""
+    from django.http import JsonResponse
+    from django.db.models import Sum
+    from decimal import Decimal
+    
+    bids = Bid.objects.all()
+    total_bids = bids.count()
+    accepted_bids = bids.filter(status='Accepted')
+    players_sold = accepted_bids.count()
+    total_coins_spent = accepted_bids.aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+    mvp_bid = accepted_bids.order_by('-amount').first()
+
+    return JsonResponse({
+        'total_bids': total_bids,
+        'players_sold': players_sold,
+        'total_coins_spent': f"₹{int(total_coins_spent):,}",
+        'mvp_amount': f"₹{int(mvp_bid.amount):,}" if mvp_bid else "---",
+        'mvp_player': mvp_bid.player.username if mvp_bid else "",
+    })
+
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_bids_report(request):
+    """Shows a comprehensive table of all bids across all seasons."""
+    from django.db.models import Sum, Count
+    # Annotate bids with player and org info
+    all_bids = Bid.objects.select_related('player', 'organization', 'season').order_by('-created_at')
+    
+    top_orgs = Bid.objects.filter(status='Accepted').values(
+        'organization__Organization_Name'
+    ).annotate(
+        spent=Sum('amount'),
+        players_acquired=Count('id')
+    ).order_by('-spent')
+
+    context = {
+        'all_bids': all_bids,
+        'top_orgs': top_orgs,
+    }
+    return render(request, 'web/Admin/admin_bids_report.html', context)
+
 
 @user_passes_test(is_superuser, login_url='/admin/login/')
 def admin_settings(request):

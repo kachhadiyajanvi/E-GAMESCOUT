@@ -400,12 +400,17 @@
         initChartsWhenReady();
     }
 
+    // Initialize Charts (SPA Compatible)
+    let chartLoadAttempts = 0;
     function initChartsWhenReady() {
         if (typeof Chart !== 'undefined') {
             initArchiveCharts();
-        } else {
-            // Keep checking every 100ms
+        } else if (chartLoadAttempts < 50) {
+            chartLoadAttempts++;
+            // Keep checking every 100ms up to 5s
             setTimeout(initChartsWhenReady, 100);
+        } else {
+            console.error("Chart.js failed to load within 5 seconds.");
         }
     }
 
@@ -425,6 +430,14 @@
         
         try {
             const data = JSON.parse(dataStr);
+            const total = data.data.reduce((a, b) => a + b, 0);
+            
+            // Handle case where there's purely zero data
+            if (total === 0) {
+                canvas.outerHTML = '<div class="absolute inset-0 flex items-center justify-center text-white/30 text-xs font-bold uppercase tracking-widest"><i class="fa-solid fa-chart-pie mr-2"></i> No Archive Data Available</div>';
+                return;
+            }
+
             window.archiveDistributionChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {

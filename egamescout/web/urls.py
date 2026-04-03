@@ -124,7 +124,9 @@ urlpatterns = [
     
     # Bidding Analytics
     path('admin/bidding/dashboard/', admin_views.admin_bidding_dashboard, name='admin_bidding_dashboard'),
+    path('admin/bidding/api/live-stats/', admin_views.api_admin_live_bidding_stats, name='api_admin_live_bidding_stats'),
     path('admin/bidding/details/', admin_views.admin_bidding_details, name='admin_bidding_details'),
+    path('admin/bidding/report/', admin_views.admin_bids_report, name='admin_bids_report'),
     path('admin/bidding/export/<str:report_type>/', admin_views.admin_bidding_export, name='admin_bidding_export'),
     path('admin/bidding/season/start/', admin_views.admin_start_bidding_season, name='admin_start_bidding_season'),
     path('admin/bidding/season/pause/', admin_views.admin_pause_bidding_season, name='admin_pause_bidding_season'),
