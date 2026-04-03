@@ -1,7 +1,7 @@
 {% extends 'web/Organization/dashboard_base.html' %}
 
 {% block content %}
-<div class="p-4 sm:p-6 md:p-8 space-y-6">
+<div class="space-y-6 lg:space-y-8">
     <!-- Breadcrumb -->
     <nav class="page-breadcrumb">
         <a href="{% url 'index' %}" class="breadcrumb-link">
@@ -298,7 +298,17 @@
                     </div>
                 </div>
                 {% empty %}
-                <div class="text-center py-8 text-gray-500 text-sm">No analysis history yet.</div>
+                <tr>
+                        <td colspan="100%" class="px-8 py-24 text-center border-t border-white/5">
+                            <div class="flex flex-col items-center justify-center group">
+                                <div class="w-20 h-20 rounded-3xl bg-white/[0.02] border border-dashed border-white/10 flex items-center justify-center mb-6 group-hover:border-accent-cyan/50 transition-all duration-500">
+                                    <i class="fa-solid fa-chart-line text-3xl text-brand-light/10 group-hover:text-accent-cyan/50 transition-all"></i>
+                                </div>
+                                <h3 class="text-xl font-display font-bold text-white mb-2 tracking-wider uppercase">NO ANALYSIS FOUND</h3>
+                                <p class="text-brand-light/30 text-sm max-w-xs mx-auto font-medium">Create a scorecard to see history.</p>
+                            </div>
+                        </td>
+                    </tr>
                 {% endfor %}
             </div>
 

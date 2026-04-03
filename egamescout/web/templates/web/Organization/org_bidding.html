@@ -2,7 +2,7 @@
 {% load humanize %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
+<div class="space-y-6 lg:space-y-8">
     <!-- Breadcrumb -->
     <nav class="page-breadcrumb">
         <a href="{% url 'index' %}" class="breadcrumb-link">
@@ -398,9 +398,14 @@
                 </div>
 
                 {% else %}
-                <div class="p-4 sm:p-6 md:p-8 text-center bg-black/20 rounded-xl border border-white/5">
-                    <i class="fa-solid fa-ghost text-4xl text-white/10 mb-3"></i>
-                    <p class="text-sm font-bold text-white/40">No players available in the pool right now.</p>
+                <div class="col-span-full py-20 px-6 text-center glass-panel border border-dashed border-white/10 rounded-3xl bg-white/[0.02]">
+                    <div class="flex flex-col items-center justify-center group">
+                        <div class="w-20 h-20 rounded-3xl bg-black/40 border border-white/5 flex items-center justify-center mb-6 group-hover:border-accent-cyan/50 transition-all duration-500 shadow-inner">
+                            <i class="fa-solid fa-ghost text-3xl text-brand-light/20 group-hover:text-accent-cyan/50"></i>
+                        </div>
+                        <h3 class="text-xl font-display font-bold text-white mb-2 tracking-wider uppercase">NO PLAYERS AVAILABLE</h3>
+                        <p class="text-brand-light/40 text-sm max-w-sm mx-auto font-medium">No players are currently available in the dynamic bidding pool.</p>
+                    </div>
                 </div>
                 {% endif %}
             </div>
@@ -448,9 +453,14 @@
                     </table>
                 </div>
                 {% else %}
-                <div class="text-center py-8 bg-black/20 rounded-xl border border-white/5 border-dashed">
-                    <i class="fa-solid fa-users-slash text-2xl text-white/10 mb-2"></i>
-                    <p class="text-white/30 text-sm font-mono">You haven't purchased any players yet.</p>
+                <div class="col-span-full py-16 px-6 text-center border border-dashed border-white/10 rounded-xl bg-white/[0.02]">
+                    <div class="flex flex-col items-center justify-center group">
+                        <div class="w-16 h-16 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center mb-4 group-hover:border-accent-cyan/50 transition-all duration-500 shadow-inner">
+                            <i class="fa-solid fa-shield-halved text-2xl text-brand-light/20 group-hover:text-accent-cyan/50"></i>
+                        </div>
+                        <h3 class="text-sm font-display font-bold text-white mb-1 tracking-wider uppercase">EMPTY ROSTER</h3>
+                        <p class="text-brand-light/40 text-xs max-w-sm mx-auto font-medium">You haven't purchased any players yet.</p>
+                    </div>
                 </div>
                 {% endif %}
             </div>
