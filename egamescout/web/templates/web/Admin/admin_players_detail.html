@@ -7,7 +7,7 @@
 {% block header_actions %}
 <form method="GET" action="{% url 'admin_players_detail' %}" class="flex items-center gap-2">
     <!-- Filter Dropdown -->
-    <select name="status" onchange="this.form.submit()" class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all cursor-pointer">
+    <select name="status" onchange="this.form.submit()" class="bg-theme-card border border-theme-border rounded-lg px-4 py-2 text-sm text-theme-text focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all cursor-pointer">
         <option value="" {% if not status_filter %}selected{% endif %}>All Status</option>
         <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
         <option value="deactivated" {% if status_filter == 'deactivated' %}selected{% endif %}>Deactivated</option>
@@ -17,13 +17,13 @@
 
     <!-- Search Input -->
     <div class="relative w-full sm:w-64 group">
-        <input type="text" name="q" value="{{ search_query }}" placeholder="Search Players..." class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder-white/30">
-        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-brand-blue transition-colors text-xs bg-transparent border-none cursor-pointer">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search Players..." class="w-full bg-theme-card border border-theme-border rounded-lg px-4 py-2 text-sm text-theme-text focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder-theme-text-muted">
+        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-theme-text/30 group-focus-within:text-brand-blue transition-colors text-xs bg-transparent border-none cursor-pointer">
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
     </div>
 </form>
-<button onclick="openNotifyModal('player', 'all', 'All Players')" class="bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center justify-center gap-2 whitespace-nowrap">
+<button onclick="openNotifyModal('player', 'all', 'All Players')" class="bg-theme-card border border-theme-border text-theme-text hover:bg-white hover:text-black px-6 py-2 rounded-lg font-bold text-sm tracking-wide transition-all uppercase flex items-center justify-center gap-2 whitespace-nowrap">
     <i class="fa-solid fa-bullhorn"></i> Notify
 </button>
 {% endblock %}
@@ -34,30 +34,30 @@
         {% csrf_token %}
         
         <!-- Floating HUD Bar for Bulk Actions -->
-        <div id="bulkActionBar" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-black/95 backdrop-blur-3xl border border-white/20 shadow-[0_10px_50px_rgba(0,0,0,0.9)] rounded-2xl p-4 flex items-center gap-4 sm:gap-6 transform translate-y-32 opacity-0 transition-all duration-300 pointer-events-none">
-            <div class="flex items-center gap-3 border-r border-white/10 pr-6">
+        <div id="bulkActionBar" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-black/95 backdrop-blur-3xl border border-theme-border shadow-[0_10px_50px_rgba(0,0,0,0.9)] rounded-2xl p-4 flex items-center gap-4 sm:gap-6 transform translate-y-32 opacity-0 transition-all duration-300 pointer-events-none">
+            <div class="flex items-center gap-3 border-r border-theme-border pr-6">
                 <div class="w-8 h-8 rounded-full bg-brand-blue/20 flex items-center justify-center text-brand-blue">
                     <i class="fa-solid fa-check-double"></i>
                 </div>
                 <div>
-                    <span id="selectedCount" class="font-bold text-white font-mono text-lg leading-none">0</span>
-                    <span class="text-white/40 text-[10px] uppercase block tracking-widest">Players Selected</span>
+                    <span id="selectedCount" class="font-bold text-theme-text font-mono text-lg leading-none">0</span>
+                    <span class="text-theme-text-muted text-[10px] uppercase block tracking-widest">Players Selected</span>
                 </div>
             </div>
             <button type="button" onclick="confirmBulkNotify()" class="px-5 py-2.5 bg-brand-blue/10 hover:bg-brand-blue/20 border border-brand-blue/30 rounded-lg text-brand-blue font-bold uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(0,243,255,0.15)] transition-all flex items-center gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-bullhorn"></i> Notify Selected
             </button>
-            <button type="button" onclick="confirmBulkArchive()" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 rounded-lg text-white font-bold uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all flex items-center gap-2 whitespace-nowrap">
+            <button type="button" onclick="confirmBulkArchive()" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 rounded-lg text-theme-text font-bold uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all flex items-center gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-box-archive"></i> Archive Selected
             </button>
         </div>
 
-        <div class="bg-white/5 border border-white/10 rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
+        <div class="bg-theme-card border border-theme-border rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
             <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
                 <thead>
-                    <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
+                    <tr class="bg-theme-card border-b border-theme-border text-xs text-theme-text/50 uppercase tracking-widest">
                         <th class="p-4 w-12 text-center">
-                            <input type="checkbox" id="selectAll" class="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-blue focus:ring-brand-blue cursor-pointer">
+                            <input type="checkbox" id="selectAll" class="w-4 h-4 rounded border-theme-border bg-theme-input-bg text-brand-blue focus:ring-brand-blue cursor-pointer">
                         </th>
                         <th class="p-4 w-12 text-center font-bold">#</th>
                         <th class="p-4 font-bold">Player Details</th>
@@ -69,22 +69,22 @@
             </thead>
             <tbody class="divide-y divide-white/5 text-sm">
                 {% for player in players %}
-                <tr class="hover:bg-white/5 transition-colors group cursor-pointer" onclick="toggleRowCheckbox('player_{{ player.id }}', event)">
+                <tr class="hover:bg-theme-card transition-colors group cursor-pointer" onclick="toggleRowCheckbox('player_{{ player.id }}', event)">
                     <td class="p-4 text-center">
-                        <input type="checkbox" name="selected_ids" value="{{ player.id }}" id="player_{{ player.id }}" class="row-checkbox w-4 h-4 rounded border-white/20 bg-black/50 text-brand-blue focus:ring-brand-blue cursor-pointer" onclick="event.stopPropagation()">
+                        <input type="checkbox" name="selected_ids" value="{{ player.id }}" id="player_{{ player.id }}" class="row-checkbox w-4 h-4 rounded border-theme-border bg-theme-input-bg text-brand-blue focus:ring-brand-blue cursor-pointer" onclick="event.stopPropagation()">
                     </td>
-                    <td class="p-4 text-center text-white/40 font-mono text-xs">
+                    <td class="p-4 text-center text-theme-text-muted font-mono text-xs">
                         {{ forloop.counter0|add:page_obj.start_index }}
                     </td>
                     <td class="p-4">
                         <div class="flex items-start gap-4">
                             <div
-                                class="w-12 h-12 rounded-full bg-brand-gray border border-white/10 flex-shrink-0 overflow-hidden">
+                                class="w-12 h-12 rounded-full bg-theme-card border border-theme-border flex-shrink-0 overflow-hidden">
                                 {% if player.profile_photo %}
                                 <img src="{{ player.profile_photo.url }}" class="w-full h-full object-cover">
                                 {% else %}
                                 <div
-                                    class="w-full h-full flex items-center justify-center font-bold text-white/50 text-xs bg-gradient-to-br from-brand-blue to-purple-600">
+                                    class="w-full h-full flex items-center justify-center font-bold text-theme-text/50 text-xs bg-gradient-to-br from-brand-blue to-purple-600">
                                     {{ player.full_name|slice:":2"|upper }}
                                 </div>
                                 {% endif %}
@@ -92,7 +92,7 @@
                             <div class="flex-1">
                                 <!-- Full Name & Email -->
                                 <div class="mb-2">
-                                    <h4 class="font-bold text-white text-base flex items-center gap-2">
+                                    <h4 class="font-bold text-theme-text text-base flex items-center gap-2">
                                         {{ player.full_name }}
                                         {% if player.is_verified %}
                                         <i class="fa-solid fa-circle-check text-blue-400 text-xs" title="Verified Player"></i>
@@ -129,7 +129,7 @@
                         </span>
                         {% endif %}
                     </td>
-                    <td class="p-4 text-white/40">{{ player.created_at|date:"M d, Y" }}</td>
+                    <td class="p-4 text-theme-text-muted">{{ player.created_at|date:"M d, Y" }}</td>
                     <td class="p-4">
                         {% if player.organization %}
                         <div class="flex items-center gap-2">
@@ -143,7 +143,7 @@
                             <span class="text-xs font-bold text-accent-cyan/80 truncate max-w-[100px]" title="{{ player.organization.Organization_Name }}">{{ player.organization.Organization_Name }}</span>
                         </div>
                         {% else %}
-                        <span class="text-[10px] font-mono text-white/20 uppercase tracking-widest">— Free Agent</span>
+                        <span class="text-[10px] font-mono text-theme-text/20 uppercase tracking-widest">— Free Agent</span>
                         {% endif %}
                     </td>
                     <td class="p-4 text-right">
@@ -158,40 +158,40 @@
                             data-aadhar="XXXX-XXXX-{{ player.aadhar_number|slice:'-4:' }}"
                             data-status="{{ player.status }}" data-joined="{{ player.created_at|date:'M d, Y' }}"
                             data-photo="{% if player.profile_photo %}{{ player.profile_photo.url }}{% endif %}"
-                            class="text-white/40 hover:text-accent-cyan transition-colors px-2"
+                            class="text-theme-text-muted hover:text-accent-cyan transition-colors px-2"
                             title="View Full Details">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                         <button onclick="openNotifyModal('player', '{{ player.id }}', '{{ player.full_name|escapejs }}')"
-                            class="text-white/40 hover:text-yellow-400 transition-colors px-2" title="Notify Player">
+                            class="text-theme-text-muted hover:text-yellow-400 transition-colors px-2" title="Notify Player">
                             <i class="fa-solid fa-bell"></i>
                         </button>
                         <button onclick="openStatusModal('{{ player.id }}', '{{ player.status }}', '{{ player.is_verified }}', '{{ player.is_active_account|lower }}')"
-                            class="text-white/40 hover:text-brand-blue transition-colors px-2" title="Edit Status">
+                            class="text-theme-text-muted hover:text-brand-blue transition-colors px-2" title="Edit Status">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                         <button onclick="openDeleteModal('{{ player.id }}', '{{ player.full_name|escapejs }}')"
-                            class="text-white/40 hover:text-red-500 transition-colors px-2" title="Delete Player">
+                            class="text-theme-text-muted hover:text-red-500 transition-colors px-2" title="Delete Player">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="p-8 text-center text-white/40">No players found.</td>
+                    <td colspan="7" class="p-8 text-center text-theme-text-muted">No players found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <div class="p-4 border-t border-white/5 flex items-center justify-between text-xs text-white/40">
+        <div class="p-4 border-t border-theme-border-light flex items-center justify-between text-xs text-theme-text-muted">
             <span>Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
                 players</span>
             <div class="flex gap-2">
                 {% if page_obj.has_previous %}
                 <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}"
-                    class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">Previous</a>
+                    class="px-3 py-1 bg-theme-card rounded hover:bg-theme-card-hover transition-colors">Previous</a>
                 {% else %}
-                <button class="px-3 py-1 bg-white/5 rounded opacity-50 cursor-not-allowed" disabled>Previous</button>
+                <button class="px-3 py-1 bg-theme-card rounded opacity-50 cursor-not-allowed" disabled>Previous</button>
                 {% endif %}
 
                 {% for num in page_obj.paginator.page_range %}
@@ -199,16 +199,16 @@
                 <span class="px-3 py-1 bg-brand-blue text-black rounded font-bold">{{ num }}</span>
                 {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a
                     href="?page={{ num }}&q={{ search_query }}"
-                    class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">
+                    class="px-3 py-1 bg-theme-card rounded hover:bg-theme-card-hover transition-colors">
                     {{ num }}</a>
                     {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
                     <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}"
-                        class="px-3 py-1 bg-white/5 rounded hover:bg-white/10 transition-colors">Next</a>
+                        class="px-3 py-1 bg-theme-card rounded hover:bg-theme-card-hover transition-colors">Next</a>
                     {% else %}
-                    <button class="px-3 py-1 bg-white/5 rounded opacity-50 cursor-not-allowed" disabled>Next</button>
+                    <button class="px-3 py-1 bg-theme-card rounded opacity-50 cursor-not-allowed" disabled>Next</button>
                     {% endif %}
             </div>
         </div>
@@ -216,16 +216,16 @@
     </form>
 
     <!-- View Details Modal -->
-    <div id="viewModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
+    <div id="viewModal" class="fixed inset-0 bg-theme-bg hidden items-center justify-center z-50 backdrop-blur-sm p-4">
         <div
-            class="bg-brand-gray border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+            class="bg-theme-card border border-theme-border rounded-xl w-full max-w-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
             <!-- Modal Header -->
-            <div class="p-6 border-b border-white/10 bg-black/20 flex items-center justify-between">
-                <h3 class="font-display font-bold text-xl text-white flex items-center gap-2">
+            <div class="p-6 border-b border-theme-border bg-theme-header-bg flex items-center justify-between">
+                <h3 class="font-display font-bold text-xl text-theme-text flex items-center gap-2">
                     <i class="fa-solid fa-address-card text-accent-cyan"></i> Player Search Dossier
                 </h3>
                 <button type="button" onclick="closePlayerModal('viewModal')"
-                    class="text-white/40 hover:text-white transition-colors">
+                    class="text-theme-text-muted hover:text-theme-text transition-colors">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -235,7 +235,7 @@
                 <div class="flex flex-col md:flex-row gap-8">
                     <!-- Left: Avatar & Identity -->
                     <div
-                        class="flex flex-col items-center w-full md:w-1/3 border-b md:border-b-0 md:border-r border-white/10 pb-6 md:pb-0 md:pr-6">
+                        class="flex flex-col items-center w-full md:w-1/3 border-b md:border-b-0 md:border-r border-theme-border pb-6 md:pb-0 md:pr-6">
                         <div class="w-32 h-32 rounded-full border-4 border-accent-cyan/20 p-1 mb-4 relative">
                             <img id="viewAvatar" src="" class="w-full h-full rounded-full object-cover bg-black"
                                 onerror="this.src='https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff'">
@@ -244,12 +244,12 @@
                             </div>
                         </div>
 
-                        <h2 id="viewUsername" class="text-2xl font-display font-bold text-white text-center break-all">
+                        <h2 id="viewUsername" class="text-2xl font-display font-bold text-theme-text text-center break-all">
                         </h2>
-                        <p id="viewFullName" class="text-brand-light text-sm mb-4 text-center"></p>
+                        <p id="viewFullName" class="text-theme-text-muted text-sm mb-4 text-center"></p>
 
-                        <div class="w-full bg-white/5 rounded-lg p-3 text-center border border-white/5">
-                            <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1">Game UID</p>
+                        <div class="w-full bg-theme-card rounded-lg p-3 text-center border border-theme-border-light">
+                            <p class="text-[10px] uppercase tracking-widest text-theme-text-muted font-bold mb-1">Game UID</p>
                             <p id="viewUid" class="font-mono text-accent-cyan font-bold tracking-wider text-lg">---</p>
                         </div>
                     </div>
@@ -257,40 +257,40 @@
                     <!-- Right: Attributes -->
                     <div class="flex-1 w-full">
                         <h4
-                            class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b border-white/5 pb-2">
+                            class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b border-theme-border-light pb-2">
                             Personal Information</h4>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
-                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Email Address</p>
-                                <p id="viewEmail" class="text-white text-sm truncate">---</p>
+                            <div class="bg-theme-card p-3 rounded-lg border border-theme-border-light">
+                                <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Email Address</p>
+                                <p id="viewEmail" class="text-theme-text text-sm truncate">---</p>
                             </div>
-                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
-                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Mobile Number</p>
-                                <p id="viewMobile" class="text-white text-sm font-mono">---</p>
+                            <div class="bg-theme-card p-3 rounded-lg border border-theme-border-light">
+                                <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Mobile Number</p>
+                                <p id="viewMobile" class="text-theme-text text-sm font-mono">---</p>
                             </div>
-                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
-                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Age</p>
-                                <p id="viewAge" class="text-white text-sm">---</p>
+                            <div class="bg-theme-card p-3 rounded-lg border border-theme-border-light">
+                                <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Age</p>
+                                <p id="viewAge" class="text-theme-text text-sm">---</p>
                             </div>
-                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
-                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Aadhar Number</p>
-                                <p id="viewAadhar" class="text-white text-sm font-mono tracking-widest">---</p>
+                            <div class="bg-theme-card p-3 rounded-lg border border-theme-border-light">
+                                <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Aadhar Number</p>
+                                <p id="viewAadhar" class="text-theme-text text-sm font-mono tracking-widest">---</p>
                             </div>
                         </div>
 
                         <h4
-                            class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b border-white/5 pb-2">
+                            class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b border-theme-border-light pb-2">
                             System Meta</h4>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Joined Date</p>
-                                <p id="viewJoined" class="text-white text-sm">---</p>
+                                <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Joined Date</p>
+                                <p id="viewJoined" class="text-theme-text text-sm">---</p>
                             </div>
                             <div>
-                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Status</p>
+                                <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Status</p>
                                 <span id="viewStatusText"
-                                    class="px-2 py-1 rounded text-xs font-bold bg-white/10 text-white">---</span>
+                                    class="px-2 py-1 rounded text-xs font-bold bg-theme-card-hover text-theme-text">---</span>
                             </div>
                         </div>
                     </div>
@@ -298,9 +298,9 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="p-4 bg-black/20 border-t border-white/10 flex justify-end">
+            <div class="p-4 bg-theme-header-bg border-t border-theme-border flex justify-end">
                 <button type="button" onclick="closePlayerModal('viewModal')"
-                    class="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold uppercase text-sm transition-colors">
+                    class="px-6 py-2 bg-theme-card-hover hover:bg-white/20 text-theme-text rounded-lg font-bold uppercase text-sm transition-colors">
                     Close
                 </button>
             </div>
@@ -308,33 +308,33 @@
     </div>
 
     <!-- Edit Status Modal -->
-    <div id="statusModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
-        <div class="bg-brand-gray border border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl relative">
+    <div id="statusModal" class="fixed inset-0 bg-theme-bg hidden items-center justify-center z-50 backdrop-blur-sm p-4">
+        <div class="bg-theme-card border border-theme-border rounded-xl p-6 w-full max-w-md shadow-2xl relative">
             <button type="button" onclick="closePlayerModal('statusModal')"
-                class="absolute top-4 right-4 text-white/40 hover:text-white">
+                class="absolute top-4 right-4 text-theme-text-muted hover:text-theme-text">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <h3 class="font-display font-bold text-xl text-white mb-4">Update Player Status</h3>
+            <h3 class="font-display font-bold text-xl text-theme-text mb-4">Update Player Status</h3>
             <form id="statusForm" method="POST" action="">
                 {% csrf_token %}
                 <div class="mb-6">
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Select
+                    <label class="block text-xs font-bold text-theme-text-muted uppercase tracking-widest mb-2">Select
                         Status</label>
                     <div class="space-y-2">
                         <label
-                            class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                            class="flex items-center gap-3 p-3 rounded-lg border border-theme-border hover:bg-theme-card cursor-pointer transition-colors block">
                             <input type="radio" name="status" value="ACTIVE"
                                 class="text-accent-cyan focus:ring-accent-cyan bg-transparent">
                             <span class="text-green-400 font-bold">Active</span>
                         </label>
                         <label
-                            class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                            class="flex items-center gap-3 p-3 rounded-lg border border-theme-border hover:bg-theme-card cursor-pointer transition-colors block">
                             <input type="radio" name="status" value="PENDING"
                                 class="text-yellow-400 focus:ring-yellow-400 bg-transparent">
                             <span class="text-yellow-400 font-bold">Pending</span>
                         </label>
                         <label
-                            class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 cursor-pointer transition-colors block">
+                            class="flex items-center gap-3 p-3 rounded-lg border border-theme-border hover:bg-theme-card cursor-pointer transition-colors block">
                             <input type="radio" name="status" value="SUSPENDED"
                                 class="text-red-400 focus:ring-red-400 bg-transparent">
                             <span class="text-red-400 font-bold">Suspended</span>
@@ -343,15 +343,15 @@
                 </div>
                 <div id="playerVerificationSection" class="mb-4 p-4 rounded-lg border hidden">
                     <p id="verifyTitle" class="font-bold text-sm mb-1"></p>
-                    <p id="verifyDesc" class="text-white/50 text-xs mb-3"></p>
+                    <p id="verifyDesc" class="text-theme-text/50 text-xs mb-3"></p>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="playerVerifyCheckbox" class="rounded bg-black/50 border-white/20">
-                        <span id="verifyLabel" class="text-sm text-white"></span>
+                        <input type="checkbox" id="playerVerifyCheckbox" class="rounded bg-theme-input-bg border-theme-border">
+                        <span id="verifyLabel" class="text-sm text-theme-text"></span>
                     </label>
                 </div>
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="closePlayerModal('statusModal')"
-                        class="px-4 py-2 text-gray-400 hover:text-white text-sm font-bold uppercase">Cancel</button>
+                        class="px-4 py-2 text-theme-text-muted hover:text-theme-text text-sm font-bold uppercase">Cancel</button>
                     <button type="submit"
                         class="px-6 py-2 bg-brand-blue text-black rounded-lg font-bold uppercase shadow-[0_0_15px_rgba(0,243,255,0.3)] hover:shadow-[0_0_25px_rgba(0,243,255,0.5)] transition-all">Update
                         Status</button>
@@ -361,23 +361,23 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
-        <div class="bg-brand-gray border border-red-500/30 rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
+    <div id="deleteModal" class="fixed inset-0 bg-theme-bg hidden items-center justify-center z-50 backdrop-blur-sm p-4">
+        <div class="bg-theme-card border border-red-500/30 rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
                     <i class="fa-solid fa-triangle-exclamation text-3xl text-red-500"></i>
                 </div>
-                <h3 class="font-display font-bold text-xl text-white mb-2">Delete Player?</h3>
-                <p class="text-gray-400 text-sm">Are you sure you want to delete <span id="deletePlayerName"
-                        class="text-white font-bold"></span>? This action cannot be undone.</p>
+                <h3 class="font-display font-bold text-xl text-theme-text mb-2">Delete Player?</h3>
+                <p class="text-theme-text-muted text-sm">Are you sure you want to delete <span id="deletePlayerName"
+                        class="text-theme-text font-bold"></span>? This action cannot be undone.</p>
             </div>
             <form id="deleteForm" method="POST" action="">
                 {% csrf_token %}
                 <div class="flex gap-3">
                     <button type="button" onclick="closePlayerModal('deleteModal')"
-                        class="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white font-bold uppercase transition-colors">Cancel</button>
+                        class="flex-1 px-4 py-2 bg-theme-card hover:bg-theme-card-hover rounded-lg text-theme-text font-bold uppercase transition-colors">Cancel</button>
                     <button type="submit"
-                        class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white font-bold uppercase shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all">Delete</button>
+                        class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-theme-text font-bold uppercase shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all">Delete</button>
                 </div>
             </form>
         </div>
@@ -544,8 +544,8 @@
 
 <!-- Notify Players Modal -->
 <div id="notifyModal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/70 backdrop-blur-sm">
-    <div class="bg-[#0f0f0f] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
-        <button onclick="closeModal()" class="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+    <div class="bg-[#0f0f0f] border border-theme-border rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-theme-text-muted hover:text-theme-text transition-colors">
             <i class="fa-solid fa-xmark text-xl"></i>
         </button>
         <div class="flex items-center gap-3 mb-6">
@@ -553,26 +553,26 @@
                 <i class="fa-solid fa-bullhorn text-brand-blue"></i>
             </div>
             <div>
-                <h2 id="notifyModalTitle" class="text-white font-display font-bold text-lg leading-none">Notify All Players</h2>
-                <p id="notifyModalDesc" class="text-white/40 text-xs mt-1">Sends an in-app notification to all active players</p>
+                <h2 id="notifyModalTitle" class="text-theme-text font-display font-bold text-lg leading-none">Notify All Players</h2>
+                <p id="notifyModalDesc" class="text-theme-text-muted text-xs mt-1">Sends an in-app notification to all active players</p>
             </div>
         </div>
         <form method="POST" action="{% url 'admin_notify_players' %}">
             {% csrf_token %}
             <input type="hidden" name="target_id" id="notifyTargetId" value="all">
             <div class="mb-4">
-                <label class="block text-xs text-white/60 font-bold uppercase tracking-widest mb-2">Message *</label>
+                <label class="block text-xs text-theme-text/60 font-bold uppercase tracking-widest mb-2">Message *</label>
                 <textarea name="message" rows="4" required placeholder="Enter your notification message here..."
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-brand-blue outline-none resize-none placeholder-white/20"></textarea>
+                    class="w-full bg-theme-card border border-theme-border rounded-lg px-4 py-3 text-sm text-theme-text focus:ring-1 focus:ring-brand-blue outline-none resize-none placeholder-theme-text-muted"></textarea>
             </div>
             <div class="mb-6">
-                <label class="block text-xs text-white/60 font-bold uppercase tracking-widest mb-2">Link (optional)</label>
+                <label class="block text-xs text-theme-text/60 font-bold uppercase tracking-widest mb-2">Link (optional)</label>
                 <input type="text" name="link" placeholder="e.g. /players/dashboard/"
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue outline-none placeholder-white/20">
+                    class="w-full bg-theme-card border border-theme-border rounded-lg px-4 py-2 text-sm text-theme-text focus:ring-1 focus:ring-brand-blue outline-none placeholder-theme-text-muted">
             </div>
             <div class="flex gap-3">
                 <button type="button" onclick="closeModal()"
-                    class="flex-1 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white font-bold text-sm transition-all">Cancel</button>
+                    class="flex-1 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text/60 hover:text-theme-text font-bold text-sm transition-all">Cancel</button>
                 <button type="submit"
                     class="flex-1 py-2 rounded-lg bg-brand-blue text-black font-bold text-sm tracking-wider uppercase hover:bg-white transition-all">
                     <i class="fa-solid fa-paper-plane mr-2"></i>Send
@@ -657,7 +657,7 @@
             confirmButtonText: 'Yes, Archive All',
             customClass: {
                 popup: 'custom-swal-popup border border-red-500/30',
-                confirmButton: 'text-white font-bold uppercase tracking-widest',
+                confirmButton: 'text-theme-text font-bold uppercase tracking-widest',
             }
         }).then((result) => {
             if (result.isConfirmed) {

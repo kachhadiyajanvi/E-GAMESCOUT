@@ -8,8 +8,8 @@
 <div class="flex gap-3">
     <form method="GET" action="{% url 'admin_tournament_approvals' %}" class="relative w-64 group">
         <input type="hidden" name="tab" value="{{ current_tab }}">
-        <input type="text" name="q" value="{{ request.GET.q|default_if_none:'' }}" placeholder="Search..." class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-green-400 focus:border-transparent outline-none transition-all placeholder-white/30">
-        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-green-400 transition-colors text-xs bg-transparent border-none cursor-pointer">
+        <input type="text" name="q" value="{{ request.GET.q|default_if_none:'' }}" placeholder="Search..." class="w-full bg-theme-card border border-theme-border rounded-lg px-4 py-2 text-sm text-theme-text focus:ring-1 focus:ring-green-400 focus:border-transparent outline-none transition-all placeholder-theme-text-muted">
+        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-theme-text/30 group-focus-within:text-green-400 transition-colors text-xs bg-transparent border-none cursor-pointer">
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
     </form>
@@ -19,20 +19,20 @@
 {% block page_content %}
 
     <!-- Tabs -->
-    <div class="flex gap-4 border-b border-white/10 mb-6">
-        <a href="?tab=pending" class="pb-3 px-2 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors {% if current_tab == 'pending' %}border-purple-500 text-white{% else %}border-transparent text-white/40 hover:text-white{% endif %}">
+    <div class="flex gap-4 border-b border-theme-border mb-6">
+        <a href="?tab=pending" class="pb-3 px-2 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors {% if current_tab == 'pending' %}border-purple-500 text-theme-text{% else %}border-transparent text-theme-text-muted hover:text-theme-text{% endif %}">
             Pending
         </a>
-        <a href="?tab=history" class="pb-3 px-2 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors {% if current_tab == 'history' %}border-purple-500 text-white{% else %}border-transparent text-white/40 hover:text-white{% endif %}">
+        <a href="?tab=history" class="pb-3 px-2 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors {% if current_tab == 'history' %}border-purple-500 text-theme-text{% else %}border-transparent text-theme-text-muted hover:text-theme-text{% endif %}">
             History (Approved/Rejected)
         </a>
     </div>
 
     <!-- Approvals Table -->
-    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
+    <div class="bg-theme-card border border-theme-border rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
         <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
             <thead>
-                <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
+                <tr class="bg-theme-card border-b border-theme-border text-xs text-theme-text/50 uppercase tracking-widest">
                     <th class="p-4 font-bold">Tournament</th>
                     <th class="p-4 font-bold">Organizer</th>
                     <th class="p-4 font-bold">Details</th>
@@ -42,7 +42,7 @@
             </thead>
             <tbody class="divide-y divide-white/5 text-sm">
                 {% for tournament in tournaments %}
-                <tr class="hover:bg-white/5 transition-colors group">
+                <tr class="hover:bg-theme-card transition-colors group">
                     <td class="p-4">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-lg bg-gradient-to-br {% if tournament.approval_status == 'APPROVED' %}from-green-500 to-emerald-600{% elif tournament.approval_status == 'REJECTED' %}from-red-500 to-pink-600{% else %}from-yellow-500 to-orange-500{% endif %} p-[2px]">
@@ -57,28 +57,28 @@
                                 </div>
                             </div>
                             <div>
-                                <h4 class="font-bold text-white group-hover:text-purple-400 transition-colors">
+                                <h4 class="font-bold text-theme-text group-hover:text-purple-400 transition-colors">
                                     {{ tournament.Name }}</h4>
-                                <p class="text-xs text-white/40">ID: #{{ tournament.Tournament_ID }}</p>
+                                <p class="text-xs text-theme-text-muted">ID: #{{ tournament.Tournament_ID }}</p>
                             </div>
                         </div>
                     </td>
-                    <td class="p-4 text-white/80">
+                    <td class="p-4 text-theme-text/80">
                         <span class="flex items-center gap-2">
                             {{ tournament.Organization_Name.Organization_Name }}
                             {% if tournament.Organization_Name.is_verified %}
                             <i class="fa-solid fa-circle-check text-yellow-400 text-xs" title="Verified Organization"></i>
                             {% endif %}
                         </span>
-                        <p class="text-xs text-white/40">{{ tournament.Organization_Name.Organization_Email }}</p>
+                        <p class="text-xs text-theme-text-muted">{{ tournament.Organization_Name.Organization_Email }}</p>
                     </td>
                     <td class="p-4">
                         <div class="flex flex-col gap-1">
                             <span class="text-xs font-mono text-brand-blue">{{ tournament.PrizePool }} INR</span>
-                            <span class="text-[10px] text-white/40 uppercase">{{ tournament.max_teams }} Teams • {% if tournament.is_offline %}Offline{% else %}Online{% endif %}</span>
+                            <span class="text-[10px] text-theme-text-muted uppercase">{{ tournament.max_teams }} Teams • {% if tournament.is_offline %}Offline{% else %}Online{% endif %}</span>
                         </div>
                     </td>
-                    <td class="p-4 text-white/40">
+                    <td class="p-4 text-theme-text-muted">
                          {% if current_tab == 'history' %}
                             {{ tournament.UpdatedAt|date:"M d, Y" }}
                          {% else %}
@@ -94,7 +94,7 @@
                             data-start="{{ tournament.start_date|date:'M d, Y' }}"
                             data-end="{{ tournament.end_date|date:'M d, Y' }}" data-teams="{{ tournament.max_teams }}"
                             data-type="{% if tournament.is_offline %}Offline{% else %}Online{% endif %}"
-                            class="text-white/40 hover:text-accent-cyan transition-colors px-2" title="View Details">
+                            class="text-theme-text-muted hover:text-accent-cyan transition-colors px-2" title="View Details">
                             <i class="fa-solid fa-eye"></i>
                         </button>
 
@@ -102,14 +102,14 @@
                             <form method="POST" action="{% url 'admin_approve_tournament' tournament.Tournament_ID %}" class="inline ml-2">
                                 {% csrf_token %}
                                 <button type="submit"
-                                    class="px-3 py-1 bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white rounded text-xs font-bold uppercase transition-colors" title="Approve Tournament">
+                                    class="px-3 py-1 bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-theme-text rounded text-xs font-bold uppercase transition-colors" title="Approve Tournament">
                                     <i class="fa-solid fa-check mr-1"></i> Approve
                                 </button>
                             </form>
 
                             <button
                                 onclick="openRejectModal('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
-                                class="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded text-xs font-bold uppercase transition-colors ml-2" title="Reject Tournament">
+                                class="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-theme-text rounded text-xs font-bold uppercase transition-colors ml-2" title="Reject Tournament">
                                 <i class="fa-solid fa-xmark mr-1"></i> Reject
                             </button>
                         {% else %}
@@ -122,10 +122,10 @@
                 {% empty %}
                 <tr>
                     <td colspan="5" class="p-12 text-center">
-                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                            <i class="fa-solid fa-clipboard-check text-2xl text-white/20"></i>
+                        <div class="w-16 h-16 rounded-full bg-theme-card flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-clipboard-check text-2xl text-theme-text/20"></i>
                         </div>
-                        <p class="text-white/60 font-bold">No {% if current_tab == 'history' %}History{% else %}Pending Approvals{% endif %}</p>
+                        <p class="text-theme-text/60 font-bold">No {% if current_tab == 'history' %}History{% else %}Pending Approvals{% endif %}</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -136,14 +136,14 @@
     </div>
 
     <!-- View Tournament Modal (Copied from Detail view, stylized for review) -->
-    <div id="viewTournamentModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
-        <div class="bg-brand-gray border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+    <div id="viewTournamentModal" class="fixed inset-0 bg-theme-bg hidden items-center justify-center z-50 backdrop-blur-sm p-4">
+        <div class="bg-theme-card border border-theme-border rounded-xl w-full max-w-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
             <!-- Header -->
-            <div class="p-6 border-b border-white/10 bg-black/20 flex items-center justify-between">
-                <h3 class="font-display font-bold text-xl text-white flex items-center gap-2">
+            <div class="p-6 border-b border-theme-border bg-theme-header-bg flex items-center justify-between">
+                <h3 class="font-display font-bold text-xl text-theme-text flex items-center gap-2">
                     <i class="fa-solid fa-magnifying-glass text-accent-cyan"></i> Tournament Review
                 </h3>
-                <button type="button" onclick="closeModal('viewTournamentModal')" class="text-white/40 hover:text-white transition-colors">
+                <button type="button" onclick="closeModal('viewTournamentModal')" class="text-theme-text-muted hover:text-theme-text transition-colors">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -152,52 +152,52 @@
             <div class="p-8 overflow-y-auto">
                 <div class="flex flex-col md:flex-row gap-8">
                     <!-- Left: Basic Info -->
-                    <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-white/10 pb-6 md:pb-0 md:pr-6 text-center">
+                    <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-theme-border pb-6 md:pb-0 md:pr-6 text-center">
                         <div class="w-24 h-24 mx-auto bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl p-0.5 mb-4 shadow-lg shadow-yellow-500/20">
                             <div class="w-full h-full bg-black rounded-[10px] flex items-center justify-center">
-                                <i class="fa-solid fa-hourglass-half text-4xl text-white"></i>
+                                <i class="fa-solid fa-hourglass-half text-4xl text-theme-text"></i>
                             </div>
                         </div>
-                        <h2 id="viewTournName" class="text-xl font-display font-bold text-white mb-1"></h2>
+                        <h2 id="viewTournName" class="text-xl font-display font-bold text-theme-text mb-1"></h2>
                         <p class="text-xs text-yellow-400 font-bold uppercase tracking-wider mb-4">Pending Approval</p>
 
-                        <div class="bg-white/5 rounded-lg p-3 border border-white/5">
-                            <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Organizer</p>
-                            <p id="viewTournOrg" class="text-white font-bold text-sm"></p>
+                        <div class="bg-theme-card rounded-lg p-3 border border-theme-border-light">
+                            <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Organizer</p>
+                            <p id="viewTournOrg" class="text-theme-text font-bold text-sm"></p>
                         </div>
                     </div>
 
                     <!-- Right: Details -->
                     <div class="flex-1 space-y-6">
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
-                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Prize Pool</p>
+                            <div class="bg-theme-card p-3 rounded-lg border border-theme-border-light">
+                                <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Prize Pool</p>
                                 <p class="text-accent-cyan font-bold font-mono">₹<span id="viewTournPrize"></span></p>
                             </div>
-                            <div class="bg-white/5 p-3 rounded-lg border border-white/5">
-                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Type</p>
-                                <p id="viewTournType" class="text-white font-bold"></p>
+                            <div class="bg-theme-card p-3 rounded-lg border border-theme-border-light">
+                                <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Type</p>
+                                <p id="viewTournType" class="text-theme-text font-bold"></p>
                             </div>
                         </div>
 
                         <div>
-                            <p class="text-[10px] text-white/40 uppercase font-bold mb-2">Schedule</p>
-                            <div class="flex items-center gap-3 text-sm text-gray-300 bg-black/20 p-3 rounded-lg border border-white/5">
+                            <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-2">Schedule</p>
+                            <div class="flex items-center gap-3 text-sm text-gray-300 bg-theme-header-bg p-3 rounded-lg border border-theme-border-light">
                                 <i class="fa-regular fa-calendar text-yellow-500"></i>
                                 <span id="viewTournStart"></span>
-                                <span class="text-white/20">to</span>
+                                <span class="text-theme-text/20">to</span>
                                 <span id="viewTournEnd"></span>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Max Teams</p>
-                                <p id="viewTournTeams" class="text-white">---</p>
+                                <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Max Teams</p>
+                                <p id="viewTournTeams" class="text-theme-text">---</p>
                             </div>
                             <div>
-                                <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Created On</p>
-                                <p id="viewTournCreated" class="text-white text-xs">---</p>
+                                <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Created On</p>
+                                <p id="viewTournCreated" class="text-theme-text text-xs">---</p>
                             </div>
                         </div>
                     </div>
@@ -205,8 +205,8 @@
             </div>
 
             <!-- Footer -->
-            <div class="p-4 bg-black/20 border-t border-white/10 flex justify-end">
-                <button type="button" onclick="closeModal('viewTournamentModal')" class="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold uppercase text-sm transition-colors">
+            <div class="p-4 bg-theme-header-bg border-t border-theme-border flex justify-end">
+                <button type="button" onclick="closeModal('viewTournamentModal')" class="px-6 py-2 bg-theme-card-hover hover:bg-white/20 text-theme-text rounded-lg font-bold uppercase text-sm transition-colors">
                     Close
                 </button>
             </div>
@@ -214,14 +214,14 @@
     </div>
 
     <!-- Reject Confirmation Modal -->
-    <div id="rejectModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
-        <div class="bg-brand-gray border border-red-500/30 rounded-xl w-full max-w-md shadow-2xl relative flex flex-col">
+    <div id="rejectModal" class="fixed inset-0 bg-theme-bg hidden items-center justify-center z-50 backdrop-blur-sm p-4">
+        <div class="bg-theme-card border border-red-500/30 rounded-xl w-full max-w-md shadow-2xl relative flex flex-col">
             <!-- Header -->
-            <div class="p-6 border-b border-white/10 bg-black/20 flex items-center justify-between">
-                <h3 class="font-display font-bold text-xl text-white flex items-center gap-2">
+            <div class="p-6 border-b border-theme-border bg-theme-header-bg flex items-center justify-between">
+                <h3 class="font-display font-bold text-xl text-theme-text flex items-center gap-2">
                     <i class="fa-solid fa-circle-xmark text-red-500"></i> Reject Tournament
                 </h3>
-                <button type="button" onclick="closeModal('rejectModal')" class="text-white/40 hover:text-white transition-colors">
+                <button type="button" onclick="closeModal('rejectModal')" class="text-theme-text-muted hover:text-theme-text transition-colors">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -229,16 +229,16 @@
             <form id="rejectForm" method="POST" action="">
                 {% csrf_token %}
                 <div class="p-6">
-                    <p class="text-white mb-4 text-sm">You are rejecting <strong id="rejectTournName" class="text-red-400"></strong>.</p>
-                    <p class="text-white/60 mb-2 text-xs">Please provide a reason to notify the organizer.</p>
-                    <textarea name="reason" rows="4" required class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm focus:ring-1 focus:ring-red-500 focus:border-transparent outline-none transition-all placeholder-white/20 resize-none" placeholder="Reason for rejection (e.g. Needs more details, Inappropriate content, etc.)"></textarea>
+                    <p class="text-theme-text mb-4 text-sm">You are rejecting <strong id="rejectTournName" class="text-red-400"></strong>.</p>
+                    <p class="text-theme-text/60 mb-2 text-xs">Please provide a reason to notify the organizer.</p>
+                    <textarea name="reason" rows="4" required class="w-full bg-theme-card border border-theme-border rounded-lg p-3 text-theme-text text-sm focus:ring-1 focus:ring-red-500 focus:border-transparent outline-none transition-all placeholder-theme-text-muted resize-none" placeholder="Reason for rejection (e.g. Needs more details, Inappropriate content, etc.)"></textarea>
                 </div>
                 
-                <div class="p-4 bg-black/20 border-t border-white/10 flex justify-end gap-3">
+                <div class="p-4 bg-theme-header-bg border-t border-theme-border flex justify-end gap-3">
                     <button type="button" onclick="closeModal('rejectModal')"
-                        class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white font-bold uppercase text-sm transition-colors">Cancel</button>
+                        class="px-4 py-2 bg-theme-card hover:bg-theme-card-hover rounded-lg text-theme-text font-bold uppercase text-sm transition-colors">Cancel</button>
                     <button type="submit"
-                        class="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white font-bold uppercase text-sm shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all">Reject</button>
+                        class="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-theme-text font-bold uppercase text-sm shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all">Reject</button>
                 </div>
             </form>
         </div>

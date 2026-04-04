@@ -6,7 +6,7 @@
 {% block header_desc %}In-depth analytics and all bids for the current active season.{% endblock %}
 
 {% block header_actions %}
-<a href="{% url 'admin_bidding_dashboard' %}" class="px-6 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white hover:text-black transition-all flex items-center gap-2 whitespace-nowrap">
+<a href="{% url 'admin_bidding_dashboard' %}" class="px-6 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text font-bold text-sm hover:bg-white hover:text-black transition-all flex items-center gap-2 whitespace-nowrap">
     <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
 </a>
 {% endblock %}
@@ -16,14 +16,14 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         
         <!-- All Bids Table -->
-        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col shadow-lg">
-            <h3 class="font-display font-bold text-lg text-white mb-4 flex items-center gap-2">
+        <div class="bg-theme-card border border-theme-border rounded-2xl p-6 backdrop-blur-sm flex flex-col shadow-lg">
+            <h3 class="font-display font-bold text-lg text-theme-text mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-list-ol text-brand-blue"></i> REGULAR BIDS
             </h3>
-            <div class="overflow-auto max-h-[400px] rounded-lg border border-white/10 bg-black/20 custom-scrollbar">
+            <div class="overflow-auto max-h-[400px] rounded-lg border border-theme-border bg-theme-header-bg custom-scrollbar">
                 <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
                     <thead>
-                        <tr class="bg-black/40 border-b border-white/10 text-xs uppercase tracking-widest text-white/50">
+                        <tr class="bg-theme-input-bg border-b border-theme-border text-xs uppercase tracking-widest text-theme-text/50">
                             <th class="p-4 font-bold">Player</th>
                             <th class="p-4 font-bold">Organization</th>
                             <th class="p-4 font-bold text-right">Amount</th>
@@ -32,23 +32,23 @@
                     </thead>
                     <tbody class="text-sm divide-y divide-white/5">
                         {% for bid in all_bids %}
-                        <tr class="hover:bg-white/5 transition-colors">
-                            <td class="p-4 text-white font-bold truncate">{{ bid.player.full_name }}</td>
-                            <td class="p-4 text-white/70 truncate">{{ bid.organization.Organization_Name }}</td>
+                        <tr class="hover:bg-theme-card transition-colors">
+                            <td class="p-4 text-theme-text font-bold truncate">{{ bid.player.full_name }}</td>
+                            <td class="p-4 text-theme-text/70 truncate">{{ bid.organization.Organization_Name }}</td>
                             <td class="p-4 text-brand-blue font-mono font-bold text-right">₹{{ bid.amount|intcomma }}</td>
                             <td class="p-4 text-center">
                                 <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider
                                     {% if bid.status == 'Accepted' %}bg-green-500/20 text-green-400 border border-green-500/30
                                     {% elif bid.status == 'Rejected' %}bg-red-500/20 text-red-400 border border-red-500/30
                                     {% elif bid.status == 'Negotiation' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30
-                                    {% else %}bg-white/10 text-white/60 border border-white/20{% endif %}">
+                                    {% else %}bg-theme-card-hover text-theme-text/60 border border-theme-border{% endif %}">
                                     {{ bid.status }}
                                 </span>
                             </td>
                         </tr>
                         {% empty %}
                          <tr>
-                            <td colspan="4" class="p-8 text-center text-white/40 text-sm whitespace-nowrap border-0">
+                            <td colspan="4" class="p-8 text-center text-theme-text-muted text-sm whitespace-nowrap border-0">
                                 <div class="flex flex-col items-center justify-center gap-2 w-full">
                                     <i class="fa-solid fa-ghost text-3xl opacity-50"></i>
                                     <span>No regular bids placed in the current season yet.</span>
@@ -62,14 +62,14 @@
         </div>
 
         <!-- Top Organizations -->
-        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col shadow-lg">
-            <h3 class="font-display font-bold text-lg text-white mb-4 flex items-center gap-2">
+        <div class="bg-theme-card border border-theme-border rounded-2xl p-6 backdrop-blur-sm flex flex-col shadow-lg">
+            <h3 class="font-display font-bold text-lg text-theme-text mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-trophy text-brand-blue"></i> ORGANIZATION SPENDING
             </h3>
-            <div class="overflow-x-auto rounded-lg border border-white/10 bg-black/20">
+            <div class="overflow-x-auto rounded-lg border border-theme-border bg-theme-header-bg">
                 <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
                     <thead>
-                        <tr class="bg-black/40 border-b border-white/10 text-xs uppercase tracking-widest text-white/50">
+                        <tr class="bg-theme-input-bg border-b border-theme-border text-xs uppercase tracking-widest text-theme-text/50">
                             <th class="p-4 font-bold">Rank</th>
                             <th class="p-4 font-bold">Organization</th>
                             <th class="p-4 font-bold text-center">Players</th>
@@ -78,17 +78,17 @@
                     </thead>
                     <tbody class="text-sm divide-y divide-white/5">
                         {% for org in top_orgs %}
-                        <tr class="hover:bg-white/5 transition-colors">
-                            <td class="p-4 text-white/50 font-bold">#{{ forloop.counter }}</td>
-                            <td class="p-4 text-white font-bold">{{ org.organization__Organization_Name }}</td>
-                            <td class="p-4 text-white/70 text-center">
-                                <span class="bg-white/10 px-2 py-0.5 rounded text-xs font-mono">{{ org.players_acquired }}</span>
+                        <tr class="hover:bg-theme-card transition-colors">
+                            <td class="p-4 text-theme-text/50 font-bold">#{{ forloop.counter }}</td>
+                            <td class="p-4 text-theme-text font-bold">{{ org.organization__Organization_Name }}</td>
+                            <td class="p-4 text-theme-text/70 text-center">
+                                <span class="bg-theme-card-hover px-2 py-0.5 rounded text-xs font-mono">{{ org.players_acquired }}</span>
                             </td>
                             <td class="p-4 text-brand-blue font-mono font-bold text-right">₹{{ org.spent|intcomma }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="p-8 text-center text-white/40 text-sm border-0">
+                            <td colspan="4" class="p-8 text-center text-theme-text-muted text-sm border-0">
                                 <div class="flex flex-col items-center justify-center gap-2 w-full">
                                     <i class="fa-solid fa-wallet text-3xl opacity-50"></i>
                                     <span>No confirmed purchases yet.</span>
@@ -104,95 +104,20 @@
     </div>
 
     <!-- Manual Bids Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-        <!-- Add Manual Bid Box (Form) -->
-        <div class="lg:col-span-1 bg-white/5 border border-brand-blue/30 rounded-2xl p-6 backdrop-blur-sm shadow-[0_0_20px_rgba(37,99,235,0.1)] flex flex-col relative overflow-hidden">
-            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-blue/0 via-brand-blue to-brand-blue/0 opacity-50"></div>
-            
-            <h3 class="font-display font-bold text-lg text-white mb-6 flex items-center gap-3">
-                <i class="fa-solid fa-gavel text-brand-blue"></i> ADD MANUAL BID
-            </h3>
-            
-            <form method="POST" class="space-y-5 flex-grow">
-                {% csrf_token %}
-                <input type="hidden" name="add_manual_bid" value="1">
-                
-                <div>
-                    <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2 flex justify-between">
-                        <span>Select Player</span>
-                        <span class="text-brand-blue">*</span>
-                    </label>
-                    <select name="player_id" required class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue transition-all cursor-pointer">
-                        <option value="" disabled selected class="bg-[#1a1a1a] text-white/50">Choose a player...</option>
-                        {% for p in players %}
-                        <option value="{{ p.id }}" class="bg-[#1a1a1a] text-white">{{ p.full_name }} ({{ p.uid }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2 flex justify-between">
-                        <span>Select Organization</span>
-                        <span class="text-brand-blue">*</span>
-                    </label>
-                    <select name="organization_id" required class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue transition-all cursor-pointer">
-                        <option value="" disabled selected class="bg-[#1a1a1a] text-white/50">Choose an organization...</option>
-                        {% for o in organizations %}
-                        <option value="{{ o.id }}" class="bg-[#1a1a1a] text-white">{{ o.Organization_Name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="hidden">
-                    <!-- Season is auto assigned to active context if available, but let's allow explicit via input if we prefer. 
-                         Since the backend requires it, let's include it. -->
-                    <select name="season_id" required class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white">
-                        {% for s in seasons %}
-                        <option value="{{ s.id }}" {% if active_season and s.id == active_season.id %}selected{% endif %}>{{ s.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">Amount</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 font-mono text-sm">₹</span>
-                            <input type="number" name="amount" required min="0" step="1" placeholder="0" class="w-full bg-black/40 border border-white/10 rounded-xl pl-7 pr-3 py-3 text-sm text-white font-mono focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue transition-all">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">Status</label>
-                        <select name="status" class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-3 text-sm text-white focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue transition-all cursor-pointer">
-                            <option value="Accepted" class="bg-[#1a1a1a] text-green-400">Accepted</option>
-                            <option value="Pending" class="bg-[#1a1a1a] text-white">Pending</option>
-                            <option value="Negotiation" class="bg-[#1a1a1a] text-yellow-400">Negotiation</option>
-                            <option value="Rejected" class="bg-[#1a1a1a] text-red-400">Rejected</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="pt-4 mt-auto">
-                    <button type="submit" class="w-full px-4 py-3 rounded-xl bg-brand-blue hover:bg-brand-blue/90 text-white font-bold shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all focus:outline-none focus:ring-2 focus:ring-brand-blue/50 flex justify-center items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> Submit Manual Bid
-                    </button>
-                    <p class="text-center text-[10px] text-white/40 mt-3 max-w-xs mx-auto">This creates a direct bidirectional linkage and updates the roster if accepted.</p>
-                </div>
-            </form>
-        </div>
+    <div class="mt-8">
         
         <!-- Manual Bids Report Table -->
-        <div class="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col shadow-lg">
+        <div class="bg-theme-card border border-theme-border rounded-2xl p-6 backdrop-blur-sm flex flex-col shadow-lg">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+                <h3 class="font-display font-bold text-lg text-theme-text flex items-center gap-2">
                     <i class="fa-solid fa-book-open text-purple-400"></i> MANUAL BIDS REPORT
                 </h3>
             </div>
             
-            <div class="overflow-auto max-h-[400px] rounded-lg border border-white/10 bg-black/20 flex-grow custom-scrollbar">
+            <div class="overflow-auto max-h-[400px] rounded-lg border border-theme-border bg-theme-header-bg flex-grow custom-scrollbar">
                 <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
                     <thead>
-                        <tr class="bg-black/60 border-b border-white/10 text-[10px] sm:text-xs uppercase tracking-widest text-white/50">
+                        <tr class="bg-theme-bg/80 border-b border-theme-border text-[10px] sm:text-xs uppercase tracking-widest text-theme-text/50">
                             <th class="p-3 sm:p-4 font-bold">Player</th>
                             <th class="p-3 sm:p-4 font-bold">Organization</th>
                             <th class="p-3 sm:p-4 font-bold hidden sm:table-cell">Added At</th>
@@ -202,12 +127,12 @@
                     </thead>
                     <tbody class="text-sm divide-y divide-white/5">
                         {% for bid in manual_bids %}
-                        <tr class="hover:bg-white/5 transition-colors group">
-                            <td class="p-3 sm:p-4 text-white font-bold">
+                        <tr class="hover:bg-theme-card transition-colors group">
+                            <td class="p-3 sm:p-4 text-theme-text font-bold">
                                 {{ bid.player.full_name }}
                             </td>
-                            <td class="p-3 sm:p-4 text-white/70">{{ bid.organization.Organization_Name }}</td>
-                            <td class="p-3 sm:p-4 text-white/40 text-[11px] hidden sm:table-cell">
+                            <td class="p-3 sm:p-4 text-theme-text/70">{{ bid.organization.Organization_Name }}</td>
+                            <td class="p-3 sm:p-4 text-theme-text-muted text-[11px] hidden sm:table-cell">
                                 {{ bid.created_at|date:"M d, Y h:i A" }}
                             </td>
                             <td class="p-3 sm:p-4 text-brand-blue font-mono font-bold text-right">₹{{ bid.amount|intcomma }}</td>
@@ -216,16 +141,16 @@
                                     {% if bid.status == 'Accepted' %}bg-green-500/20 text-green-400 border border-green-500/30
                                     {% elif bid.status == 'Rejected' %}bg-red-500/20 text-red-400 border border-red-500/30
                                     {% elif bid.status == 'Negotiation' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30
-                                    {% else %}bg-white/10 text-white/60 border border-white/20{% endif %}">
+                                    {% else %}bg-theme-card-hover text-theme-text/60 border border-theme-border{% endif %}">
                                     {{ bid.status }}
                                 </span>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="p-12 text-center text-white/40 text-sm border-0">
+                            <td colspan="5" class="p-12 text-center text-theme-text-muted text-sm border-0">
                                 <div class="flex flex-col items-center justify-center gap-3 w-full">
-                                    <div class="w-12 h-12 rounded-full border border-dashed border-white/20 flex items-center justify-center">
+                                    <div class="w-12 h-12 rounded-full border border-dashed border-theme-border flex items-center justify-center">
                                         <i class="fa-solid fa-ghost text-xl opacity-50"></i>
                                     </div>
                                     <span>No manual bids have been added.</span>

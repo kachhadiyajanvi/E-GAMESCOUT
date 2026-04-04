@@ -7,21 +7,21 @@
 {% block page_content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<body class="bg-black text-white font-sans">
+<body class="bg-black text-theme-text font-sans">
     <div class="container mx-auto px-4 py-8 space-y-12">
 
         <!-- DASHBOARD OVERVIEW CARDS -->
         <div class="grid grid-cols-3 gap-2 md:gap-6">
             <!-- Players Card -->
-            <div onclick="showSection('players')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl md:rounded-2xl p-2 sm:p-4 md:p-6 hover:border-brand-blue/50 hover:bg-brand-blue/5 transition-all group relative overflow-hidden flex flex-col justify-between">
+            <div onclick="showSection('players')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-theme-border rounded-xl md:rounded-2xl p-2 sm:p-4 md:p-6 hover:border-brand-blue/50 hover:bg-brand-blue/5 transition-all group relative overflow-hidden flex flex-col justify-between">
                 <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <i class="fa-solid fa-user-slash text-3xl md:text-6xl"></i>
                 </div>
                 <div class="relative z-10 mb-2 md:mb-4">
-                    <div class="text-white/50 text-[9px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest mb-1 md:mb-2 truncate" title="Archived Players">Archived Players</div>
+                    <div class="text-theme-text/50 text-[9px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest mb-1 md:mb-2 truncate" title="Archived Players">Archived Players</div>
                     <div class="text-xl md:text-4xl font-display font-bold text-brand-blue">{{ total_players }}</div>
                 </div>
-                <div class="relative z-10 flex items-center text-[9px] md:text-xs text-white/40 group-hover:text-brand-blue transition-colors mt-auto">
+                <div class="relative z-10 flex items-center text-[9px] md:text-xs text-theme-text-muted group-hover:text-brand-blue transition-colors mt-auto">
                     <span class="hidden sm:inline">View Details</span>
                     <span class="sm:hidden">View</span>
                     <i class="fa-solid fa-arrow-right ml-1 sm:ml-2 opacity-100 md:opacity-0 md:-translate-x-2 md:group-hover:translate-x-0 md:group-hover:opacity-100 transition-all"></i>
@@ -29,15 +29,15 @@
             </div>
 
             <!-- Organizations Card -->
-            <div onclick="showSection('orgs')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl md:rounded-2xl p-2 sm:p-4 md:p-6 hover:border-brand-pink/50 hover:bg-brand-pink/5 transition-all group relative overflow-hidden flex flex-col justify-between">
+            <div onclick="showSection('orgs')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-theme-border rounded-xl md:rounded-2xl p-2 sm:p-4 md:p-6 hover:border-brand-pink/50 hover:bg-brand-pink/5 transition-all group relative overflow-hidden flex flex-col justify-between">
                 <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <i class="fa-solid fa-building-circle-xmark text-3xl md:text-6xl"></i>
                 </div>
                 <div class="relative z-10 mb-2 md:mb-4">
-                    <div class="text-white/50 text-[9px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest mb-1 md:mb-2 truncate" title="Archived Organizations">Archived Orgs</div>
+                    <div class="text-theme-text/50 text-[9px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest mb-1 md:mb-2 truncate" title="Archived Organizations">Archived Orgs</div>
                     <div class="text-xl md:text-4xl font-display font-bold text-brand-pink">{{ total_orgs }}</div>
                 </div>
-                <div class="relative z-10 flex items-center text-[9px] md:text-xs text-white/40 group-hover:text-brand-pink transition-colors mt-auto">
+                <div class="relative z-10 flex items-center text-[9px] md:text-xs text-theme-text-muted group-hover:text-brand-pink transition-colors mt-auto">
                     <span class="hidden sm:inline">View Details</span>
                     <span class="sm:hidden">View</span>
                     <i class="fa-solid fa-arrow-right ml-1 sm:ml-2 opacity-100 md:opacity-0 md:-translate-x-2 md:group-hover:translate-x-0 md:group-hover:opacity-100 transition-all"></i>
@@ -45,15 +45,15 @@
             </div>
 
             <!-- Tournaments Card -->
-            <div onclick="showSection('tournaments')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl md:rounded-2xl p-2 sm:p-4 md:p-6 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all group relative overflow-hidden flex flex-col justify-between">
+            <div onclick="showSection('tournaments')" class="cursor-pointer bg-gradient-to-br from-white/5 to-white/0 border border-theme-border rounded-xl md:rounded-2xl p-2 sm:p-4 md:p-6 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all group relative overflow-hidden flex flex-col justify-between">
                 <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <i class="fa-solid fa-calendar-xmark text-3xl md:text-6xl"></i>
                 </div>
                 <div class="relative z-10 mb-2 md:mb-4">
-                    <div class="text-white/50 text-[9px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest mb-1 md:mb-2 truncate" title="Archived Tournaments">Archived Tours</div>
+                    <div class="text-theme-text/50 text-[9px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest mb-1 md:mb-2 truncate" title="Archived Tournaments">Archived Tours</div>
                     <div class="text-xl md:text-4xl font-display font-bold text-purple-500">{{ total_tours }}</div>
                 </div>
-                <div class="relative z-10 flex items-center text-[9px] md:text-xs text-white/40 group-hover:text-purple-400 transition-colors mt-auto">
+                <div class="relative z-10 flex items-center text-[9px] md:text-xs text-theme-text-muted group-hover:text-purple-400 transition-colors mt-auto">
                     <span class="hidden sm:inline">View Details</span>
                     <span class="sm:hidden">View</span>
                     <i class="fa-solid fa-arrow-right ml-1 sm:ml-2 opacity-100 md:opacity-0 md:-translate-x-2 md:group-hover:translate-x-0 md:group-hover:opacity-100 transition-all"></i>
@@ -64,31 +64,31 @@
         <!-- ANALYTICS SECTION -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Distribution Chart -->
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                <h3 class="text-sm font-bold text-white/70 mb-6 uppercase tracking-wider">Archive Distribution</h3>
+            <div class="bg-theme-card border border-theme-border rounded-2xl p-6 backdrop-blur-sm">
+                <h3 class="text-sm font-bold text-theme-text/70 mb-6 uppercase tracking-wider">Archive Distribution</h3>
                 <div class="aspect-square relative flex items-center justify-center">
                     <canvas id="distributionChart"></canvas>
                 </div>
             </div>
             
             <!-- Report Summary -->
-            <div class="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col justify-between">
+            <div class="lg:col-span-2 bg-theme-card border border-theme-border rounded-2xl p-6 backdrop-blur-sm flex flex-col justify-between">
                 <div>
-                    <h3 class="text-sm font-bold text-white/70 mb-6 uppercase tracking-wider">Archive Summary Report</h3>
+                    <h3 class="text-sm font-bold text-theme-text/70 mb-6 uppercase tracking-wider">Archive Summary Report</h3>
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="p-4 rounded-xl bg-white/5 border border-white/5">
-                            <div class="text-xs text-white/40 mb-1">Total Archived Records</div>
-                            <div class="text-2xl font-bold text-white">{{ total_players|add:total_orgs|add:total_tours }}</div>
+                        <div class="p-4 rounded-xl bg-theme-card border border-theme-border-light">
+                            <div class="text-xs text-theme-text-muted mb-1">Total Archived Records</div>
+                            <div class="text-2xl font-bold text-theme-text">{{ total_players|add:total_orgs|add:total_tours }}</div>
                         </div>
-                        <div class="p-4 rounded-xl bg-white/5 border border-white/5">
-                            <div class="text-xs text-white/40 mb-1">Last System Backup</div>
+                        <div class="p-4 rounded-xl bg-theme-card border border-theme-border-light">
+                            <div class="text-xs text-theme-text-muted mb-1">Last System Backup</div>
                             <div class="text-sm font-mono text-green-400">Automated (Daily)</div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="mt-8">
-                    <div class="text-xs text-white/30 italic mb-4">
+                    <div class="text-xs text-theme-text/30 italic mb-4">
                         * Use the export buttons in the tables below to download detailed reports for each category.
                     </div>
                     <div class="flex gap-3 flex-wrap">
@@ -113,17 +113,17 @@
             <section id="section-players" class="archive-section transition-all duration-300">
                 <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                     <h3 class="text-xl font-bold font-display tracking-widest text-brand-blue flex items-center gap-3">
-                        <i class="fa-solid fa-user-slash text-white/40"></i>
+                        <i class="fa-solid fa-user-slash text-theme-text-muted"></i>
                         ARCHIVED PLAYERS
                     </h3>
                     <div class="flex items-center gap-3 w-full md:w-auto">
-                        <a href="?export=players" class="h-10 px-4 flex items-center justify-center rounded-lg border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-colors text-sm">
+                        <a href="?export=players" class="h-10 px-4 flex items-center justify-center rounded-lg border border-theme-border text-theme-text/60 hover:text-theme-text hover:bg-theme-card transition-colors text-sm">
                             <i class="fa-solid fa-download mr-2"></i> Export
                         </a>
                         <form method="GET" class="relative group w-full md:w-64">
                             <input type="text" name="player_q" value="{{ player_q }}" placeholder="Search players..." 
-                                class="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder-white/30">
-                            <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-brand-blue transition-colors">
+                                class="w-full bg-theme-header-bg border border-theme-border rounded-lg px-4 py-2 text-sm text-theme-text focus:ring-1 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder-theme-text-muted">
+                            <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-theme-text/30 hover:text-brand-blue transition-colors">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </button>
                         </form>
@@ -134,10 +134,10 @@
                     {% csrf_token %}
                     <input type="hidden" name="action_type" value="delete_players">
                     
-                    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl relative">
+                    <div class="bg-theme-card border border-theme-border rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl relative">
                         <div id="playersToolbar" class="hidden absolute top-0 left-0 right-0 bg-gray-900 border-b border-brand-blue/20 p-2 px-4 flex items-center justify-between z-10 h-[57px]">
                             <span class="text-brand-blue font-bold text-sm"><span id="playersCount">0</span> Selected</span>
-                            <button type="button" onclick="confirmDelete('playersForm')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg flex items-center gap-2">
+                            <button type="button" onclick="confirmDelete('playersForm')" class="bg-red-500 hover:bg-red-600 text-theme-text px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg flex items-center gap-2">
                                 <i class="fa-solid fa-trash-can"></i> Delete Permanently
                             </button>
                         </div>
@@ -146,8 +146,8 @@
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
                                 <thead>
-                                    <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
-                                        <th class="p-4 w-10"><input type="checkbox" onchange="toggleSelectAll('players', this)" class="accent-brand-blue w-4 h-4 bg-white/10 border-white/20 rounded cursor-pointer"></th>
+                                    <tr class="bg-theme-card border-b border-theme-border text-xs text-theme-text/50 uppercase tracking-widest">
+                                        <th class="p-4 w-10"><input type="checkbox" onchange="toggleSelectAll('players', this)" class="accent-brand-blue w-4 h-4 bg-theme-card-hover border-theme-border rounded cursor-pointer"></th>
                                         <th class="p-4 font-bold">Player</th>
                                         <th class="p-4 font-bold">Details</th>
                                         <th class="p-4 font-bold">Archived Date</th>
@@ -156,33 +156,33 @@
                                 <tbody class="divide-y divide-white/5 text-sm">
                                     {% for player in archived_players %}
                                     <tr class="hover:bg-red-500/5 transition-colors group">
-                                        <td class="p-4"><input type="checkbox" name="selected_ids" value="{{ player.id }}" onchange="updateToolbar('players')" class="players-checkbox accent-brand-blue w-4 h-4 bg-white/10 border-white/20 rounded cursor-pointer"></td>
+                                        <td class="p-4"><input type="checkbox" name="selected_ids" value="{{ player.id }}" onchange="updateToolbar('players')" class="players-checkbox accent-brand-blue w-4 h-4 bg-theme-card-hover border-theme-border rounded cursor-pointer"></td>
                                         <td class="p-4">
                                             <div class="flex items-center gap-4">
-                                                <div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 overflow-hidden flex-shrink-0">
+                                                <div class="w-10 h-10 rounded-full bg-theme-card border border-theme-border overflow-hidden flex-shrink-0">
                                                     {% if player.profile_photo %}
                                                     <img src="{{ player.profile_photo.url }}" class="w-full h-full object-cover">
                                                     {% else %}
-                                                    <div class="w-full h-full flex items-center justify-center font-bold text-white/30 text-xs">{{ player.full_name|slice:":2"|upper }}</div>
+                                                    <div class="w-full h-full flex items-center justify-center font-bold text-theme-text/30 text-xs">{{ player.full_name|slice:":2"|upper }}</div>
                                                     {% endif %}
                                                 </div>
                                                 <div>
-                                                    <div class="font-bold text-white">{{ player.full_name }}</div>
-                                                    <div class="text-xs text-white/40 font-mono">UID: {{ player.uid }}</div>
+                                                    <div class="font-bold text-theme-text">{{ player.full_name }}</div>
+                                                    <div class="text-xs text-theme-text-muted font-mono">UID: {{ player.uid }}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="p-4">
                                             <div class="flex flex-col gap-1 text-xs">
-                                                <div class="text-white/70">{{ player.email }}</div>
-                                                <div class="text-white/50">{{ player.mobile_no }}</div>
+                                                <div class="text-theme-text/70">{{ player.email }}</div>
+                                                <div class="text-theme-text/50">{{ player.mobile_no }}</div>
                                             </div>
                                         </td>
-                                        <td class="p-4 text-white/50 text-xs font-mono">
+                                        <td class="p-4 text-theme-text/50 text-xs font-mono">
                                             {% if player.archived_at %}
                                                 {{ player.archived_at|date:"d M Y" }}
                                             {% else %}
-                                                <span class="text-white/20 italic">Unknown</span>
+                                                <span class="text-theme-text/20 italic">Unknown</span>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -191,7 +191,7 @@
                             </table>
                         </div>
                         {% else %}
-                        <div class="p-12 text-center text-white/40">No archived players found.</div>
+                        <div class="p-12 text-center text-theme-text-muted">No archived players found.</div>
                         {% endif %}
                     </div>
                 </form>
@@ -201,17 +201,17 @@
             <section id="section-orgs" class="archive-section hidden transition-all duration-300">
                 <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                     <h3 class="text-xl font-bold font-display tracking-widest text-brand-pink flex items-center gap-3">
-                        <i class="fa-solid fa-building-circle-xmark text-white/40"></i>
+                        <i class="fa-solid fa-building-circle-xmark text-theme-text-muted"></i>
                         ARCHIVED ORGANIZATIONS
                     </h3>
                     <div class="flex items-center gap-3 w-full md:w-auto">
-                        <a href="?export=orgs" class="h-10 px-4 flex items-center justify-center rounded-lg border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-colors text-sm">
+                        <a href="?export=orgs" class="h-10 px-4 flex items-center justify-center rounded-lg border border-theme-border text-theme-text/60 hover:text-theme-text hover:bg-theme-card transition-colors text-sm">
                             <i class="fa-solid fa-download mr-2"></i> Export
                         </a>
                         <form method="GET" class="relative group w-full md:w-64">
                             <input type="text" name="org_q" value="{{ org_q }}" placeholder="Search organizations..." 
-                                class="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-brand-pink focus:border-transparent outline-none transition-all placeholder-white/30">
-                            <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-brand-pink transition-colors">
+                                class="w-full bg-theme-header-bg border border-theme-border rounded-lg px-4 py-2 text-sm text-theme-text focus:ring-1 focus:ring-brand-pink focus:border-transparent outline-none transition-all placeholder-theme-text-muted">
+                            <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-theme-text/30 hover:text-brand-pink transition-colors">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </button>
                         </form>
@@ -221,10 +221,10 @@
                 <form method="POST" action="{% url 'admin_archive_actions' %}" id="orgsForm">
                     {% csrf_token %}
                     <input type="hidden" name="action_type" value="delete_orgs">
-                    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl relative">
+                    <div class="bg-theme-card border border-theme-border rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl relative">
                         <div id="orgsToolbar" class="hidden absolute top-0 left-0 right-0 bg-gray-900 border-b border-brand-pink/20 p-2 px-4 flex items-center justify-between z-10 h-[57px]">
                             <span class="text-brand-pink font-bold text-sm"><span id="orgsCount">0</span> Selected</span>
-                            <button type="button" onclick="confirmDelete('orgsForm')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg flex items-center gap-2">
+                            <button type="button" onclick="confirmDelete('orgsForm')" class="bg-red-500 hover:bg-red-600 text-theme-text px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg flex items-center gap-2">
                                 <i class="fa-solid fa-trash-can"></i> Delete Permanently
                             </button>
                         </div>
@@ -233,8 +233,8 @@
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
                                 <thead>
-                                    <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
-                                        <th class="p-4 w-10"><input type="checkbox" onchange="toggleSelectAll('orgs', this)" class="accent-brand-pink w-4 h-4 bg-white/10 border-white/20 rounded cursor-pointer"></th>
+                                    <tr class="bg-theme-card border-b border-theme-border text-xs text-theme-text/50 uppercase tracking-widest">
+                                        <th class="p-4 w-10"><input type="checkbox" onchange="toggleSelectAll('orgs', this)" class="accent-brand-pink w-4 h-4 bg-theme-card-hover border-theme-border rounded cursor-pointer"></th>
                                         <th class="p-4 font-bold">Organization</th>
                                         <th class="p-4 font-bold">Contact</th>
                                         <th class="p-4 font-bold">Archived Date</th>
@@ -243,32 +243,32 @@
                                 <tbody class="divide-y divide-white/5 text-sm">
                                     {% for org in archived_orgs %}
                                     <tr class="hover:bg-red-500/5 transition-colors group">
-                                        <td class="p-4"><input type="checkbox" name="selected_ids" value="{{ org.id }}" onchange="updateToolbar('orgs')" class="orgs-checkbox accent-brand-pink w-4 h-4 bg-white/10 border-white/20 rounded cursor-pointer"></td>
+                                        <td class="p-4"><input type="checkbox" name="selected_ids" value="{{ org.id }}" onchange="updateToolbar('orgs')" class="orgs-checkbox accent-brand-pink w-4 h-4 bg-theme-card-hover border-theme-border rounded cursor-pointer"></td>
                                         <td class="p-4">
                                             <div class="flex items-center gap-4">
-                                                <div class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 overflow-hidden flex-shrink-0">
+                                                <div class="w-10 h-10 rounded-lg bg-theme-card border border-theme-border overflow-hidden flex-shrink-0">
                                                     {% if org.profile_photo %}
                                                     <img src="{{ org.profile_photo.url }}" class="w-full h-full object-cover">
                                                     {% else %}
-                                                    <div class="w-full h-full flex items-center justify-center font-bold text-white/30 text-xs">{{ org.Organization_Name|slice:":1"|upper }}</div>
+                                                    <div class="w-full h-full flex items-center justify-center font-bold text-theme-text/30 text-xs">{{ org.Organization_Name|slice:":1"|upper }}</div>
                                                     {% endif %}
                                                 </div>
                                                 <div>
-                                                    <div class="font-bold text-white">{{ org.Organization_Name }}</div>
-                                                    <div class="text-xs text-white/40 font-mono">@{{ org.Organization_UserName }}</div>
+                                                    <div class="font-bold text-theme-text">{{ org.Organization_Name }}</div>
+                                                    <div class="text-xs text-theme-text-muted font-mono">@{{ org.Organization_UserName }}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="p-4">
                                             <div class="flex flex-col gap-1 text-xs">
-                                                <span class="text-white/70">{{ org.Organization_Email }}</span>
+                                                <span class="text-theme-text/70">{{ org.Organization_Email }}</span>
                                             </div>
                                         </td>
-                                        <td class="p-4 text-white/50 text-xs font-mono">
+                                        <td class="p-4 text-theme-text/50 text-xs font-mono">
                                             {% if org.archived_at %}
                                                 {{ org.archived_at|date:"d M Y" }}
                                             {% else %}
-                                                <span class="text-white/20 italic">Unknown</span>
+                                                <span class="text-theme-text/20 italic">Unknown</span>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -277,7 +277,7 @@
                             </table>
                         </div>
                         {% else %}
-                        <div class="p-12 text-center text-white/40">No archived organizations found.</div>
+                        <div class="p-12 text-center text-theme-text-muted">No archived organizations found.</div>
                         {% endif %}
                     </div>
                 </form>
@@ -287,17 +287,17 @@
             <section id="section-tournaments" class="archive-section hidden transition-all duration-300">
                 <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                     <h3 class="text-xl font-bold font-display tracking-widest text-purple-500 flex items-center gap-3">
-                        <i class="fa-solid fa-calendar-xmark text-white/40"></i>
+                        <i class="fa-solid fa-calendar-xmark text-theme-text-muted"></i>
                         ARCHIVED TOURNAMENTS
                     </h3>
                     <div class="flex items-center gap-3 w-full md:w-auto">
-                        <a href="?export=tournaments" class="h-10 px-4 flex items-center justify-center rounded-lg border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-colors text-sm">
+                        <a href="?export=tournaments" class="h-10 px-4 flex items-center justify-center rounded-lg border border-theme-border text-theme-text/60 hover:text-theme-text hover:bg-theme-card transition-colors text-sm">
                             <i class="fa-solid fa-download mr-2"></i> Export
                         </a>
                         <form method="GET" class="relative group w-full md:w-64">
                             <input type="text" name="tour_q" value="{{ tour_q }}" placeholder="Search tournaments..." 
-                                class="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder-white/30">
-                            <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-purple-500 transition-colors">
+                                class="w-full bg-theme-header-bg border border-theme-border rounded-lg px-4 py-2 text-sm text-theme-text focus:ring-1 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder-theme-text-muted">
+                            <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-theme-text/30 hover:text-purple-500 transition-colors">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </button>
                         </form>
@@ -307,10 +307,10 @@
                 <form method="POST" action="{% url 'admin_archive_actions' %}" id="tourForm">
                     {% csrf_token %}
                     <input type="hidden" name="action_type" value="delete_tournaments">
-                    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl relative">
+                    <div class="bg-theme-card border border-theme-border rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl relative">
                         <div id="tourToolbar" class="hidden absolute top-0 left-0 right-0 bg-gray-900 border-b border-purple-500/20 p-2 px-4 flex items-center justify-between z-10 h-[57px]">
                             <span class="text-purple-400 font-bold text-sm"><span id="tourCount">0</span> Selected</span>
-                            <button type="button" onclick="confirmDelete('tourForm')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg flex items-center gap-2">
+                            <button type="button" onclick="confirmDelete('tourForm')" class="bg-red-500 hover:bg-red-600 text-theme-text px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg flex items-center gap-2">
                                 <i class="fa-solid fa-trash-can"></i> Delete Permanently
                             </button>
                         </div>
@@ -319,8 +319,8 @@
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
                                 <thead>
-                                    <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
-                                        <th class="p-4 w-10"><input type="checkbox" onchange="toggleSelectAll('tour', this)" class="accent-purple-500 w-4 h-4 bg-white/10 border-white/20 rounded cursor-pointer"></th>
+                                    <tr class="bg-theme-card border-b border-theme-border text-xs text-theme-text/50 uppercase tracking-widest">
+                                        <th class="p-4 w-10"><input type="checkbox" onchange="toggleSelectAll('tour', this)" class="accent-purple-500 w-4 h-4 bg-theme-card-hover border-theme-border rounded cursor-pointer"></th>
                                         <th class="p-4 font-bold">Tournament</th>
                                         <th class="p-4 font-bold">Organizer</th>
                                         <th class="p-4 font-bold">Status</th>
@@ -330,26 +330,26 @@
                                 <tbody class="divide-y divide-white/5 text-sm">
                                     {% for tour in archived_tournaments %}
                                     <tr class="hover:bg-red-500/5 transition-colors group">
-                                        <td class="p-4"><input type="checkbox" name="selected_ids" value="{{ tour.Tournament_ID }}" onchange="updateToolbar('tour')" class="tour-checkbox accent-purple-500 w-4 h-4 bg-white/10 border-white/20 rounded cursor-pointer"></td>
+                                        <td class="p-4"><input type="checkbox" name="selected_ids" value="{{ tour.Tournament_ID }}" onchange="updateToolbar('tour')" class="tour-checkbox accent-purple-500 w-4 h-4 bg-theme-card-hover border-theme-border rounded cursor-pointer"></td>
                                         <td class="p-4">
-                                            <div class="font-bold text-white text-base">{{ tour.Name }}</div>
-                                            <div class="text-xs font-mono text-white/40">ID: #{{ tour.Tournament_ID }}</div>
+                                            <div class="font-bold text-theme-text text-base">{{ tour.Name }}</div>
+                                            <div class="text-xs font-mono text-theme-text-muted">ID: #{{ tour.Tournament_ID }}</div>
                                         </td>
                                         <td class="p-4">
                                             {% if tour.Organization_Name %}
-                                            <div class="font-bold text-white/80">{{ tour.Organization_Name.Organization_Name }}</div>
+                                            <div class="font-bold text-theme-text/80">{{ tour.Organization_Name.Organization_Name }}</div>
                                             {% else %}
-                                            <span class="text-white/30 italic">Unknown</span>
+                                            <span class="text-theme-text/30 italic">Unknown</span>
                                             {% endif %}
                                         </td>
                                         <td class="p-4">
-                                            <span class="px-2 py-1 bg-white/5 rounded border border-white/10 text-xs font-bold text-white/60">{{ tour.Status }}</span>
+                                            <span class="px-2 py-1 bg-theme-card rounded border border-theme-border text-xs font-bold text-theme-text/60">{{ tour.Status }}</span>
                                         </td>
-                                        <td class="p-4 text-white/50 text-xs font-mono">
+                                        <td class="p-4 text-theme-text/50 text-xs font-mono">
                                             {% if tour.archived_at %}
                                                 {{ tour.archived_at|date:"d M Y" }}
                                             {% else %}
-                                                <span class="text-white/20 italic">Unknown</span>
+                                                <span class="text-theme-text/20 italic">Unknown</span>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -358,7 +358,7 @@
                             </table>
                         </div>
                         {% else %}
-                        <div class="p-12 text-center text-white/40">No archived tournaments found.</div>
+                        <div class="p-12 text-center text-theme-text-muted">No archived tournaments found.</div>
                         {% endif %}
                     </div>
                 </form>
@@ -434,7 +434,7 @@
             
             // Handle case where there's purely zero data
             if (total === 0) {
-                canvas.outerHTML = '<div class="absolute inset-0 flex items-center justify-center text-white/30 text-xs font-bold uppercase tracking-widest"><i class="fa-solid fa-chart-pie mr-2"></i> No Archive Data Available</div>';
+                canvas.outerHTML = '<div class="absolute inset-0 flex items-center justify-center text-theme-text/30 text-xs font-bold uppercase tracking-widest"><i class="fa-solid fa-chart-pie mr-2"></i> No Archive Data Available</div>';
                 return;
             }
 
@@ -459,7 +459,7 @@
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } }
+                            labels: { color: window.getChartColors().text, font: { size: 10 } }
                         }
                     },
                     cutout: '70%',

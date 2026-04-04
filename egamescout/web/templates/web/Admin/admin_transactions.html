@@ -3,7 +3,7 @@
 {% block content %}
 <div class="p-6 md:p-8 space-y-6">
     <div class="flex items-center justify-between">
-        <h2 class="text-3xl font-display font-bold text-white mb-2">Platform Transactions</h2>
+        <h2 class="text-3xl font-display font-bold text-theme-text mb-2">Platform Transactions</h2>
         <div class="flex gap-2">
             <span class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider border border-blue-500/30">
                 Total Volume: ₹{{ total_volume|default:"--" }}
@@ -11,10 +11,10 @@
         </div>
     </div>
 
-    <div class="glass-panel p-0 rounded-xl overflow-hidden border border-white/10">
+    <div class="glass-panel p-0 rounded-xl overflow-hidden border border-theme-border">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-black/40 text-brand-light/50 text-xs uppercase tracking-wider border-b border-white/10">
+                <thead class="bg-theme-input-bg text-theme-text-muted/50 text-xs uppercase tracking-wider border-b border-theme-border">
                     <tr>
                         <th class="p-4 font-bold">ID</th>
                         <th class="p-4 font-bold">Sender (Org)</th>
@@ -26,12 +26,12 @@
                 </thead>
                 <tbody class="text-sm divide-y divide-white/5">
                     {% for txn in transactions %}
-                    <tr class="hover:bg-white/5 transition-colors group">
-                        <td class="p-4 text-brand-light/40 font-mono text-xs">{{ txn.id }}</td>
-                        <td class="p-4 font-bold text-white">
+                    <tr class="hover:bg-theme-card transition-colors group">
+                        <td class="p-4 text-theme-text-muted/40 font-mono text-xs">{{ txn.id }}</td>
+                        <td class="p-4 font-bold text-theme-text">
                             {{ txn.sender.Organization_Name|default:"System" }}
                         </td>
-                        <td class="p-4 text-brand-light/70">
+                        <td class="p-4 text-theme-text-muted/70">
                             {% if txn.recipient %}
                                 <span class="text-green-400">Org: {{ txn.recipient.Organization_Name }}</span>
                             {% elif txn.recipient_player %}
@@ -46,16 +46,16 @@
                                 {{ txn.get_transaction_type_display }}
                             </span>
                         </td>
-                        <td class="p-4 text-right font-mono font-bold text-white">
+                        <td class="p-4 text-right font-mono font-bold text-theme-text">
                             ₹{{ txn.amount|floatformat:2 }}
                         </td>
-                        <td class="p-4 text-right text-brand-light/50 font-mono text-xs">
+                        <td class="p-4 text-right text-theme-text-muted/50 font-mono text-xs">
                             {{ txn.timestamp|date:"M d H:i" }}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="p-8 text-center text-brand-light/30">No transactions found.</td>
+                        <td colspan="6" class="p-8 text-center text-theme-text-muted/30">No transactions found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

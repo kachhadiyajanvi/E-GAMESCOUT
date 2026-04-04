@@ -21,11 +21,11 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <!-- Players Card -->
         <div
-            class="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-cyan-500/30 rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-cyan-400/60 transition-all group">
+            class="bg-theme-card border border-theme-border rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-brand-blue/30 transition-all group">
             <div class="flex justify-between items-start mb-3 sm:mb-4">
                 <div class="min-w-0 pr-2">
-                    <p class="text-cyan-300/80 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">Active Players</p>
-                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-cyan-300">{{ active_players|intcomma }}</h3>
+                    <p class="text-theme-text-muted text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">Active Players</p>
+                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-theme-text">{{ active_players|intcomma }}</h3>
                 </div>
                 <div class="text-3xl sm:text-4xl opacity-20 group-hover:opacity-40 transition-opacity shrink-0">
                     <i class="fa-solid fa-user"></i>
@@ -33,14 +33,14 @@
             </div>
             <div class="space-y-1.5 sm:space-y-2">
                 <div class="flex justify-between text-[10px] sm:text-xs font-mono">
-                    <span class="text-white/40">Total</span>
-                    <span class="text-cyan-300">{{ total_players|intcomma }}</span>
+                    <span class="text-theme-text-muted">Total</span>
+                    <span class="text-theme-text">{{ total_players|intcomma }}</span>
                 </div>
                 <div class="flex justify-between text-[10px] sm:text-xs font-mono">
-                    <span class="text-white/40">Conversion</span>
+                    <span class="text-theme-text-muted">Conversion</span>
                     <span class="text-green-400">{{ player_conversion|floatformat:1 }}%</span>
                 </div>
-                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-1 sm:mt-2">
+                <div class="h-1 bg-theme-card rounded-full overflow-hidden mt-1 sm:mt-2">
                     <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 w-[var(--progress)]"
                         style="--progress: {{ player_conversion|floatformat:0 }}%;">
                     </div>
@@ -51,11 +51,11 @@
 
         <!-- Organizations Card -->
         <div
-            class="bg-gradient-to-br from-pink-600/20 to-rose-600/20 border border-pink-500/30 rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-pink-400/60 transition-all group">
+            class="bg-theme-card border border-theme-border rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-brand-pink/30 transition-all group">
             <div class="flex justify-between items-start mb-3 sm:mb-4">
                 <div class="min-w-0 pr-2">
-                    <p class="text-pink-300/80 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">Active Orgs</p>
-                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-pink-300">{{ active_orgs|intcomma }}</h3>
+                    <p class="text-theme-text-muted text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">Active Orgs</p>
+                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-theme-text">{{ active_orgs|intcomma }}</h3>
                 </div>
                 <div class="text-3xl sm:text-4xl opacity-20 group-hover:opacity-40 transition-opacity shrink-0">
                     <i class="fa-solid fa-building"></i>
@@ -63,14 +63,14 @@
             </div>
             <div class="space-y-1.5 sm:space-y-2">
                 <div class="flex justify-between text-[10px] sm:text-xs font-mono">
-                    <span class="text-white/40">Total</span>
-                    <span class="text-pink-300">{{ total_orgs|intcomma }}</span>
+                    <span class="text-theme-text-muted">Total</span>
+                    <span class="text-theme-text">{{ total_orgs|intcomma }}</span>
                 </div>
                 <div class="flex justify-between text-[10px] sm:text-xs font-mono">
-                    <span class="text-white/40">Conversion</span>
+                    <span class="text-theme-text-muted">Conversion</span>
                     <span class="text-green-400">{{ org_conversion|floatformat:1 }}%</span>
                 </div>
-                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-1 sm:mt-2">
+                <div class="h-1 bg-theme-card rounded-full overflow-hidden mt-1 sm:mt-2">
                     <div class="h-full bg-gradient-to-r from-pink-500 to-rose-500 w-[var(--progress)]"
                         style="--progress: {{ org_conversion|floatformat:0 }}%;">
                     </div>
@@ -81,11 +81,11 @@
 
         <!-- Tournaments Card -->
         <div
-            class="bg-gradient-to-br from-purple-600/20 to-violet-600/20 border border-purple-500/30 rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-purple-400/60 transition-all group">
+            class="bg-theme-card border border-theme-border rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-purple-500/30 transition-all group">
             <div class="flex justify-between items-start mb-3 sm:mb-4">
                 <div class="min-w-0 pr-2">
-                    <p class="text-purple-300/80 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">Tournaments</p>
-                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-purple-300">{{ ongoing_tournaments|intcomma }}</h3>
+                    <p class="text-theme-text-muted text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">Tournaments</p>
+                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-theme-text">{{ ongoing_tournaments|intcomma }}</h3>
                 </div>
                 <div class="text-3xl sm:text-4xl opacity-20 group-hover:opacity-40 transition-opacity shrink-0">
                     <i class="fa-solid fa-trophy"></i>
@@ -93,14 +93,14 @@
             </div>
             <div class="space-y-1.5 sm:space-y-2">
                 <div class="flex justify-between text-[10px] sm:text-xs font-mono">
-                    <span class="text-white/40">Total</span>
-                    <span class="text-purple-300">{{ total_tournaments|intcomma }}</span>
+                    <span class="text-theme-text-muted">Total</span>
+                    <span class="text-theme-text">{{ total_tournaments|intcomma }}</span>
                 </div>
                 <div class="flex justify-between text-[10px] sm:text-xs font-mono">
-                    <span class="text-white/40">Completed</span>
+                    <span class="text-theme-text-muted">Completed</span>
                     <span class="text-amber-400">{{ completed_tournaments }}</span>
                 </div>
-                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-1 sm:mt-2">
+                <div class="h-1 bg-theme-card rounded-full overflow-hidden mt-1 sm:mt-2">
                     <div class="h-full bg-gradient-to-r from-purple-500 to-violet-500 w-[var(--progress)]"
                         style="--progress: {{ ongoing_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                     </div>
@@ -111,11 +111,11 @@
 
         <!-- System Health Card -->
         <div
-            class="bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-emerald-400/60 transition-all group">
+            class="bg-theme-card border border-theme-border rounded-xl p-4 sm:p-6 backdrop-blur-md hover:border-emerald-500/30 transition-all group">
             <div class="flex justify-between items-start mb-3 sm:mb-4">
                 <div class="min-w-0 pr-2">
-                    <p class="text-emerald-300/80 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">System Health</p>
-                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-emerald-300">98.5%</h3>
+                    <p class="text-theme-text-muted text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-1 truncate">System Health</p>
+                    <h3 class="text-2xl sm:text-3xl font-display font-bold text-theme-text">98.5%</h3>
                 </div>
                 <div class="text-3xl sm:text-4xl opacity-20 group-hover:opacity-40 transition-opacity shrink-0">
                     <i class="fa-solid fa-bolt"></i>
@@ -124,11 +124,11 @@
             <div class="space-y-1.5 sm:space-y-2">
                 <div class="flex gap-1.5 flex-wrap">
                     <span
-                        class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-[10px] px-1.5 py-0.5 rounded">API ✓</span>
+                        class="bg-emerald-500/20 border border-emerald-500/50 text-theme-text text-[10px] px-1.5 py-0.5 rounded">API ✓</span>
                     <span
-                        class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-[10px] px-1.5 py-0.5 rounded">DB ✓</span>
+                        class="bg-emerald-500/20 border border-emerald-500/50 text-theme-text text-[10px] px-1.5 py-0.5 rounded">DB ✓</span>
                 </div>
-                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2 sm:mt-3">
+                <div class="h-1 bg-theme-card rounded-full overflow-hidden mt-2 sm:mt-3">
                     <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500" style="width: 98.5%"></div>
                 </div>
                 <div class="text-[10px] sm:text-xs text-green-400 pt-1 sm:pt-2">All systems running</div>
@@ -139,28 +139,28 @@
     <!-- USER STATUS BREAKDOWN -->
     <div class="grid grid-cols-3 gap-2 md:gap-4">
         <!-- Player Status -->
-        <div class="bg-white/5 border border-white/10 rounded-xl p-3 md:p-5 backdrop-blur-md">
-            <h3 class="text-white font-bold text-[9px] md:text-sm uppercase tracking-wider mb-3 md:mb-4 flex items-center justify-center md:justify-start gap-1.5 md:gap-2">
+        <div class="bg-theme-card border border-theme-border rounded-xl p-3 md:p-5 backdrop-blur-md">
+            <h3 class="text-theme-text font-bold text-[9px] md:text-sm uppercase tracking-wider mb-3 md:mb-4 flex items-center justify-center md:justify-start gap-1.5 md:gap-2">
                 <i class="fa-solid fa-users text-cyan-400"></i> <span class="truncate">Player Status</span>
             </h3>
             <div class="space-y-2 md:space-y-2 text-[10px] md:text-sm">
                 <div class="flex justify-between items-center text-center md:text-left">
-                    <span class="text-white/70">Active</span>
+                    <span class="text-theme-text/70">Active</span>
                     <div class="flex items-center gap-2">
                         <div class="text-center md:text-right">
-                            <span class="font-bold text-cyan-300">{{ active_players }}</span>
+                            <span class="font-bold text-theme-text">{{ active_players }}</span>
                         </div>
-                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-theme-card-hover rounded-full overflow-hidden">
                             <div class="h-full bg-cyan-500 w-[var(--progress)]"
                                 style="--progress: {{ player_conversion|floatformat:0 }}%;"></div>
                         </div>
                     </div>
                 </div>
                 <div class="flex justify-between items-center text-center md:text-left">
-                    <span class="text-white/70">Pending</span>
+                    <span class="text-theme-text/70">Pending</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-yellow-400">{{ pending_players }}</span>
-                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-theme-card-hover rounded-full overflow-hidden">
                             <div class="h-full bg-yellow-500 w-[var(--progress)]"
                                 style="--progress: {{ pending_players|percentage:total_players|floatformat:0 }}%;">
                             </div>
@@ -168,10 +168,10 @@
                     </div>
                 </div>
                 <div class="flex justify-between items-center text-center md:text-left">
-                    <span class="text-white/70">Suspended</span>
+                    <span class="text-theme-text/70">Suspended</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-red-400">{{ suspended_players }}</span>
-                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-theme-card-hover rounded-full overflow-hidden">
                             <div class="h-full bg-red-500 w-[var(--progress)]"
                                 style="--progress: {{ suspended_players|percentage:total_players|floatformat:0 }}%;">
                             </div>
@@ -182,26 +182,26 @@
         </div>
 
         <!-- Organization Status -->
-        <div class="bg-white/5 border border-white/10 rounded-xl p-3 md:p-5 backdrop-blur-md">
-            <h3 class="text-white font-bold text-[9px] md:text-sm uppercase tracking-wider mb-3 md:mb-4 flex items-center justify-center md:justify-start gap-1.5 md:gap-2">
+        <div class="bg-theme-card border border-theme-border rounded-xl p-3 md:p-5 backdrop-blur-md">
+            <h3 class="text-theme-text font-bold text-[9px] md:text-sm uppercase tracking-wider mb-3 md:mb-4 flex items-center justify-center md:justify-start gap-1.5 md:gap-2">
                 <i class="fa-solid fa-building text-pink-400"></i> <span class="truncate">Org Status</span>
             </h3>
             <div class="space-y-2 md:space-y-2 text-[10px] md:text-sm">
                 <div class="flex justify-between items-center text-center md:text-left">
-                    <span class="text-white/70">Active</span>
+                    <span class="text-theme-text/70">Active</span>
                     <div class="flex items-center gap-2">
-                        <span class="font-bold text-pink-300">{{ active_orgs }}</span>
-                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
+                        <span class="font-bold text-theme-text">{{ active_orgs }}</span>
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-theme-card-hover rounded-full overflow-hidden">
                             <div class="h-full bg-pink-500 w-[var(--progress)]"
                                 style="--progress: {{ org_conversion|floatformat:0 }}%;"></div>
                         </div>
                     </div>
                 </div>
                 <div class="flex justify-between items-center text-center md:text-left">
-                    <span class="text-white/70">Pending</span>
+                    <span class="text-theme-text/70">Pending</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-yellow-400">{{ pending_orgs }}</span>
-                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-theme-card-hover rounded-full overflow-hidden">
                             <div class="h-full bg-yellow-500 w-[var(--progress)]"
                                 style="--progress: {{ pending_orgs|percentage:total_orgs|floatformat:0 }}%;">
                             </div>
@@ -209,10 +209,10 @@
                     </div>
                 </div>
                 <div class="flex justify-between items-center text-center md:text-left">
-                    <span class="text-white/70">Suspended</span>
+                    <span class="text-theme-text/70">Suspended</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-red-400">{{ suspended_orgs }}</span>
-                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-theme-card-hover rounded-full overflow-hidden">
                             <div class="h-full bg-red-500 w-[var(--progress)]"
                                 style="--progress: {{ suspended_orgs|percentage:total_orgs|floatformat:0 }}%;">
                             </div>
@@ -223,16 +223,16 @@
         </div>
 
         <!-- Tournament Status -->
-        <div class="bg-white/5 border border-white/10 rounded-xl p-3 md:p-5 backdrop-blur-md">
-            <h3 class="text-white font-bold text-[9px] md:text-sm uppercase tracking-wider mb-3 md:mb-4 flex items-center justify-center md:justify-start gap-1.5 md:gap-2">
+        <div class="bg-theme-card border border-theme-border rounded-xl p-3 md:p-5 backdrop-blur-md">
+            <h3 class="text-theme-text font-bold text-[9px] md:text-sm uppercase tracking-wider mb-3 md:mb-4 flex items-center justify-center md:justify-start gap-1.5 md:gap-2">
                 <i class="fa-solid fa-trophy text-purple-400"></i> <span class="truncate">Tourneys</span>
             </h3>
             <div class="space-y-2 md:space-y-2 text-[10px] md:text-sm">
                 <div class="flex justify-between items-center text-center md:text-left">
-                    <span class="text-white/70">Ongoing</span>
+                    <span class="text-theme-text/70">Ongoing</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-blue-400">{{ ongoing_tournaments }}</span>
-                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-theme-card-hover rounded-full overflow-hidden">
                             <div class="h-full bg-blue-500 w-[var(--progress)]"
                                 style="--progress: {{ ongoing_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                             </div>
@@ -240,10 +240,10 @@
                     </div>
                 </div>
                 <div class="flex justify-between items-center text-center md:text-left">
-                    <span class="text-white/70">Scheduled</span>
+                    <span class="text-theme-text/70">Scheduled</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-green-400">{{ scheduled_tournaments }}</span>
-                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-theme-card-hover rounded-full overflow-hidden">
                             <div class="h-full bg-green-500 w-[var(--progress)]"
                                 style="--progress: {{ scheduled_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                             </div>
@@ -251,10 +251,10 @@
                     </div>
                 </div>
                 <div class="flex justify-between items-center text-center md:text-left">
-                    <span class="text-white/70">Completed</span>
+                    <span class="text-theme-text/70">Completed</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-amber-400">{{ completed_tournaments }}</span>
-                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="hidden lg:block w-12 xl:w-16 h-1.5 xl:h-2 bg-theme-card-hover rounded-full overflow-hidden">
                             <div class="h-full bg-amber-500 w-[var(--progress)]"
                                 style="--progress: {{ completed_tournaments|percentage:total_tournaments|floatformat:0 }}%;">
                             </div>
@@ -269,11 +269,11 @@
     <div class="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-4">
         <!-- Prize Pool -->
         <div
-            class="bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border border-amber-500/30 rounded-xl p-4 md:p-6 backdrop-blur-md">
+            class="bg-theme-card border border-theme-border rounded-xl p-4 md:p-6 backdrop-blur-md">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-amber-300/80 text-[10px] md:text-xs font-bold tracking-widest md:tracking-widest uppercase mb-1 md:mb-2">Total Prize Pool</p>
-                    <h3 class="text-xl md:text-2xl font-display font-bold text-amber-300">₹{{ total_prize_pool|intcomma }}</h3>
+                    <p class="text-theme-text-muted text-[10px] md:text-xs font-bold tracking-widest md:tracking-widest uppercase mb-1 md:mb-2">Total Prize Pool</p>
+                    <h3 class="text-xl md:text-2xl font-display font-bold text-theme-text">₹{{ total_prize_pool|intcomma }}</h3>
                 </div>
                 <i class="fa-solid fa-coins text-amber-400/30 text-3xl md:text-4xl"></i>
             </div>
@@ -281,11 +281,11 @@
 
         <!-- System Coins -->
         <div
-            class="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 rounded-xl p-4 md:p-6 backdrop-blur-md">
+            class="bg-theme-card border border-theme-border rounded-xl p-4 md:p-6 backdrop-blur-md">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-cyan-300/80 text-[10px] md:text-xs font-bold tracking-widest md:tracking-widest uppercase mb-1 md:mb-2">Circulating Coins</p>
-                    <h3 class="text-xl md:text-2xl font-display font-bold text-cyan-300">₹{{ total_coins|intcomma }}</h3>
+                    <p class="text-theme-text-muted text-[10px] md:text-xs font-bold tracking-widest md:tracking-widest uppercase mb-1 md:mb-2">Circulating Coins</p>
+                    <h3 class="text-xl md:text-2xl font-display font-bold text-theme-text">₹{{ total_coins|intcomma }}</h3>
                 </div>
                 <i class="fa-solid fa-gem text-cyan-400/30 text-3xl md:text-4xl"></i>
             </div>
@@ -299,19 +299,19 @@
     <!-- CHARTS SECTION -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <!-- Main Growth Chart -->
-        <div class="lg:col-span-2 bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-md">
+        <div class="lg:col-span-2 bg-theme-card border border-theme-border rounded-xl p-6 backdrop-blur-md">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h3 class="font-display font-bold text-lg text-white">📈 PLATFORM GROWTH</h3>
-                    <p class="text-xs text-white/40 font-mono mt-1" id="chartPeriodLabel">Last 30 Days</p>
+                    <h3 class="font-display font-bold text-lg text-theme-text">📈 PLATFORM GROWTH</h3>
+                    <p class="text-xs text-theme-text-muted font-mono mt-1" id="chartPeriodLabel">Last 30 Days</p>
                 </div>
-                <div class="flex bg-white/5 rounded-lg p-1 gap-1">
+                <div class="flex bg-theme-card rounded-lg p-1 gap-1">
                     <button onclick="updateChart('week')" id="btn-week"
-                        class="px-3 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5">WEEK</button>
+                        class="px-3 py-1.5 rounded-md text-xs font-bold transition-all text-theme-text-muted hover:text-theme-text hover:bg-theme-card">WEEK</button>
                     <button onclick="updateChart('month')" id="btn-month"
                         class="px-3 py-1.5 rounded-md text-xs font-bold bg-brand-blue text-black shadow-lg">MONTH</button>
                     <button onclick="updateChart('year')" id="btn-year"
-                        class="px-3 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5">YEAR</button>
+                        class="px-3 py-1.5 rounded-md text-xs font-bold transition-all text-theme-text-muted hover:text-theme-text hover:bg-theme-card">YEAR</button>
                 </div>
             </div>
             <div class="h-80 relative">
@@ -320,25 +320,25 @@
         </div>
 
         <!-- User Distribution Pie -->
-        <div class="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-md flex flex-col">
-            <h3 class="font-display font-bold text-sm text-white mb-6 flex items-center gap-2">
+        <div class="bg-theme-card border border-theme-border rounded-xl p-6 backdrop-blur-md flex flex-col">
+            <h3 class="font-display font-bold text-sm text-theme-text mb-6 flex items-center gap-2">
                 <i class="fa-solid fa-chart-doughnut text-cyan-400"></i> User Distribution
             </h3>
             <div class="relative h-56 flex items-center justify-center">
                 <canvas id="userDistributionChart"></canvas>
                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span class="text-2xl font-bold text-white">{{ total_players|add:total_orgs|intcomma }}</span>
-                    <span class="text-[10px] text-white/40 uppercase tracking-wider">Total Users</span>
+                    <span class="text-2xl font-bold text-theme-text">{{ total_players|add:total_orgs|intcomma }}</span>
+                    <span class="text-[10px] text-theme-text-muted uppercase tracking-wider">Total Users</span>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-3 mt-6">
                 <div class="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-3">
-                    <p class="text-cyan-300 font-bold text-sm">{{ total_players|intcomma }}</p>
-                    <p class="text-cyan-300/60 text-xs">Players</p>
+                    <p class="text-theme-text font-bold text-sm">{{ total_players|intcomma }}</p>
+                    <p class="text-theme-text/60 text-xs">Players</p>
                 </div>
                 <div class="bg-pink-500/10 border border-pink-500/20 rounded-lg p-3">
-                    <p class="text-pink-300 font-bold text-sm">{{ total_orgs|intcomma }}</p>
-                    <p class="text-pink-300/60 text-xs">Organizations</p>
+                    <p class="text-theme-text font-bold text-sm">{{ total_orgs|intcomma }}</p>
+                    <p class="text-theme-text/60 text-xs">Organizations</p>
                 </div>
             </div>
         </div>
@@ -348,29 +348,29 @@
 
 {% block page_scripts %}
     <!-- Analytics Export Modal -->
-    <div id="exportAnalyticsModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-        <div class="bg-brand-gray border border-white/10 rounded-xl max-w-sm w-full shadow-2xl overflow-hidden transform transition-all transform-gpu">
+    <div id="exportAnalyticsModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-theme-bg backdrop-blur-sm p-4">
+        <div class="bg-theme-card border border-theme-border rounded-xl max-w-sm w-full shadow-2xl overflow-hidden transform transition-all transform-gpu">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-white font-bold text-lg font-display uppercase tracking-widest"><i class="fa-solid fa-file-export text-green-400 mr-2"></i> Export Report</h3>
-                    <button type="button" onclick="document.getElementById('exportAnalyticsModal').classList.add('hidden')" class="text-white/40 hover:text-white transition-colors">
+                    <h3 class="text-theme-text font-bold text-lg font-display uppercase tracking-widest"><i class="fa-solid fa-file-export text-green-400 mr-2"></i> Export Report</h3>
+                    <button type="button" onclick="document.getElementById('exportAnalyticsModal').classList.add('hidden')" class="text-theme-text-muted hover:text-theme-text transition-colors">
                         <i class="fa-solid fa-xmark text-xl"></i>
                     </button>
                 </div>
-                <p class="text-sm text-white/60 mb-6">Select the format and date scope for your analytics data extraction.</p>
+                <p class="text-sm text-theme-text/60 mb-6">Select the format and date scope for your analytics data extraction.</p>
                 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-1.5">File Format</label>
-                        <select id="exportFormat" class="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 text-white text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all outline-none">
+                        <label class="block text-xs font-bold text-theme-text/50 uppercase tracking-widest mb-1.5">File Format</label>
+                        <select id="exportFormat" class="w-full bg-theme-card border border-theme-border rounded-lg p-2.5 text-theme-text text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all outline-none">
                             <option value="csv">CSV Document (.csv)</option>
                             <option value="pdf">PDF Report (.pdf)</option>
                             <option value="xlsx">Excel File (.xlsx)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-1.5">Date Range</label>
-                        <select id="exportRange" class="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 text-white text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all outline-none">
+                        <label class="block text-xs font-bold text-theme-text/50 uppercase tracking-widest mb-1.5">Date Range</label>
+                        <select id="exportRange" class="w-full bg-theme-card border border-theme-border rounded-lg p-2.5 text-theme-text text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all outline-none">
                             <option value="7">Last 7 Days</option>
                             <option value="30" selected>Last 30 Days</option>
                             <option value="90">Last 90 Days</option>
@@ -379,8 +379,8 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-white/5 p-4 border-t border-white/5 flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('exportAnalyticsModal').classList.add('hidden')" class="px-4 py-2 rounded-lg text-white/60 hover:text-white text-sm font-bold transition-colors">CANCEL</button>
+            <div class="bg-theme-card p-4 border-t border-theme-border-light flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('exportAnalyticsModal').classList.add('hidden')" class="px-4 py-2 rounded-lg text-theme-text/60 hover:text-theme-text text-sm font-bold transition-colors">CANCEL</button>
                 <button type="button" onclick="exportData()" class="px-6 py-2 bg-green-500 hover:bg-green-600 text-black font-bold text-sm tracking-wide rounded-lg flex items-center gap-2 transition-all">
                     <i class="fa-solid fa-download"></i> EXPORT
                 </button>
@@ -430,7 +430,7 @@
                 if (p === period) {
                     btn.className = "px-3 py-1.5 rounded-md text-xs font-bold bg-brand-blue text-black shadow-lg";
                 } else {
-                    btn.className = "px-3 py-1.5 rounded-md text-xs font-bold transition-all text-white/40 hover:text-white hover:bg-white/5";
+                    btn.className = "px-3 py-1.5 rounded-md text-xs font-bold transition-all text-theme-text-muted hover:text-theme-text hover:bg-theme-card";
                 }
             });
 
@@ -505,13 +505,13 @@
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: {
-                            labels: { color: 'rgba(255, 255, 255, 0.8)', font: { size: 12, weight: 'bold' }, padding: 20 }
+                            labels: { color: window.getChartColors().textMuted, font: { size: 12, weight: 'bold' }, padding: 20 }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                            backgroundColor: window.getChartColors().tooltipBg,
                             titleColor: '#fff',
-                            bodyColor: 'rgba(255, 255, 255, 0.9)',
-                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            bodyColor: window.getChartColors().tooltipText,
+                            borderColor: window.getChartColors().border,
                             borderWidth: 1,
                             padding: 12,
                         }
@@ -519,12 +519,12 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            grid: { color: 'rgba(255, 255, 255, 0.08)' },
-                            ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                            grid: { color: window.getChartColors().textMuted },
+                            ticks: { color: window.getChartColors().textMuted }
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                            ticks: { color: window.getChartColors().textMuted }
                         }
                     }
                 }

@@ -7,7 +7,7 @@
 {% block header_actions %}
 <div class="flex gap-2">
     <a href="{% url 'admin_tournament_approvals' %}" 
-        class="px-4 py-2 border border-white/10 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+        class="px-4 py-2 border border-theme-border rounded-lg text-sm text-theme-text/60 hover:text-theme-text hover:bg-theme-card transition-colors flex items-center gap-2">
         <i class="fa-solid fa-arrow-left"></i> Back to Pending
     </a>
 </div>
@@ -16,10 +16,10 @@
 {% block page_content %}
 
     <!-- History Table -->
-    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
+    <div class="bg-theme-card border border-theme-border rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
         <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
             <thead>
-                <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
+                <tr class="bg-theme-card border-b border-theme-border text-xs text-theme-text/50 uppercase tracking-widest">
                     <th class="p-4 font-bold">Tournament</th>
                     <th class="p-4 font-bold">Organizer</th>
                     <th class="p-4 font-bold">Status</th>
@@ -29,7 +29,7 @@
             </thead>
             <tbody class="divide-y divide-white/5 text-sm">
                 {% for tournament in tournaments %}
-                <tr class="hover:bg-white/5 transition-colors group">
+                <tr class="hover:bg-theme-card transition-colors group">
                     <td class="p-4">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 p-[2px]">
@@ -38,13 +38,13 @@
                                 </div>
                             </div>
                             <div>
-                                <h4 class="font-bold text-white group-hover:text-blue-400 transition-colors">
+                                <h4 class="font-bold text-theme-text group-hover:text-blue-400 transition-colors">
                                     {{ tournament.Name }}</h4>
-                                <p class="text-xs text-white/40">ID: #{{ tournament.Tournament_ID }}</p>
+                                <p class="text-xs text-theme-text-muted">ID: #{{ tournament.Tournament_ID }}</p>
                             </div>
                         </div>
                     </td>
-                    <td class="p-4 text-white/80">
+                    <td class="p-4 text-theme-text/80">
                         <span class="flex items-center gap-2">
                             {{ tournament.Organization_Name.Organization_Name }}
                             {% if tournament.Organization_Name.is_verified %}
@@ -62,7 +62,7 @@
                                 <i class="fa-solid fa-xmark mr-1"></i> Rejected
                             </span>
                         {% else %}
-                            <span class="px-2 py-1 bg-gray-500/10 text-gray-400 border border-gray-500/20 rounded text-[10px] font-bold uppercase tracking-wider">
+                            <span class="px-2 py-1 bg-gray-500/10 text-theme-text-muted border border-gray-500/20 rounded text-[10px] font-bold uppercase tracking-wider">
                                 {{ tournament.approval_status }}
                             </span>
                         {% endif %}
@@ -70,20 +70,20 @@
                     <td class="p-4">
                         <div class="flex flex-col gap-1">
                             <span class="text-xs font-mono text-brand-blue">{{ tournament.PrizePool }} INR</span>
-                            <span class="text-[10px] text-white/40 uppercase">{{ tournament.max_teams }} Teams • {% if tournament.is_offline %}Offline{% else %}Online{% endif %}</span>
+                            <span class="text-[10px] text-theme-text-muted uppercase">{{ tournament.max_teams }} Teams • {% if tournament.is_offline %}Offline{% else %}Online{% endif %}</span>
                         </div>
                     </td>
-                    <td class="p-4 text-right text-white/40 font-mono text-xs">
+                    <td class="p-4 text-right text-theme-text-muted font-mono text-xs">
                         {{ tournament.UpdatedAt|date:"M d, Y H:i" }}
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
                     <td colspan="5" class="p-12 text-center">
-                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                            <i class="fa-solid fa-history text-2xl text-white/20"></i>
+                        <div class="w-16 h-16 rounded-full bg-theme-card flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-history text-2xl text-theme-text/20"></i>
                         </div>
-                        <p class="text-white/60 font-bold">No History Found</p>
+                        <p class="text-theme-text/60 font-bold">No History Found</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -92,15 +92,15 @@
         
         <!-- Pagination -->
         {% if tournaments.has_other_pages %}
-        <div class="p-4 border-t border-white/10 flex justify-center gap-2">
+        <div class="p-4 border-t border-theme-border flex justify-center gap-2">
             {% if tournaments.has_previous %}
-                <a href="?page={{ tournaments.previous_page_number }}" class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded text-xs text-white">Previous</a>
+                <a href="?page={{ tournaments.previous_page_number }}" class="px-3 py-1 bg-theme-card hover:bg-theme-card-hover rounded text-xs text-theme-text">Previous</a>
             {% endif %}
             
-            <span class="px-3 py-1 text-xs text-white/40">Page {{ tournaments.number }} of {{ tournaments.paginator.num_pages }}</span>
+            <span class="px-3 py-1 text-xs text-theme-text-muted">Page {{ tournaments.number }} of {{ tournaments.paginator.num_pages }}</span>
             
             {% if tournaments.has_next %}
-                <a href="?page={{ tournaments.next_page_number }}" class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded text-xs text-white">Next</a>
+                <a href="?page={{ tournaments.next_page_number }}" class="px-3 py-1 bg-theme-card hover:bg-theme-card-hover rounded text-xs text-theme-text">Next</a>
             {% endif %}
         </div>
         {% endif %}

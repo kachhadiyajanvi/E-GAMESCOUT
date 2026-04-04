@@ -33,13 +33,21 @@
             -webkit-mask-image: radial-gradient(circle at center, black 10%, transparent 80%);
         }
 
-        /* Override Browser Autofill Styles */
+        /* Override Browser Autofill Styles For All Modern Engines */
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
-        input:-webkit-autofill:active {
-            -webkit-box-shadow: 0 0 0 30px #050505 inset !important;
+        input:-webkit-autofill:active,
+        input:autofill,
+        input:autofill:hover,
+        input:autofill:focus,
+        input:autofill:active {
+            -webkit-box-shadow: 0 0 0 100px #050505 inset !important;
+            box-shadow: 0 0 0 100px #050505 inset !important;
             -webkit-text-fill-color: white !important;
+            color: white !important;
+            background-color: transparent !important;
+            background-clip: content-box !important;
             transition: background-color 5000s ease-in-out 0s;
         }
     </style>
@@ -103,7 +111,7 @@
                         class="fa-regular fa-envelope text-white/30 group-focus-within:text-brand-blue transition-colors text-sm"></i>
                 </div>
                 <input type="email" name="email"
-                    class="w-full bg-black/60 border border-white/10 rounded-lg pl-11 pr-4 py-3.5 text-white font-semibold focus:outline-none placeholder-transparent peer text-sm tracking-wide"
+                    class="w-full bg-[#050505]/90 border border-white/10 rounded-lg pl-11 pr-4 py-3.5 text-white font-semibold focus:outline-none placeholder-transparent peer text-sm tracking-wide"
                     placeholder="Email Address" required>
                 <label
                     class="absolute left-11 top-3.5 text-white/40 text-[13px] font-medium transition-all peer-focus:-translate-y-6 peer-focus:-translate-x-8 peer-focus:text-[10px] peer-focus:text-brand-blue peer-focus:tracking-widest peer-focus:bg-brand-dark peer-focus:px-2 peer-focus:rounded peer-[:not(:placeholder-shown)]:-translate-y-6 peer-[:not(:placeholder-shown)]:-translate-x-8 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:text-gray-400 peer-[:not(:placeholder-shown)]:bg-brand-dark peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:tracking-widest pointer-events-none uppercase">
@@ -118,7 +126,7 @@
                         class="fa-solid fa-lock text-white/30 group-focus-within:text-brand-blue transition-colors text-sm"></i>
                 </div>
                 <input type="password" name="password" id="passwordInput"
-                    class="w-full bg-black/60 border border-white/10 rounded-lg pl-11 pr-11 py-3.5 text-white font-semibold focus:outline-none placeholder-transparent peer text-sm tracking-wide"
+                    class="w-full bg-[#050505]/90 border border-white/10 rounded-lg pl-11 pr-11 py-3.5 text-white font-semibold focus:outline-none placeholder-transparent peer text-sm tracking-wide"
                     placeholder="Password" required>
                 <label
                     class="absolute left-11 top-3.5 text-white/40 text-[13px] font-medium transition-all peer-focus:-translate-y-6 peer-focus:-translate-x-8 peer-focus:text-[10px] peer-focus:text-brand-blue peer-focus:tracking-widest peer-focus:bg-brand-dark peer-focus:px-2 peer-focus:rounded peer-[:not(:placeholder-shown)]:-translate-y-6 peer-[:not(:placeholder-shown)]:-translate-x-8 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:text-gray-400 peer-[:not(:placeholder-shown)]:bg-brand-dark peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:tracking-widest pointer-events-none uppercase">
@@ -176,7 +184,7 @@
                 iconColorClass = 'text-green-400 bg-green-400/10 border-green-400/30';
             }
 
-            toast.className = `pointer-events-auto bg-[#0a0a0a]/95 backdrop-blur-md border rounded-lg p-4 pr-10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex items-center gap-4 transform transition-all duration-300 ease-out translate-x-32 opacity-0 min-w-[300px] ${iconColorClass.split(' ')[2]}`;
+            toast.className = `pointer-events-auto bg-theme-input-bg/95 backdrop-blur-md border rounded-lg p-4 pr-10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex items-center gap-4 transform transition-all duration-300 ease-out translate-x-32 opacity-0 min-w-[300px] ${iconColorClass.split(' ')[2]}`;
 
             toast.innerHTML = `
                 <div class="w-8 h-8 rounded bg-black/50 flex items-center justify-center shrink-0 border border-current/20 ${iconColorClass.split(' ').slice(0, 1).join('')}">

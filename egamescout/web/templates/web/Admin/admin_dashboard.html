@@ -13,10 +13,10 @@
 {% block page_content %}
 
             <!-- Stats Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 <!-- Stat Card 1: Players -->
                 <div
-                    class="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm hover:border-brand-blue/30 transition-all group relative overflow-hidden">
+                    class="bg-theme-card border border-theme-border rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm hover:border-brand-blue/30 transition-all group relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <i class="fa-solid fa-users text-4xl md:text-6xl text-brand-blue"></i>
                     </div>
@@ -32,14 +32,14 @@
                         </span>
                         {% endif %}
                     </div>
-                    <h3 class="text-2xl md:text-3xl font-display font-bold text-white mb-1 relative z-10">{{ player_count }}</h3>
-                    <p class="text-white/40 text-[9px] md:text-xs font-bold tracking-wider uppercase relative z-10">
+                    <h3 class="text-2xl md:text-3xl font-display font-bold text-theme-text mb-1 relative z-10">{{ player_count }}</h3>
+                    <p class="text-theme-text-muted text-[9px] md:text-xs font-bold tracking-wider uppercase relative z-10">
                         Total Players ({{active_players }} Active)</p>
                 </div>
 
                 <!-- Stat Card 2: Tournaments -->
                 <div
-                    class="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm hover:border-brand-pink/30 transition-all group relative overflow-hidden">
+                    class="bg-theme-card border border-theme-border rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm hover:border-brand-pink/30 transition-all group relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <i class="fa-solid fa-trophy text-4xl md:text-6xl text-brand-pink"></i>
                     </div>
@@ -53,15 +53,15 @@
                             {{ active_tournaments }} Active
                         </span>
                     </div>
-                    <h3 class="text-2xl md:text-3xl font-display font-bold text-white mb-1 relative z-10">{{ tournament_count }}
+                    <h3 class="text-2xl md:text-3xl font-display font-bold text-theme-text mb-1 relative z-10">{{ tournament_count }}
                     </h3>
-                    <p class="text-white/40 text-[9px] md:text-xs font-bold tracking-wider uppercase relative z-10">Total Tournaments
+                    <p class="text-theme-text-muted text-[9px] md:text-xs font-bold tracking-wider uppercase relative z-10">Total Tournaments
                     </p>
                 </div>
 
                 <!-- Stat Card 3: Organizations -->
                 <div
-                    class="sm:col-span-2 lg:col-span-1 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm hover:border-purple-500/30 transition-all group relative overflow-hidden">
+                    class="bg-theme-card border border-theme-border rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm hover:border-purple-500/30 transition-all group relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <i class="fa-solid fa-building text-4xl md:text-6xl text-purple-500"></i>
                     </div>
@@ -77,16 +77,39 @@
                         </span>
                         {% endif %}
                     </div>
-                    <h3 class="text-2xl md:text-3xl font-display font-bold text-white mb-1 relative z-10">{{ org_count }}</h3>
-                    <p class="text-white/40 text-[9px] md:text-xs font-bold tracking-wider uppercase relative z-10">
+                    <h3 class="text-2xl md:text-3xl font-display font-bold text-theme-text mb-1 relative z-10">{{ org_count }}</h3>
+                    <p class="text-theme-text-muted text-[9px] md:text-xs font-bold tracking-wider uppercase relative z-10">
                         Organizations ({{active_orgs }} Active)</p>
+                </div>
+
+                <!-- Stat Card 4: Total Bids -->
+                <div
+                    class="bg-theme-card border border-theme-border rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm hover:border-green-500/30 transition-all group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-2 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fa-solid fa-gavel text-4xl md:text-6xl text-green-500"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-3 md:mb-4 relative z-10">
+                        <div
+                            class="p-2 md:p-3 rounded-lg bg-green-500/10 text-green-500 group-hover:bg-green-500 group-hover:text-black transition-all">
+                            <i class="fa-solid fa-gavel text-base md:text-xl"></i>
+                        </div>
+                        {% if active_bids > 0 %}
+                        <span
+                            class="text-green-500 text-[9px] md:text-xs font-bold flex items-center gap-1 bg-green-500/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">
+                            {{ active_bids }} Processing
+                        </span>
+                        {% endif %}
+                    </div>
+                    <h3 class="text-2xl md:text-3xl font-display font-bold text-theme-text mb-1 relative z-10">{{ total_bids }}</h3>
+                    <p class="text-theme-text-muted text-[9px] md:text-xs font-bold tracking-wider uppercase relative z-10">
+                        Total Bids Processed</p>
                 </div>
             </div>
 
             <!-- Auto Bidding Season Widget -->
             {% if bidding_status %}
             <a href="{% url 'admin_bidding_dashboard' %}"
-                class="flex items-center gap-4 p-5 bg-white/5 border rounded-2xl backdrop-blur-sm hover:bg-white/8 transition-all group relative overflow-hidden
+                class="flex items-center gap-4 p-5 bg-theme-card border rounded-2xl backdrop-blur-sm hover:bg-white/8 transition-all group relative overflow-hidden
                 {% if bidding_status.is_active %}border-green-500/30 hover:border-green-500/50{% else %}border-yellow-500/20 hover:border-yellow-500/40{% endif %}">
                 <div class="absolute top-0 right-0 w-32 h-32 {% if bidding_status.is_active %}bg-green-500/5{% else %}bg-yellow-500/5{% endif %} rounded-full blur-[50px] pointer-events-none"></div>
                 
@@ -100,27 +123,27 @@
                         <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
                         {% if bidding_status.is_active %}Bidding Live{% else %}Bidding Closed{% endif %}
                     </p>
-                    <p class="text-white font-bold font-display tracking-wide mt-0.5 truncate">
+                    <p class="text-theme-text font-bold font-display tracking-wide mt-0.5 truncate">
                         {% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}System Auto-Scheduled{% endif %}
                     </p>
                     {% if bidding_status.is_active %}
-                    <p class="text-white/40 text-[11px] font-mono">Closes: {{ bidding_status.end_date|date:"d M Y" }}</p>
+                    <p class="text-theme-text-muted text-[11px] font-mono">Closes: {{ bidding_status.end_date|date:"d M Y" }}</p>
                     {% else %}
-                    <p class="text-white/40 text-[11px] font-mono">Next Season: {{ bidding_status.next_season_start|date:"d M Y" }}</p>
+                    <p class="text-theme-text-muted text-[11px] font-mono">Next Season: {{ bidding_status.next_season_start|date:"d M Y" }}</p>
                     {% endif %}
                 </div>
                 
-                <i class="fa-solid fa-chevron-right text-white/20 group-hover:text-white/50 transition-colors text-xs ml-auto relative z-10"></i>
+                <i class="fa-solid fa-chevron-right text-theme-text/20 group-hover:text-theme-text/50 transition-colors text-xs ml-auto relative z-10"></i>
             </a>
             {% endif %}
 
             <!-- Content Grid (Charts & Table) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Registration Trend Chart -->
-                <div class="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+                <div class="lg:col-span-2 bg-theme-card border border-theme-border rounded-2xl p-6 backdrop-blur-sm">
                     <div class="flex items-center justify-between mb-6">
-                        <h3 class="font-display font-bold text-lg text-white">REGISTRATION GROWTH</h3>
-                        <div class="text-xs text-white/40 font-mono">Last 7 Days</div>
+                        <h3 class="font-display font-bold text-lg text-theme-text">REGISTRATION GROWTH</h3>
+                        <div class="text-xs text-theme-text-muted font-mono">Last 7 Days</div>
                     </div>
                     <div class="h-64 relative w-full">
                         <canvas id="growthChart"></canvas>
@@ -128,22 +151,22 @@
                 </div>
 
                 <!-- Recent Activity List -->
-                <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col h-full">
-                    <h3 class="font-display font-bold text-lg text-white mb-6">RECENT ACTIVITY</h3>
+                <div class="bg-theme-card border border-theme-border rounded-2xl p-6 backdrop-blur-sm flex flex-col h-full">
+                    <h3 class="font-display font-bold text-lg text-theme-text mb-6">RECENT ACTIVITY</h3>
                     <div class="space-y-4 overflow-y-auto flex-1 max-h-[300px] pr-2 custom-scrollbar">
                         {% for item in recent_activity %}
                         <!-- Item -->
                         <div
-                            class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group border border-transparent hover:border-white/5">
+                            class="flex items-center gap-3 p-3 rounded-xl hover:bg-theme-card transition-colors cursor-pointer group border border-transparent hover:border-theme-border-light">
                             <div
                                 class="w-10 h-10 rounded-full flex items-center justify-center text-black font-bold text-xs uppercase
                                 {% if item.type == 'PLAYER' %}bg-gradient-to-br from-brand-blue to-cyan-600{% else %}bg-gradient-to-br from-brand-pink to-purple-600{% endif %}">
                                 {{ item.initial }}
                             </div>
                             <div class="flex-1">
-                                <h4 class="text-sm font-bold text-white group-hover:text-brand-blue transition-colors">
+                                <h4 class="text-sm font-bold text-theme-text group-hover:text-brand-blue transition-colors">
                                     {{ item.name }}</h4>
-                                <p class="text-[10px] text-white/40 flex items-center gap-2">
+                                <p class="text-[10px] text-theme-text-muted flex items-center gap-2">
                                     <span
                                         class="{% if item.type == 'PLAYER' %}text-brand-blue{% else %}text-brand-pink{% endif %} font-bold">
                                         {{item.type }}</span>
@@ -155,9 +178,9 @@
                         <div class="text-center py-4 text-gray-500 text-sm">No recent activity.</div>
                         {% endfor %}
                     </div>
-                    <div class="mt-4 pt-4 border-t border-white/5">
+                    <div class="mt-4 pt-4 border-t border-theme-border-light">
                         <a href="{% url 'admin_players_detail' %}"
-                            class="block w-full py-2 text-xs font-bold text-white/40 hover:text-white transition-colors uppercase tracking-wider text-center border border-white/10 rounded-lg hover:bg-white/5">
+                            class="block w-full py-2 text-xs font-bold text-theme-text-muted hover:text-theme-text transition-colors uppercase tracking-wider text-center border border-theme-border rounded-lg hover:bg-theme-card">
                             View All Records
                         </a>
                     </div>
@@ -247,13 +270,13 @@
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                labels: { color: 'rgba(255, 255, 255, 0.7)', font: { family: 'Rajdhani', size: 12 } }
+                                labels: { color: window.getChartColors().text, font: { family: 'Rajdhani', size: 12 } }
                             },
                             tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                backgroundColor: window.getChartColors().tooltipBg,
                                 titleColor: '#fff',
-                                bodyColor: 'rgba(255, 255, 255, 0.7)',
-                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                bodyColor: window.getChartColors().text,
+                                borderColor: window.getChartColors().border,
                                 borderWidth: 1,
                                 padding: 10,
                                 titleFont: { family: 'Orbitron' },
@@ -263,12 +286,12 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                                ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { family: 'Rajdhani' } }
+                                grid: { color: window.getChartColors().grid },
+                                ticks: { color: window.getChartColors().textMuted, font: { family: 'Rajdhani' } }
                             },
                             x: {
                                 grid: { display: false },
-                                ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { family: 'Rajdhani' } }
+                                ticks: { color: window.getChartColors().textMuted, font: { family: 'Rajdhani' } }
                             }
                         }
                     }

@@ -11,10 +11,17 @@
     </div>
 </div>
 
-<h1>ADMINISTRATOR LOGIN</h1>
+{% if action == 'password_change' %}
+    <h1>SECURE ENCRYPTION UPDATE</h1>
 
-<p>Hello Admin,</p>
-<p>We received a secure login request for your administrator account. To verify your identity, please use the following One-Time Password (OTP). This code will expire in <strong>2 minutes</strong>.</p>
+    <p>Hello Admin,</p>
+    <p>We received a secure request to update your administrator account password. To authorize this cryptographic change, please use the following One-Time Password (OTP). This code will expire in <strong>2 minutes</strong>.</p>
+{% else %}
+    <h1>ADMINISTRATOR LOGIN</h1>
+
+    <p>Hello Admin,</p>
+    <p>We received a secure login request for your administrator account. To verify your identity, please use the following One-Time Password (OTP). This code will expire in <strong>2 minutes</strong>.</p>
+{% endif %}
 
 <div class="highlight-box" style="text-align: center;">
     <div class="highlight-title">VERIFICATION CODE</div>
@@ -23,9 +30,17 @@
     </div>
 </div>
 
+{% if action == 'password_change' %}
+<p>If you did not initiate this password change sequence, please ignore this email. Your current password remains secure, but we recommend reviewing your account activity.</p>
+
+<div class="btn-wrapper">
+    <a href="#" class="cta-button" style="color: #fff !important; background: #FF2A6D !important;">RETURN TO SECURITY DASHBOARD</a>
+</div>
+{% else %}
 <p>If you did not initiate this login request, please ignore this email or consider updating your password immediately as your credentials may be compromised.</p>
 
 <div class="btn-wrapper">
     <a href="#" class="cta-button" style="color: #fff !important;">RETURN TO LOGIN</a>
 </div>
+{% endif %}
 {% endblock %}

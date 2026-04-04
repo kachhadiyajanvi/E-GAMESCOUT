@@ -1,4 +1,5 @@
 {% extends 'web/Admin/admin_page_base.html' %}
+{% load static %}
 
 {% block header_icon %}<i class="fa-solid fa-user-shield"></i>{% endblock %}
 {% block header_title %}MY PROFILE{% endblock %}
@@ -18,7 +19,7 @@
         <!-- Left Column: Profile Card -->
         <div class="space-y-6">
             <div
-                class="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm shadow-xl flex flex-col items-center text-center relative overflow-hidden group">
+                class="bg-theme-card border border-theme-border rounded-2xl p-8 backdrop-blur-sm shadow-xl flex flex-col items-center text-center relative overflow-hidden group">
                 <!-- Background Decoration -->
                 <div
                     class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-brand-blue/20 to-transparent opacity-50">
@@ -26,38 +27,38 @@
 
                 <div class="relative mb-4">
                     <div class="w-32 h-32 rounded-full p-1 bg-gradient-to-br from-brand-blue to-brand-pink">
-                        <div class="w-full h-full rounded-full bg-black p-1">
-                            <img src="https://ui-avatars.com/api/?name=Admin+User&background=0a0a0a&color=fff"
-                                class="w-full h-full rounded-full object-cover border-2 border-white/10" alt="Profile">
+                        <div class="w-full h-full rounded-full bg-theme-input-bg p-1">
+                            <img src="{% static 'web/images/admin_avatar.png' %}"
+                                class="w-full h-full rounded-full object-cover border-2 border-theme-border" alt="Profile">
                         </div>
                     </div>
                     <button
-                        class="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-brand-pink text-white flex items-center justify-center hover:bg-white hover:text-black transition-all shadow-lg border-4 border-[#0a0a0a]">
+                        class="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-brand-pink text-theme-text flex items-center justify-center hover:bg-white hover:text-black transition-all shadow-lg border-4 border-theme-bg">
                         <i class="fa-solid fa-camera text-sm"></i>
                     </button>
                 </div>
 
-                <h2 class="font-display font-bold text-2xl text-white mb-1 flex items-center justify-center gap-2">
+                <h2 class="font-display font-bold text-2xl text-theme-text mb-1 flex items-center justify-center gap-2">
                     Admin User
                     <i class="fa-solid fa-circle-check text-brand-blue text-lg" title="Verified"></i>
                 </h2>
                 <p class="text-brand-blue text-sm font-bold tracking-wider mb-6">SUPER ADMIN</p>
 
                 <div class="grid grid-cols-2 gap-4 w-full">
-                    <div class="bg-black/40 rounded-xl p-3 border border-white/5">
-                        <p class="text-[10px] text-white/40 uppercase font-bold text-center">Projects</p>
-                        <p class="text-xl font-bold text-white text-center">12</p>
+                    <div class="bg-theme-input-bg rounded-xl p-3 border border-theme-border-light">
+                        <p class="text-[10px] text-theme-text-muted uppercase font-bold text-center">Projects</p>
+                        <p class="text-xl font-bold text-theme-text text-center">12</p>
                     </div>
-                    <div class="bg-black/40 rounded-xl p-3 border border-white/5">
-                        <p class="text-[10px] text-white/40 uppercase font-bold text-center">Joined</p>
-                        <p class="text-xl font-bold text-white text-center">2024</p>
+                    <div class="bg-theme-input-bg rounded-xl p-3 border border-theme-border-light">
+                        <p class="text-[10px] text-theme-text-muted uppercase font-bold text-center">Joined</p>
+                        <p class="text-xl font-bold text-theme-text text-center">2024</p>
                     </div>
                 </div>
             </div>
 
             <!-- Quick Actions -->
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                <h3 class="text-sm font-bold text-white/40 uppercase tracking-widest mb-4 px-2">Account Status</h3>
+            <div class="bg-theme-card border border-theme-border rounded-2xl p-6 backdrop-blur-sm">
+                <h3 class="text-sm font-bold text-theme-text-muted uppercase tracking-widest mb-4 px-2">Account Status</h3>
 
                 <div class="space-y-3">
                     <div
@@ -68,11 +69,11 @@
                                 <i class="fa-solid fa-check"></i>
                             </div>
                             <div>
-                                <p class="text-sm font-bold text-white flex items-center gap-2">
+                                <p class="text-sm font-bold text-theme-text flex items-center gap-2">
                                     Verified
                                     <i class="fa-solid fa-circle-check text-green-500"></i>
                                 </p>
-                                <p class="text-[10px] text-white/40">Account is active</p>
+                                <p class="text-[10px] text-theme-text-muted">Account is active</p>
                             </div>
                         </div>
                         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -86,8 +87,8 @@
                                 <i class="fa-solid fa-envelope"></i>
                             </div>
                             <div>
-                                <p class="text-sm font-bold text-white">Email</p>
-                                <p class="text-[10px] text-white/40">Confirmed</p>
+                                <p class="text-sm font-bold text-theme-text">Email</p>
+                                <p class="text-[10px] text-theme-text-muted">Confirmed</p>
                             </div>
                         </div>
                         <i class="fa-solid fa-check text-brand-blue text-xs"></i>
@@ -100,69 +101,69 @@
         <div class="lg:col-span-2 space-y-8">
 
             <!-- Personal Information -->
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm relative overflow-hidden">
+            <div class="bg-theme-card border border-theme-border rounded-2xl p-8 backdrop-blur-sm relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-                    <i class="fa-regular fa-id-card text-9xl text-white"></i>
+                    <i class="fa-regular fa-id-card text-9xl text-theme-text"></i>
                 </div>
 
                 <div class="flex items-center justify-between mb-8">
-                    <h3 class="font-display font-bold text-xl text-white">Personal Information</h3>
+                    <h3 class="font-display font-bold text-xl text-theme-text">Personal Information</h3>
                 </div>
 
                 <form class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-white/40 uppercase tracking-wider">First Name</label>
+                        <label class="text-xs font-bold text-theme-text-muted uppercase tracking-wider">First Name</label>
                         <input type="text" value="Admin"
-                            class="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-white/20 shadow-inner">
+                            class="w-full bg-theme-input-bg border border-theme-border rounded-lg px-4 py-3 text-sm text-theme-text focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-theme-text-muted shadow-inner">
                     </div>
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-white/40 uppercase tracking-wider">Last Name</label>
+                        <label class="text-xs font-bold text-theme-text-muted uppercase tracking-wider">Last Name</label>
                         <input type="text" value="User"
-                            class="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-white/20 shadow-inner">
+                            class="w-full bg-theme-input-bg border border-theme-border rounded-lg px-4 py-3 text-sm text-theme-text focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-theme-text-muted shadow-inner">
                     </div>
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-white/40 uppercase tracking-wider">Email Address</label>
+                        <label class="text-xs font-bold text-theme-text-muted uppercase tracking-wider">Email Address</label>
                         <input type="email" value="admin@egamescout.com"
-                            class="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-white/20 shadow-inner">
+                            class="w-full bg-theme-input-bg border border-theme-border rounded-lg px-4 py-3 text-sm text-theme-text focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-theme-text-muted shadow-inner">
                     </div>
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-white/40 uppercase tracking-wider">Phone Number</label>
+                        <label class="text-xs font-bold text-theme-text-muted uppercase tracking-wider">Phone Number</label>
                         <input type="text" value="+1 (555) 123-4567"
-                            class="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-white/20 shadow-inner">
+                            class="w-full bg-theme-input-bg border border-theme-border rounded-lg px-4 py-3 text-sm text-theme-text focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-theme-text-muted shadow-inner">
                     </div>
                     <div class="md:col-span-2 space-y-2">
-                        <label class="text-xs font-bold text-white/40 uppercase tracking-wider">Bio</label>
+                        <label class="text-xs font-bold text-theme-text-muted uppercase tracking-wider">Bio</label>
                         <textarea rows="3"
-                            class="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-white/20 shadow-inner resize-none">Senior Administrator for E-Game Scout platform.</textarea>
+                            class="w-full bg-theme-input-bg border border-theme-border rounded-lg px-4 py-3 text-sm text-theme-text focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all placeholder-theme-text-muted shadow-inner resize-none">Senior Administrator for E-Game Scout platform.</textarea>
                     </div>
                 </form>
             </div>
 
             <!-- Security Settings -->
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm relative overflow-hidden">
+            <div class="bg-theme-card border border-theme-border rounded-2xl p-8 backdrop-blur-sm relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-                    <i class="fa-solid fa-lock text-9xl text-white"></i>
+                    <i class="fa-solid fa-lock text-9xl text-theme-text"></i>
                 </div>
 
                 <div class="flex items-center justify-between mb-8">
-                    <h3 class="font-display font-bold text-xl text-white">Security</h3>
+                    <h3 class="font-display font-bold text-xl text-theme-text">Security</h3>
                 </div>
 
                 <div class="space-y-6 relative z-10 pt-4">
-                    <p class="text-sm text-white/50 tracking-wide mb-6">Update your account password using our secure verification flow. We will send a one-time passcode to your registered email to authorize this change.</p>
+                    <p class="text-sm text-theme-text/50 tracking-wide mb-6">Update your account password using our secure verification flow. We will send a one-time passcode to your registered email to authorize this change.</p>
                     
-                    <a href="{% url 'admin_change_password_request' %}" 
+                    <button onclick="requestPasswordChange(this)" 
                         class="inline-flex w-full sm:w-auto items-center justify-center gap-3 px-8 py-3.5 rounded-xl bg-brand-pink/10 border border-brand-pink/30 text-brand-pink font-bold text-sm tracking-widest uppercase hover:bg-brand-pink hover:text-white hover:shadow-[0_0_20px_rgba(255,20,147,0.4)] transition-all group">
                         <i class="fa-solid fa-key group-hover:-rotate-12 transition-transform"></i>
-                        Initiate Secure Password Change
-                    </a>
+                        <span>Initiate Secure Password Change</span>
+                    </button>
                 </div>
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex items-center justify-end gap-4 p-4 border-t border-white/10">
+            <div class="flex items-center justify-end gap-4 p-4 border-t border-theme-border">
                 <button
-                    class="px-6 py-3 rounded-xl text-sm font-bold text-white/60 hover:text-white hover:bg-white/5 transition-all">Discard
+                    class="px-6 py-3 rounded-xl text-sm font-bold text-theme-text/60 hover:text-theme-text hover:bg-theme-card transition-all">Discard
                     Changes</button>
                 <button
                     class="px-8 py-3 rounded-xl bg-gradient-to-r from-brand-blue to-cyan-600 text-black font-bold text-sm hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition-all flex items-center gap-2">
@@ -172,4 +173,68 @@
 
         </div>
     </div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+async function requestPasswordChange(btn) {
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>SENDING OTP...</span>';
+    btn.disabled = true;
+    btn.classList.add('opacity-70', 'cursor-not-allowed', 'pointer-events-none');
+
+    try {
+        const response = await fetch("{% url 'admin_change_password_request' %}", {
+            headers: { 
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        if(response.ok) {
+            const data = await response.json();
+            
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: '&nbsp; OTP sent securely',
+                showConfirmButton: false,
+                timer: 3000,
+                background: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#0B0C10',
+                color: document.documentElement.getAttribute('data-theme') === 'light' ? '#0f172a' : '#45A29E',
+                customClass: {
+                    popup: document.documentElement.getAttribute('data-theme') === 'light' ? 'border border-theme-border-light shadow-xl rounded-xl' : 'border border-brand-blue/30 shadow-[0_0_15px_rgba(102,252,241,0.2)] rounded-xl'
+                }
+            });
+
+            setTimeout(() => {
+                const a = document.createElement('a');
+                a.href = data.redirect;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }, 1000);
+        } else {
+            throw new Error('Server returned an error');
+        }
+    } catch(e) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: '&nbsp; Failed to dispatch OTP',
+            showConfirmButton: false,
+            timer: 3000,
+            background: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#0B0C10',
+            color: document.documentElement.getAttribute('data-theme') === 'light' ? '#0f172a' : '#ef4444',
+            customClass: {
+                popup: document.documentElement.getAttribute('data-theme') === 'light' ? 'border border-red-200 shadow-xl rounded-xl' : 'border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)] rounded-xl'
+            }
+        });
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+        btn.classList.remove('opacity-70', 'cursor-not-allowed', 'pointer-events-none');
+    }
+}
+</script>
 {% endblock %}

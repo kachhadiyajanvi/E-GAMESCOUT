@@ -3,7 +3,7 @@
 {% block content %}
 <div class="flex-1 overflow-y-auto p-8 flex items-center justify-center">
     <div
-        class="bg-white/5 border border-white/10 rounded-2xl p-8 max-w-md w-full backdrop-blur-sm shadow-[0_0_50px_rgba(236,72,153,0.15)] relative overflow-hidden">
+        class="bg-theme-card border border-theme-border rounded-2xl p-8 max-w-md w-full backdrop-blur-sm shadow-[0_0_50px_rgba(236,72,153,0.15)] relative overflow-hidden">
         <!-- Glow -->
         <div class="absolute -top-20 -left-20 w-40 h-40 bg-brand-pink/20 blur-[80px] rounded-full pointer-events-none">
         </div>
@@ -13,8 +13,8 @@
                 class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4 text-red-500 text-2xl border border-red-500/20">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
-            <h2 class="font-display font-bold text-2xl text-white mb-2">Delete Organization?</h2>
-            <p class="text-white/40 text-sm">Are you sure you want to delete <span class="text-white font-bold">{{
+            <h2 class="font-display font-bold text-2xl text-theme-text mb-2">Delete Organization?</h2>
+            <p class="text-theme-text-muted text-sm">Are you sure you want to delete <span class="text-theme-text font-bold">{{
                     org.Organization_Name }}</span>? This action cannot be undone and will delete all associated
                 tournaments and players.</p>
         </div>
@@ -22,11 +22,11 @@
         <form method="POST" class="flex gap-3 relative z-10">
             {% csrf_token %}
             <a href="{% url 'admin_organization_detail' %}"
-                class="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-sm transition-all text-center">
+                class="flex-1 py-3 rounded-xl bg-theme-card hover:bg-theme-card-hover text-theme-text font-bold text-sm transition-all text-center">
                 Cancel
             </a>
             <button type="submit"
-                class="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm transition-all shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+                class="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-theme-text font-bold text-sm transition-all shadow-[0_0_20px_rgba(239,68,68,0.4)]">
                 Delete
             </button>
         </form>

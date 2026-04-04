@@ -181,7 +181,7 @@ def admin_change_password_request(request):
         from django.template.loader import render_to_string
         from django.utils.html import strip_tags
         
-        html_message = render_to_string('web/emails/admin_otp.html', {'otp': otp, 'user': user})
+        html_message = render_to_string('web/emails/admin_otp.html', {'otp': otp, 'user': user, 'action': 'password_change'})
         plain_message = strip_tags(html_message)
         
         send_mail(
@@ -191,10 +191,15 @@ def admin_change_password_request(request):
             [user.email],
             html_message=html_message
         )
-        messages.success(request, "OTP sent to your email to authorize password change.")
+        # Message removed to prevent double-pop on the frontend JS redirect
     except Exception as e:
         print(f"OTP SEND FAIL: {otp} - Error: {str(e)}")
         messages.success(request, "OTP generated. Check console if testing.")
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.http import JsonResponse
+        from django.urls import reverse
+        return JsonResponse({'status': 'success', 'redirect': reverse('admin_change_password_verify')})
         
     return redirect('admin_change_password_verify')
 
@@ -274,6 +279,10 @@ def admin_dashboard(request):
         tournament_count = tournament_qs.count()
         active_tournaments = tournament_qs.filter(Status='Ongoing').count()
 
+        # Bids
+        total_bids = Bid.objects.count()
+        active_bids = Bid.objects.filter(status='Pending').count()
+
         # --- New Today Calculation ---
         today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
         new_players_today = player_qs.filter(created_at__gte=today_start).count()
@@ -339,6 +348,9 @@ def admin_dashboard(request):
             
             'tournament_count': tournament_count,
             'active_tournaments': active_tournaments,
+            
+            'total_bids': total_bids,
+            'active_bids': active_bids,
             
             # Chart Data
             'chart_labels': chart_labels,
@@ -427,7 +439,14 @@ def admin_organization_detail(request):
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_profile(request):
-    return render(request, 'web/Admin/admin_profile.html')
+    total_projects = Tournament.objects.count()
+    joined_year = request.user.date_joined.year if request.user.date_joined else 2024
+    
+    context = {
+        'total_projects': total_projects,
+        'joined_year': joined_year,
+    }
+    return render(request, 'web/Admin/admin_profile.html', context)
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_tournaments_detail(request):
