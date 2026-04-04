@@ -462,6 +462,40 @@ def admin_delete_organization(request, org_id):
     return render(request, 'web/Admin/admin_org_confirm_delete.html', {'org': org})
 
 @user_passes_test(is_superuser, login_url='admin_login')
+def admin_bulk_delete_organizations(request):
+    """Archives multiple organizations simultaneously."""
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist('selected_ids')
+        if not selected_ids:
+            messages.error(request, "No organizations selected for archiving.")
+            return redirect('admin_organization_detail')
+            
+        success_count = 0
+        from django.utils import timezone
+        
+        with transaction.atomic():
+            orgs = Organization.objects.filter(id__in=selected_ids, is_archived=False)
+            for org in orgs:
+                org.is_archived = True
+                archived_time = timezone.now()
+                org.archived_at = archived_time
+                org.status = 'Suspended'
+                org.is_active_account = False
+                
+                # Free up unique constraints
+                timestamp_str = archived_time.strftime("%Y%m%d%H%M%S")
+                org.Organization_Email = f"archived_{timestamp_str}_{org.Organization_Email}"[:50]
+                org.Organization_UserName = f"archived_{timestamp_str}_{org.Organization_UserName}"[:30]
+                
+                org.save()
+                success_count += 1
+                
+        if success_count > 0:
+            messages.success(request, f"Successfully archived {success_count} organization(s).")
+            
+    return redirect('admin_organization_detail')
+
+@user_passes_test(is_superuser, login_url='admin_login')
 def admin_edit_organization(request, org_id):
     org = get_object_or_404(Organization, id=org_id)
     if request.method == 'POST':
@@ -590,6 +624,75 @@ def admin_delete_player(request, player_id):
     return render(request, 'web/Admin/admin_player_confirm_delete.html', {'player': player})
 
 @user_passes_test(is_superuser, login_url='admin_login')
+def admin_bulk_delete_players(request):
+    """Archives multiple players simultaneously."""
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist('selected_ids')
+        if not selected_ids:
+            messages.error(request, "No players selected for archiving.")
+            return redirect('admin_players_detail')
+            
+        success_count = 0
+        from django.utils import timezone
+        
+        with transaction.atomic():
+            players = Player.objects.filter(id__in=selected_ids, is_archived=False)
+            for player in players:
+                player.is_archived = True
+                archived_time = timezone.now()
+                player.archived_at = archived_time
+                player.is_active_account = False
+                player.status = 'SUSPENDED'
+                
+                # Free up unique constraints
+                timestamp_str = archived_time.strftime("%Y%m%d%H%M%S")
+                player.email = f"archived_{timestamp_str}_{player.email}"[:254]
+                player.uid = f"archived_{timestamp_str}_{player.uid}"[:50]
+                if player.username:
+                    player.username = f"archived_{timestamp_str}_{player.username}"[:50]
+                if player.aadhar_number:
+                    player.aadhar_number = f"archived_{timestamp_str}_{player.aadhar_number}"[:20]
+                                
+                # Handle Organization Removal (Admin Action)
+                if player.organization:
+                    org = player.organization
+                    OrganizationPlayer.objects.filter(player=player, organization=org).delete()
+                    
+                    OrganizationNotification.objects.create(
+                        recipient=org,
+                        message=f"Player {player.full_name} has been archived by Admin.",
+                        notification_type='ADMIN_ACTION'
+                    )
+                    
+                    player.organization = None
+                    
+                player.save()
+                
+                # Handle Active Bids (Refund)
+                active_bids = Bid.objects.filter(player=player, status__in=['Pending', 'Negotiation'])
+                for bid in active_bids:
+                    org = bid.organization
+                    org.coins += bid.amount
+                    org.save()
+                    
+                    Transaction.objects.create(
+                        recipient=org,
+                        amount=bid.amount,
+                        transaction_type='BID_REFUND',
+                        description=f"Bid cancelled by Admin Bulk Archive: {player.full_name}"
+                    )
+                    
+                    bid.status = 'Rejected'
+                    bid.save()
+                    
+                success_count += 1
+
+        if success_count > 0:
+            messages.success(request, f"Successfully archived {success_count} player(s).")
+            
+    return redirect('admin_players_detail')
+
+@user_passes_test(is_superuser, login_url='admin_login')
 def admin_edit_player(request, player_id):
     player = get_object_or_404(Player, id=player_id)
     if request.method == 'POST':
@@ -622,11 +725,12 @@ def admin_notify_players(request):
             active_players = Player.objects.filter(is_active_account=True, is_archived=False)
             success_msg = f"Notification sent to {active_players.count()} active player(s)."
         else:
-            active_players = Player.objects.filter(id=target_id)
+            ids = [i.strip() for i in target_id.split(',') if i.strip().isdigit()]
+            active_players = Player.objects.filter(id__in=ids)
             if active_players.exists():
-                success_msg = f"Notification sent to {active_players.first().full_name}."
+                success_msg = f"Notification sent to {active_players.count()} player(s)."
             else:
-                messages.error(request, "Player not found.")
+                messages.error(request, "Player(s) not found.")
                 return redirect('admin_players_detail')
                 
         notifs = [
@@ -661,11 +765,12 @@ def admin_notify_orgs(request):
             active_orgs = Organization.objects.filter(status='Active', is_archived=False)
             success_msg = f"Notification sent to {active_orgs.count()} active organization(s)."
         else:
-            active_orgs = Organization.objects.filter(id=target_id)
+            ids = [i.strip() for i in target_id.split(',') if i.strip().isdigit()]
+            active_orgs = Organization.objects.filter(id__in=ids)
             if active_orgs.exists():
-                success_msg = f"Notification sent to {active_orgs.first().Organization_Name}."
+                success_msg = f"Notification sent to {active_orgs.count()} organization(s)."
             else:
-                messages.error(request, "Organization not found.")
+                messages.error(request, "Organization(s) not found.")
                 return redirect('admin_organization_detail')
 
         notifs = [
@@ -1048,13 +1153,65 @@ def admin_bidding_dashboard(request):
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_bidding_details(request):
+    from decimal import Decimal
+    
+    if request.method == 'POST':
+        if 'add_manual_bid' in request.POST:
+            player_id = request.POST.get('player_id')
+            organization_id = request.POST.get('organization_id')
+            season_id = request.POST.get('season_id')
+            amount = request.POST.get('amount')
+            status = request.POST.get('status', 'Accepted')
+            
+            try:
+                player = Player.objects.get(id=player_id)
+                organization = Organization.objects.get(id=organization_id)
+                season = BiddingSeason.objects.get(id=season_id)
+                
+                # Create the manual Bid
+                bid = Bid(
+                    season=season,
+                    player=player,
+                    organization=organization,
+                    amount=Decimal(amount),
+                    status=status,
+                    is_manual=True
+                )
+                
+                # Skipping full_clean here if season is inactive, to allow Admin override
+                bid.save()
+                
+                # If Accepted, also add player to OrganizationPlayer (simulate actual bid acceptance logic)
+                if status == 'Accepted':
+                    from .models import OrganizationPlayer
+                    player.organization = organization
+                    player.save()
+                    OrganizationPlayer.objects.get_or_create(
+                        organization=organization,
+                        player=player,
+                        defaults={
+                            'name': player.full_name,
+                            'email': player.email,
+                            'game_id': player.uid,
+                            'status_label': 'Purchased via Manual Bid'
+                        }
+                    )
+                
+                messages.success(request, f"Manual bid for {player.full_name} added successfully.")
+            except Exception as e:
+                messages.error(request, f"Failed to add manual bid: {str(e)}")
+            return redirect('admin_bidding_details')
+
     active_season = BiddingSeason.objects.filter(is_active=True).first()
     bids = Bid.objects.filter(season=active_season) if active_season else Bid.objects.none()
     
-    # 1. All Bids
-    all_bids = bids.select_related('player', 'organization').order_by('-created_at')
+    # 1. All Bids (Regular Bids Only)
+    all_bids = bids.filter(is_manual=False).select_related('player', 'organization').order_by('-created_at')
     
-    # 2. Top Organizations by Spending
+    # 2. Manual Bids
+    manual_bids = bids.filter(is_manual=True).select_related('player', 'organization').order_by('-created_at')
+    
+    # 3. Top Organizations by Spending
     top_orgs = (
         bids.filter(status='Accepted')
         .values('organization__Organization_Name')
@@ -1068,7 +1225,11 @@ def admin_bidding_details(request):
     context = {
         'active_season': active_season,
         'all_bids': all_bids,
+        'manual_bids': manual_bids,
         'top_orgs': top_orgs,
+        'players': Player.objects.filter(status='ACTIVE', is_archived=False),
+        'organizations': Organization.objects.filter(status='Active', is_archived=False),
+        'seasons': BiddingSeason.objects.all().order_by('-start_date'),
     }
     return render(request, 'web/Admin/admin_bidding_details.html', context)
 
@@ -1366,12 +1527,50 @@ def api_admin_live_bidding_stats(request):
 
 @user_passes_test(is_superuser, login_url='/admin/login/')
 def admin_bids_report(request):
-    """Shows a comprehensive table of all bids across all seasons."""
+    """Shows a directory of reports grouped by season and manual bids."""
     from django.db.models import Sum, Count
-    # Annotate bids with player and org info
-    all_bids = Bid.objects.select_related('player', 'organization', 'season').order_by('-created_at')
     
-    top_orgs = Bid.objects.filter(status='Accepted').values(
+    # 1. Calculate Manual Bids Summary
+    manual_bids = Bid.objects.filter(is_manual=True)
+    manual_summary = {
+        'name': 'Manual Bids Report',
+        'is_manual': True,
+        'total_bids': manual_bids.count(),
+        'total_spent': manual_bids.filter(status='Accepted').aggregate(Sum('amount'))['amount__sum'] or 0,
+    }
+    
+    # 2. Calculate Season Summaries
+    seasons = BiddingSeason.objects.all().order_by('-start_date')
+    season_summaries = []
+    
+    for season in seasons:
+        season_bids = Bid.objects.filter(season=season, is_manual=False)
+        total_bids = season_bids.count()
+        total_spent = season_bids.filter(status='Accepted').aggregate(Sum('amount'))['amount__sum'] or 0
+        status_label = "Active" if season.is_active else "Completed"
+        
+        season_summaries.append({
+            'season_id': season.id,
+            'name': season.name,
+            'status': status_label,
+            'total_bids': total_bids,
+            'total_spent': total_spent,
+        })
+        
+    context = {
+        'manual_summary': manual_summary,
+        'season_summaries': season_summaries,
+    }
+    return render(request, 'web/Admin/admin_bids_report.html', context)
+
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_report_detail_manual(request):
+    """Shows specific report for manual bids."""
+    from django.db.models import Sum, Count
+    all_bids = Bid.objects.filter(is_manual=True).select_related('player', 'organization', 'season').order_by('-created_at')
+    
+    top_orgs = Bid.objects.filter(is_manual=True, status='Accepted').values(
         'organization__Organization_Name'
     ).annotate(
         spent=Sum('amount'),
@@ -1379,10 +1578,38 @@ def admin_bids_report(request):
     ).order_by('-spent')
 
     context = {
+        'report_title': 'MANUAL BIDS REPORT',
+        'report_desc': 'Detailed ledger of all manually placed bids by administrators.',
         'all_bids': all_bids,
         'top_orgs': top_orgs,
     }
-    return render(request, 'web/Admin/admin_bids_report.html', context)
+    return render(request, 'web/Admin/admin_bids_report_detail.html', context)
+
+
+@user_passes_test(is_superuser, login_url='/admin/login/')
+def admin_report_detail_season(request, season_id):
+    """Shows specific report for a particular season."""
+    from django.db.models import Sum, Count
+    from django.shortcuts import get_object_or_404
+    
+    season = get_object_or_404(BiddingSeason, id=season_id)
+    all_bids = Bid.objects.filter(season=season, is_manual=False).select_related('player', 'organization').order_by('-created_at')
+    
+    top_orgs = Bid.objects.filter(season=season, is_manual=False, status='Accepted').values(
+        'organization__Organization_Name'
+    ).annotate(
+        spent=Sum('amount'),
+        players_acquired=Count('id')
+    ).order_by('-spent')
+
+    context = {
+        'report_title': f"{season.name} REPORT",
+        'report_desc': f"Detailed ledger and spending analytics for {season.name}.",
+        'all_bids': all_bids,
+        'top_orgs': top_orgs,
+    }
+    return render(request, 'web/Admin/admin_bids_report_detail.html', context)
+
 
 
 @user_passes_test(is_superuser, login_url='/admin/login/')

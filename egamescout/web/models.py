@@ -342,6 +342,7 @@ class Bid(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='bids')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    is_manual = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):

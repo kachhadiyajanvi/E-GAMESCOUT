@@ -156,8 +156,8 @@
                 <div class="p-3 bg-black/30 rounded-lg border border-white/5 text-xs">
                     <div class="flex justify-between items-center mb-1">
                         <span
-                            class="font-bold {% if log.action == 'START' %}text-green-400{% elif log.action == 'PAUSE' %}text-yellow-400{% elif log.action == 'END' %}text-red-400{% else %}text-cyan-400{% endif %}">{{
-                            log.action }}</span>
+                            class="font-bold {% if log.action == 'START' %}text-green-400{% elif log.action == 'PAUSE' %}text-yellow-400{% elif log.action == 'END' %}text-red-400{% else %}text-cyan-400{% endif %}">
+                            {{log.action }}</span>
                         <span class="text-white/40 font-mono">{{ log.timestamp|date:"M d, H:i:s" }}</span>
                     </div>
                     <p class="text-white/70">{{ log.message }}</p>

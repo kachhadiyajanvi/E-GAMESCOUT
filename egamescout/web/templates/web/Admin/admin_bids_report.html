@@ -1,9 +1,9 @@
 {% extends 'web/Admin/admin_page_base.html' %}
 {% load humanize %}
 
-{% block header_icon %}<i class="fa-solid fa-list-ol text-brand-blue"></i>{% endblock %}
-{% block header_title %}ALL BIDS REPORT{% endblock %}
-{% block header_desc %}Comprehensive ledger of all bids across all seasons.{% endblock %}
+{% block header_icon %}<i class="fa-solid fa-folder-tree text-brand-blue"></i>{% endblock %}
+{% block header_title %}BIDS REPORT DIRECTORY{% endblock %}
+{% block header_desc %}Comprehensive ledger directories grouped by season and manual inputs.{% endblock %}
 
 {% block header_actions %}
 <a href="{% url 'admin_bidding_dashboard' %}" class="px-6 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white hover:text-black transition-all flex items-center gap-2 whitespace-nowrap">
@@ -13,80 +13,115 @@
 
 {% block page_content %}
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 backdrop-blur-sm flex flex-col shadow-xl max-w-5xl mx-auto">
+        <h3 class="font-display font-bold text-xl text-white mb-6 flex items-center gap-3">
+            <i class="fa-solid fa-book-open-reader text-brand-blue"></i> AVAILABLE REPORTS
+        </h3>
         
-        <!-- All Bids Table -->
-        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col">
-            <h3 class="font-display font-bold text-lg text-white mb-4">ALL BIDS</h3>
-            <div class="overflow-x-auto rounded-lg border border-white/10">
-                <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
-                    <thead>
-                        <tr class="bg-black/40 border-b border-white/10 text-xs uppercase tracking-widest text-white/50">
-                            <th class="p-4 font-bold">Player</th>
-                            <th class="p-4 font-bold">Organization</th>
-                            <th class="p-4 font-bold text-right">Amount</th>
-                            <th class="p-4 font-bold text-center">Season</th>
-                            <th class="p-4 font-bold text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-sm divide-y divide-white/5 relative h-[500px] overflow-y-auto block w-full">
-                        {% for bid in all_bids %}
-                        <tr class="hover:bg-white/5 transition-colors table table-fixed w-full">
-                            <td class="p-4 text-white font-bold">{{ bid.player.full_name }}</td>
-                            <td class="p-4 text-white/70">{{ bid.organization.Organization_Name }}</td>
-                            <td class="p-4 text-brand-blue font-mono font-bold text-right">₹{{ bid.amount|intcomma }}</td>
-                            <td class="p-4 text-purple-400 font-bold text-center text-xs">{% if bid.season %}{{ bid.season.name }}{% else %}---{% endif %}</td>
-                            <td class="p-4 text-center">
-                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider
-                                    {% if bid.status == 'Accepted' %}bg-green-500/20 text-green-400 border border-green-500/30
-                                    {% elif bid.status == 'Rejected' %}bg-red-500/20 text-red-400 border border-red-500/30
-                                    {% elif bid.status == 'Negotiation' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30
-                                    {% else %}bg-white/10 text-white/60 border border-white/20{% endif %}">
-                                    {{ bid.status }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr class="table table-fixed w-full">
-                            <td colspan="5" class="p-8 text-center text-white/40 text-sm">No bids placed across any season.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <div class="overflow-auto rounded-xl border border-white/10 bg-black/20 custom-scrollbar">
+            <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
+                <thead>
+                    <tr class="bg-black/60 border-b border-white/10 text-[10px] sm:text-xs uppercase tracking-widest text-white/50">
+                        <th class="p-4 sm:p-5 font-bold">Report Name</th>
+                        <th class="p-4 sm:p-5 font-bold text-center">Status</th>
+                        <th class="p-4 sm:p-5 font-bold text-center">Total Bids</th>
+                        <th class="p-4 sm:p-5 font-bold text-right">Total Spent</th>
+                        <th class="p-4 sm:p-5 font-bold text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm divide-y divide-white/5">
+                    
+                    <!-- Manual Bids Row -->
+                    <tr class="hover:bg-brand-blue/5 transition-colors group">
+                        <td class="p-4 sm:p-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-gavel"></i>
+                                </div>
+                                <div>
+                                    <span class="text-white font-bold block">{{ manual_summary.name }}</span>
+                                    <span class="text-[10px] text-white/40 uppercase tracking-wider block">Admin Input Overrides</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4 sm:p-5 text-center">
+                            <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                Dynamic
+                            </span>
+                        </td>
+                        <td class="p-4 sm:p-5 text-center">
+                            <span class="bg-white/10 px-3 py-1 rounded text-xs font-mono text-white/70">{{ manual_summary.total_bids }}</span>
+                        </td>
+                        <td class="p-4 sm:p-5 text-brand-blue font-mono font-bold text-right">₹{{ manual_summary.total_spent|intcomma }}</td>
+                        <td class="p-4 sm:p-5 text-center">
+                            <a href="{% url 'admin_report_detail_manual' %}" class="px-4 py-2 rounded-lg bg-brand-blue/20 text-brand-blue font-bold text-xs hover:bg-brand-blue hover:text-white transition-all inline-block shadow-[0_0_10px_rgba(37,99,235,0.2)]">
+                                View Details <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    
+                    <!-- Season Rows -->
+                    {% for season in season_summaries %}
+                    <tr class="hover:bg-brand-blue/5 transition-colors group">
+                        <td class="p-4 sm:p-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-brand-blue/10 border border-brand-blue/20 flex items-center justify-center text-brand-blue group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                </div>
+                                <div>
+                                    <span class="text-white font-bold block">{{ season.name }}</span>
+                                    <span class="text-[10px] text-white/40 uppercase tracking-wider block">Main Season Report</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4 sm:p-5 text-center">
+                            <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest
+                                {% if season.status == 'Active' %}bg-green-500/20 text-green-400 border border-green-500/30
+                                {% else %}bg-white/10 text-white/60 border border-white/20{% endif %}">
+                                {{ season.status }}
+                            </span>
+                        </td>
+                        <td class="p-4 sm:p-5 text-center">
+                            <span class="bg-white/10 px-3 py-1 rounded text-xs font-mono text-white/70">{{ season.total_bids }}</span>
+                        </td>
+                        <td class="p-4 sm:p-5 text-brand-blue font-mono font-bold text-right">₹{{ season.total_spent|intcomma }}</td>
+                        <td class="p-4 sm:p-5 text-center">
+                            <a href="{% url 'admin_report_detail_season' season.season_id %}" class="px-4 py-2 rounded-lg bg-brand-blue/20 text-brand-blue font-bold text-xs hover:bg-brand-blue hover:text-white transition-all inline-block shadow-[0_0_10px_rgba(37,99,235,0.2)]">
+                                View Details <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="p-12 text-center text-white/40 text-sm whitespace-nowrap border-0">
+                            <div class="flex flex-col items-center justify-center gap-2 w-full">
+                                <i class="fa-solid fa-ghost text-3xl opacity-50"></i>
+                                <span>No bidding seasons have been created yet.</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                </tbody>
+            </table>
         </div>
-
-        <!-- Top Organizations -->
-        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col">
-            <h3 class="font-display font-bold text-lg text-white mb-4">ORGANIZATION SPENDING</h3>
-            <div class="overflow-x-auto rounded-lg border border-white/10">
-                <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
-                    <thead>
-                        <tr class="bg-black/40 border-b border-white/10 text-xs uppercase tracking-widest text-white/50">
-                            <th class="p-4 font-bold">Rank</th>
-                            <th class="p-4 font-bold">Organization</th>
-                            <th class="p-4 font-bold text-center">Players</th>
-                            <th class="p-4 font-bold text-right">Total Spent</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-sm divide-y divide-white/5">
-                        {% for org in top_orgs %}
-                        <tr class="hover:bg-white/5 transition-colors">
-                            <td class="p-4 text-white/50 font-bold">#{{ forloop.counter }}</td>
-                            <td class="p-4 text-white font-bold">{{ org.organization__Organization_Name }}</td>
-                            <td class="p-4 text-white/70 text-center">{{ org.players_acquired }}</td>
-                            <td class="p-4 text-brand-blue font-mono font-bold text-right">₹{{ org.spent|intcomma }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="p-8 text-center text-white/40 text-sm">No confirmed purchases yet.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
     </div>
+    
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
 
 {% endblock %}

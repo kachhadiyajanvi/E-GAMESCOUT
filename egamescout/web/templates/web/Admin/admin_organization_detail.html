@@ -30,12 +30,38 @@
 
 {% block page_content %}
 
-    <!-- Organizations Table -->
-    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
-        <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
-            <thead>
-                <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
-                    <th class="p-4 font-bold">Organization</th>
+    <!-- Organizations Table wrapped in Bulk Form -->
+    <form id="bulkOrgActionForm" method="POST" action="{% url 'admin_bulk_delete_organizations' %}" class="relative">
+        {% csrf_token %}
+        
+        <!-- Floating HUD Bar for Bulk Actions -->
+        <div id="bulkActionBar" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-brand-gray border border-white/10 shadow-[0_10px_50px_rgba(0,0,0,0.8)] rounded-2xl p-4 flex items-center gap-6 transform translate-y-32 opacity-0 transition-all duration-300 pointer-events-none">
+            <div class="flex items-center gap-3 border-r border-white/10 pr-6">
+                <div class="w-8 h-8 rounded-full bg-brand-pink/20 flex items-center justify-center text-brand-pink">
+                    <i class="fa-solid fa-check-double"></i>
+                </div>
+                <div>
+                    <span id="selectedCount" class="font-bold text-white font-mono text-lg leading-none">0</span>
+                    <span class="text-white/40 text-[10px] uppercase block tracking-widest">Orgs Selected</span>
+                </div>
+            </div>
+            <button type="button" onclick="confirmBulkNotifyOrg()" class="px-5 py-2.5 bg-brand-pink/10 hover:bg-brand-pink/20 border border-brand-pink/30 rounded-lg text-brand-pink font-bold uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(255,0,128,0.15)] transition-all flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-bullhorn"></i> Notify Selected
+            </button>
+            <button type="button" onclick="confirmBulkArchive()" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 rounded-lg text-white font-bold uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-box-archive"></i> Archive Selected
+            </button>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl">
+            <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
+                <thead>
+                    <tr class="bg-white/5 border-b border-white/10 text-xs text-white/50 uppercase tracking-widest">
+                        <th class="p-4 w-12 text-center">
+                            <input type="checkbox" id="selectAll" class="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-pink focus:ring-brand-pink cursor-pointer">
+                        </th>
+                        <th class="p-4 w-12 text-center font-bold">#</th>
+                        <th class="p-4 font-bold">Organization</th>
                     <th class="p-4 font-bold">Status</th>
                     <th class="p-4 font-bold">Contact</th>
                     <th class="p-4 font-bold">Joined</th>
@@ -44,7 +70,13 @@
             </thead>
             <tbody class="divide-y divide-white/5 text-sm">
                 {% for org in page_obj %}
-                <tr class="hover:bg-white/5 transition-colors group">
+                <tr class="hover:bg-white/5 transition-colors group cursor-pointer" onclick="toggleRowCheckbox('org_{{ org.id }}', event)">
+                    <td class="p-4 text-center">
+                        <input type="checkbox" name="selected_ids" value="{{ org.id }}" id="org_{{ org.id }}" class="row-checkbox w-4 h-4 rounded border-white/20 bg-black/50 text-brand-pink focus:ring-brand-pink cursor-pointer" onclick="event.stopPropagation()">
+                    </td>
+                    <td class="p-4 text-center text-white/40 font-mono text-xs">
+                        {{ forloop.counter0|add:page_obj.start_index }}
+                    </td>
                     <td class="p-4">
                         <div class="flex items-center gap-3">
                             <div
@@ -129,7 +161,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="p-8 text-center text-white/40">No organizations found.</td>
+                    <td colspan="7" class="p-8 text-center text-white/40">No organizations found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -165,6 +197,7 @@
             </div>
         </div>
     </div>
+    </form>
 
 
     <!-- View Org Details Modal -->
@@ -328,6 +361,87 @@
 
 {% block page_scripts %}
 <script>
+    // Bulk Select Logic
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const bulkActionBar = document.getElementById('bulkActionBar');
+    const selectedCountSpan = document.getElementById('selectedCount');
+
+    function updateBulkActionUI() {
+        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+        const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
+        if (selectedCountSpan) selectedCountSpan.textContent = selectedCount;
+
+        if (bulkActionBar) {
+            if (selectedCount > 0) {
+                bulkActionBar.classList.remove('translate-y-32', 'opacity-0', 'pointer-events-none');
+                bulkActionBar.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+            } else {
+                bulkActionBar.classList.add('translate-y-32', 'opacity-0', 'pointer-events-none');
+                bulkActionBar.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+            }
+        }
+        
+        if (selectAllCheckbox && rowCheckboxes.length > 0) {
+            selectAllCheckbox.checked = selectedCount === rowCheckboxes.length;
+        }
+    }
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const isChecked = this.checked;
+            document.querySelectorAll('.row-checkbox').forEach(cb => {
+                cb.checked = isChecked;
+            });
+            updateBulkActionUI();
+        });
+    }
+
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.classList.contains('row-checkbox')) {
+            updateBulkActionUI();
+        }
+    });
+
+    function toggleRowCheckbox(checkboxId, event) {
+        if (event.target.closest('button, a, input, select')) return;
+        const cb = document.getElementById(checkboxId);
+        if(cb) {
+            cb.checked = !cb.checked;
+            updateBulkActionUI();
+        }
+    }
+
+    function confirmBulkNotifyOrg() {
+        const checked = document.querySelectorAll('.row-checkbox:checked');
+        if (checked.length === 0) return;
+        const ids = Array.from(checked).map(cb => cb.value).join(',');
+        openNotifyOrgModal(ids, `${checked.length} Selected Organization(s)`);
+    }
+
+    function confirmBulkArchive() {
+        const count = document.querySelectorAll('.row-checkbox:checked').length;
+        Swal.fire({
+            title: 'Bulk Archive Organizations',
+            text: `Are you sure you want to archive ${count} selected organizations? Active accounts will be suspended and logged out.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#1F2833',
+            background: '#111827',
+            color: '#fff',
+            confirmButtonText: 'Yes, Archive All',
+            customClass: {
+                popup: 'custom-swal-popup border border-red-500/30',
+                confirmButton: 'text-white font-bold uppercase tracking-widest',
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('bulkOrgActionForm').submit();
+            }
+        });
+    }
+
+    // Existing Functions
     function openOrgViewModal(button) {
         const modal = document.getElementById('viewOrgModal');
         const data = button.dataset;
