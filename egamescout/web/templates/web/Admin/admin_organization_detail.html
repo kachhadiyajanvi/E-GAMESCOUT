@@ -35,7 +35,7 @@
         {% csrf_token %}
         
         <!-- Floating HUD Bar for Bulk Actions -->
-        <div id="bulkActionBar" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-brand-gray border border-white/10 shadow-[0_10px_50px_rgba(0,0,0,0.8)] rounded-2xl p-4 flex items-center gap-6 transform translate-y-32 opacity-0 transition-all duration-300 pointer-events-none">
+        <div id="bulkActionBar" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-black/95 backdrop-blur-3xl border border-white/20 shadow-[0_10px_50px_rgba(0,0,0,0.9)] rounded-2xl p-4 flex items-center gap-4 sm:gap-6 transform translate-y-32 opacity-0 transition-all duration-300 pointer-events-none">
             <div class="flex items-center gap-3 border-r border-white/10 pr-6">
                 <div class="w-8 h-8 rounded-full bg-brand-pink/20 flex items-center justify-center text-brand-pink">
                     <i class="fa-solid fa-check-double"></i>
@@ -361,12 +361,13 @@
 
 {% block page_scripts %}
 <script>
+(function(){
     // Bulk Select Logic
     const selectAllCheckbox = document.getElementById('selectAll');
     const bulkActionBar = document.getElementById('bulkActionBar');
     const selectedCountSpan = document.getElementById('selectedCount');
 
-    function updateBulkActionUI() {
+    window.updateBulkActionUI = function() {
         const rowCheckboxes = document.querySelectorAll('.row-checkbox');
         const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
         if (selectedCountSpan) selectedCountSpan.textContent = selectedCount;
@@ -384,7 +385,7 @@
         if (selectAllCheckbox && rowCheckboxes.length > 0) {
             selectAllCheckbox.checked = selectedCount === rowCheckboxes.length;
         }
-    }
+    };
 
     if (selectAllCheckbox) {
         selectAllCheckbox.addEventListener('change', function() {
@@ -392,33 +393,36 @@
             document.querySelectorAll('.row-checkbox').forEach(cb => {
                 cb.checked = isChecked;
             });
-            updateBulkActionUI();
+            window.updateBulkActionUI();
         });
     }
 
-    document.addEventListener('change', function(e) {
-        if (e.target && e.target.classList.contains('row-checkbox')) {
-            updateBulkActionUI();
-        }
-    });
+    const tableWrapper = document.querySelector('.overflow-x-auto');
+    if (tableWrapper) {
+        tableWrapper.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('row-checkbox')) {
+                window.updateBulkActionUI();
+            }
+        });
+    }
 
-    function toggleRowCheckbox(checkboxId, event) {
+    window.toggleRowCheckbox = function(checkboxId, event) {
         if (event.target.closest('button, a, input, select')) return;
         const cb = document.getElementById(checkboxId);
         if(cb) {
             cb.checked = !cb.checked;
-            updateBulkActionUI();
+            window.updateBulkActionUI();
         }
-    }
+    };
 
-    function confirmBulkNotifyOrg() {
+    window.confirmBulkNotifyOrg = function() {
         const checked = document.querySelectorAll('.row-checkbox:checked');
         if (checked.length === 0) return;
         const ids = Array.from(checked).map(cb => cb.value).join(',');
         openNotifyOrgModal(ids, `${checked.length} Selected Organization(s)`);
-    }
+    };
 
-    function confirmBulkArchive() {
+    window.confirmBulkArchive = function() {
         const count = document.querySelectorAll('.row-checkbox:checked').length;
         Swal.fire({
             title: 'Bulk Archive Organizations',
@@ -439,7 +443,8 @@
                 document.getElementById('bulkOrgActionForm').submit();
             }
         });
-    }
+    };
+})();
 
     // Existing Functions
     function openOrgViewModal(button) {

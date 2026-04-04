@@ -7,8 +7,8 @@
 {% block header_desc %}Real-time platform metrics and performance insights{% endblock %}
 
 {% block header_actions %}
-<button onclick="exportData()" class="flex-1 md:flex-none bg-green-500/10 border border-green-500/50 text-green-400 hover:bg-green-500 hover:text-black px-4 py-2 rounded-lg font-bold text-sm transition-all justify-center items-center flex gap-2">
-    <i class="fa-solid fa-download"></i> Export
+<button onclick="document.getElementById('exportAnalyticsModal').classList.remove('hidden')" class="flex-1 md:flex-none bg-green-500/10 border border-green-500/50 text-green-400 hover:bg-green-500 hover:text-black px-4 py-2 rounded-lg font-bold text-sm transition-all justify-center items-center flex gap-2">
+    <i class="fa-solid fa-file-export"></i> Export Report
 </button>
 <button onclick="location.reload()" class="flex-1 md:flex-none bg-blue-500/10 border border-blue-500/50 text-blue-400 hover:bg-blue-500 hover:text-black px-4 py-2 rounded-lg font-bold text-sm transition-all justify-center items-center flex gap-2">
     <i class="fa-solid fa-refresh"></i> Refresh
@@ -347,6 +347,46 @@
 {% endblock %}
 
 {% block page_scripts %}
+    <!-- Analytics Export Modal -->
+    <div id="exportAnalyticsModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-brand-gray border border-white/10 rounded-xl max-w-sm w-full shadow-2xl overflow-hidden transform transition-all transform-gpu">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-white font-bold text-lg font-display uppercase tracking-widest"><i class="fa-solid fa-file-export text-green-400 mr-2"></i> Export Report</h3>
+                    <button type="button" onclick="document.getElementById('exportAnalyticsModal').classList.add('hidden')" class="text-white/40 hover:text-white transition-colors">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+                <p class="text-sm text-white/60 mb-6">Select the format and date scope for your analytics data extraction.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-1.5">File Format</label>
+                        <select id="exportFormat" class="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 text-white text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all outline-none">
+                            <option value="csv">CSV Document (.csv)</option>
+                            <option value="pdf">PDF Report (.pdf)</option>
+                            <option value="xlsx">Excel File (.xlsx)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-1.5">Date Range</label>
+                        <select id="exportRange" class="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 text-white text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all outline-none">
+                            <option value="7">Last 7 Days</option>
+                            <option value="30" selected>Last 30 Days</option>
+                            <option value="90">Last 90 Days</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white/5 p-4 border-t border-white/5 flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('exportAnalyticsModal').classList.add('hidden')" class="px-4 py-2 rounded-lg text-white/60 hover:text-white text-sm font-bold transition-colors">CANCEL</button>
+                <button type="button" onclick="exportData()" class="px-6 py-2 bg-green-500 hover:bg-green-600 text-black font-bold text-sm tracking-wide rounded-lg flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-download"></i> EXPORT
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- Data for Charts -->
     {{ week_labels|json_script:"week-labels" }}
     {{ player_data_week|json_script:"player-data-week" }}
@@ -529,7 +569,72 @@
         })();
 
         window.exportData = function() {
-            alert('Export feature coming soon!');
+            const formatSelect = document.getElementById('exportFormat');
+            const rangeSelect = document.getElementById('exportRange');
+            
+            const format = formatSelect ? formatSelect.value : 'csv';
+            const rangeValue = rangeSelect ? rangeSelect.value : '30';
+            
+            let periodKey = 'month';
+            if (rangeValue === '7') periodKey = 'week';
+            if (rangeValue === 'all' || rangeValue === '90') periodKey = 'year';
+
+            const data = window.adminAnalyticsDataStore[periodKey];
+            
+            if (!data || !data.labels || data.labels.length === 0) {
+                Swal.fire({
+                    title: 'No Data!',
+                    text: 'There is no analytical data available for the selected period.',
+                    icon: 'warning',
+                    background: '#111827',
+                    color: '#fff'
+                });
+                return;
+            }
+
+            if (format === 'csv' || format === 'xlsx') {
+                // Generate CSV manually (works for excel)
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "Date,New Players,New Organizations\n";
+                
+                for (let i = 0; i < data.labels.length; i++) {
+                    let date = String(data.labels[i]).replace(/,/g, '');
+                    let players = data.player[i] || 0;
+                    let orgs = data.org[i] || 0;
+                    csvContent += `${date},${players},${orgs}\n`;
+                }
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `egamescout_analytics_${periodKey}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                
+            } else if (format === 'pdf') {
+                // Fallback / Simplification for PDF without loading huge external libraries,
+                // just trigger print window focused on the charts:
+                window.print();
+            }
+
+            // Close Modal & Show Success
+            document.getElementById('exportAnalyticsModal').classList.add('hidden');
+            
+            // Only show success toast if we actually downloaded a file
+            if (format !== 'pdf') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Export successful!',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    background: '#111827',
+                    color: '#fff',
+                    customClass: { popup: 'border border-green-500/30' }
+                });
+            }
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
