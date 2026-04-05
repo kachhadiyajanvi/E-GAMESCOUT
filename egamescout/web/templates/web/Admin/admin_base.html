@@ -18,6 +18,9 @@
     </style>
     <style>
         :root {
+            /* Layout Defaults */
+            --sidebar-width: 16rem; /* w-64 is 16rem */
+            
             /* Dark Theme (Default) */
             --brand-blue: #00f3ff;
             --brand-pink: #ec4899;
@@ -47,6 +50,10 @@
             --theme-overlay: rgba(255, 255, 255, 0.6);
             --theme-header-bg: rgba(255, 255, 255, 0.8);
             --theme-input-bg: #ffffff;
+        }
+
+        .sidebar-collapsed {
+            --sidebar-width: 5rem; /* w-20 is 5rem */
         }
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
@@ -123,23 +130,44 @@
                         pulse: {
                             '0%, 100%': { opacity: '1' },
                             '50%': { opacity: '0.6' },
+                        },
+                        drawCheck: {
+                            '0%': { strokeDashoffset: '48' },
+                            '100%': { strokeDashoffset: '0' },
+                        },
+                        toastCircle: {
+                            '0%': { transform: 'scale(0)', opacity: '0' },
+                            '50%': { transform: 'scale(1.1)', opacity: '1' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
                         }
                     },
                     animation: {
                         'pulse': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'draw-check': 'drawCheck 0.4s ease-out 0.2s forwards',
+                        'toast-circle': 'toastCircle 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
                     }
                 }
             }
         }
     </script>
     <script>
-        // Init theme immediately to prevent FOUC
+        // Init theme & layout immediately to prevent FOUC
         (function() {
             var theme = localStorage.getItem('adminTheme') || 'dark';
             if (theme === 'light') {
                 document.documentElement.setAttribute('data-theme', 'light');
             } else {
                 document.documentElement.setAttribute('data-theme', 'dark');
+            }
+
+            var fontSize = localStorage.getItem('adminFontSize');
+            if (fontSize) {
+                document.documentElement.style.fontSize = fontSize + 'px';
+            }
+
+            var sidebarState = localStorage.getItem('adminSidebarCollapsed');
+            if (sidebarState === 'true') {
+                document.documentElement.classList.add('sidebar-collapsed');
             }
         })();
 
@@ -217,7 +245,18 @@
     </button>
 
     <!-- Sidebar -->
-    <aside id="adminSidebar" class="w-64 h-full bg-theme-card backdrop-blur-md border-r border-theme-border flex flex-col z-50 shrink-0 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-300">
+    <aside id="adminSidebar" class="w-[var(--sidebar-width)] h-full bg-theme-card backdrop-blur-md border-r border-theme-border flex flex-col z-50 shrink-0 fixed md:relative -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out group/sidebar">
+        <script>
+            // Ensure mobile view ALWAYS starts expanded, ignoring desktop collapse preference
+            if (window.innerWidth >= 768 && document.documentElement.classList.contains('sidebar-collapsed')) {
+                document.getElementById('adminSidebar').classList.add('sidebar-collapsed');
+            }
+        </script>
+        
+        <!-- Desktop Collapse Toggle -->
+        <button onclick="toggleDesktopSidebar()" class="hidden md:flex absolute -right-3.5 top-7 w-7 h-7 bg-theme-bg border border-theme-border rounded-lg items-center justify-center text-theme-text/50 hover:text-brand-blue hover:border-brand-blue/50 transition-colors z-[60] shadow-sm">
+            <i class="fa-solid fa-chevron-left text-xs transition-transform duration-300 group-[.sidebar-collapsed]/sidebar:rotate-180"></i>
+        </button>
         <!-- Sidebar Header -->
         <div class="h-20 flex items-center px-5 border-b border-theme-border-light relative overflow-hidden">
             <!-- Subtle ambient glow behind logo -->
@@ -225,14 +264,14 @@
             <div class="flex items-center gap-3 relative z-10">
                 <!-- Logo Box -->
                 <div class="relative shrink-0">
-                    <div class="w-10 h-10 rounded-xl bg-theme-input-bg border border-brand-blue/30 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-theme-input-bg !border-brand-blue/30 flex items-center justify-center">
                         <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-7 h-7 object-contain drop-shadow-sm">
                     </div>
                     <!-- Active dot -->
                     <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-theme-bg"></span>
                 </div>
                 <!-- Brand Text -->
-                <div class="flex flex-col leading-none gap-0.5">
+                <div class="flex flex-col leading-none gap-0.5 whitespace-nowrap transition-all duration-300 overflow-hidden group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0">
                     <span class="font-display font-black text-base tracking-[0.2em] text-theme-text">EGAME<span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-pink">SCOUT</span></span>
                     <span class="text-[9px] font-bold tracking-[0.3em] text-theme-text-muted uppercase">Admin Console</span>
                 </div>
@@ -240,112 +279,121 @@
         </div>
 
         <!-- Navigation -->
-        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-            <p class="text-[10px] text-theme-text-muted font-bold tracking-widest mb-4 px-2">MAIN MENU</p>
+        <nav class="flex-1 overflow-y-auto overflow-x-hidden py-6 px-4 space-y-2 transition-all duration-300 group-[.sidebar-collapsed]/sidebar:px-2 custom-scrollbar">
+            <p class="text-[10px] text-theme-text-muted font-bold tracking-widest mb-4 px-2 transition-all duration-300 overflow-hidden group-[.sidebar-collapsed]/sidebar:h-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:m-0 group-[.sidebar-collapsed]/sidebar:p-0">MAIN MENU</p>
 
             <!-- Dashboard Link -->
             <a href="{% url 'admin_dashboard' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
-                <i class="fa-solid fa-chart-line w-5 text-center"></i>
-                <span class="font-bold tracking-wider text-sm">Dashboard</span>
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                <i class="fa-solid fa-chart-line w-5 text-center min-w-[1.25rem]"></i>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Dashboard</span>
             </a>
 
             <!-- Players Link -->
             <a href="{% url 'admin_players_detail' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_players_detail' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'admin_players_detail' %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
                 <i
                     class="fa-solid fa-users w-5 text-center {% if request.resolver_match.url_name != 'admin_players_detail' %}group-hover:text-brand-pink{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Players</span>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Players</span>
             </a>
 
             <!-- Organizations Link -->
             <a href="{% url 'admin_organization_detail' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_organization_detail' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'admin_organization_detail' %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
                 <i
                     class="fa-solid fa-sitemap w-5 text-center {% if request.resolver_match.url_name != 'admin_organization_detail' %}group-hover:text-brand-blue{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Organizations</span>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Organizations</span>
             </a>
 
             <!-- Tournaments Link -->
             <a href="{% url 'admin_tournaments_detail' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_tournaments_detail' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'admin_tournaments_detail' %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
                 <i
                     class="fa-solid fa-trophy w-5 text-center {% if request.resolver_match.url_name != 'admin_tournaments_detail' %}group-hover:text-purple-500{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Tournaments</span>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Tournaments</span>
             </a>
 
             <!-- Tournament Approvals Link -->
             <a href="{% url 'admin_tournament_approvals' %}"
-                class="flex items-center justify-between px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_tournament_approvals' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
-                <div class="flex items-center gap-4">
-                    <i
-                        class="fa-solid fa-clipboard-check w-5 text-center {% if request.resolver_match.url_name != 'admin_tournament_approvals' %}group-hover:text-green-400{% endif %} transition-colors"></i>
-                    <span class="font-bold tracking-wider text-sm">Approvals</span>
-                </div>
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group relative {% if request.resolver_match.url_name == 'admin_tournament_approvals' %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                <i class="fa-solid fa-clipboard-check w-5 text-center min-w-[1.25rem] {% if request.resolver_match.url_name != 'admin_tournament_approvals' %}group-hover:text-green-400{% endif %} transition-colors"></i>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Approvals</span>
+                
                 {% if pending_tournaments_count > 0 %}
-                <span class="bg-brand-pink text-theme-text text-[10px] font-bold px-2 py-0.5 rounded-full">{{ pending_tournaments_count }}</span>
+                <span class="absolute right-4 bg-brand-pink text-theme-text text-[10px] font-bold px-2 py-0.5 rounded-full transition-all duration-300 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:scale-0">{{ pending_tournaments_count }}</span>
                 {% endif %}
             </a>
 
 
             <!-- Bidding Link -->
             <a href="{% url 'admin_bidding_dashboard' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'bidding_dashboard' in request.resolver_match.url_name %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if 'bidding_dashboard' in request.resolver_match.url_name %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
                 <i
                     class="fa-solid fa-gavel w-5 text-center {% if 'bidding_dashboard' not in request.resolver_match.url_name %}group-hover:text-yellow-500{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Bidding Actions</span>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Bidding Actions</span>
             </a>
 
             <!-- Bids Report Link -->
             <a href="{% url 'admin_bids_report' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'bids_report' in request.resolver_match.url_name %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
-                <i class="fa-solid fa-list-ol w-5 text-center {% if 'bids_report' not in request.resolver_match.url_name %}group-hover:text-cyan-400{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">All Bids Report</span>
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if 'bids_report' in request.resolver_match.url_name %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                <i class="fa-solid fa-list-ol w-5 text-center {% if 'bids_report' not in request.resolver_match.url_name %}group-hover:text-cyan-400{% endif %} transition-colors min-w-[1.25rem]"></i>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">All Bids Report</span>
             </a>
 
             <!-- Analytics Link -->
             <a href="{% url 'admin_analytics' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_analytics' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'admin_analytics' %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
                 <i
                     class="fa-solid fa-chart-pie w-5 text-center {% if request.resolver_match.url_name != 'admin_analytics' %}group-hover:text-brand-pink{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Analytics</span>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Analytics</span>
             </a>
 
             <!-- Archive Actions Link -->
             <a href="{% url 'admin_archive_actions' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_archive_actions' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'admin_archive_actions' %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
                 <i
                     class="fa-solid fa-trash-arrow-up w-5 text-center {% if request.resolver_match.url_name != 'admin_archive_actions' %}group-hover:text-red-400{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Archive Actions</span>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Archive Actions</span>
             </a>
 
             <!-- Settings Link -->
             <a href="{% url 'admin_settings' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if request.resolver_match.url_name == 'admin_settings' %}bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'admin_settings' %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
                 <i
                     class="fa-solid fa-screwdriver-wrench w-5 text-center {% if request.resolver_match.url_name != 'admin_settings' %}group-hover:text-theme-text-muted{% endif %} transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">System Settings</span>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">System Settings</span>
             </a>
         </nav>
 
         <!-- Logout Section -->
-        <div class="p-4 border-t border-theme-border-light">
+        <div class="p-4 border-t border-theme-border-light transition-all duration-300 group-[.sidebar-collapsed]/sidebar:px-2">
             <a href="{% url 'admin_logout' %}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl text-theme-text/60 hover:text-theme-text hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all group">
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl text-theme-text/60 hover:text-theme-text hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all border border-transparent group">
                 <i
-                    class="fa-solid fa-right-from-bracket w-5 text-center group-hover:text-red-500 transition-colors"></i>
-                <span class="font-bold tracking-wider text-sm">Log Out</span>
+                    class="fa-solid fa-right-from-bracket w-5 text-center min-w-[1.25rem] group-hover:text-red-500 transition-colors"></i>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Log Out</span>
             </a>
         </div>
     </aside>
 
-    <!-- Main Content Area -->
     <main class="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative z-10 w-full md:w-auto">
         <!-- Top Header -->
         <header class="bg-theme-header-bg backdrop-blur-xl z-40 shadow-[0_4px_30px_var(--theme-border)] border-b border-theme-border relative">
             <!-- Glassy bottom glow line -->
             <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-blue/30 to-transparent"></div>
             
+            {% if settings and settings.show_announcement and settings.announcement_text %}
+            <!-- Global Announcement Banner -->
+            <div class="bg-gradient-to-r from-brand-blue/10 via-brand-blue/5 to-transparent border-b border-brand-blue/20 px-4 py-2 flex items-center justify-center gap-3 relative z-50">
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-blue"></div>
+                <i class="fa-solid fa-bullhorn text-brand-blue animate-pulse text-sm"></i>
+                <p class="text-[11px] md:text-sm font-bold text-brand-blue tracking-wide">{{ settings.announcement_text }}</p>
+                <button onclick="this.parentElement.style.display='none'" class="absolute right-4 text-brand-blue/40 hover:text-brand-blue transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            {% endif %}
+
             <!-- Main Header Row (Aligned with Sidebar Header) -->
             <div class="h-20 px-4 md:px-8 flex items-center justify-between border-b border-white/[0.08]">
                 
@@ -500,6 +548,10 @@
             const backdrop = document.getElementById('mobileSidebarBackdrop');
             const closeBtn = document.getElementById('mobileSidebarCloseBtn');
             if (sidebar.classList.contains('-translate-x-full')) {
+                // Force full mode when opening on mobile to prevent narrow icon-only view
+                sidebar.classList.remove('sidebar-collapsed');
+                document.documentElement.classList.remove('sidebar-collapsed');
+                
                 sidebar.classList.remove('-translate-x-full');
                 backdrop.classList.remove('hidden');
                 if (closeBtn) { closeBtn.classList.remove('hidden'); closeBtn.classList.add('flex'); }
@@ -517,33 +569,57 @@
             let iconClass = 'fa-info-circle';
             let iconColorClass = 'text-blue-500 bg-blue-500/10';
             let title = 'Notification';
-
             const type = (data.type || '').toUpperCase();
 
             if (type.includes('SUCCESS') || (data.tags && data.tags.includes('success'))) {
-                iconClass = 'fa-check';
-                iconColorClass = 'text-green-500 bg-green-500/10';
                 title = 'Success';
+                iconHtml = `
+                    <div class="relative w-12 h-12 rounded-full bg-[#10b981]/10 text-[#10b981] flex items-center justify-center shrink-0 animate-toast-circle">
+                        <svg class="w-6 h-6 stroke-current stroke-[3] fill-none" viewBox="0 0 52 52">
+                            <path class="animate-draw-check [stroke-dasharray:48] [stroke-dashoffset:48]" stroke-linecap="round" stroke-linejoin="round" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                        </svg>
+                        <div class="absolute inset-0 rounded-full border border-[#10b981]/30"></div>
+                    </div>
+                `;
             } else if (type.includes('ERROR') || (data.tags && data.tags.includes('error'))) {
                 iconClass = 'fa-triangle-exclamation';
                 iconColorClass = 'text-red-500 bg-red-500/10 border-red-500/20';
                 title = 'System Alert';
+                iconHtml = `
+                    <div class="w-12 h-12 rounded-full ${iconColorClass} flex items-center justify-center shrink-0 border border-current/10">
+                        <i class="fa-solid ${iconClass} text-xl"></i>
+                    </div>
+                `;
             } else if (type.includes('PLAYER')) {
                 iconClass = 'fa-user';
                 iconColorClass = 'text-purple-500 bg-purple-500/10';
                 title = 'Player Update';
+                iconHtml = `
+                    <div class="w-12 h-12 rounded-full ${iconColorClass} flex items-center justify-center shrink-0 border border-current/10">
+                        <i class="fa-solid ${iconClass} text-xl"></i>
+                    </div>
+                `;
             } else if (type.includes('ORG')) {
                 iconClass = 'fa-sitemap';
                 iconColorClass = 'text-brand-blue bg-brand-blue/10';
                 title = 'Organization Update';
+                iconHtml = `
+                    <div class="w-12 h-12 rounded-full ${iconColorClass} flex items-center justify-center shrink-0 border border-current/10">
+                        <i class="fa-solid ${iconClass} text-xl"></i>
+                    </div>
+                `;
+            } else {
+                iconHtml = `
+                    <div class="w-12 h-12 rounded-full ${iconColorClass} flex items-center justify-center shrink-0 border border-current/10">
+                        <i class="fa-solid ${iconClass} text-xl"></i>
+                    </div>
+                `;
             }
 
             toast.className = `pointer-events-auto bg-theme-bg backdrop-blur-xl border border-theme-border rounded-[16px] p-5 shadow-2xl flex items-center gap-5 transform transition-all duration-500 ease-out translate-x-24 opacity-0 min-w-[320px] max-w-[450px] hover:border-theme-border-light z-[9999]`;
 
             toast.innerHTML = `
-                <div class="w-12 h-12 rounded-full ${iconColorClass} flex items-center justify-center shrink-0 border border-current/10">
-                    <i class="fa-solid ${iconClass} text-xl"></i>
-                </div>
+                ${iconHtml}
                 <div class="flex-1 pr-6 flex flex-col justify-center">
                     <h4 class="font-display font-bold text-theme-text text-lg leading-none tracking-wide">${title}</h4>
                     <p class="text-[14px] text-theme-text-muted mt-2 leading-snug font-sans">${data.message}</p>
@@ -761,15 +837,13 @@
                 const href = link.getAttribute('href');
                 if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
                 
-                // Intercept GET requests matching admin URLs, barring file downloads or logout
-                if (href.startsWith('/admin/') && !href.includes('logout') && !href.includes('export') && link.target !== '_blank') {
+                // Intercept GET requests matching admin URLs, barring file downloads, logout, or settings
+                if (href.startsWith('/admin/') && !href.includes('logout') && !href.includes('export') && !href.includes('settings') && link.target !== '_blank') {
                     e.preventDefault();
                     if (window.innerWidth < 768) {
                         const sidebar = document.getElementById('adminSidebar');
-                        const backdrop = document.getElementById('mobileSidebarBackdrop');
                         if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
-                            sidebar.classList.add('-translate-x-full');
-                            backdrop.classList.add('hidden');
+                            toggleSidebar();
                         }
                     }
                     navigateTo(href);
@@ -804,15 +878,20 @@
                 mainContentContainer.style.position = 'relative';
                 mainContentContainer.appendChild(loader);
                 
-                // Highlight sidebar active state
+                // Highlight sidebar active state using classList to preserve structural layout classes
                 document.querySelectorAll('#adminSidebar a').forEach(a => {
+                    // Skip the logout button or any other specific non-nav links
+                    if (a.getAttribute('href') && a.getAttribute('href').includes('logout')) return;
+                    
                     const aHref = a.getAttribute('href');
-                    if (aHref === url || (aHref !== '/admin/' && url.startsWith(aHref))) {
-                        a.className = "flex items-center gap-4 px-4 py-3 rounded-xl transition-all group bg-gradient-to-r from-brand-blue/20 to-transparent border border-brand-blue/30 text-brand-blue text-sm font-bold tracking-wider";
+                    const isActive = aHref === url || (aHref !== '/admin/' && url.startsWith(aHref));
+                    
+                    if (isActive) {
+                        a.classList.add('bg-theme-card', 'text-brand-blue', 'shadow-sm');
+                        a.classList.remove('text-theme-text/60', 'hover:text-theme-text', 'hover:bg-theme-card');
                     } else {
-                        if (a.className.includes('bg-gradient')) {
-                            a.className = "flex items-center gap-4 px-4 py-3 rounded-xl transition-all group text-theme-text/60 hover:text-theme-text hover:bg-theme-card text-sm font-bold tracking-wider";
-                        }
+                        a.classList.remove('bg-theme-card', 'text-brand-blue', 'shadow-sm');
+                        a.classList.add('text-theme-text/60', 'hover:text-theme-text', 'hover:bg-theme-card');
                     }
                 });
 
@@ -862,6 +941,19 @@
                 }
             }
         });
+
+        // Desktop Sidebar Toggle Logic
+        function toggleDesktopSidebar() {
+            const htmlNode = document.documentElement;
+            htmlNode.classList.toggle('sidebar-collapsed');
+            
+            const sidebar = document.getElementById('adminSidebar');
+            if (sidebar) sidebar.classList.toggle('sidebar-collapsed');
+            
+            // Persist preference
+            const isCollapsed = htmlNode.classList.contains('sidebar-collapsed');
+            localStorage.setItem('adminSidebarCollapsed', isCollapsed ? 'true' : 'false');
+        }
     </script>
 </body>
 

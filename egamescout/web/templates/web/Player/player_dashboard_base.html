@@ -212,6 +212,19 @@
                     </a>
                 </div>
                 {% endif %}
+
+                {% if settings and settings.show_announcement and settings.announcement_text %}
+                <!-- Global Announcement Banner -->
+                <div class="bg-gradient-to-r from-accent-cyan/10 via-accent-cyan/5 to-transparent border-b border-accent-cyan/20 px-4 py-2 flex items-center justify-center gap-3 relative z-50">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-accent-cyan"></div>
+                    <i class="fa-solid fa-bullhorn text-accent-cyan animate-pulse text-sm"></i>
+                    <p class="text-[11px] md:text-sm font-bold text-accent-cyan tracking-wide">{{ settings.announcement_text }}</p>
+                    <button onclick="this.parentElement.style.display='none'" class="absolute right-4 text-accent-cyan/40 hover:text-accent-cyan transition-colors">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                {% endif %}
+
                 <!-- Main Header Row -->
                 <div class="h-20 px-4 md:px-8 flex items-center justify-between w-full">
 

@@ -104,7 +104,7 @@
                     while allowing us to style it nicely without increment arrows that type="number" introduces.
                 -->
                 <input type="text" inputmode="numeric" pattern="[0-9]{6}" name="otp" maxlength="6"
-                    class="w-full bg-theme-bg/80 border border-white/10 rounded-lg pl-11 pr-4 py-4 text-center text-brand-blue font-display text-2xl tracking-[0.5em] focus:outline-none placeholder-transparent peer"
+                    class="w-full bg-[#050505]/90 border border-white/10 rounded-lg pl-11 pr-4 py-4 text-center text-brand-blue font-display text-2xl tracking-[0.5em] focus:outline-none placeholder-transparent peer"
                     placeholder="000000" required autocomplete="one-time-code">
                 <label
                     class="absolute left-1/2 -translate-x-1/2 top-4 text-white/40 text-[13px] font-medium transition-all peer-focus:-translate-y-7 peer-focus:text-[10px] peer-focus:text-brand-blue peer-focus:tracking-widest peer-focus:bg-brand-dark peer-focus:px-2 peer-focus:rounded peer-[:not(:placeholder-shown)]:-translate-y-7 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:text-gray-400 peer-[:not(:placeholder-shown)]:bg-brand-dark peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:tracking-widest pointer-events-none uppercase">
@@ -202,7 +202,7 @@
                 iconColorClass = 'text-green-400 bg-green-400/10 border-green-400/30';
             }
 
-            toast.className = `pointer-events-auto bg-[#ffffff] dark:bg-[#111827] border border-gray-200 dark:border-gray-800 rounded-[16px] p-5 shadow-2xl flex items-center gap-5 transform transition-all duration-300 ease-out translate-x-32 opacity-0 min-w-[320px] max-w-[450px] z-[100]`;
+            toast.className = `pointer-events-auto bg-[#111827] border border-gray-800 rounded-[16px] p-5 shadow-2xl flex items-center gap-5 transform transition-all duration-300 ease-out translate-x-32 opacity-0 min-w-[320px] max-w-[450px] z-[100]`;
 
             let titleVal = tags.includes('success') ? 'Success' : (tags.includes('error') ? 'System Alert' : 'Notification');
 
@@ -211,10 +211,10 @@
                     <i class="fa-solid ${iconClass} text-xl"></i>
                 </div>
                 <div class="flex-1 pr-6 flex flex-col justify-center">
-                    <h4 class="font-display font-bold text-gray-900 dark:text-gray-100 text-lg leading-none tracking-wide">${titleVal}</h4>
-                    <p class="text-[14px] text-gray-500 dark:text-gray-400 mt-2 leading-snug font-sans">${message}</p>
+                    <h4 class="font-display font-bold text-gray-100 text-lg leading-none tracking-wide">${titleVal}</h4>
+                    <p class="text-[14px] text-gray-400 mt-2 leading-snug font-sans">${message}</p>
                 </div>
-                <button onclick="this.parentElement.remove()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <button onclick="this.parentElement.remove()" class="absolute top-5 right-5 text-gray-400 hover:text-white transition-colors">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             `;

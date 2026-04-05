@@ -40,6 +40,14 @@
             }
         }
     </script>
+    <script>
+        (function() {
+            var sidebarState = localStorage.getItem('orgSidebarCollapsed');
+            if (sidebarState === 'true') {
+                document.documentElement.classList.add('sidebar-collapsed');
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -66,7 +74,6 @@
         }
     </style>
     <style>
-        /* Custom scrollbar for sidebar */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -74,6 +81,14 @@
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
+        }
+        
+        :root {
+            --sidebar-width: 16rem;
+        }
+        
+        .sidebar-collapsed {
+            --sidebar-width: 5rem;
         }
 
         /* Make Date Picker Calendar Icon Visible on Dark Background */
@@ -87,6 +102,29 @@
 <body
     class="bg-brand-dark text-white font-sans selection:bg-accent-cyan selection:text-brand-dark h-screen overflow-hidden flex">
 
+    <!-- Global Page Loader -->
+    <div id="globalPageLoader" class="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0B0C10] transition-opacity duration-500">
+        <div class="flex flex-col items-center gap-4">
+            <div class="relative w-16 h-16">
+                <div class="absolute inset-0 rounded-full border-4 border-white/5 border-t-accent-cyan animate-spin"></div>
+                <div class="absolute inset-2 rounded-full border-4 border-white/5 border-b-neon-pink animate-[spin_1.5s_linear_infinite_reverse]"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-6 h-6 object-contain drop-shadow-[0_0_8px_rgba(102,252,241,0.8)] animate-pulse">
+                </div>
+            </div>
+            <p class="text-accent-cyan font-display font-bold tracking-[0.3em] text-xs animate-pulse">LOADING...</p>
+        </div>
+    </div>
+    <script>
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('globalPageLoader');
+            if (loader) {
+                loader.classList.add('opacity-0');
+                setTimeout(() => loader.remove(), 500);
+            }
+        });
+    </script>
+
     <!-- Global Grain Overlay -->
     <div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[100]"
         style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');">
@@ -96,13 +134,19 @@
     <div class="fixed inset-0 bg-grid-pattern pointer-events-none -z-20"></div>
 
     <!-- Sidebar -->
-    <aside
-        class="w-64 h-full bg-brand-dark/90 border-r border-white/5 flex flex-col z-50 shrink-0 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-300 mobile-sidebar">
+    <aside id="orgSidebar"
+        class="w-[var(--sidebar-width)] h-full bg-brand-dark/90 border-r border-white/5 flex flex-col z-50 shrink-0 fixed md:relative -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out mobile-sidebar group/sidebar">
+        
+        <!-- Desktop Collapse Toggle -->
+        <button onclick="toggleDesktopSidebar()" class="hidden md:flex absolute -right-3.5 top-7 w-7 h-7 bg-brand-dark border border-white/10 rounded-lg items-center justify-center text-white/50 hover:text-accent-cyan hover:border-accent-cyan/50 transition-colors z-[60] shadow-sm">
+            <i class="fa-solid fa-chevron-left text-xs transition-transform duration-300 group-[.sidebar-collapsed]/sidebar:rotate-180"></i>
+        </button>
+
         <!-- Sidebar Header / Logo -->
-        <div class="h-20 flex items-center justify-between px-5 border-b border-white/5 relative overflow-hidden shrink-0 bg-black/10">
+        <div class="h-20 flex items-center justify-between px-5 border-b border-white/5 relative overflow-hidden shrink-0 bg-black/10 transition-all duration-300 group-[.sidebar-collapsed]/sidebar:px-2">
             <!-- Subtle ambient glow behind logo -->
             <div class="absolute left-0 top-0 w-32 h-full bg-accent-cyan/5 blur-2xl pointer-events-none"></div>
-            <div class="flex items-center gap-3 relative z-10">
+            <div class="flex items-center gap-3 relative z-10 w-full group-[.sidebar-collapsed]/sidebar:justify-center">
                 <!-- Logo Box -->
                 <div class="relative shrink-0">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-cyan/20 to-accent-pink/10 border border-accent-cyan/40 flex items-center justify-center shadow-[0_0_20px_rgba(102,252,241,0.2)]">
@@ -112,7 +156,7 @@
                     <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent-cyan border-2 border-brand-dark shadow-[0_0_6px_rgba(102,252,241,0.8)]"></span>
                 </div>
                 <!-- Brand Text -->
-                <div class="flex flex-col leading-none gap-0.5">
+                <div class="flex flex-col leading-none gap-0.5 whitespace-nowrap transition-all duration-300 overflow-hidden group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0">
                     <span class="font-display font-black text-base tracking-[0.2em] text-white">EGAME<span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-neon-pink drop-shadow-[0_0_8px_rgba(102,252,241,0.5)]">SCOUT</span></span>
                     <span class="text-[9px] font-bold tracking-[0.3em] text-white/30 uppercase">Organization</span>
                 </div>
@@ -123,93 +167,84 @@
             </button>
         </div>
 
-        <!-- Navigation -->
-        <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-2 no-scrollbar">
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Main Menu</p>
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2 no-scrollbar group-[.sidebar-collapsed]/sidebar:px-2">
+        <p class="px-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 transition-all duration-300 overflow-hidden group-[.sidebar-collapsed]/sidebar:h-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:m-0 group-[.sidebar-collapsed]/sidebar:p-0">Main Menu</p>
 
-            <a href="{% url 'organizer_dashboard' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'organizer_dashboard' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i
-                    class="fa-solid fa-gauge-high text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Dashboard</span>
-            </a>
+        <a href="{% url 'organizer_dashboard' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'organizer_dashboard' %}bg-white/5 text-accent-cyan shadow-sm{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+            <i class="fa-solid fa-gauge-high text-lg w-5 text-center min-w-[1.25rem] transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Dashboard</span>
+        </a>
 
-            <a href="{% url 'tournament_list' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if 'tournament' in request.resolver_match.url_name and 'upcoming' not in request.resolver_match.url_name %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i
-                    class="fa-solid fa-trophy text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Tournaments</span>
-            </a>
+        <a href="{% url 'tournament_list' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if 'tournament' in request.resolver_match.url_name and 'upcoming' not in request.resolver_match.url_name %}bg-white/5 text-accent-cyan shadow-sm{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+            <i class="fa-solid fa-trophy text-lg w-5 text-center min-w-[1.25rem] transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Tournaments</span>
+        </a>
 
-            <a href="{% url 'org_upcoming_tournaments' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if 'upcoming' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i
-                    class="fa-regular fa-calendar-check text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Upcoming</span>
-            </a>
+        <a href="{% url 'org_upcoming_tournaments' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if 'upcoming' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan shadow-sm{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+            <i class="fa-regular fa-calendar-check text-lg w-5 text-center min-w-[1.25rem] transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Upcoming</span>
+        </a>
 
-            <a href="{% url 'my_players' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'my_players' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i class="fa-solid fa-users text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">My Players</span>
-            </a>
+        <a href="{% url 'my_players' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'my_players' %}bg-white/5 text-accent-cyan shadow-sm{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+            <i class="fa-solid fa-users text-lg w-5 text-center min-w-[1.25rem] transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">My Players</span>
+        </a>
 
-            <a href="{% url 'org_scout_players' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'org_scout_players' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i class="fa-solid fa-users-viewfinder text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Scout Players</span>
-            </a>
+        <a href="{% url 'org_scout_players' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'org_scout_players' %}bg-white/5 text-accent-cyan shadow-sm{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+            <i class="fa-solid fa-users-viewfinder text-lg w-5 text-center min-w-[1.25rem] transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Scout Players</span>
+        </a>
 
-            <a href="{% url 'org_player_contact_page' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'org_player_contact_page' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i class="fa-solid fa-address-book text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Player Contacts</span>
-            </a>
+        <a href="{% url 'org_player_contact_page' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'org_player_contact_page' %}bg-white/5 text-accent-cyan shadow-sm{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+            <i class="fa-solid fa-address-book text-lg w-5 text-center min-w-[1.25rem] transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Contacts</span>
+        </a>
 
-            <a href="{% url 'org_bidding_dashboard' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'org_bidding_dashboard' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i class="fa-solid fa-gavel text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Bidding Hub</span>
-            </a>
+        <a href="{% url 'org_bidding_dashboard' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'org_bidding_dashboard' %}bg-white/5 text-accent-cyan shadow-sm{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+            <i class="fa-solid fa-gavel text-lg w-5 text-center min-w-[1.25rem] transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Bidding Hub</span>
+        </a>
 
-            <a href="{% url 'org_contract_list' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if 'contract' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i class="fa-solid fa-file-signature text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Contracts</span>
-            </a>
+        <a href="{% url 'org_contract_list' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if 'contract' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan shadow-sm{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+            <i class="fa-solid fa-file-signature text-lg w-5 text-center min-w-[1.25rem] transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Contracts</span>
+        </a>
 
-            <a href="{% url 'scorecard_tool' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'scorecard_tool' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i class="fa-solid fa-wand-magic-sparkles text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Scorecard Tool</span>
-            </a>
+        <a href="{% url 'scorecard_tool' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'scorecard_tool' %}bg-white/5 text-accent-cyan shadow-sm{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+            <i class="fa-solid fa-wand-magic-sparkles text-lg w-5 text-center min-w-[1.25rem] transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Scorecards</span>
+        </a>
 
-            <a href="{% url 'org_transaction_history' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'org_transaction_history' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i class="fa-solid fa-receipt text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">Transactions</span>
-            </a>
+        <a href="{% url 'org_transaction_history' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'org_transaction_history' %}bg-white/5 text-accent-cyan shadow-sm{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+            <i class="fa-solid fa-receipt text-lg w-5 text-center min-w-[1.25rem] transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Transactions</span>
+        </a>
 
-            <a href="{% url 'manage_profile' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 group transition-colors {% if request.resolver_match.url_name == 'manage_profile' %}bg-white/5 text-accent-cyan border-r-2 border-accent-cyan{% else %}text-gray-400{% endif %}">
-                <i class="fa-solid fa-user-gear text-lg w-6 text-center group-hover:text-accent-cyan transition-colors"></i>
-                <span class="font-medium group-hover:text-white transition-colors">My Profile</span>
-            </a>
-
-
-
-
-
-
-
-            <a href="{% url 'org_logout' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-500/10 group transition-colors text-gray-400 hover:text-red-400 border border-transparent hover:border-red-500/30 mt-4">
-                <i
-                    class="fa-solid fa-right-from-bracket text-lg w-6 text-center group-hover:text-red-400 transition-colors"></i>
-                <span class="font-medium group-hover:text-red-400 transition-colors">Logout</span>
-            </a>
-        </nav>
-    </aside>
+        <a href="{% url 'manage_profile' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'manage_profile' %}bg-white/5 text-accent-cyan shadow-sm{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+            <i class="fa-solid fa-user-gear text-lg w-5 text-center min-w-[1.25rem] transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">My Profile</span>
+        </a>
+    </nav>
+    <div class="p-4 border-t border-white/5 transition-all duration-300 group-[.sidebar-collapsed]/sidebar:px-2">
+        <a href="{% url 'org_logout' %}"
+            class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group text-white/60 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30">
+            <i class="fa-solid fa-right-from-bracket text-lg w-5 text-center min-w-[1.25rem] group-hover:text-red-400 transition-colors"></i>
+            <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden group-hover:text-red-400">Logout</span>
+        </a>
+    </div>
+</aside>
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col h-full relative overflow-hidden">
@@ -218,39 +253,20 @@
         <header class="border-b border-white/[0.08] bg-black/30 backdrop-blur-xl z-40 shadow-[0_4px_30px_rgba(0,0,0,0.4)] relative">
             <!-- Glassy bottom glow line -->
             <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-cyan/30 to-transparent"></div>
-            <!-- Bidding Season Banner -->
-            {% if bidding_status %}
-            <div class="px-3 md:px-6 py-1.5 flex flex-wrap md:flex-nowrap items-center gap-2 md:gap-3 border-b border-white/5
-                {% if bidding_status.is_active %}bg-green-500/5{% else %}bg-yellow-500/5{% endif %}">
-                <span class="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-widest
-                    {% if bidding_status.is_active %}text-green-400{% else %}text-yellow-400{% endif %}">
-                    <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
-                    {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING CLOSED{% endif %}
-                </span>
-                
-                {% if bidding_status.is_active %}
-                <span class="text-white/30 text-[10px] hidden md:inline">|</span>
-                <span class="text-white/60 text-[10px] md:text-[11px] font-mono hidden md:inline">
-                    <span class="text-white/40">Season:</span>
-                    <span class="text-white font-bold">{{ bidding_status.season_name }}</span>
-                </span>
-                <span class="text-white/30 text-[10px]">|</span>
-                <span class="text-[10px] md:text-[11px] font-mono font-bold text-accent-pink" id="orgBiddingCountdown"
-                    data-start="{{ bidding_status.start_date|date:'c' }}"
-                    data-end="{{ bidding_status.end_date|date:'c' }}"
-                    data-active="true">--:--:--</span>
-                {% else %}
-                <span class="text-white/30 text-[10px]">|</span>
-                <span class="text-[10px] md:text-[11px] font-mono font-bold text-yellow-500" id="orgBiddingCountdown"
-                    data-start="{{ bidding_status.next_season_start|date:'c' }}"
-                    data-active="false">--:--:--</span>
-                {% endif %}
-                
-                <a href="{% url 'org_bidding_dashboard' %}" class="ml-auto text-[9px] md:text-[10px] font-bold text-accent-cyan hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1">
-                    <i class="fa-solid fa-gavel text-[10px]"></i> <span class="hidden md:inline">Bidding Hub</span>
-                </a>
+
+
+            {% if settings and settings.show_announcement and settings.announcement_text %}
+            <!-- Global Announcement Banner -->
+            <div class="bg-gradient-to-r from-accent-cyan/10 via-accent-cyan/5 to-transparent border-b border-accent-cyan/20 px-4 py-2 flex items-center justify-center gap-3 relative z-50">
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-accent-cyan"></div>
+                <i class="fa-solid fa-bullhorn text-accent-cyan animate-pulse text-sm"></i>
+                <p class="text-[11px] md:text-sm font-bold text-accent-cyan tracking-wide">{{ settings.announcement_text }}</p>
+                <button onclick="this.parentElement.style.display='none'" class="absolute right-4 text-accent-cyan/40 hover:text-accent-cyan transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             {% endif %}
+
             <!-- Main Header Row -->
             <div class="h-20 flex items-center justify-between px-4 md:px-6 w-full">
             
@@ -269,15 +285,33 @@
                 </a>
 
                 <!-- Page Tagline Badge -->
-                <div class="hidden md:flex items-center">
+                    {% if bidding_status %}
+                    <a href="{% url 'org_bidding_dashboard' %}" class="px-5 py-2 {% if bidding_status.is_active %}bg-green-500/10 border-green-500/20 hover:border-green-500/40 hover:shadow-[0_0_20px_rgba(34,197,94,0.15)]{% else %}bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border-orange-500/20 hover:border-orange-500/40 hover:shadow-[0_0_20px_rgba(249,115,22,0.15)]{% endif %} border rounded-full flex items-center gap-2.5 group transition-all duration-500 backdrop-blur-md">
+                        <div class="w-6 h-6 rounded-full bg-black/40 flex items-center justify-center border border-white/5 shadow-inner">
+                            <i class="fa-solid fa-gavel text-[10px] {% if bidding_status.is_active %}text-green-400{% else %}text-orange-400{% endif %} group-hover:scale-110 transition-transform duration-300"></i>
+                        </div>
+                        <span class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest
+                            {% if bidding_status.is_active %}text-green-400{% else %}text-orange-400{% endif %}">
+                            <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-orange-400{% endif %}"></span>
+                            {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING CLOSED{% endif %}
+                        </span>
+                        
+                        <span class="text-white/30 text-[10px]">|</span>
+                        <span class="text-[10px] font-mono font-bold whitespace-nowrap {% if bidding_status.is_active %}text-accent-pink{% else %}text-yellow-500{% endif %}" 
+                            id="orgBiddingCountdown"
+                            data-start="{% if bidding_status.is_active %}{{ bidding_status.start_date|date:'c' }}{% else %}{{ bidding_status.next_season_start|date:'c' }}{% endif %}"
+                            data-end="{% if bidding_status.is_active %}{{ bidding_status.end_date|date:'c' }}{% else %}''{% endif %}"
+                            data-active="{% if bidding_status.is_active %}true{% else %}false{% endif %}">--:--:--</span>
+                    </a>
+                    {% else %}
                     <div class="px-5 py-2 bg-gradient-to-r from-accent-cyan/10 to-purple-500/10 border border-white/10 rounded-full flex items-center gap-2.5 group hover:border-accent-cyan/40 hover:shadow-[0_0_20px_rgba(102,252,241,0.15)] transition-all duration-500 backdrop-blur-md">
                         <div class="w-6 h-6 rounded-full bg-black/40 flex items-center justify-center border border-white/5 shadow-inner">
                             <i class="fa-solid fa-gamepad text-[10px] text-accent-cyan group-hover:scale-110 transition-transform duration-300"></i>
                         </div>
                         <span class="text-xs font-display font-bold text-white/80 tracking-wider uppercase group-hover:text-white transition-colors">Manage your esports organization</span>
                     </div>
+                    {% endif %}
                 </div>
-            </div>
 
             <!-- Right Actions -->
             <div class="flex items-center gap-4 md:gap-6">
@@ -515,16 +549,21 @@
             }
         });
 
+        function toggleDesktopSidebar() {
+            document.documentElement.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('orgSidebarCollapsed', document.documentElement.classList.contains('sidebar-collapsed'));
+        }
+
         function toggleSidebar() {
             const sidebar = document.querySelector('.mobile-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
 
             if (sidebar.classList.contains('-translate-x-full')) {
                 sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
+                if (overlay) overlay.classList.remove('hidden');
             } else {
                 sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
+                if (overlay) overlay.classList.add('hidden');
             }
         }
 

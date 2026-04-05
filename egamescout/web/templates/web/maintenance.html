@@ -16,20 +16,26 @@
 
     <div class="relative z-10 w-full max-w-2xl px-6 text-center">
         <!-- Maintenance Icon -->
-        <div class="mb-8 relative inline-block">
-            <div class="absolute inset-0 bg-yellow-500/20 blur-2xl rounded-full"></div>
-            <i
-                class="fa-solid fa-person-digging text-8xl text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)] relative z-10 animate-bounce"></i>
+        <div class="mb-10 relative inline-flex items-center justify-center">
+            <!-- Premium Ambient Glow -->
+            <div class="absolute inset-0 bg-brand-blue/10 blur-[50px] rounded-full scale-150 pointer-events-none"></div>
+            
+            <!-- Sleek Glass Container -->
+            <div class="relative w-28 h-28 bg-surface/40 border border-white/10 rounded-3xl backdrop-blur-xl shadow-2xl flex items-center justify-center overflow-hidden">
+                <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-blue/50 to-transparent"></div>
+                <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-pink/30 to-transparent"></div>
+                
+                <i class="fa-solid fa-server text-5xl text-brand-blue drop-shadow-[0_0_20px_rgba(0,243,255,0.5)]"></i>
+            </div>
         </div>
 
-        <h1 class="font-display text-4xl md:text-5xl font-bold text-white mb-6 tracking-wide uppercase">
-            System <span
-                class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Maintenance</span>
+        <h1 class="font-display text-4xl md:text-5xl font-black text-white mb-6 tracking-wide uppercase">
+            System <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-pink drop-shadow-sm">Maintenance</span>
         </h1>
 
         <div
             class="bg-surface/60 backdrop-blur-md border border-white/10 p-8 rounded-2xl shadow-2xl relative overflow-hidden group">
-            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent">
+            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-brand-blue to-transparent opacity-80">
             </div>
 
             <p class="text-xl text-white/80 leading-relaxed font-medium">

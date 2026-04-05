@@ -13,7 +13,7 @@
 
 {% block page_content %}
 
-    <div class="bg-theme-card border border-theme-border rounded-2xl p-6 md:p-8 backdrop-blur-sm flex flex-col shadow-xl max-w-5xl mx-auto">
+    <div class="bg-theme-card border border-theme-border rounded-2xl p-6 md:p-8 backdrop-blur-sm flex flex-col shadow-xl w-full">
         <h3 class="font-display font-bold text-xl text-theme-text mb-6 flex items-center gap-3">
             <i class="fa-solid fa-book-open-reader text-brand-blue"></i> AVAILABLE REPORTS
         </h3>
@@ -22,18 +22,18 @@
             <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
                 <thead>
                     <tr class="bg-theme-bg/80 border-b border-theme-border text-[10px] sm:text-xs uppercase tracking-widest text-theme-text/50">
-                        <th class="p-4 sm:p-5 font-bold">Report Name</th>
-                        <th class="p-4 sm:p-5 font-bold text-center">Status</th>
-                        <th class="p-4 sm:p-5 font-bold text-center">Total Bids</th>
-                        <th class="p-4 sm:p-5 font-bold text-right">Total Spent</th>
-                        <th class="p-4 sm:p-5 font-bold text-center">Action</th>
+                        <th class="px-4 py-3 sm:px-6 sm:py-4 font-bold">Report Name</th>
+                        <th class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-center">Status</th>
+                        <th class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-center">Total Bids</th>
+                        <th class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-right">Total Spent</th>
+                        <th class="px-4 py-3 sm:px-6 sm:py-4 font-bold text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody class="text-sm divide-y divide-white/5">
                     
                     <!-- Manual Bids Row -->
                     <tr class="hover:bg-brand-blue/5 transition-colors group">
-                        <td class="p-4 sm:p-5">
+                        <td class="px-4 py-3 sm:px-6 sm:py-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
                                     <i class="fa-solid fa-gavel"></i>
@@ -44,16 +44,16 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="p-4 sm:p-5 text-center">
+                        <td class="px-4 py-3 sm:px-6 sm:py-4 text-center">
                             <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest bg-purple-500/20 text-purple-400 border border-purple-500/30">
                                 Dynamic
                             </span>
                         </td>
-                        <td class="p-4 sm:p-5 text-center">
+                        <td class="px-4 py-3 sm:px-6 sm:py-4 text-center">
                             <span class="bg-theme-card-hover px-3 py-1 rounded text-xs font-mono text-theme-text/70">{{ manual_summary.total_bids }}</span>
                         </td>
-                        <td class="p-4 sm:p-5 text-brand-blue font-mono font-bold text-right">₹{{ manual_summary.total_spent|intcomma }}</td>
-                        <td class="p-4 sm:p-5 text-center">
+                        <td class="px-4 py-3 sm:px-6 sm:py-4 text-brand-blue font-mono font-bold text-right">₹{{ manual_summary.total_spent|intcomma }}</td>
+                        <td class="px-4 py-3 sm:px-6 sm:py-4 text-center">
                             <a href="{% url 'admin_report_detail_manual' %}" class="px-4 py-2 rounded-lg bg-brand-blue/20 text-brand-blue font-bold text-xs hover:bg-brand-blue hover:text-theme-text transition-all inline-block shadow-[0_0_10px_rgba(37,99,235,0.2)]">
                                 View Details <i class="fa-solid fa-arrow-right ml-1"></i>
                             </a>
@@ -63,7 +63,7 @@
                     <!-- Season Rows -->
                     {% for season in season_summaries %}
                     <tr class="hover:bg-brand-blue/5 transition-colors group">
-                        <td class="p-4 sm:p-5">
+                        <td class="px-4 py-3 sm:px-6 sm:py-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-lg bg-brand-blue/10 border border-brand-blue/20 flex items-center justify-center text-brand-blue group-hover:scale-110 transition-transform">
                                     <i class="fa-solid fa-calendar-check"></i>
@@ -74,18 +74,18 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="p-4 sm:p-5 text-center">
+                        <td class="px-4 py-3 sm:px-6 sm:py-4 text-center">
                             <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest
                                 {% if season.status == 'Active' %}bg-green-500/20 text-green-400 border border-green-500/30
                                 {% else %}bg-theme-card-hover text-theme-text/60 border border-theme-border{% endif %}">
                                 {{ season.status }}
                             </span>
                         </td>
-                        <td class="p-4 sm:p-5 text-center">
+                        <td class="px-4 py-3 sm:px-6 sm:py-4 text-center">
                             <span class="bg-theme-card-hover px-3 py-1 rounded text-xs font-mono text-theme-text/70">{{ season.total_bids }}</span>
                         </td>
-                        <td class="p-4 sm:p-5 text-brand-blue font-mono font-bold text-right">₹{{ season.total_spent|intcomma }}</td>
-                        <td class="p-4 sm:p-5 text-center">
+                        <td class="px-4 py-3 sm:px-6 sm:py-4 text-brand-blue font-mono font-bold text-right">₹{{ season.total_spent|intcomma }}</td>
+                        <td class="px-4 py-3 sm:px-6 sm:py-4 text-center">
                             <a href="{% url 'admin_report_detail_season' season.season_id %}" class="px-4 py-2 rounded-lg bg-brand-blue/20 text-brand-blue font-bold text-xs hover:bg-brand-blue hover:text-theme-text transition-all inline-block shadow-[0_0_10px_rgba(37,99,235,0.2)]">
                                 View Details <i class="fa-solid fa-arrow-right ml-1"></i>
                             </a>

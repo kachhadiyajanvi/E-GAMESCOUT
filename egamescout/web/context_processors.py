@@ -101,9 +101,16 @@ def notifications(request):
                 season.save()
                 BiddingSeasonLog.objects.create(season=season, action='AUTO_END', message="System auto-ended season based on Jan/Jul schedule.")
     
+    try:
+        from web.models import SystemSettings
+        site_settings = SystemSettings.get_settings()
+    except Exception:
+        site_settings = None
+
     base_context = {
         'active_season': active_season, # Legacy variable for DB compatibility
-        'bidding_status': bidding_status # New strictly calculated UI statuses
+        'bidding_status': bidding_status, # New strictly calculated UI statuses
+        'settings': site_settings
     }
 
     if not hasattr(request, 'session'):

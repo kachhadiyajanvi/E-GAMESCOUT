@@ -440,7 +440,9 @@ def admin_organization_detail(request):
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_profile(request):
     total_projects = Tournament.objects.count()
-    joined_year = request.user.date_joined.year if request.user.date_joined else 2024
+    joined_year = 2024
+    if hasattr(request.user, 'date_joined') and request.user.date_joined:
+        joined_year = request.user.date_joined.year
     
     context = {
         'total_projects': total_projects,

@@ -3231,7 +3231,7 @@ def org_bidding_dashboard(request):
     ).order_by('start_date')
     next_season = upcoming_seasons.first()
     if active_season:
-        bidding_status = {
+        view_bidding_status = {
             'is_active': True,
             'season_name': active_season.name,
             'start_date': active_season.start_date,
@@ -3239,7 +3239,7 @@ def org_bidding_dashboard(request):
             'auto_start': active_season.auto_start,
         }
     elif next_season:
-        bidding_status = {
+        view_bidding_status = {
             'is_active': False,
             'season_name': next_season.name,
             'start_date': next_season.start_date,
@@ -3248,7 +3248,7 @@ def org_bidding_dashboard(request):
             'next_season_start': next_season.start_date,
         }
     else:
-        bidding_status = None
+        view_bidding_status = None
     
     # 1. Available Players (Not Sold yet and Active Account and Not in any organization)
     sold_player_ids = Bid.objects.filter(status='Accepted').values_list('player_id', flat=True)
@@ -3279,7 +3279,6 @@ def org_bidding_dashboard(request):
     context = {
         'org': org,
         'active_season': active_season,
-        'bidding_status': bidding_status,
         'upcoming_seasons': upcoming_seasons,
         'wallet_balance': org.coins,
         'available_players': available_players,
@@ -3291,6 +3290,10 @@ def org_bidding_dashboard(request):
         'notifications': notifications,
         'org_active_bid_player_ids': org_active_bid_player_ids,
     }
+    
+    if 'view_bidding_status' in locals() and view_bidding_status is not None:
+        context['bidding_status'] = view_bidding_status
+        
     return render(request, 'web/Organization/org_bidding.html', context)
 
 def player_bidding_dashboard(request):
@@ -3325,7 +3328,7 @@ def player_bidding_dashboard(request):
     ).order_by('start_date')
     next_season = upcoming_seasons.filter(start_date__gte=now).first()
     if active_season:
-        bidding_status = {
+        view_bidding_status = {
             'is_active': True,
             'season_name': active_season.name,
             'start_date': active_season.start_date,
@@ -3333,7 +3336,7 @@ def player_bidding_dashboard(request):
             'auto_start': active_season.auto_start,
         }
     elif next_season:
-        bidding_status = {
+        view_bidding_status = {
             'is_active': False,
             'season_name': next_season.name,
             'start_date': next_season.start_date,
@@ -3342,7 +3345,7 @@ def player_bidding_dashboard(request):
             'next_season_start': next_season.start_date,
         }
     else:
-        bidding_status = None
+        view_bidding_status = None
     
     # Get all bids for this player
     all_bids = Bid.objects.filter(player=player).select_related('organization').prefetch_related('negotiations').order_by('-created_at')
@@ -3395,7 +3398,6 @@ def player_bidding_dashboard(request):
     context = {
         'player': player,
         'active_season': active_season,
-        'bidding_status': bidding_status,
         'upcoming_seasons': upcoming_seasons,
         'active_bids': active_bids,
         'negotiation_bids': negotiation_bids,
@@ -3410,6 +3412,8 @@ def player_bidding_dashboard(request):
         'signed_date': signed_date,
         'signed_amount': signed_amount
     }
+    if 'view_bidding_status' in locals() and view_bidding_status is not None:
+        context['bidding_status'] = view_bidding_status
     return render(request, 'web/Player/player_bidding.html', context)
 
 @login_required_organization

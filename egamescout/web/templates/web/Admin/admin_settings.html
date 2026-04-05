@@ -197,7 +197,56 @@
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
-        <!-- SECTION 5: Announcement Banner             -->
+        <!-- SECTION 5: Font Size Control               -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="bg-theme-card border border-theme-border rounded-2xl overflow-hidden backdrop-blur-sm shadow-xl mb-6">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-theme-border-light bg-theme-header-bg">
+                <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+                    <i class="fa-solid fa-text-height text-cyan-400 text-sm"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm font-display font-bold text-theme-text tracking-wider">FONT SIZE CONTROL</h2>
+                    <p class="text-[10px] text-theme-text-muted">Adjust base text scaling (local setting)</p>
+                </div>
+            </div>
+            <div class="p-6 space-y-6">
+                <!-- Preset Buttons -->
+                <div class="flex flex-col gap-2">
+                    <p class="text-xs font-bold text-theme-text/80 uppercase tracking-widest">Presets</p>
+                    <div class="flex items-center gap-4">
+                        <button type="button" data-font-size="14" class="font-size-btn flex-1 py-3 px-4 bg-theme-input-bg border border-theme-border hover:border-cyan-500/50 rounded-xl text-theme-text text-sm transition-all focus:outline-none">
+                            <span class="block mb-1 text-xs text-theme-text-muted font-bold">Small</span>
+                            <span class="text-[14px]">Aa</span>
+                        </button>
+                        <button type="button" data-font-size="16" class="font-size-btn flex-1 py-3 px-4 bg-theme-input-bg border border-theme-border hover:border-cyan-500/50 rounded-xl text-theme-text text-sm transition-all focus:outline-none">
+                            <span class="block mb-1 text-xs text-theme-text-muted font-bold">Medium</span>
+                            <span class="text-[16px]">Aa</span>
+                        </button>
+                        <button type="button" data-font-size="18" class="font-size-btn flex-1 py-3 px-4 bg-theme-input-bg border border-theme-border hover:border-cyan-500/50 rounded-xl text-theme-text text-sm transition-all focus:outline-none">
+                            <span class="block mb-1 text-xs text-theme-text-muted font-bold">Large</span>
+                            <span class="text-[18px]">Aa</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Custom Slider -->
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <label for="fontSizeSlider" class="text-xs font-bold text-theme-text/80 uppercase tracking-widest">Custom Size Slider</label>
+                        <span id="fontSizeDisplay" class="text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded-md">16px</span>
+                    </div>
+                    <input type="range" id="fontSizeSlider" min="12" max="24" step="1" value="16" 
+                        class="w-full h-2 rounded-lg appearance-none cursor-pointer accent-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" style="background: var(--theme-card-hover);">
+                    <div class="flex justify-between text-xs text-theme-text-muted px-1">
+                        <span>12px</span>
+                        <span>24px</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- SECTION 6: Announcement Banner             -->
         <!-- ═══════════════════════════════════════════ -->
         <div class="bg-theme-card border border-theme-border rounded-2xl overflow-hidden backdrop-blur-sm shadow-xl mb-6">
             <div class="flex items-center gap-3 px-6 py-4 border-b border-theme-border-light bg-theme-header-bg">
@@ -246,7 +295,7 @@
 
     <!-- Save Bar -->
     <div
-        class="fixed bottom-0 left-0 md:left-64 right-0 px-4 md:px-8 py-3 md:py-4 bg-theme-header-bg backdrop-blur-xl border-t border-theme-border flex flex-col sm:flex-row items-center justify-between z-50 gap-4 sm:gap-0">
+        class="fixed bottom-0 left-0 md:left-[var(--sidebar-width)] right-0 px-4 md:px-8 py-3 md:py-4 bg-theme-header-bg backdrop-blur-xl border-t border-theme-border flex flex-col sm:flex-row items-center justify-between z-50 gap-4 sm:gap-0 transition-all duration-300 ease-in-out">
         <p class="text-[10px] sm:text-xs text-theme-text/30 text-center sm:text-left"><i class="fa-solid fa-info-circle mr-1"></i> Changes apply immediately across
             the entire platform.</p>
         <button type="submit"
@@ -275,6 +324,58 @@
                 localStorage.setItem('adminTheme', 'dark');
             }
         });
+
+        // Font Size Logic
+        const fontSizeBtns = document.querySelectorAll('.font-size-btn');
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeDisplay = document.getElementById('fontSizeDisplay');
+
+        function updateSliderBackground(slider) {
+            const min = slider.min || 12;
+            const max = slider.max || 24;
+            const val = ((slider.value - min) / (max - min)) * 100;
+            // Use cyan for the filled part, and the theme border color for the unfilled part
+            slider.style.background = `linear-gradient(to right, #00D4FF ${val}%, var(--theme-border) ${val}%)`;
+        }
+
+        function updateFontSizeUI(size) {
+            fontSizeDisplay.textContent = size + 'px';
+            fontSizeSlider.value = size;
+            updateSliderBackground(fontSizeSlider);
+
+            fontSizeBtns.forEach(btn => {
+                if (btn.dataset.fontSize === size.toString()) {
+                    btn.classList.add('border-cyan-500', 'bg-cyan-500/10', 'shadow-[0_0_15px_rgba(6,182,212,0.15)]');
+                    btn.classList.remove('border-theme-border', 'bg-theme-input-bg');
+                } else {
+                    btn.classList.remove('border-cyan-500', 'bg-cyan-500/10', 'shadow-[0_0_15px_rgba(6,182,212,0.15)]');
+                    btn.classList.add('border-theme-border', 'bg-theme-input-bg');
+                }
+            });
+        }
+
+        function applyFontSize(size) {
+            document.documentElement.style.fontSize = size + 'px';
+            localStorage.setItem('adminFontSize', size);
+            updateFontSizeUI(size);
+        }
+
+        // Initialize from local storage or default to 16
+        if (fontSizeBtns.length > 0 && fontSizeSlider) {
+            const currentSize = localStorage.getItem('adminFontSize') || '16';
+            updateFontSizeUI(currentSize);
+
+            fontSizeBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    applyFontSize(btn.dataset.fontSize);
+                });
+            });
+
+            fontSizeSlider.addEventListener('input', (e) => {
+                applyFontSize(e.target.value);
+            });
+        }
     });
 </script>
 {% endblock %}
