@@ -2762,7 +2762,7 @@ def org_view_player_profile(request, player_id):
     """Organization views a player's profile (from roster or search)"""
     org_id = request.session.get('organizer_id')
     org = get_object_or_404(Organization, id=org_id)
-    from .models import OrganizationPlayer
+    from .models import OrganizationPlayer, BiddingSeason, Bid
     
     # Try finding Player by ID first (player_id refers to Player.id)
     player = get_object_or_404(Player, id=player_id)
@@ -2770,7 +2770,35 @@ def org_view_player_profile(request, player_id):
     # Check if they are in roster
     org_player_link = OrganizationPlayer.objects.filter(organization=org, player=player).first()
     
-    return render(request, 'web/Organization/org_player_profile.html', {'org': org, 'player': player, 'org_player_link': org_player_link})
+    # Context for placing a bid
+    active_season = BiddingSeason.objects.filter(is_active=True).first()
+    wallet_balance = org.coins
+    
+    bidding_status = None
+    if active_season:
+        bidding_status = {
+            'is_active': True,
+            'season_name': active_season.name,
+        }
+    
+    # Has organization already bid on this player?
+    has_active_bid = False
+    if active_season:
+        has_active_bid = Bid.objects.filter(
+            organization=org, 
+            player=player, 
+            season=active_season, 
+            status__in=['PENDING', 'NEGOTIATION']
+        ).exists()
+        
+    return render(request, 'web/Organization/org_player_profile.html', {
+        'org': org, 
+        'player': player, 
+        'org_player_link': org_player_link,
+        'bidding_status': bidding_status,
+        'wallet_balance': wallet_balance,
+        'has_active_bid': has_active_bid,
+    })
 
 @login_required_organization
 def org_remove_player(request, player_id):

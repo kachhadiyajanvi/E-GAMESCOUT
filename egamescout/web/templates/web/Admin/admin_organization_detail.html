@@ -361,15 +361,13 @@
 
 {% block page_scripts %}
 <script>
-(function(){
-    // Bulk Select Logic
-    const selectAllCheckbox = document.getElementById('selectAll');
-    const bulkActionBar = document.getElementById('bulkActionBar');
-    const selectedCountSpan = document.getElementById('selectedCount');
-
     window.updateBulkActionUI = function() {
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const bulkActionBar = document.getElementById('bulkActionBar');
+        const selectedCountSpan = document.getElementById('selectedCount');
         const rowCheckboxes = document.querySelectorAll('.row-checkbox');
         const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
+        
         if (selectedCountSpan) selectedCountSpan.textContent = selectedCount;
 
         if (bulkActionBar) {
@@ -387,27 +385,8 @@
         }
     };
 
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function() {
-            const isChecked = this.checked;
-            document.querySelectorAll('.row-checkbox').forEach(cb => {
-                cb.checked = isChecked;
-            });
-            window.updateBulkActionUI();
-        });
-    }
-
-    const tableWrapper = document.querySelector('.overflow-x-auto');
-    if (tableWrapper) {
-        tableWrapper.addEventListener('change', function(e) {
-            if (e.target && e.target.classList.contains('row-checkbox')) {
-                window.updateBulkActionUI();
-            }
-        });
-    }
-
     window.toggleRowCheckbox = function(checkboxId, event) {
-        if (event.target.closest('button, a, input, select')) return;
+        if (event && event.target && event.target.closest && event.target.closest('button, a, input, select')) return;
         const cb = document.getElementById(checkboxId);
         if(cb) {
             cb.checked = !cb.checked;
@@ -444,7 +423,22 @@
             }
         });
     };
-})();
+
+    if (!window.bulkActionListenersInit) {
+        window.bulkActionListenersInit = true;
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.id === 'selectAll') {
+                const isChecked = e.target.checked;
+                document.querySelectorAll('.row-checkbox').forEach(cb => {
+                    cb.checked = isChecked;
+                });
+                if (window.updateBulkActionUI) window.updateBulkActionUI();
+            }
+            if (e.target && e.target.classList && e.target.classList.contains('row-checkbox')) {
+                if (window.updateBulkActionUI) window.updateBulkActionUI();
+            }
+        });
+    }
 
     // Existing Functions
     function openOrgViewModal(button) {
