@@ -5,12 +5,12 @@
 
 {% block content %}
 <div class="space-y-6 lg:space-y-8">
-    <nav class="flex items-center gap-2 text-sm">
-        <a href="{% url 'my_players' %}"
-            class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5">
+    <nav class="flex items-center gap-2 text-sm mb-4">
+        <button onclick="history.back()"
+            class="text-gray-400 hover:text-accent-cyan transition-colors flex items-center gap-1.5 focus:outline-none">
             <i class="fa-solid fa-arrow-left text-xs"></i>
-            <span>Back to My Players</span>
-        </a>
+            <span>Back</span>
+        </button>
     </nav>
     <div class="container mx-auto max-w-7xl animate-fade-in pb-12">
 
@@ -52,6 +52,21 @@
                         <i class="fa-solid fa-hashtag text-brand-light/30"></i> UID: <span
                             class="font-mono text-brand-light/80">{{ player.uid }}</span>
                     </p>
+                </div>
+                
+                <div class="shrink-0 mt-4 md:mt-0 relative z-20">
+                    {% if bidding_status and bidding_status.is_active %}
+                        {% if has_active_bid %}
+                        <div class="px-6 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400/90 rounded-xl text-sm font-bold flex items-center gap-2 cursor-not-allowed uppercase tracking-wider backdrop-blur-md">
+                            <i class="fa-solid fa-clock"></i> Bid Active / Pending
+                        </div>
+                        {% else %}
+                        <button onclick="openBidModal({{ player.id }}, '{{ player.full_name|escapejs }}')"
+                            class="px-6 py-3 bg-accent-cyan/10 hover:bg-accent-cyan hover:text-black border border-accent-cyan/40 hover:border-accent-cyan text-accent-cyan rounded-xl text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg backdrop-blur-md">
+                            <i class="fa-solid fa-gavel"></i> Place Bid Now
+                        </button>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -159,4 +174,113 @@
         </div>
     </div>
 </div>
+
+<!-- ======= PLACE BID MODAL ======= -->
+{% if bidding_status and bidding_status.is_active %}
+<div id="bidModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeBidModal()"></div>
+
+    <!-- Modal Box -->
+    <div class="relative w-full max-w-md bg-[#0d1117] border border-accent-cyan/30 rounded-2xl p-6 shadow-[0_0_40px_rgba(102,252,241,0.15)] z-10">
+        <!-- Close -->
+        <button onclick="closeBidModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors">
+            <i class="fa-solid fa-times text-sm"></i>
+        </button>
+
+        <!-- Header -->
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-accent-cyan/10 border border-accent-cyan/30 flex items-center justify-center">
+                <i class="fa-solid fa-gavel text-accent-cyan"></i>
+            </div>
+            <div>
+                <h2 class="font-display font-bold text-white text-lg tracking-wider">PLACE BID</h2>
+                <p id="modalPlayerName" class="text-accent-cyan text-xs font-mono"></p>
+            </div>
+        </div>
+
+        {% load humanize %}
+        <!-- Wallet Info -->
+        <div class="flex items-center justify-between bg-yellow-500/5 border border-yellow-500/20 rounded-xl px-4 py-3 mb-5">
+            <div class="flex items-center gap-2 text-yellow-400/70 text-xs font-mono">
+                <i class="fa-solid fa-wallet"></i>
+                <span>Your Balance</span>
+            </div>
+            <span class="text-yellow-400 font-bold font-display tracking-wider">₹{{ wallet_balance|intcomma }}</span>
+        </div>
+
+        <!-- Form -->
+        <form id="bidForm" method="POST" action="">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">Bid Amount (₹)</label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 font-bold text-sm">₹</span>
+                    <input
+                        type="number"
+                        name="amount"
+                        id="bidAmount"
+                        min="1"
+                        max="{{ wallet_balance }}"
+                        placeholder="Enter your bid..."
+                        required
+                        class="w-full bg-black/40 border border-white/10 focus:border-accent-cyan/60 focus:ring-1 focus:ring-accent-cyan/30 rounded-xl pl-9 pr-4 py-3 text-white font-bold text-lg outline-none transition-all"
+                    >
+                </div>
+                <p class="text-[10px] text-white/30 font-mono mt-1.5">Maximum: ₹{{ wallet_balance|intcomma }}</p>
+            </div>
+
+            <!-- Quick Amount Buttons -->
+            <div class="flex flex-wrap gap-2 mb-5">
+                <span class="text-[10px] text-white/30 uppercase font-bold tracking-widest w-full">Quick Select:</span>
+                <button type="button" onclick="setQuickBid(100)" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white/60 hover:text-white transition-all">₹100</button>
+                <button type="button" onclick="setQuickBid(500)" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white/60 hover:text-white transition-all">₹500</button>
+                <button type="button" onclick="setQuickBid(1000)" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white/60 hover:text-white transition-all">₹1,000</button>
+                <button type="button" onclick="setQuickBid(5000)" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white/60 hover:text-white transition-all">₹5,000</button>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closeBidModal()"
+                    class="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-bold text-white/50 hover:text-white transition-all">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="flex-1 py-3 rounded-xl bg-accent-cyan/20 hover:bg-accent-cyan hover:text-black border border-accent-cyan/40 hover:border-accent-cyan text-accent-cyan text-sm font-bold uppercase tracking-wider transition-all">
+                    <i class="fa-solid fa-gavel mr-1.5"></i> Confirm Bid
+                </button>
+            </div>
+            
+            <input type="hidden" name="return_url" value="{{ request.get_full_path }}">
+        </form>
+    </div>
+</div>
+
+<script>
+    // ---- Bid Modal ----
+    function openBidModal(playerId, playerName) {
+        document.getElementById('bidModal').classList.remove('hidden');
+        document.getElementById('modalPlayerName').textContent = playerName;
+        document.getElementById('bidAmount').value = '';
+        document.getElementById('bidForm').action = '/organization/bidding/place/' + playerId + '/';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeBidModal() {
+        document.getElementById('bidModal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function setQuickBid(amount) {
+        document.getElementById('bidAmount').value = amount;
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !document.getElementById('bidModal').classList.contains('hidden')) {
+            closeBidModal();
+        }
+    });
+</script>
+{% endif %}
+
 {% endblock %}
