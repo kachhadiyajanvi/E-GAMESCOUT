@@ -6,16 +6,123 @@
 {% block header_desc %}Full audit log of all financial movements across the platform{% endblock %}
 
 {% block header_actions %}
+{% if view_mode == 'transactions' %}
 <div class="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-mono whitespace-nowrap">
     <i class="fa-solid fa-coins text-emerald-400/60"></i>
     Total Volume: <span class="font-bold">₹{{ total_volume|intcomma }}</span>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block page_content %}
 
-<!-- Search & Filter Bar -->
+{% if view_mode == 'seasons' %}
+
+<!-- Seasons Search & Filter Bar -->
 <form method="GET" action="{% url 'admin_transaction_history' %}" class="flex flex-col sm:flex-row gap-3 mb-6">
+    <div class="relative flex-1">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-theme-text-muted/40 text-sm pointer-events-none"></i>
+        <input
+            type="text"
+            name="q"
+            value="{{ search_query }}"
+            placeholder="Search by bidding season name..."
+            class="w-full bg-theme-input-bg border border-theme-border rounded-xl pl-10 pr-4 py-2.5 text-theme-text text-sm focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 transition-colors placeholder-theme-text-muted/40"
+        >
+    </div>
+    <button type="submit" class="px-5 py-2.5 bg-brand-blue/10 border border-brand-blue/30 text-brand-blue hover:bg-brand-blue hover:text-black font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-filter"></i> Apply
+    </button>
+    {% if search_query %}
+    <a href="{% url 'admin_transaction_history' %}" class="px-5 py-2.5 bg-theme-card border border-theme-border text-theme-text-muted hover:text-theme-text font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-xmark"></i> Clear
+    </a>
+    {% endif %}
+</form>
+
+<div class="flex items-center justify-between mb-3">
+    <p class="text-xs text-theme-text-muted font-mono">
+        Showing <span class="text-theme-text font-bold">{{ page_obj.start_index|default:0 }}–{{ page_obj.end_index|default:0 }}</span>
+        of <span class="text-theme-text font-bold">{{ page_obj.paginator.count|default:0 }}</span> seasons
+    </p>
+</div>
+
+<!-- Table -->
+<div class="bg-theme-card border border-theme-border rounded-xl overflow-hidden mb-6">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+            <thead class="bg-theme-input-bg text-theme-text-muted/50 text-xs uppercase tracking-wider border-b border-theme-border">
+                <tr>
+                    <th class="px-5 py-3.5 font-bold w-12">#</th>
+                    <th class="px-5 py-3.5 font-bold">Bidding Season Name</th>
+                    <th class="px-5 py-3.5 font-bold">Status</th>
+                    <th class="px-5 py-3.5 font-bold">Start Date</th>
+                    <th class="px-5 py-3.5 font-bold">End Date</th>
+                    <th class="px-5 py-3.5 font-bold text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-theme-border-light">
+                {% for season in seasons %}
+                <tr class="hover:bg-theme-card-hover transition-colors">
+                    <td class="px-5 py-3.5 text-theme-text-muted/40 font-mono text-xs">{{ season.id }}</td>
+                    <td class="px-5 py-3.5 font-bold text-theme-text">{{ season.name }}</td>
+                    <td class="px-5 py-3.5">
+                        {% if season.is_active %}
+                            <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-lg text-[10px] font-bold uppercase tracking-wider">Active</span>
+                        {% else %}
+                            <span class="px-2.5 py-1 bg-theme-input-bg text-theme-text-muted border border-theme-border rounded-lg text-[10px] font-bold uppercase tracking-wider">Closed</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-3.5 text-theme-text-muted/70 text-xs whitespace-nowrap">{{ season.start_date|date:"M d, Y H:i"|default:"—" }}</td>
+                    <td class="px-5 py-3.5 text-theme-text-muted/70 text-xs whitespace-nowrap">{{ season.end_date|date:"M d, Y H:i"|default:"—" }}</td>
+                    <td class="px-5 py-3.5 text-center">
+                        <a href="?season_id={{ season.id }}" class="px-3 py-1.5 bg-brand-blue/10 hover:bg-brand-blue text-brand-blue hover:text-black border border-brand-blue/30 rounded-lg transition-colors text-xs font-bold whitespace-nowrap shadow-sm inline-block">
+                            View Transactions
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-5 py-16 text-center">
+                        <div class="flex flex-col items-center gap-3 text-theme-text-muted/30">
+                            <i class="fa-solid fa-calendar-times text-4xl"></i>
+                            <p class="font-bold">No bidding seasons found.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% else %}
+
+<!-- Back Button for Transactions View -->
+<div class="mb-4">
+    <a href="{% url 'admin_transaction_history' %}" class="inline-flex items-center gap-2 text-sm font-bold text-theme-text-muted hover:text-brand-blue transition-colors">
+        <i class="fa-solid fa-arrow-left"></i> Back to Bidding Seasons
+    </a>
+</div>
+
+<div class="bg-theme-input-bg border border-brand-blue/30 rounded-xl p-4 mb-6 flex items-center justify-between">
+    <div>
+        <p class="text-xs text-theme-text-muted uppercase tracking-wider font-bold mb-1">Showing Transactions For</p>
+        <h3 class="text-xl font-display font-bold text-brand-blue">{{ season.name }}</h3>
+    </div>
+    <div class="text-right hidden sm:block">
+        <p class="text-xs text-theme-text-muted uppercase tracking-wider font-bold mb-1">Status</p>
+        {% if season.is_active %}
+            <span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle text-[10px] mr-1"></i> Active</span>
+        {% else %}
+            <span class="text-theme-text-muted font-bold"><i class="fa-solid fa-circle text-[10px] mr-1"></i> Closed</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Transactions Search & Filter Bar -->
+<form method="GET" action="{% url 'admin_transaction_history' %}" class="flex flex-col sm:flex-row gap-3 mb-6">
+    <input type="hidden" name="season_id" value="{{ season.id }}">
     <!-- Search -->
     <div class="relative flex-1">
         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-theme-text-muted/40 text-sm pointer-events-none"></i>
@@ -44,7 +151,7 @@
         <i class="fa-solid fa-filter"></i> Apply
     </button>
     {% if search_query or type_filter %}
-    <a href="{% url 'admin_transaction_history' %}" class="px-5 py-2.5 bg-theme-card border border-theme-border text-theme-text-muted hover:text-theme-text font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
+    <a href="{% url 'admin_transaction_history' %}?season_id={{ season.id }}" class="px-5 py-2.5 bg-theme-card border border-theme-border text-theme-text-muted hover:text-theme-text font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
         <i class="fa-solid fa-xmark"></i> Clear
     </a>
     {% endif %}
@@ -53,14 +160,14 @@
 <!-- Results summary -->
 <div class="flex items-center justify-between mb-3">
     <p class="text-xs text-theme-text-muted font-mono">
-        Showing <span class="text-theme-text font-bold">{{ page_obj.start_index }}–{{ page_obj.end_index }}</span>
-        of <span class="text-theme-text font-bold">{{ page_obj.paginator.count }}</span> transactions
+        Showing <span class="text-theme-text font-bold">{{ page_obj.start_index|default:0 }}–{{ page_obj.end_index|default:0 }}</span>
+        of <span class="text-theme-text font-bold">{{ page_obj.paginator.count|default:0 }}</span> transactions
         {% if search_query or type_filter %}<span class="text-emerald-400"> (filtered)</span>{% endif %}
     </p>
 </div>
 
 <!-- Table -->
-<div class="bg-theme-card border border-theme-border rounded-xl overflow-hidden">
+<div class="bg-theme-card border border-theme-border rounded-xl overflow-hidden mb-6">
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-sm">
             <thead class="bg-theme-input-bg text-theme-text-muted/50 text-xs uppercase tracking-wider border-b border-theme-border">
@@ -69,9 +176,9 @@
                     <th class="px-5 py-3.5 font-bold">Sender</th>
                     <th class="px-5 py-3.5 font-bold">Recipient</th>
                     <th class="px-5 py-3.5 font-bold">Type</th>
-                    <th class="px-5 py-3.5 font-bold">Description</th>
                     <th class="px-5 py-3.5 font-bold text-right">Amount</th>
                     <th class="px-5 py-3.5 font-bold text-right">Date</th>
+                    <th class="px-5 py-3.5 font-bold text-center">Action</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-theme-border-light">
@@ -118,10 +225,6 @@
                         </span>
                     </td>
 
-                    <td class="px-5 py-3.5 text-theme-text-muted/70 text-xs max-w-[220px] truncate" title="{{ txn.description }}">
-                        {{ txn.description|default:"—" }}
-                    </td>
-
                     <td class="px-5 py-3.5 text-right font-mono font-bold text-theme-text">
                         ₹{{ txn.amount|floatformat:2|intcomma }}
                     </td>
@@ -129,6 +232,20 @@
                     <td class="px-5 py-3.5 text-right text-theme-text-muted/50 font-mono text-xs whitespace-nowrap">
                         {{ txn.timestamp|date:"M d, Y" }}<br>
                         <span class="text-theme-text-muted/30">{{ txn.timestamp|date:"H:i" }}</span>
+                    </td>
+                    
+                    <td class="px-5 py-3.5 text-center">
+                        <button onclick="openTxnModal({
+                            id: '{{ txn.id }}',
+                            type: '{{ txn.get_transaction_type_display|escapejs }}',
+                            amount: '{{ txn.amount|floatformat:2|intcomma }}',
+                            date: '{{ txn.timestamp|date:"M d, Y H:i" }}',
+                            description: '{{ txn.description|escapejs }}',
+                            sender: '{% if txn.sender %}{{ txn.sender.Organization_Name|escapejs }}{% else %}System{% endif %}',
+                            recipient: '{% if txn.recipient %}{{ txn.recipient.Organization_Name|escapejs }}{% elif txn.recipient_player %}{{ txn.recipient_player.full_name|escapejs }}{% else %}—{% endif %}'
+                        })" class="px-3 py-1.5 bg-theme-card hover:bg-brand-blue hover:text-black border border-theme-border rounded-lg text-theme-text-muted transition-colors text-xs font-bold whitespace-nowrap shadow-sm">
+                            View Transaction
+                        </button>
                     </td>
                 </tr>
                 {% empty %}
@@ -148,11 +265,89 @@
     </div>
 </div>
 
-<!-- Pagination -->
+<!-- Transaction Details Modal -->
+<div id="txnModal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-theme-bg/80 backdrop-blur-sm" onclick="closeTxnModal()"></div>
+    <div class="bg-theme-card border border-theme-border w-full max-w-lg rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[90vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="txnModalContent">
+        <div class="p-6 border-b border-theme-border-light flex justify-between items-center bg-theme-header-bg">
+            <h2 class="text-theme-text font-display font-bold text-lg leading-none">Transaction Details</h2>
+            <button onclick="closeTxnModal()" class="w-8 h-8 rounded-lg hover:bg-theme-card-hover text-theme-text-muted hover:text-theme-text flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-4 overflow-y-auto custom-scrollbar">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-[10px] text-theme-text-muted tracking-wider uppercase font-bold mb-1">Transaction ID</p>
+                    <p class="text-theme-text font-mono text-sm" id="modalTxnId"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] text-theme-text-muted tracking-wider uppercase font-bold mb-1">Date & Time</p>
+                    <p class="text-theme-text text-sm" id="modalTxnDate"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] text-theme-text-muted tracking-wider uppercase font-bold mb-1">Type</p>
+                    <p class="text-emerald-400 font-bold text-sm" id="modalTxnType"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] text-theme-text-muted tracking-wider uppercase font-bold mb-1">Amount</p>
+                    <p class="text-theme-text font-mono font-bold text-lg">₹<span id="modalTxnAmount"></span></p>
+                </div>
+                <div>
+                    <p class="text-[10px] text-theme-text-muted tracking-wider uppercase font-bold mb-1">Sender</p>
+                    <p class="text-theme-text text-sm" id="modalTxnSender"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] text-theme-text-muted tracking-wider uppercase font-bold mb-1">Recipient</p>
+                    <p class="text-theme-text text-sm" id="modalTxnRecipient"></p>
+                </div>
+            </div>
+            
+            <div class="pt-4 border-t border-theme-border-light">
+                <p class="text-[10px] text-theme-text-muted tracking-wider uppercase font-bold mb-2">Description / Bidding Details</p>
+                <div class="bg-theme-input-bg rounded-xl p-4 border border-theme-border text-sm text-theme-text/80 leading-relaxed" id="modalTxnDesc">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openTxnModal(txn) {
+        document.getElementById('modalTxnId').innerText = txn.id;
+        document.getElementById('modalTxnType').innerText = txn.type;
+        document.getElementById('modalTxnAmount').innerText = txn.amount;
+        document.getElementById('modalTxnDate').innerText = txn.date;
+        document.getElementById('modalTxnDesc').innerText = txn.description || 'No description provided.';
+        document.getElementById('modalTxnSender').innerText = txn.sender;
+        document.getElementById('modalTxnRecipient').innerText = txn.recipient;
+        
+        const modal = document.getElementById('txnModal');
+        const content = document.getElementById('txnModalContent');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+        }, 10);
+    }
+    
+    function closeTxnModal() {
+        const modal = document.getElementById('txnModal');
+        const content = document.getElementById('txnModalContent');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+</script>
+{% endif %}
+
+<!-- Pagination is shared but query string differs depending on view_mode -->
 {% if page_obj.has_other_pages %}
 <div class="flex items-center justify-center gap-2 mt-6">
     {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
+    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if view_mode == 'transactions' %}&season_id={{ season.id }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
         class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">
         <i class="fa-solid fa-chevron-left"></i>
     </a>
@@ -162,13 +357,13 @@
         {% if page_obj.number == num %}
         <span class="px-4 py-2 rounded-lg bg-brand-blue text-black text-sm font-bold">{{ num }}</span>
         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-        <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
+        <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if view_mode == 'transactions' %}&season_id={{ season.id }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
             class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">{{ num }}</a>
         {% endif %}
     {% endfor %}
 
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
+    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if view_mode == 'transactions' %}&season_id={{ season.id }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
         class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">
         <i class="fa-solid fa-chevron-right"></i>
     </a>

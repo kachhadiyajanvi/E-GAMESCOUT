@@ -1482,7 +1482,7 @@ def admin_end_bidding_season(request):
                     recipient=org,
                     amount=org.coins,
                     transaction_type='WITHDRAWAL',
-                    description="Wallet reset upon bidding close"
+                    description=f"Wallet reset upon bidding close - Season: {season.name}"
                 )
             Organization.objects.all().update(coins=0)
             BiddingSeasonLog.objects.create(season=season, action='RESET', message="Organization Wallets Reset to 0")
@@ -1953,41 +1953,74 @@ def admin_delete_archived_tournament(request, tournament_id):
 
 @user_passes_test(is_superuser, login_url='admin_login')
 def admin_transaction_history(request):
-    """Admin view: full platform transaction log with search, filter & pagination."""
-    search_query = request.GET.get('q', '').strip()
-    type_filter  = request.GET.get('type', '').strip()
+    """Admin view: Shows Bidding Seasons by default. Passing ?season_id shows transactions for that season."""
+    season_id = request.GET.get('season_id')
+    view_mode = 'transactions' if season_id else 'seasons'
 
-    txn_qs = Transaction.objects.select_related(
-        'sender', 'recipient', 'recipient_player'
-    ).order_by('-timestamp')
+    if view_mode == 'transactions':
+        season = get_object_or_404(BiddingSeason, id=season_id)
+        search_query = request.GET.get('q', '').strip()
+        type_filter  = request.GET.get('type', '').strip()
 
-    if search_query:
-        txn_qs = txn_qs.filter(
-            Q(sender__Organization_Name__icontains=search_query)     |
-            Q(recipient__Organization_Name__icontains=search_query)  |
-            Q(recipient_player__full_name__icontains=search_query)   |
-            Q(description__icontains=search_query)
-        )
+        start = season.start_date
+        end = season.end_date or timezone.now()
+        
+        if start:
+            txn_qs = Transaction.objects.select_related(
+                'sender', 'recipient', 'recipient_player'
+            ).filter(
+                timestamp__gte=start, 
+                timestamp__lte=end
+            ).order_by('-timestamp')
+        else:
+            txn_qs = Transaction.objects.none()
 
-    if type_filter:
-        txn_qs = txn_qs.filter(transaction_type=type_filter)
+        if search_query:
+            txn_qs = txn_qs.filter(
+                Q(sender__Organization_Name__icontains=search_query)     |
+                Q(recipient__Organization_Name__icontains=search_query)  |
+                Q(recipient_player__full_name__icontains=search_query)   |
+                Q(description__icontains=search_query)
+            )
 
-    total_volume = txn_qs.aggregate(total=Sum('amount'))['total'] or 0
+        if type_filter:
+            txn_qs = txn_qs.filter(transaction_type=type_filter)
 
-    paginator   = Paginator(txn_qs, 20)
-    page_number = request.GET.get('page')
-    page_obj    = paginator.get_page(page_number)
+        total_volume = txn_qs.aggregate(total=Sum('amount'))['total'] or 0
 
-    # Distinct transaction types for the filter dropdown
-    transaction_types = Transaction.objects.values_list(
-        'transaction_type', flat=True
-    ).distinct().order_by('transaction_type')
+        paginator   = Paginator(txn_qs, 20)
+        page_number = request.GET.get('page')
+        page_obj    = paginator.get_page(page_number)
 
-    return render(request, 'web/Admin/admin_transactions.html', {
-        'transactions':       page_obj,
-        'page_obj':           page_obj,
-        'total_volume':       total_volume,
-        'search_query':       search_query,
-        'type_filter':        type_filter,
-        'transaction_types':  transaction_types,
-    })
+        transaction_types = Transaction.objects.values_list(
+            'transaction_type', flat=True
+        ).distinct().order_by('transaction_type')
+
+        return render(request, 'web/Admin/admin_transactions.html', {
+            'view_mode':          view_mode,
+            'season':             season,
+            'transactions':       page_obj,
+            'page_obj':           page_obj,
+            'total_volume':       total_volume,
+            'search_query':       search_query,
+            'type_filter':        type_filter,
+            'transaction_types':  transaction_types,
+        })
+    
+    else:
+        # Bidding Seasons View
+        search_query = request.GET.get('q', '').strip()
+        seasons_qs = BiddingSeason.objects.all().order_by('-created_at')
+        if search_query:
+            seasons_qs = seasons_qs.filter(name__icontains=search_query)
+            
+        paginator   = Paginator(seasons_qs, 20)
+        page_number = request.GET.get('page')
+        page_obj    = paginator.get_page(page_number)
+        
+        return render(request, 'web/Admin/admin_transactions.html', {
+            'view_mode':          view_mode,
+            'seasons':            page_obj,
+            'page_obj':           page_obj,
+            'search_query':       search_query,
+        })
