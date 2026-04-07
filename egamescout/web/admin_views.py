@@ -1951,4 +1951,43 @@ def admin_delete_archived_tournament(request, tournament_id):
     return redirect('admin_archive_actions')
 
 
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_transaction_history(request):
+    """Admin view: full platform transaction log with search, filter & pagination."""
+    search_query = request.GET.get('q', '').strip()
+    type_filter  = request.GET.get('type', '').strip()
 
+    txn_qs = Transaction.objects.select_related(
+        'sender', 'recipient', 'recipient_player'
+    ).order_by('-timestamp')
+
+    if search_query:
+        txn_qs = txn_qs.filter(
+            Q(sender__Organization_Name__icontains=search_query)     |
+            Q(recipient__Organization_Name__icontains=search_query)  |
+            Q(recipient_player__full_name__icontains=search_query)   |
+            Q(description__icontains=search_query)
+        )
+
+    if type_filter:
+        txn_qs = txn_qs.filter(transaction_type=type_filter)
+
+    total_volume = txn_qs.aggregate(total=Sum('amount'))['total'] or 0
+
+    paginator   = Paginator(txn_qs, 20)
+    page_number = request.GET.get('page')
+    page_obj    = paginator.get_page(page_number)
+
+    # Distinct transaction types for the filter dropdown
+    transaction_types = Transaction.objects.values_list(
+        'transaction_type', flat=True
+    ).distinct().order_by('transaction_type')
+
+    return render(request, 'web/Admin/admin_transactions.html', {
+        'transactions':       page_obj,
+        'page_obj':           page_obj,
+        'total_volume':       total_volume,
+        'search_query':       search_query,
+        'type_filter':        type_filter,
+        'transaction_types':  transaction_types,
+    })

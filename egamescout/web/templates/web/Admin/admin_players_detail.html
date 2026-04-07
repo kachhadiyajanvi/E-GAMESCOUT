@@ -34,7 +34,7 @@
         {% csrf_token %}
         
         <!-- Floating HUD Bar for Bulk Actions -->
-        <div id="bulkActionBar" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-black/95 backdrop-blur-3xl border border-theme-border shadow-[0_10px_50px_rgba(0,0,0,0.9)] rounded-2xl p-4 flex items-center gap-4 sm:gap-6 transform translate-y-32 opacity-0 transition-all duration-300 pointer-events-none">
+        <div id="bulkActionBar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-[calc(100vw-1rem)] sm:w-auto max-w-3xl bg-black/95 backdrop-blur-3xl border border-theme-border shadow-[0_10px_50px_rgba(0,0,0,0.9)] rounded-2xl p-4 flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-6 transform translate-y-32 opacity-0 transition-all duration-300 pointer-events-none">
             <div class="flex items-center gap-3 border-r border-theme-border pr-6">
                 <div class="w-8 h-8 rounded-full bg-brand-blue/20 flex items-center justify-center text-brand-blue">
                     <i class="fa-solid fa-check-double"></i>
@@ -178,7 +178,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="p-8 text-center text-theme-text-muted">No players found.</td>
+                    <td colspan="7" class="p-4 sm:p-6 md:p-8 text-center text-theme-text-muted">No players found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -231,7 +231,7 @@
             </div>
 
             <!-- Modal Body -->
-            <div class="p-8 overflow-y-auto">
+            <div class="p-4 sm:p-6 md:p-8 overflow-y-auto">
                 <div class="flex flex-col md:flex-row gap-8">
                     <!-- Left: Avatar & Identity -->
                     <div

@@ -149,7 +149,8 @@ urlpatterns = [
     path('player/bidding/<int:bid_id>/negotiate/', views.player_negotiate_bid, name='player_negotiate_bid'),
     
     # Admin Transactions
-    path('admin/transactions/', views.admin_transaction_history, name='admin_transaction_history'),
+    path('admin/transactions/', admin_views.admin_transaction_history, name='admin_transaction_history'),
+
 
     # Tournament Publishing & Participation
     path('organization/tournaments/<int:tournament_id>/publish/', views.publish_tournament, name='publish_tournament'),

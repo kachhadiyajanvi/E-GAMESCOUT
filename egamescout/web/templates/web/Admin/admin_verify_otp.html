@@ -73,7 +73,7 @@
     </div>
 
     <!-- Main Card Container -->
-    <div class="relative z-10 w-full max-w-[400px] glass-panel rounded-2xl p-10 flex flex-col items-center">
+    <div class="relative z-10 w-full max-w-[400px] glass-panel rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 flex flex-col items-center">
 
         <!-- Logo/Header -->
         <div class="w-full flex flex-col items-center justify-center mb-8">
@@ -145,7 +145,7 @@
     </div>
 
     <!-- Toast Notification System -->
-    <div id="toast-container" class="fixed top-8 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
+    <div id="toast-container" class="fixed top-4 left-2 right-2 sm:top-8 sm:left-auto sm:right-8 z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
     <script>
         // Countdown Timer Logic
@@ -202,7 +202,7 @@
                 iconColorClass = 'text-green-400 bg-green-400/10 border-green-400/30';
             }
 
-            toast.className = `pointer-events-auto bg-[#111827] border border-gray-800 rounded-[16px] p-5 shadow-2xl flex items-center gap-5 transform transition-all duration-300 ease-out translate-x-32 opacity-0 min-w-[320px] max-w-[450px] z-[100]`;
+            toast.className = `pointer-events-auto bg-[#111827] border border-gray-800 rounded-[16px] p-4 sm:p-5 shadow-2xl flex items-center gap-4 sm:gap-5 transform transition-all duration-300 ease-out translate-x-32 opacity-0 w-full sm:w-auto sm:min-w-[320px] max-w-full sm:max-w-[450px] z-[100]`;
 
             let titleVal = tags.includes('success') ? 'Success' : (tags.includes('error') ? 'System Alert' : 'Notification');
 

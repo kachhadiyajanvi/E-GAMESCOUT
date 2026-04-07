@@ -2262,10 +2262,10 @@ def tournament_list(request):
     # Verify/Update tournament statuses first
     update_tournament_statuses(org)
     
-    # Logic for Completed Tournaments
-    # Active: now < end_date
-    # Completed: now >= end_date
-    
+    # Search & filter params
+    search_query  = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+
     from datetime import timedelta
     
     # Get current local time
@@ -2274,11 +2274,22 @@ def tournament_list(request):
     # Completed = (Status='Completed') OR (end_date <= now)
     q_hidden = Q(Status='Completed') | Q(end_date__lte=now)
     
-    # Filter Active Tournaments (Exclude only old completed ones)
+    # Base queryset: active tournaments for this org
     tournaments = Tournament.objects.filter(
         Organization_Name=org, 
         is_archived=False
     ).exclude(q_hidden).order_by('start_date').distinct()
+
+    # Apply search
+    if search_query:
+        tournaments = tournaments.filter(
+            Q(Name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+
+    # Apply status filter
+    if status_filter:
+        tournaments = tournaments.filter(Status=status_filter)
     
     form = TournamentForm()
 
@@ -2286,12 +2297,15 @@ def tournament_list(request):
     total_org_count = Organization.objects.exclude(id=org_id).count()
     
     return render(request, 'web/Organization/org_tournament_list.html', {
-        'org': org, 
-        'tournaments': tournaments,
-        'form': form,
-        'show_form': False,
-        'total_org_count': total_org_count
+        'org':            org, 
+        'tournaments':    tournaments,
+        'form':           form,
+        'show_form':      False,
+        'total_org_count': total_org_count,
+        'search_query':   search_query,
+        'status_filter':  status_filter,
     })
+
 
 @login_required_organization
 def publish_previous_tournament(request, history_id):
@@ -3707,12 +3721,7 @@ def org_transaction_history(request):
     
     return render(request, 'web/Organization/org_transactions.html', {'transactions': transactions, 'org': org})
 
-def admin_transaction_history(request):
-    if not request.user.is_superuser:
-        return redirect('admin_login')
-        
-    transactions = Transaction.objects.all().order_by('-timestamp')
-    return render(request, 'web/Admin/admin_transactions.html', {'transactions': transactions})
+# admin_transaction_history has been moved to admin_views.py
 
 @login_required_organization
 def org_respond_negotiation(request, negotiation_id, action):

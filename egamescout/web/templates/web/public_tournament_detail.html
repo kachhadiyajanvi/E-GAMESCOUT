@@ -16,7 +16,7 @@
     <div class="absolute bottom-0 left-[-200px] w-[600px] h-[600px] bg-accent-pink/5 blur-[130px] rounded-full pointer-events-none z-0"></div>
     
     <!-- Hero Content Container -->
-    <div class="container mx-auto px-4 relative z-10">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         
         <!-- Breadcrumb -->
         <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6 font-mono uppercase tracking-wider">
@@ -108,7 +108,7 @@
 </div>
 
 <!-- Main Content Area -->
-<div class="container mx-auto px-4 pb-20 relative">
+<div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-20 relative">
     
     <!-- Floating Stats Grid (Overlaps the Hero section) -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 -mt-12 relative z-20 mb-16">
@@ -289,7 +289,7 @@
 
             <form id="deleteForm" method="POST" action="">
                 {% csrf_token %}
-                <div class="flex gap-3">
+                <div class="flex flex-col sm:flex-row gap-3">
                     <button type="button" onclick="closeDeleteModal()"
                         class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
                         CANCEL
@@ -449,7 +449,7 @@
                         </div>
                     </div>
 
-                    <div class="flex gap-3">
+                    <div class="flex flex-col sm:flex-row gap-3">
                         <button type="button" onclick="closeParticipateModal()"
                             class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
                             CANCEL
@@ -473,7 +473,7 @@
                                 id="participateTournamentName2" class="text-white font-bold"></span>?</p>
                     </div>
 
-                    <div class="flex gap-3">
+                    <div class="flex flex-col sm:flex-row gap-3">
                         <button type="button" onclick="closeParticipateModal()"
                             class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
                             CANCEL

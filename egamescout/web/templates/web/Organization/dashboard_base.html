@@ -352,7 +352,7 @@
 
                     <!-- Dropdown Menu -->
                     <div id="notification-dropdown"
-                        class="absolute right-0 mt-4 w-80 bg-[#0B0C10] border border-white/10 rounded-xl shadow-2xl overflow-hidden hidden transform transition-all duration-200 origin-top-right z-50">
+                        class="absolute right-0 mt-4 w-[calc(100vw-1rem)] max-w-sm sm:w-80 bg-[#0B0C10] border border-white/10 rounded-xl shadow-2xl overflow-hidden hidden transform transition-all duration-200 origin-top-right z-50">
                         <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
                             <h3 class="text-sm font-bold text-white font-display">NOTIFICATIONS</h3>
                             <a href="{% url 'org_mark_all_notifications_read' %}"
@@ -460,7 +460,7 @@
         onclick="toggleSidebar()"></div>
 
     <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
+    <div id="toast-container" class="fixed top-20 left-2 right-2 sm:left-auto sm:right-8 z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
     <!-- Django Messages Data -->
     {% if messages %}
@@ -503,7 +503,7 @@
                 shadow-[0_8px_30px_rgb(0,0,0,0.5)]
                 flex items-center gap-4
                 transform transition-all duration-500 ease-out translate-x-20 opacity-0
-                min-w-[300px]
+                w-full sm:w-auto sm:min-w-[300px] max-w-full sm:max-w-md
             `;
 
             toast.innerHTML = `

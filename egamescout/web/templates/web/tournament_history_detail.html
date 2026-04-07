@@ -27,7 +27,7 @@
             <!-- Animated neon border background -->
             <div class="absolute -inset-0.5 bg-gradient-to-r from-accent-cyan via-accent-pink to-accent-cyan rounded-2xl blur opacity-20"></div>
             
-            <div class="relative bg-brand-dark p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center border border-white/10 rounded-2xl">
+            <div class="relative bg-brand-dark p-4 sm:p-6 md:p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center border border-white/10 rounded-2xl">
                 <div class="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center relative overflow-hidden group">
                     <div class="absolute inset-0 bg-accent-pink/5 mix-blend-screen group-hover:bg-accent-pink/20 transition-colors"></div>
                     <i class="fa-solid fa-trophy text-6xl md:text-8xl text-accent-pink/40 group-hover:text-accent-pink group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(255,0,128,0.3)]"></i>
@@ -63,7 +63,7 @@
                             </div>
                         </div>
                         
-                        <div class="bg-black/50 border border-accent-cyan/30 rounded-lg p-4 flex-1 min-w-[150px]">
+                        <div class="bg-black/50 border border-accent-cyan/30 rounded-lg p-4 flex-1 w-full md:min-w-[150px]">
                             <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Total Teams</div>
                             <div class="font-bold text-accent-cyan text-lg flex items-center">
                                 <i class="fa-solid fa-users mr-2"></i>
@@ -71,7 +71,7 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2 flex-1 min-w-[150px] justify-start md:justify-end">
+                        <div class="flex items-center gap-2 flex-1 w-full md:min-w-[150px] justify-start md:justify-end">
                             <span class="text-xs text-gray-500 font-mono tracking-widest uppercase mr-2 hidden md:inline">Share:</span>
                             <a href="https://twitter.com/intent/tweet?text={{ tournament.tournament_name|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-[#1DA1F2]/10 text-[#1DA1F2] border border-[#1DA1F2]/30 flex items-center justify-center hover:bg-[#1DA1F2] hover:text-white transition-all hover:shadow-[0_0_15px_rgba(29,161,242,0.5)]">
                                 <i class="fa-brands fa-twitter"></i>
@@ -126,7 +126,7 @@
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="4" class="p-8 text-center text-gray-500 text-sm">No teams found for this tournament.</td>
+                                        <td colspan="4" class="p-4 sm:p-6 md:p-8 text-center text-gray-500 text-sm">No teams found for this tournament.</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

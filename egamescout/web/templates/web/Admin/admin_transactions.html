@@ -1,66 +1,179 @@
-{% extends request.META.HTTP_X_REQUESTED_WITH|yesno:"web/Admin/admin_partial.html,web/Admin/admin_base.html" %}
+{% extends 'web/Admin/admin_page_base.html' %}
+{% load humanize %}
 
-{% block content %}
-<div class="p-6 md:p-8 space-y-6">
-    <div class="flex items-center justify-between">
-        <h2 class="text-3xl font-display font-bold text-theme-text mb-2">Platform Transactions</h2>
-        <div class="flex gap-2">
-            <span class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider border border-blue-500/30">
-                Total Volume: ₹{{ total_volume|default:"--" }}
-            </span>
-        </div>
+{% block header_icon %}<i class="fa-solid fa-receipt"></i>{% endblock %}
+{% block header_title %}PLATFORM TRANSACTIONS{% endblock %}
+{% block header_desc %}Full audit log of all financial movements across the platform{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-mono whitespace-nowrap">
+    <i class="fa-solid fa-coins text-emerald-400/60"></i>
+    Total Volume: <span class="font-bold">₹{{ total_volume|intcomma }}</span>
+</div>
+{% endblock %}
+
+{% block page_content %}
+
+<!-- Search & Filter Bar -->
+<form method="GET" action="{% url 'admin_transaction_history' %}" class="flex flex-col sm:flex-row gap-3 mb-6">
+    <!-- Search -->
+    <div class="relative flex-1">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-theme-text-muted/40 text-sm pointer-events-none"></i>
+        <input
+            type="text"
+            name="q"
+            value="{{ search_query }}"
+            placeholder="Search by sender, recipient or description…"
+            class="w-full bg-theme-input-bg border border-theme-border rounded-xl pl-10 pr-4 py-2.5 text-theme-text text-sm focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 transition-colors placeholder-theme-text-muted/40"
+        >
     </div>
 
-    <div class="glass-panel p-0 rounded-xl overflow-hidden border border-theme-border">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-theme-input-bg text-theme-text-muted/50 text-xs uppercase tracking-wider border-b border-theme-border">
-                    <tr>
-                        <th class="p-4 font-bold">ID</th>
-                        <th class="p-4 font-bold">Sender (Org)</th>
-                        <th class="p-4 font-bold">Recipient</th>
-                        <th class="p-4 font-bold">Type</th>
-                        <th class="p-4 font-bold text-right">Amount</th>
-                        <th class="p-4 font-bold text-right">Date</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm divide-y divide-white/5">
-                    {% for txn in transactions %}
-                    <tr class="hover:bg-theme-card transition-colors group">
-                        <td class="p-4 text-theme-text-muted/40 font-mono text-xs">{{ txn.id }}</td>
-                        <td class="p-4 font-bold text-theme-text">
-                            {{ txn.sender.Organization_Name|default:"System" }}
-                        </td>
-                        <td class="p-4 text-theme-text-muted/70">
-                            {% if txn.recipient %}
-                                <span class="text-green-400">Org: {{ txn.recipient.Organization_Name }}</span>
-                            {% elif txn.recipient_player %}
-                                <span class="text-blue-400">Player: {{ txn.recipient_player.full_name }}</span>
-                            {% else %}
-                                System
-                            {% endif %}
-                        </td>
-                        <td class="p-4">
-                            <span class="px-2 py-1 rounded text-[10px] uppercase font-bold tracking-wider
-                                {% if 'BID' in txn.transaction_type %}bg-yellow-500/10 text-yellow-400 border border-yellow-500/30{% else %}bg-purple-500/10 text-purple-400 border border-purple-500/30{% endif %}">
-                                {{ txn.get_transaction_type_display }}
+    <!-- Type Filter -->
+    <select
+        name="type"
+        class="bg-theme-input-bg border border-theme-border rounded-xl px-4 py-2.5 text-theme-text text-sm focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 transition-colors outline-none min-w-[180px]"
+    >
+        <option value="">All Types</option>
+        {% for t in transaction_types %}
+        <option value="{{ t }}" {% if type_filter == t %}selected{% endif %}>{{ t|title|cut:"_" }}</option>
+        {% endfor %}
+    </select>
+
+    <!-- Buttons -->
+    <button type="submit" class="px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-black font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-filter"></i> Apply
+    </button>
+    {% if search_query or type_filter %}
+    <a href="{% url 'admin_transaction_history' %}" class="px-5 py-2.5 bg-theme-card border border-theme-border text-theme-text-muted hover:text-theme-text font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-xmark"></i> Clear
+    </a>
+    {% endif %}
+</form>
+
+<!-- Results summary -->
+<div class="flex items-center justify-between mb-3">
+    <p class="text-xs text-theme-text-muted font-mono">
+        Showing <span class="text-theme-text font-bold">{{ page_obj.start_index }}–{{ page_obj.end_index }}</span>
+        of <span class="text-theme-text font-bold">{{ page_obj.paginator.count }}</span> transactions
+        {% if search_query or type_filter %}<span class="text-emerald-400"> (filtered)</span>{% endif %}
+    </p>
+</div>
+
+<!-- Table -->
+<div class="bg-theme-card border border-theme-border rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+            <thead class="bg-theme-input-bg text-theme-text-muted/50 text-xs uppercase tracking-wider border-b border-theme-border">
+                <tr>
+                    <th class="px-5 py-3.5 font-bold w-12">#</th>
+                    <th class="px-5 py-3.5 font-bold">Sender</th>
+                    <th class="px-5 py-3.5 font-bold">Recipient</th>
+                    <th class="px-5 py-3.5 font-bold">Type</th>
+                    <th class="px-5 py-3.5 font-bold">Description</th>
+                    <th class="px-5 py-3.5 font-bold text-right">Amount</th>
+                    <th class="px-5 py-3.5 font-bold text-right">Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-theme-border-light">
+                {% for txn in transactions %}
+                <tr class="hover:bg-theme-card-hover transition-colors">
+                    <td class="px-5 py-3.5 text-theme-text-muted/40 font-mono text-xs">{{ txn.id }}</td>
+
+                    <td class="px-5 py-3.5 font-bold text-theme-text">
+                        {% if txn.sender %}
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-building text-brand-blue/60 text-xs"></i>
+                                {{ txn.sender.Organization_Name }}
                             </span>
-                        </td>
-                        <td class="p-4 text-right font-mono font-bold text-theme-text">
-                            ₹{{ txn.amount|floatformat:2 }}
-                        </td>
-                        <td class="p-4 text-right text-theme-text-muted/50 font-mono text-xs">
-                            {{ txn.timestamp|date:"M d H:i" }}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="p-8 text-center text-theme-text-muted/30">No transactions found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                        {% else %}
+                            <span class="text-theme-text-muted/50 italic">System</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="px-5 py-3.5">
+                        {% if txn.recipient %}
+                            <span class="flex items-center gap-1.5 text-emerald-400 font-medium">
+                                <i class="fa-solid fa-building text-xs"></i>
+                                {{ txn.recipient.Organization_Name }}
+                            </span>
+                        {% elif txn.recipient_player %}
+                            <span class="flex items-center gap-1.5 text-blue-400 font-medium">
+                                <i class="fa-solid fa-user text-xs"></i>
+                                {{ txn.recipient_player.full_name }}
+                            </span>
+                        {% else %}
+                            <span class="text-theme-text-muted/40 italic">—</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="px-5 py-3.5">
+                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider
+                            {% if 'BID_LOCKED' in txn.transaction_type %}bg-yellow-500/10 text-yellow-400 border border-yellow-500/30
+                            {% elif 'BID_PAYMENT' in txn.transaction_type %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/30
+                            {% elif 'BID_REFUND' in txn.transaction_type %}bg-blue-500/10 text-blue-400 border border-blue-500/30
+                            {% elif 'ADMIN_GRANT' in txn.transaction_type %}bg-purple-500/10 text-purple-400 border border-purple-500/30
+                            {% elif 'WITHDRAWAL' in txn.transaction_type %}bg-red-500/10 text-red-400 border border-red-500/30
+                            {% else %}bg-theme-card text-theme-text-muted border border-theme-border{% endif %}">
+                            {{ txn.get_transaction_type_display }}
+                        </span>
+                    </td>
+
+                    <td class="px-5 py-3.5 text-theme-text-muted/70 text-xs max-w-[220px] truncate" title="{{ txn.description }}">
+                        {{ txn.description|default:"—" }}
+                    </td>
+
+                    <td class="px-5 py-3.5 text-right font-mono font-bold text-theme-text">
+                        ₹{{ txn.amount|floatformat:2|intcomma }}
+                    </td>
+
+                    <td class="px-5 py-3.5 text-right text-theme-text-muted/50 font-mono text-xs whitespace-nowrap">
+                        {{ txn.timestamp|date:"M d, Y" }}<br>
+                        <span class="text-theme-text-muted/30">{{ txn.timestamp|date:"H:i" }}</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-5 py-16 text-center">
+                        <div class="flex flex-col items-center gap-3 text-theme-text-muted/30">
+                            <i class="fa-solid fa-receipt text-4xl"></i>
+                            <p class="font-bold">No transactions found
+                                {% if search_query or type_filter %}matching your filters{% endif %}.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<div class="flex items-center justify-center gap-2 mt-6">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
+        class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">
+        <i class="fa-solid fa-chevron-left"></i>
+    </a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="px-4 py-2 rounded-lg bg-brand-blue text-black text-sm font-bold">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
+            class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
+        class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">
+        <i class="fa-solid fa-chevron-right"></i>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
 {% endblock %}

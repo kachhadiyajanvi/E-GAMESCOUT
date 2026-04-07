@@ -1,9 +1,9 @@
 {% extends 'web/Admin/admin_base.html' %}
 
 {% block content %}
-<div class="flex-1 overflow-y-auto p-8 flex items-center justify-center">
+<div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 flex items-center justify-center">
     <div
-        class="bg-theme-card border border-theme-border rounded-2xl p-8 max-w-md w-full backdrop-blur-sm shadow-[0_0_50px_rgba(236,72,153,0.15)] relative overflow-hidden">
+        class="bg-theme-card border border-theme-border rounded-2xl p-4 sm:p-6 md:p-8 max-w-md w-full backdrop-blur-sm shadow-[0_0_50px_rgba(236,72,153,0.15)] relative overflow-hidden">
         <!-- Glow -->
         <div class="absolute -top-20 -left-20 w-40 h-40 bg-brand-pink/20 blur-[80px] rounded-full pointer-events-none">
         </div>
@@ -19,7 +19,7 @@
                 tournaments and players.</p>
         </div>
 
-        <form method="POST" class="flex gap-3 relative z-10">
+        <form method="POST" class="flex flex-col sm:flex-row gap-3 relative z-10">
             {% csrf_token %}
             <a href="{% url 'admin_organization_detail' %}"
                 class="flex-1 py-3 rounded-xl bg-theme-card hover:bg-theme-card-hover text-theme-text font-bold text-sm transition-all text-center">

@@ -239,7 +239,7 @@
 
     <!-- Mobile Sidebar Close Button (floating outside panel) -->
     <button id="mobileSidebarCloseBtn"
-        class="hidden fixed top-3 left-[268px] z-[60] md:hidden items-center justify-center w-9 h-9 rounded-full border border-theme-border bg-theme-bg backdrop-blur-sm text-theme-text/70 hover:text-theme-text hover:bg-red-500/30 hover:border-red-500/50 transition-all shadow-lg"
+        class="hidden fixed top-3 right-3 z-[60] md:hidden items-center justify-center w-9 h-9 rounded-full border border-theme-border bg-theme-bg backdrop-blur-sm text-theme-text/70 hover:text-theme-text hover:bg-red-500/30 hover:border-red-500/50 transition-all shadow-lg"
         onclick="toggleSidebar()">
         <i class="fa-solid fa-xmark text-base"></i>
     </button>
@@ -356,6 +356,14 @@
                 <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Archive Actions</span>
             </a>
 
+            <!-- Transactions Link -->
+            <a href="{% url 'admin_transaction_history' %}"
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'admin_transaction_history' %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                <i
+                    class="fa-solid fa-receipt w-5 text-center {% if request.resolver_match.url_name != 'admin_transaction_history' %}group-hover:text-emerald-400{% endif %} transition-colors"></i>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Transactions</span>
+            </a>
+
             <!-- Settings Link -->
             <a href="{% url 'admin_settings' %}"
                 class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'admin_settings' %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
@@ -364,6 +372,7 @@
                 <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">System Settings</span>
             </a>
         </nav>
+
 
         <!-- Logout Section -->
         <div class="p-4 border-t border-theme-border-light transition-all duration-300 group-[.sidebar-collapsed]/sidebar:px-2">
@@ -485,7 +494,7 @@
     <!-- Add here if needed -->
 
     <!-- Global Toast Notification System -->
-    <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
+    <div id="toast-container" class="fixed top-20 left-2 right-2 sm:left-auto sm:right-8 z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
     <!-- Notification Modal -->
     <div id="notificationModal" class="fixed inset-0 z-[150] hidden items-center justify-center">
@@ -523,7 +532,7 @@
 
             <!-- List -->
             <div class="flex-1 overflow-y-auto p-2" id="notificationList">
-                <div class="p-8 text-center text-theme-text/30 flex flex-col items-center justify-center h-48">
+                <div class="p-4 sm:p-6 md:p-8 text-center text-theme-text/30 flex flex-col items-center justify-center h-48">
                     <div class="w-16 h-16 rounded-full bg-theme-card flex items-center justify-center mb-3">
                         <i class="fa-solid fa-bell-slash text-2xl"></i>
                     </div>
@@ -616,7 +625,7 @@
                 `;
             }
 
-            toast.className = `pointer-events-auto bg-theme-bg backdrop-blur-xl border border-theme-border rounded-[16px] p-5 shadow-2xl flex items-center gap-5 transform transition-all duration-500 ease-out translate-x-24 opacity-0 min-w-[320px] max-w-[450px] hover:border-theme-border-light z-[9999]`;
+            toast.className = `pointer-events-auto bg-theme-bg backdrop-blur-xl border border-theme-border rounded-[16px] p-4 sm:p-5 shadow-2xl flex items-center gap-4 sm:gap-5 transform transition-all duration-500 ease-out translate-x-24 opacity-0 w-full sm:w-auto sm:min-w-[320px] max-w-full sm:max-w-[450px] hover:border-theme-border-light z-[9999]`;
 
             toast.innerHTML = `
                 ${iconHtml}
@@ -676,7 +685,7 @@
             } else {
                 markAllBtn.classList.add('hidden');
                 notifList.innerHTML = `
-                    <div class="p-8 text-center text-theme-text/30 flex flex-col items-center justify-center h-48">
+                    <div class="p-4 sm:p-6 md:p-8 text-center text-theme-text/30 flex flex-col items-center justify-center h-48">
                         <div class="w-16 h-16 rounded-full bg-theme-card flex items-center justify-center mb-3">
                             <i class="fa-solid fa-bell-slash text-2xl"></i>
                         </div>
@@ -705,7 +714,7 @@
             modal.classList.add('flex');
             
             if (!lastNotificationData) {
-                notifList.innerHTML = `<div class="p-8 flex justify-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-blue text-2xl"></i></div>`;
+                notifList.innerHTML = `<div class="p-4 sm:p-6 md:p-8 flex justify-center"><i class="fa-solid fa-circle-notch fa-spin text-brand-blue text-2xl"></i></div>`;
                 fetchNotifications();
             }
 
@@ -932,7 +941,7 @@
                 } catch (error) {
                     console.error('SPA Navigation Error:', error);
                     mainContentContainer.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-full text-center p-8">
+                        <div class="flex flex-col items-center justify-center h-full text-center p-4 sm:p-6 md:p-8">
                             <i class="fa-solid fa-triangle-exclamation text-red-500 text-5xl mb-4"></i>
                             <h3 class="text-xl font-bold text-theme-text mb-2">Failed to load content</h3>
                             <button onclick="window.location.reload()" class="px-6 py-2 bg-brand-blue text-black font-bold uppercase rounded-lg mt-4">Refresh Page</button>

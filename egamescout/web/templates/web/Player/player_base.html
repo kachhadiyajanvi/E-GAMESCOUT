@@ -54,7 +54,7 @@
 
     <!-- Navbar (Simple) -->
     <nav
-        class="w-full py-6 px-6 md:px-12 flex items-center justify-between border-b border-white/5 bg-brand-dark/50 backdrop-blur-md sticky top-0 z-50">
+        class="w-full py-4 sm:py-6 px-4 sm:px-6 md:px-12 flex items-center justify-between flex-wrap gap-3 border-b border-white/5 bg-brand-dark/50 backdrop-blur-md sticky top-0 z-50">
         <div class="flex items-center gap-2">
             <a href="{% if request.session.player_id %}{% url 'player_dashboard' %}{% else %}{% url 'index' %}{% endif %}" class="flex items-center gap-3 group shrink-0">
                 <img src="{% static 'web/images/logo.png' %}" alt="E-Game Scout Logo"
@@ -64,7 +64,7 @@
                 </span>
             </a>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="ml-auto flex items-center gap-1 sm:gap-4 flex-wrap justify-end">
             <a href="{% if request.session.player_id %}{% url 'player_dashboard' %}{% else %}{% url 'index' %}{% endif %}"
                 class="text-sm font-bold text-gray-400 hover:text-white transition-colors">HOME</a>
             {% if not request.session.player_id %}
@@ -77,7 +77,7 @@
         </div>
     </nav>
 
-    <main class="flex-grow flex items-center justify-center p-6 relative z-10">
+    <main class="flex-grow flex items-center justify-center p-4 sm:p-6 md:p-8 relative z-10">
         <!-- Decoration Orbs -->
         <div
             class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] -z-10 animate-pulse-slow">
@@ -102,7 +102,7 @@
 
     <!-- Toast Notification Container -->
     <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-24 right-8 z-[100] flex flex-col gap-4 pointer-events-none"></div>
+    <div id="toast-container" class="fixed top-20 left-2 right-2 sm:left-auto sm:right-8 z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
     <!-- Django Messages Data -->
     {% if messages %}
@@ -145,7 +145,7 @@
                 shadow-[0_8px_30px_rgb(0,0,0,0.5)]
                 flex items-center gap-4
                 transform transition-all duration-500 ease-out translate-x-20 opacity-0
-                min-w-[300px]
+                w-full sm:w-auto sm:min-w-[300px] max-w-full sm:max-w-md
             `;
 
             toast.innerHTML = `

@@ -42,7 +42,8 @@
     </div>
 
     <!-- View Toggle & Toolbar -->
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+        <!-- View Switch -->
         <div class="flex flex-row gap-2">
             <button onclick="switchView('grid')" id="btnGrid"
                 class="p-2.5 rounded-lg bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/30 hover:bg-accent-cyan hover:text-black transition-all"
@@ -55,14 +56,50 @@
                 <i class="fa-solid fa-list"></i>
             </button>
         </div>
+
+        <!-- Search & Filter -->
+        <form method="GET" action="{% url 'tournament_list' %}" class="flex flex-col sm:flex-row gap-2 flex-1 sm:justify-end">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none"></i>
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ search_query }}"
+                    placeholder="Search by name…"
+                    class="bg-black/30 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/20 w-full sm:w-52 placeholder-gray-600 transition-colors"
+                >
+            </div>
+            <select
+                name="status"
+                class="bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-accent-cyan/50 appearance-none min-w-[140px] transition-colors"
+            >
+                <option value="">All Statuses</option>
+                <option value="Scheduled" {% if status_filter == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+                <option value="Ongoing"   {% if status_filter == 'Ongoing'   %}selected{% endif %}>Ongoing</option>
+                <option value="Cancelled" {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+
+            <button type="submit"
+                class="px-4 py-2.5 bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan hover:bg-accent-cyan hover:text-black font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-filter"></i> Filter
+            </button>
+            {% if search_query or status_filter %}
+            <a href="{% url 'tournament_list' %}"
+                class="px-4 py-2.5 bg-white/5 border border-white/10 text-gray-400 hover:text-white font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-xmark"></i> Clear
+            </a>
+            {% endif %}
+        </form>
     </div>
 
-        <!-- Search/Filter Placeholder (Future) -->
-        <!-- <div class="relative">
-            <input type="text" placeholder="Search tournaments..." class="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-accent-cyan/50 w-64">
-            <i class="fa-solid fa-search absolute right-3 top-2.5 text-gray-500"></i>
-        </div> -->
-    </div>
+    <!-- Result count when filtered -->
+    {% if search_query or status_filter %}
+    <p class="text-xs text-gray-500 font-mono mb-4">
+        Showing <span class="text-white font-bold">{{ tournaments|length }}</span> result{{ tournaments|length|pluralize }}
+        {% if search_query %}for "<span class="text-accent-cyan">{{ search_query }}</span>"{% endif %}
+        {% if status_filter %}&mdash; Status: <span class="text-accent-cyan">{{ status_filter }}</span>{% endif %}
+    </p>
+    {% endif %}
 
     <!-- Tournaments Content -->
     {% if tournaments %}
@@ -218,7 +255,7 @@
                             {% if tournament.approval_status == 'DRAFT' or tournament.approval_status == 'REJECTED' %}
                             <button
                                 onclick="confirmPublish('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}', 'submit')"
-                                class="flex-1 min-w-[150px] px-4 py-2.5 bg-yellow-500/10 border border-yellow-500/40 text-yellow-400 rounded-lg hover:bg-yellow-500/20 hover:border-yellow-500/60 hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
+                                class="flex-1 w-full md:min-w-[150px] px-4 py-2.5 bg-yellow-500/10 border border-yellow-500/40 text-yellow-400 rounded-lg hover:bg-yellow-500/20 hover:border-yellow-500/60 hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition-all duration-300 text-center font-bold text-sm flex items-center justify-center gap-2 hover:scale-105 group/btn">
                                 <i class="fa-solid fa-paper-plane group-hover/btn:scale-110 transition-transform"></i> Send for Approval
                             </button>
                             {% elif tournament.approval_status == 'APPROVED' %}
@@ -419,7 +456,7 @@
 
                 <form id="deleteForm" method="POST" action="">
                     {% csrf_token %}
-                    <div class="flex gap-3">
+                    <div class="flex flex-col sm:flex-row gap-3">
                         <button type="button" onclick="closeDeleteModal()"
                             class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
                             CANCEL
@@ -458,7 +495,7 @@
 
                 <form id="cancelForm" method="POST" action="">
                     {% csrf_token %}
-                    <div class="flex gap-3">
+                    <div class="flex flex-col sm:flex-row gap-3">
                         <button type="button" onclick="closeCancelModal()"
                             class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
                             BACK
@@ -498,7 +535,7 @@
     
                     <form id="publishForm" method="POST" action="">
                         {% csrf_token %}
-                        <div class="flex gap-3">
+                        <div class="flex flex-col sm:flex-row gap-3">
                             <button type="button" onclick="closePublishModal()"
                                 class="flex-1 px-4 py-2 rounded border border-white/10 text-white hover:bg-white/5 transition-all font-bold text-sm">
                                 CANCEL
