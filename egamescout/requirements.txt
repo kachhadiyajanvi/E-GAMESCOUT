@@ -1,8 +1,5 @@
 # ============================================================
 # E-GameScout — Production Requirements
-# Cleaned for Railway / Render deployment
-# Generated: 2026-04-07
-# Removed: Jupyter, Flask, ML libs, pyHanko, unused SDKs
 # ============================================================
 
 # ── Django Core ─────────────────────────────────────────────

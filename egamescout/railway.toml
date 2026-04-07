@@ -5,7 +5,7 @@ builder = "nixpacks"
 nixPkgs = ["python311", "gcc", "pkg-config", "libmysqlclient"]
 
 [build.nixpacksPlan.phases.install]
-cmds = ["pip install -r requirements.txt"]
+cmds = ["python -m pip install -r requirements.txt"]
 
 [build.nixpacksPlan.phases.build]
 cmds = [
