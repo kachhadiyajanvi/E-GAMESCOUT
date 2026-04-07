@@ -471,8 +471,8 @@
                         <div class="text-right hidden sm:block">
                             <p
                                 class="text-sm font-bold text-theme-text leading-none group-hover:text-brand-blue transition-colors">
-                                Admin User</p>
-                            <p class="text-[10px] text-theme-text-muted font-bold tracking-wider">SUPER ADMIN</p>
+                                {{ request.user.username|default:"Admin" }}</p>
+                            <p class="text-[10px] text-theme-text-muted font-bold tracking-wider">{{ request.user.email|default:"SUPER ADMIN" }}</p>
                         </div>
                         <div
                             class="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-brand-blue to-purple-600 p-[2px] group-hover:shadow-[0_0_15px_rgba(0,243,255,0.3)] transition-all">
