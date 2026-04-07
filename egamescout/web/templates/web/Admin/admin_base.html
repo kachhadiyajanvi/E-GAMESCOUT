@@ -865,20 +865,21 @@
             });
 
             async function navigateTo(url, push = true) {
-                // Show loading spinner safely without stripping the whole container abruptly
+                // Remove any existing loader before adding a new one (prevent stacking)
+                const existingLoader = document.getElementById('spa-loader');
+                if (existingLoader) existingLoader.remove();
+
+                // Show loading spinner
                 const loader = document.createElement('div');
                 loader.id = 'spa-loader';
-                loader.className = 'absolute inset-0 z-[100] flex items-center justify-center bg-theme-bg/80 backdrop-blur-md transition-opacity duration-300';
+                loader.className = 'absolute inset-0 z-[100] flex items-center justify-center bg-theme-bg/80 backdrop-blur-md opacity-0 transition-opacity duration-300';
                 loader.innerHTML = `
                 <div class="flex flex-col items-center gap-4">
                     <div class="relative w-16 h-16">
-                        <!-- Outer spinning ring -->
                         <div class="absolute inset-0 rounded-full border-4 border-theme-border-light border-t-brand-blue animate-spin"></div>
-                        <!-- Inner spinning ring -->
                         <div class="absolute inset-2 rounded-full border-4 border-theme-border-light border-b-brand-pink animate-[spin_1.5s_linear_infinite_reverse]"></div>
-                        <!-- Center icon -->
                         <div class="absolute inset-0 flex items-center justify-center">
-                            <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-6 h-6 object-contain drop-shadow-md animate-pulse">
+                            <img src="{% static 'web/images/logo.png' %}" alt="Logo" class="w-6 h-6 object-contain drop-shadow-[0_0_8px_rgba(0,243,255,0.8)] animate-pulse">
                         </div>
                     </div>
                     <p class="text-brand-blue font-display font-bold tracking-[0.3em] text-xs animate-pulse">LOADING...</p>
@@ -886,15 +887,14 @@
                 `;
                 mainContentContainer.style.position = 'relative';
                 mainContentContainer.appendChild(loader);
-                
-                // Highlight sidebar active state using classList to preserve structural layout classes
+                // Fade-in loader
+                requestAnimationFrame(() => { loader.style.opacity = '1'; });
+
+                // Update sidebar active state
                 document.querySelectorAll('#adminSidebar a').forEach(a => {
-                    // Skip the logout button or any other specific non-nav links
                     if (a.getAttribute('href') && a.getAttribute('href').includes('logout')) return;
-                    
                     const aHref = a.getAttribute('href');
                     const isActive = aHref === url || (aHref !== '/admin/' && url.startsWith(aHref));
-                    
                     if (isActive) {
                         a.classList.add('bg-theme-card', 'text-brand-blue', 'shadow-sm');
                         a.classList.remove('text-theme-text/60', 'hover:text-theme-text', 'hover:bg-theme-card');
@@ -904,46 +904,59 @@
                     }
                 });
 
+                const removeLoader = () => {
+                    const l = document.getElementById('spa-loader');
+                    if (l) {
+                        l.style.opacity = '0';
+                        setTimeout(() => l.remove(), 300);
+                    }
+                };
+
                 try {
                     const response = await fetch(url, {
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
-                    
-                    if (!response.ok) throw new Error('Network response error');
-                    
-                    const html = await response.text();
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = html;
-                    
-                    // Update Title
-                    const titleTag = tempDiv.querySelector('title');
-                    if (titleTag) {
-                        document.title = titleTag.innerText;
-                        titleTag.remove();
-                    }
-                    
-                    // Replace UI smoothly
-                    mainContentContainer.innerHTML = tempDiv.innerHTML;
-                    
-                    if (push) {
-                        history.pushState(null, '', url);
-                    }
 
-                    // Re-execute scripts in the loaded content
-                    const scripts = mainContentContainer.querySelectorAll('script');
-                    scripts.forEach(oldScript => {
-                        const newScript = document.createElement('script');
-                        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                        oldScript.parentNode.replaceChild(newScript, oldScript);
-                    });
+                    if (!response.ok) throw new Error('Network response was not ok: ' + response.status);
+
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    // Update page title
+                    const newTitle = doc.querySelector('title');
+                    if (newTitle) document.title = newTitle.textContent;
+
+                    // Extract ONLY the #main-content inner HTML from the fetched page
+                    const newMainContent = doc.getElementById('main-content');
+                    if (newMainContent) {
+                        // Remove loader first, then swap content
+                        removeLoader();
+                        setTimeout(() => {
+                            mainContentContainer.innerHTML = newMainContent.innerHTML;
+                            if (push) history.pushState(null, '', url);
+
+                            // Re-execute inline scripts in the loaded content
+                            mainContentContainer.querySelectorAll('script').forEach(oldScript => {
+                                const newScript = document.createElement('script');
+                                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                                newScript.textContent = oldScript.textContent;
+                                oldScript.parentNode.replaceChild(newScript, oldScript);
+                            });
+                        }, 300);
+                    } else {
+                        // Fallback: full page reload if structure unexpected
+                        window.location.href = url;
+                    }
 
                 } catch (error) {
                     console.error('SPA Navigation Error:', error);
+                    removeLoader();
                     mainContentContainer.innerHTML = `
                         <div class="flex flex-col items-center justify-center h-full text-center p-4 sm:p-6 md:p-8">
                             <i class="fa-solid fa-triangle-exclamation text-red-500 text-5xl mb-4"></i>
                             <h3 class="text-xl font-bold text-theme-text mb-2">Failed to load content</h3>
+                            <p class="text-theme-text-muted text-sm mt-1">Please check your connection and try again.</p>
                             <button onclick="window.location.reload()" class="px-6 py-2 bg-brand-blue text-black font-bold uppercase rounded-lg mt-4">Refresh Page</button>
                         </div>
                     `;
