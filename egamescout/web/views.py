@@ -416,19 +416,27 @@ def auth_login(request):
                     messages.info(request, "You are already registered. Please Login.")
                     return redirect('auth_login')
 
-            # Generate OTP
-            otp_code = str(random.randint(100000, 999999))
+            # Generate OTP & Rate limit check
+            current_time = time.time()
+            last_created = request.session.get('auth_otp_created_at', 0)
             
-            # Save OTP in Session (Stateless)
-            request.session['auth_email'] = email
-            request.session['auth_otp'] = otp_code # Store OTP in session
-            request.session['auth_otp_created_at'] = time.time() # Store timestamp
-            request.session['otp_verified'] = False # Reset verification status
-            
-            # Send Email
-                            
-            html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
-            plain_message = strip_tags(html_message)
+            # Use existing OTP and skip email if within 60s
+            if current_time - last_created < 60:
+                otp_code = request.session.get('auth_otp')
+                messages.info(request, f'OTP request already in progress. Please check your email or wait.')
+                return redirect('auth_verify_otp')
+            else:
+                otp_code = str(random.randint(100000, 999999))
+                # Save OTP in Session (Stateless)
+                request.session['auth_email'] = email
+                request.session['auth_otp'] = otp_code # Store OTP in session
+                request.session['auth_otp_created_at'] = current_time # Store timestamp
+                request.session['otp_verified'] = False # Reset verification status
+                
+                # Send Email
+                                
+                html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
+                plain_message = strip_tags(html_message)
             
             send_mail(
                 'Your E-Game Scout Code',
@@ -1351,13 +1359,19 @@ def org_register_start(request):
             if 'conflict_email' in request.session:
                 del request.session['conflict_email']
                 
-            # Generate OTP
+            # Generate OTP with 60s rate-limit
+            current_time = time.time()
+            last_created = request.session.get('reg_otp_created_at', 0)
+
+            if current_time - last_created < 60:
+                messages.info(request, 'OTP already sent. Please check your email or wait before requesting again.')
+                return redirect('org_register_otp')
+
             otp = str(random.randint(100000, 999999))
             request.session['reg_email'] = email
             request.session['reg_otp'] = otp
-            request.session['reg_otp_created_at'] = time.time()
+            request.session['reg_otp_created_at'] = current_time
             
-            # Send OTP via Email
             # Send OTP via Email (HTML + Text)
             subject = 'E-Game Scout Registration OTP'
             html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
@@ -1490,13 +1504,19 @@ def org_login_start(request):
                     messages.error(request, 'Your account request was not approved by the administrator. Please contact support.')
                     return redirect('org_login_start')
 
-                # Generate OTP
+                # Generate OTP with 60s rate-limit
+                current_time = time.time()
+                last_created = request.session.get('login_otp_created_at', 0)
+
+                if current_time - last_created < 60:
+                    messages.info(request, 'OTP already sent. Please check your email or wait before requesting again.')
+                    return redirect('org_login_otp')
+
                 otp = str(random.randint(100000, 999999))
                 request.session['login_email'] = email
                 request.session['login_otp'] = otp
-                request.session['login_otp_created_at'] = time.time()
+                request.session['login_otp_created_at'] = current_time
                 
-                # Send OTP via Email
                 # Send OTP via Email (HTML + Text)
                 subject = 'E-Game Scout Login OTP'
                 html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
@@ -1764,16 +1784,24 @@ def resend_otp(request):
         # Generate new OTP
         otp = str(random.randint(100000, 999999))
         
-        # Update session (determine which one to update)
+        # Update session & Enforce Cooldown
+        current_time = time.time()
+        
         if request.session.get('reg_email'):
+            if current_time - request.session.get('reg_otp_created_at', 0) < 60:
+                return JsonResponse({'success': False, 'message': 'Please wait before requesting another OTP.'})
             request.session['reg_otp'] = otp
-            request.session['reg_otp_created_at'] = time.time()
+            request.session['reg_otp_created_at'] = current_time
         elif request.session.get('login_email'):
+            if current_time - request.session.get('login_otp_created_at', 0) < 60:
+                return JsonResponse({'success': False, 'message': 'Please wait before requesting another OTP.'})
             request.session['login_otp'] = otp
-            request.session['login_otp_created_at'] = time.time()
+            request.session['login_otp_created_at'] = current_time
         elif request.session.get('auth_email'):
+            if current_time - request.session.get('auth_otp_created_at', 0) < 60:
+                return JsonResponse({'success': False, 'message': 'Please wait before requesting another OTP.'})
             request.session['auth_otp'] = otp
-            request.session['auth_otp_created_at'] = time.time()
+            request.session['auth_otp_created_at'] = current_time
             
         # Send OTP via Email
         subject = 'E-Game Scout OTP Resend'
