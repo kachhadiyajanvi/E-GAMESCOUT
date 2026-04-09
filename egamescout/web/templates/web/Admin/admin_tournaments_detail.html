@@ -76,7 +76,7 @@
                     <td class="p-4 text-brand-blue font-bold font-mono">{{ tournament.PrizePool }}</td>
                     <td class="p-4 text-theme-text-muted">{{ tournament.CreatedAt|date:"M d, Y" }}</td>
                     <td class="p-4 text-right">
-                        <button onclick="openTournamentViewModal(this)" data-name="{{ tournament.Name }}"
+                        <button type="button" onclick="openTournamentViewModal(this)" data-name="{{ tournament.Name }}"
                             data-id="{{ tournament.Tournament_ID }}"
                             data-org="{{ tournament.Organization_Name.Organization_Name }}"
                             data-status="{{ tournament.Status }}" data-prizepool="{{ tournament.PrizePool }}"
@@ -87,12 +87,12 @@
                             class="text-theme-text-muted hover:text-accent-cyan transition-colors px-2" title="View Details">
                             <i class="fa-solid fa-eye"></i>
                         </button>
-                        <button
+                        <button type="button" 
                             onclick="openTournamentStatusModal('{{ tournament.Tournament_ID }}', '{{ tournament.Status }}')"
                             class="text-theme-text-muted hover:text-brand-blue transition-colors px-2" title="Edit Status">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
-                        <button
+                        <button type="button" 
                             onclick="openTournamentDeleteModal('{{ tournament.Tournament_ID }}', '{{ tournament.Name|escapejs }}')"
                             class="text-theme-text-muted hover:text-red-500 transition-colors px-2" title="Delete Tournament">
                             <i class="fa-solid fa-trash"></i>

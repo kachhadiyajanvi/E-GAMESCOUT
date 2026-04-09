@@ -289,25 +289,31 @@ def admin_dashboard(request):
         new_orgs_today = org_qs.filter(CreatedAt__gte=today_start).count()
         
         # --- Chart Data (Last 7 Days) ---
+        from django.db.models.functions import TruncDate
         days = 7
         chart_labels = []
         player_trend = []
         org_trend = []
         
+        seven_days_ago = timezone.now().date() - timedelta(days=days-1)
+        seven_days_ago_aware = timezone.make_aware(datetime.combine(seven_days_ago, time.min))
+        
+        player_counts = {
+            item['date']: item['count'] for item in 
+            player_qs.filter(created_at__gte=seven_days_ago_aware).annotate(date=TruncDate('created_at')).values('date').annotate(count=Count('id'))
+        }
+        
+        org_counts = {
+            item['date']: item['count'] for item in 
+            org_qs.filter(CreatedAt__gte=seven_days_ago_aware).annotate(date=TruncDate('CreatedAt')).values('date').annotate(count=Count('id'))
+        }
+        
         for i in range(days):
-            day_date = timezone.now().date() - timedelta(days=6-i)
+            day_date = seven_days_ago + timedelta(days=i)
             chart_labels.append(day_date.strftime('%a')) # Mon, Tue...
             
-            # Create aware start/end times
-            day_start = timezone.make_aware(datetime.combine(day_date, time.min))
-            day_end = timezone.make_aware(datetime.combine(day_date, time.max))
-            
-            # Count for specific day
-            p_count = player_qs.filter(created_at__range=(day_start, day_end)).count()
-            o_count = org_qs.filter(CreatedAt__range=(day_start, day_end)).count()
-            
-            player_trend.append(p_count)
-            org_trend.append(o_count)
+            player_trend.append(player_counts.get(day_date, 0))
+            org_trend.append(org_counts.get(day_date, 0))
 
         # --- Unified Recent Activity ---
         # Fetch top 5 from both, combine and sort
@@ -472,9 +478,8 @@ def admin_delete_organization(request, org_id):
         org.is_active_account = False
         
         # Free up unique constraints
-        timestamp_str = archived_time.strftime("%Y%m%d%H%M%S")
-        org.Organization_Email = f"archived_{timestamp_str}_{org.Organization_Email}"[:50]
-        org.Organization_UserName = f"archived_{timestamp_str}_{org.Organization_UserName}"[:30]
+        org.Organization_Email = f"arc_{org.id}_{org.Organization_Email}"[:254]
+        org.Organization_UserName = f"arc_{org.id}_{org.Organization_UserName}"[:50]
         
         org.save()
         messages.success(request, f'Organization "{org.Organization_Name}" has been deleted.')
@@ -504,9 +509,8 @@ def admin_bulk_delete_organizations(request):
                 org.is_active_account = False
                 
                 # Free up unique constraints
-                timestamp_str = archived_time.strftime("%Y%m%d%H%M%S")
-                org.Organization_Email = f"archived_{timestamp_str}_{org.Organization_Email}"[:50]
-                org.Organization_UserName = f"archived_{timestamp_str}_{org.Organization_UserName}"[:30]
+                org.Organization_Email = f"arc_{org.id}_{org.Organization_Email}"[:254]
+                org.Organization_UserName = f"arc_{org.id}_{org.Organization_UserName}"[:50]
                 
                 org.save()
                 success_count += 1
@@ -597,13 +601,12 @@ def admin_delete_player(request, player_id):
             player.status = 'SUSPENDED'
             
             # Free up unique constraints
-            timestamp_str = archived_time.strftime("%Y%m%d%H%M%S")
-            player.email = f"archived_{timestamp_str}_{player.email}"[:254]
-            player.uid = f"archived_{timestamp_str}_{player.uid}"[:50]
+            player.email = f"arc_{player.id}_{player.email}"[:254]
+            player.uid = f"arc_{player.id}_{player.uid}"[:50]
             if player.username:
-                player.username = f"archived_{timestamp_str}_{player.username}"[:50]
+                player.username = f"arc_{player.id}_{player.username}"[:50]
             if player.aadhar_number:
-                player.aadhar_number = f"archived_{timestamp_str}_{player.aadhar_number}"[:20]
+                player.aadhar_number = f"A{player.id}_{player.aadhar_number}"[:20]
                             
             # Handle Organization Removal (Admin Action)
             if player.organization:
@@ -666,13 +669,12 @@ def admin_bulk_delete_players(request):
                 player.status = 'SUSPENDED'
                 
                 # Free up unique constraints
-                timestamp_str = archived_time.strftime("%Y%m%d%H%M%S")
-                player.email = f"archived_{timestamp_str}_{player.email}"[:254]
-                player.uid = f"archived_{timestamp_str}_{player.uid}"[:50]
+                player.email = f"arc_{player.id}_{player.email}"[:254]
+                player.uid = f"arc_{player.id}_{player.uid}"[:50]
                 if player.username:
-                    player.username = f"archived_{timestamp_str}_{player.username}"[:50]
+                    player.username = f"arc_{player.id}_{player.username}"[:50]
                 if player.aadhar_number:
-                    player.aadhar_number = f"archived_{timestamp_str}_{player.aadhar_number}"[:20]
+                    player.aadhar_number = f"A{player.id}_{player.aadhar_number}"[:20]
                                 
                 # Handle Organization Removal (Admin Action)
                 if player.organization:

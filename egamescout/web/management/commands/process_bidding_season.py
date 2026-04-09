@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from web.models import BiddingSeason, Bid, Organization, Transaction, OrganizationNotification, PlayerNotification, Player
+from web.models import BiddingSeason, Bid, Organization, Transaction, OrganizationNotification, PlayerNotification, Player, BiddingSeasonLog
 from django.db import transaction
 
 class Command(BaseCommand):
@@ -72,7 +72,23 @@ class Command(BaseCommand):
                 
                 count += 1
             
-            self.stdout.write(self.style.SUCCESS(f"Season '{season.name}' ended. {count} pending bids processed."))
+            # --- Feature: Wallet Reset After Auction ---
+            # Wait for all bids to be refunded above, THEN reset any remaining coins
+            orgs_with_coins = Organization.objects.filter(coins__gt=0)
+            wallet_reset_count = 0
+            for org in orgs_with_coins:
+                Transaction.objects.create(
+                    recipient=org,
+                    amount=org.coins,
+                    transaction_type='WITHDRAWAL',
+                    description=f"Wallet reset upon automatic bidding close - Season: {season.name}"
+                )
+                wallet_reset_count += 1
+                
+            Organization.objects.all().update(coins=0)
+            BiddingSeasonLog.objects.create(season=season, action='RESET', message="Organization Wallets Automatically Reset to 0")
+
+            self.stdout.write(self.style.SUCCESS(f"Season '{season.name}' ended. {count} pending bids processed. {wallet_reset_count} wallets reset to 0."))
 
     def start_season(self, season):
         self.stdout.write(f"Starting season: {season.name}")

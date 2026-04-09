@@ -128,12 +128,12 @@
                     <td class="p-4 text-theme-text-muted">{{ org.CreatedAt|date:"M d, Y" }}</td>
                     <td class="p-4 text-right">
                         {% if org.is_verified %}
-                        <button class="text-yellow-400/50 cursor-not-allowed px-2 text-xs" title="Verified Organization" disabled>
+                        <button type="button" class="text-yellow-400/50 cursor-not-allowed px-2 text-xs" title="Verified Organization" disabled>
                             <i class="fa-solid fa-star"></i>
                         </button>
                         {% endif %}
 
-                        <button onclick="openOrgViewModal(this)" data-name="{{ org.Organization_Name }}"
+                        <button type="button" onclick="openOrgViewModal(this)" data-name="{{ org.Organization_Name }}"
                             data-username="{{ org.Organization_UserName|default:'' }}"
                             data-email="{{ org.Organization_Email }}" data-contact="{{ org.Organization_Contact }}"
                             data-status="{{ org.status }}" data-joined="{{ org.CreatedAt|date:'M d, Y' }}"
@@ -143,17 +143,17 @@
                             <i class="fa-solid fa-eye"></i>
                         </button>
 
-                        <button onclick="openNotifyOrgModal('{{ org.id }}', '{{ org.Organization_Name|escapejs }}')"
+                        <button type="button" onclick="openNotifyOrgModal('{{ org.id }}', '{{ org.Organization_Name|escapejs }}')"
                             class="text-theme-text-muted hover:text-yellow-400 transition-colors px-2" title="Notify Organization">
                             <i class="fa-solid fa-bell"></i>
                         </button>
 
-                        <button onclick="openOrgStatusModal('{{ org.id }}', '{{ org.status }}', '{{ org.is_verified }}', '{{ org.is_active_account|lower }}')"
+                        <button type="button" onclick="openOrgStatusModal('{{ org.id }}', '{{ org.status }}', '{{ org.is_verified }}', '{{ org.is_active_account|lower }}')"
                             class="text-theme-text-muted hover:text-brand-blue transition-colors px-2" title="Edit Status">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
 
-                        <button onclick="openOrgDeleteModal('{{ org.id }}', '{{ org.Organization_Name|escapejs }}')"
+                        <button type="button" onclick="openOrgDeleteModal('{{ org.id }}', '{{ org.Organization_Name|escapejs }}')"
                             class="text-theme-text-muted hover:text-red-500 transition-colors px-2" title="Delete Organization">
                             <i class="fa-solid fa-trash"></i>
                         </button>
