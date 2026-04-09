@@ -2045,3 +2045,52 @@ def admin_transaction_history(request):
             'page_obj':           page_obj,
             'search_query':       search_query,
         })
+
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_contracts_list(request):
+    """View to list all organizations that have signed contracts with players."""
+    search_query = request.GET.get('q', '')
+    from web.models import Contract
+    
+    # Get distinct organizations that have contracts
+    org_ids_with_contracts = Contract.objects.values_list('organization_id', flat=True).distinct()
+    orgs = Organization.objects.filter(id__in=org_ids_with_contracts, is_archived=False)
+    
+    if search_query:
+        orgs = orgs.filter(Organization_Name__icontains=search_query)
+        
+    # Annotate with contract count
+    orgs = orgs.annotate(contract_count=Count('contracts'))
+    
+    paginator = Paginator(orgs, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    return render(request, 'web/Admin/admin_contracts_list.html', {
+        'page_obj': page_obj,
+        'search_query': search_query
+    })
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_organization_contracts(request, org_id):
+    """View to list all contracts for a specific organization."""
+    from web.models import Contract
+    org = get_object_or_404(Organization, id=org_id)
+    search_query = request.GET.get('q', '')
+    
+    contracts = Contract.objects.filter(organization=org).select_related('player')
+    
+    if search_query:
+        contracts = contracts.filter(player__full_name__icontains=search_query)
+        
+    contracts = contracts.order_by('-created_at')
+    
+    paginator = Paginator(contracts, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    return render(request, 'web/Admin/admin_organization_contracts.html', {
+        'org': org,
+        'page_obj': page_obj,
+        'search_query': search_query
+    })
+

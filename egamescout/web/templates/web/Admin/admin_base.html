@@ -366,6 +366,14 @@
                 <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Transactions</span>
             </a>
 
+            <!-- Contracts Link -->
+            <a href="{% url 'admin_contracts_list' %}"
+                class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if 'admin_contracts' in request.resolver_match.url_name %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">
+                <i
+                    class="fa-solid fa-file-signature w-5 text-center {% if 'admin_contracts' not in request.resolver_match.url_name %}group-hover:text-cyan-400{% endif %} transition-colors"></i>
+                <span class="font-bold tracking-wider text-sm whitespace-nowrap transition-all duration-300 ml-4 group-[.sidebar-collapsed]/sidebar:w-0 group-[.sidebar-collapsed]/sidebar:opacity-0 group-[.sidebar-collapsed]/sidebar:ml-0 overflow-hidden">Player Contracts</span>
+            </a>
+
             <!-- Settings Link -->
             <a href="{% url 'admin_settings' %}"
                 class="flex items-center px-4 group-[.sidebar-collapsed]/sidebar:px-0 group-[.sidebar-collapsed]/sidebar:justify-center py-3 rounded-xl transition-all border border-transparent group {% if request.resolver_match.url_name == 'admin_settings' %}bg-theme-card text-brand-blue shadow-sm{% else %}text-theme-text/60 hover:text-theme-text hover:bg-theme-card{% endif %}">

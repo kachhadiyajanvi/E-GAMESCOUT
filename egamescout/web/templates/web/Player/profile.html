@@ -5,9 +5,10 @@
 
 {% block header_prefix %}
 <!-- Profile Photo -->
-<div class="relative group shrink-0">
-    <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-[#0a0a0e] shadow-[0_0_0_2px_rgba(102,252,241,0.2)] group-hover:shadow-[0_0_0_2px_rgba(102,252,241,0.5)] transition-all bg-brand-dark duration-300 transform group-hover:scale-105">
-        {% if player.profile_photo %}
+<div class="flex flex-col items-center">
+    <div class="relative group shrink-0">
+        <div id="profile-photo-container" class="w-32 h-32 rounded-full overflow-hidden border-4 border-[#0a0a0e] shadow-[0_0_0_2px_rgba(102,252,241,0.2)] group-hover:shadow-[0_0_0_2px_rgba(102,252,241,0.5)] transition-all bg-brand-dark duration-300 transform group-hover:scale-105">
+            {% if player.profile_photo %}
         <img src="{{ player.profile_photo.url }}" class="w-full h-full object-cover">
         {% else %}
         <div class="w-full h-full flex items-center justify-center text-accent-cyan text-4xl bg-[#111217]">
@@ -26,6 +27,8 @@
     {% else %}
     <div class="absolute bottom-1 right-2 w-5 h-5 bg-orange-500 rounded-full border-4 border-[#0a0a0e] shadow-[0_0_10px_rgba(249,115,22,0.5)]" title="Deactivated"></div>
     {% endif %}
+    </div>
+    <p id="profile-photo-error" class="hidden text-red-500 font-bold text-[10px] mt-2 whitespace-nowrap text-center bg-black/60 px-2 py-1 rounded backdrop-blur-sm border border-red-500/20"></p>
 </div>
 {% endblock %}
 
@@ -53,7 +56,7 @@
     <!-- Profile Update Form (Covers Photo, Username) -->
     <form method="post" enctype="multipart/form-data" id="profile-update-form" class="lg:col-span-2 space-y-6 flex flex-col order-1 lg:order-1">
         {% csrf_token %}
-        <input type="file" name="profile_photo" id="photo-upload" class="hidden" onchange="document.getElementById('profile-update-form').submit()">
+        <input type="file" name="profile_photo" id="photo-upload" accept=".jpg,.jpeg,.png" class="hidden" onchange="validateFile(this, 'profile-update-form', 'profile-photo-container', 'profile-photo-error')">
 
         <!-- Personal Information Section -->
         <div class="bg-[#111217] p-4 sm:p-6 md:p-8 rounded-3xl border border-white/5 shadow-xl relative overflow-hidden group hover:border-white/10 transition-colors duration-300">
@@ -375,8 +378,58 @@
     </div>
 </div>
 
-<script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Global Photo Validation logic for immediate submit
+        window.validateFile = function(input, formId, containerId, errorId) {
+            const file = input.files[0];
+            const container = document.getElementById(containerId);
+            const errorEl = document.getElementById(errorId);
+            
+            if (!file) return;
+
+            const allowedExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
+            const maxSize = 2 * 1024 * 1024; // 2MB
+
+            if(container) {
+                container.classList.remove('border-red-500', 'shadow-[0_0_15px_rgba(239,68,68,0.5)]');
+                container.classList.add('border-[#0a0a0e]');
+            }
+            if(errorEl) {
+                errorEl.classList.add('hidden');
+                errorEl.textContent = '';
+            }
+
+            if (!allowedExtensions.includes(file.type)) {
+                if(container) {
+                    container.classList.remove('border-[#0a0a0e]');
+                    container.classList.add('border-red-500', 'shadow-[0_0_15px_rgba(239,68,68,0.5)]');
+                }
+                if(errorEl) {
+                    errorEl.textContent = 'Only JPG, JPEG, and PNG files are allowed.';
+                    errorEl.classList.remove('hidden');
+                }
+                input.value = ''; 
+                return;
+            }
+
+            if (file.size > maxSize) {
+                if(container) {
+                    container.classList.remove('border-[#0a0a0e]');
+                    container.classList.add('border-red-500', 'shadow-[0_0_15px_rgba(239,68,68,0.5)]');
+                }
+                if(errorEl) {
+                    errorEl.textContent = 'File size must be less than 2MB.';
+                    errorEl.classList.remove('hidden');
+                }
+                input.value = ''; 
+                return;
+            }
+
+            if(formId) {
+                document.getElementById(formId).submit();
+            }
+        };
+
         const usernameInput = document.getElementById('id_username');
         const statusMsg = document.getElementById('username-status');
         let timeout = null;
