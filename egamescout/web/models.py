@@ -346,7 +346,7 @@ class Bid(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
-        if not self.season.is_active:
+        if not self.pk and not self.season.is_active:
             raise ValidationError("Bids can only be placed during an active bidding season.")
 
     def save(self, *args, **kwargs):

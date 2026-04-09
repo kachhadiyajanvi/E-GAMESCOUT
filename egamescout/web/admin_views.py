@@ -1440,6 +1440,25 @@ def admin_start_bidding_season(request):
             else:
                 BiddingSeasonLog.objects.create(season=season, action='START', message="Bidding Manually Started by Admin")
                 
+            # --- Send Notifications ---
+            from web.models import OrganizationNotification, Organization, PlayerNotification, Player
+            
+            # Notify organizations
+            for org in Organization.objects.filter(status='Active', is_archived=False):
+                OrganizationNotification.objects.create(
+                    recipient=org,
+                    message=f"Bidding Season '{season.name}' has been started by the Administrator. The auction pool is now live!",
+                    notification_type='INFO'
+                )
+                
+            # Notify players
+            for p in Player.objects.filter(status='ACTIVE', is_archived=False):
+                PlayerNotification.objects.create(
+                    recipient=p,
+                    message=f"Bidding Season '{season.name}' is now active! Organizations can now bid on your contract.",
+                    notification_type='INFO'
+                )
+
             messages.success(request, f"Bidding Season '{season.name}' started successfully.")
         except ValidationError as e:
             messages.error(request, f"Validation Error: {', '.join(e.messages)}")

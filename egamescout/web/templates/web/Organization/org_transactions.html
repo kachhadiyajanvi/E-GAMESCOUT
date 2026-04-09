@@ -53,7 +53,7 @@
                             <div class="text-[10px] text-brand-light/40 font-mono">{{ txn.id }}</div>
                         </td>
                         <td class="p-4">
-                            <span class="px-2 py-1 rounded text-[10px] uppercase font-bold tracking-wider
+                            <span class="inline-block whitespace-nowrap px-2 py-1 rounded text-[10px] uppercase font-bold tracking-wider
                                 {% if txn.transaction_type == 'DEPOSIT' or txn.transaction_type == 'ADMIN_GRANT' or txn.transaction_type == 'BID_REFUND' %}bg-green-500/20 text-green-400 border border-green-500/30{% endif %}
                                 {% if txn.transaction_type == 'WITHDRAWAL' or txn.transaction_type == 'BID_LOCKED' or txn.transaction_type == 'BID_PAYMENT' %}bg-red-500/20 text-red-400 border border-red-500/30{% endif %}
                                 {% if txn.transaction_type == 'OTHER' %}bg-gray-500/20 text-gray-400 border border-gray-500/30{% endif %}

@@ -214,7 +214,7 @@
                     </td>
 
                     <td class="px-5 py-3.5">
-                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider
+                        <span class="inline-block whitespace-nowrap px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider
                             {% if 'BID_LOCKED' in txn.transaction_type %}bg-yellow-500/10 text-yellow-400 border border-yellow-500/30
                             {% elif 'BID_PAYMENT' in txn.transaction_type %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/30
                             {% elif 'BID_REFUND' in txn.transaction_type %}bg-blue-500/10 text-blue-400 border border-blue-500/30
