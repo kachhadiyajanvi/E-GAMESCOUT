@@ -1714,7 +1714,8 @@ def organizer_dashboard(request):
             current = current.replace(month=current.month + 1)
             
     # --- Recent Recruits ---
-    recent_recruits = Player.objects.filter(organization=org).order_by('-created_at')[:5]
+    from .models import OrganizationPlayer
+    recent_recruits = OrganizationPlayer.objects.filter(organization=org).order_by('-created_at')[:5]
     
     # Feature #5: Auction Reminder
     show_auction_reminder = False

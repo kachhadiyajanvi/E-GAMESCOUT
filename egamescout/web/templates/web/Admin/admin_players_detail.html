@@ -29,7 +29,22 @@
 {% endblock %}
 
 {% block page_content %}
-    <!-- Players Table wrapped in Bulk Form -->
+    <!-- Tab Navigation -->
+    <div class="flex items-center gap-1 mb-5 bg-theme-card border border-theme-border rounded-xl p-1 w-fit">
+        <a href="?tab=registered{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="px-5 py-2 rounded-lg text-sm font-bold uppercase tracking-wide transition-all {% if active_tab != 'external' %}bg-brand-blue text-black shadow{% else %}text-theme-text-muted hover:text-theme-text{% endif %}">
+            <i class="fa-solid fa-users mr-2"></i>Registered Players
+        </a>
+        <a href="?tab=external{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="px-5 py-2 rounded-lg text-sm font-bold uppercase tracking-wide transition-all flex items-center gap-2 {% if active_tab == 'external' %}bg-orange-500 text-white shadow{% else %}text-theme-text-muted hover:text-theme-text{% endif %}">
+            <i class="fa-solid fa-user-clock"></i>External Players
+            {% if external_players_count > 0 %}
+            <span class="ml-1 px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded-full text-[10px] font-bold border border-orange-500/30 {% if active_tab == 'external' %}bg-white/20 text-white border-white/20{% endif %}">{{ external_players_count }}</span>
+            {% endif %}
+        </a>
+    </div>
+    {% if active_tab != 'external' %}
+    <!-- Registered Players Table wrapped in Bulk Form -->
     <form id="bulkActionForm" method="POST" action="{% url 'admin_bulk_delete_players' %}" class="relative">
         {% csrf_token %}
         
@@ -214,6 +229,101 @@
         </div>
         </div>
     </form>
+    {% else %}
+    <!-- External Players Table (unregistered, org-added) -->
+    <div class="bg-theme-card border border-orange-500/20 rounded-2xl overflow-x-auto backdrop-blur-sm shadow-2xl mb-6">
+        <div class="px-5 py-4 border-b border-theme-border-light flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+                <i class="fa-solid fa-user-clock text-orange-400 text-sm"></i>
+            </div>
+            <div>
+                <h3 class="text-theme-text font-bold text-sm">External / Unregistered Players</h3>
+                <p class="text-theme-text-muted text-[11px] mt-0.5">Added by organizations — have not yet completed E-GameScout registration.</p>
+            </div>
+        </div>
+        <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal text-sm">
+            <thead>
+                <tr class="bg-theme-card border-b border-theme-border text-xs text-theme-text/50 uppercase tracking-widest">
+                    <th class="p-4 w-12 text-center font-bold">#</th>
+                    <th class="p-4 font-bold">Player Details</th>
+                    <th class="p-4 font-bold">Game ID</th>
+                    <th class="p-4 font-bold">Status</th>
+                    <th class="p-4 font-bold">Organization</th>
+                    <th class="p-4 font-bold">Added On</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% for ep in ext_page_obj %}
+                <tr class="hover:bg-theme-card transition-colors group">
+                    <td class="p-4 text-center text-theme-text-muted font-mono text-xs">
+                        {{ forloop.counter0|add:ext_page_obj.start_index }}
+                    </td>
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
+                                <span class="font-bold text-orange-400 text-xs">{{ ep.name|slice:":2"|upper }}</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-theme-text">{{ ep.name }}</h4>
+                                <p class="text-xs text-orange-400/70">{{ ep.email }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 font-mono text-xs text-theme-text-muted">{{ ep.game_id }}</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[10px] font-bold uppercase tracking-wider rounded-full flex items-center gap-1.5 w-fit">
+                            <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                            {{ ep.status_label }}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        {% if ep.organization %}
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center shrink-0 overflow-hidden">
+                                {% if ep.organization.profile_photo %}
+                                <img src="{{ ep.organization.profile_photo.url }}" class="w-full h-full object-cover">
+                                {% else %}
+                                <i class="fa-solid fa-building text-accent-cyan text-[9px]"></i>
+                                {% endif %}
+                            </div>
+                            <span class="text-xs font-bold text-accent-cyan/80 truncate max-w-[120px]" title="{{ ep.organization.Organization_Name }}">{{ ep.organization.Organization_Name }}</span>
+                        </div>
+                        {% else %}
+                        <span class="text-[10px] text-theme-text/20 font-mono">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 text-theme-text-muted text-xs">{{ ep.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="p-8 text-center">
+                        <div class="flex flex-col items-center gap-3 text-theme-text-muted/30">
+                            <i class="fa-solid fa-user-slash text-4xl"></i>
+                            <p class="font-bold">No external players found.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Pagination for external players -->
+        <div class="p-4 border-t border-theme-border-light flex items-center justify-between text-xs text-theme-text-muted">
+            <span>Showing {{ ext_page_obj.start_index }} - {{ ext_page_obj.end_index }} of {{ ext_page_obj.paginator.count }} external players</span>
+            <div class="flex gap-2">
+                {% if ext_page_obj.has_previous %}
+                <a href="?tab=external&ext_page={{ ext_page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="px-3 py-1 bg-theme-card rounded hover:bg-theme-card-hover transition-colors">Previous</a>
+                {% else %}
+                <button class="px-3 py-1 bg-theme-card rounded opacity-50 cursor-not-allowed" disabled>Previous</button>
+                {% endif %}
+                {% if ext_page_obj.has_next %}
+                <a href="?tab=external&ext_page={{ ext_page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="px-3 py-1 bg-theme-card rounded hover:bg-theme-card-hover transition-colors">Next</a>
+                {% else %}
+                <button class="px-3 py-1 bg-theme-card rounded opacity-50 cursor-not-allowed" disabled>Next</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- View Details Modal -->
     <div id="viewModal" class="fixed inset-0 bg-theme-bg hidden items-center justify-center z-50 backdrop-blur-sm p-4">

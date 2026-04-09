@@ -222,22 +222,32 @@
                         <thead>
                             <tr class="border-b border-white/10 text-xs text-brand-light/50 uppercase tracking-widest">
                                 <th class="py-3 px-2 font-bold">Player</th>
+                                <th class="py-3 px-2 font-bold">Type</th>
                                 <th class="py-3 px-2 font-bold text-right">Joined</th>
                             </tr>
                         </thead>
                         <tbody class="text-sm">
                             {% for recruit in recent_recruits %}
                             <tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                                <td
-                                    class="py-3 px-2 text-white font-bold group-hover:text-accent-cyan transition-colors truncate max-w-[120px]">
-                                    {{ recruit.full_name }}</td>
-                                <td
-                                    class="py-3 px-2 text-right text-brand-light/50 font-mono text-xs whitespace-nowrap">
+                                <td class="py-3 px-2 text-white font-bold group-hover:text-accent-cyan transition-colors truncate max-w-[100px]">
+                                    {{ recruit.name }}</td>
+                                <td class="py-3 px-2">
+                                    {% if recruit.player %}
+                                        <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-accent-green/10 text-accent-green border border-accent-green/20">Linked</span>
+                                    {% elif recruit.status_label == 'External (Verified)' %}
+                                        <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">External</span>
+                                    {% elif recruit.status_label == 'Purchased via Bidding' %}
+                                        <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">Bidding</span>
+                                    {% else %}
+                                        <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/5 text-brand-light/40 border border-white/10">Manual</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-2 text-right text-brand-light/50 font-mono text-xs whitespace-nowrap">
                                     {{ recruit.created_at|date:"M d" }}</td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="2" class="py-8 text-center text-brand-light/30 text-sm">No recent recruits
+                                <td colspan="3" class="py-8 text-center text-brand-light/30 text-sm">No recent recruits
                                 </td>
                             </tr>
                             {% endfor %}

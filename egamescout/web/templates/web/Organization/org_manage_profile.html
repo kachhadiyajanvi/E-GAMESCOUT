@@ -313,58 +313,161 @@
                     </div>
                 </form>
             </div>
-    </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<!-- Cropper.js CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
+<!-- Crop Modal -->
+<div id="cropModal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#111217] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col">
+        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-black/40">
+            <h3 class="text-white font-display font-bold tracking-widest text-sm uppercase">Crop <span class="text-accent-cyan">Photo</span></h3>
+            <button type="button" onclick="closeCropModal()" class="text-white/50 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        <div class="p-4 h-[50vh] max-h-[400px] w-full bg-black/60 relative">
+            <img id="cropImage" src="" alt="Crop preview" class="max-w-full block">
+        </div>
+        <div class="p-4 border-t border-white/5 bg-black/40 flex justify-end gap-3">
+            <button type="button" onclick="closeCropModal()" class="px-6 py-2.5 rounded-lg border border-white/10 text-brand-light/60 hover:text-white hover:bg-white/5 font-display font-bold text-xs tracking-widest transition-all uppercase">Cancel</button>
+            <button type="button" id="saveCropBtn" class="px-6 py-2.5 rounded-lg bg-accent-cyan text-black font-display font-bold text-xs tracking-widest hover:bg-white hover:shadow-[0_0_20px_rgba(102,252,241,0.6)] transition-all uppercase flex items-center gap-2">
+                <i class="fa-solid fa-crop-simple"></i> Apply & Upload
+            </button>
+        </div>
+    </div>
+</div>
 <script>
-    // Global Photo Validation logic for immediate submit
-    window.validateFile = function(input, formId, containerId, errorId) {
-        const file = input.files[0];
-        const container = document.getElementById(containerId);
-        const errorEl = document.getElementById(errorId);
-        
-        if (!file) return;
+    let cropper = null;
+    let currentCropInput = null;
+    let currentFormId = null;
 
-        const allowedExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
-        const maxSize = 2 * 1024 * 1024; // 2MB
-
-        if(container) {
-            container.classList.remove('border-red-500', 'shadow-[0_0_15px_rgba(239,68,68,0.5)]');
+    function closeCropModal() {
+        document.getElementById('cropModal').classList.add('hidden');
+        if(cropper) {
+            cropper.destroy();
+            cropper = null;
         }
-        if(errorEl) {
-            errorEl.classList.add('hidden');
-            errorEl.textContent = '';
+        if(currentCropInput) {
+            currentCropInput.value = '';
         }
+    }
 
-        if (!allowedExtensions.includes(file.type)) {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Global Photo Validation logic for immediate submit
+        window.validateFile = function(input, formId, containerId, errorId) {
+            const file = input.files[0];
+            const container = document.getElementById(containerId);
+            const errorEl = document.getElementById(errorId);
+            
+            if (!file) return;
+
+            const allowedExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
+            const maxSize = 2 * 1024 * 1024; // 2MB
+
             if(container) {
-                container.classList.add('border-red-500', 'shadow-[0_0_15px_rgba(239,68,68,0.5)]');
+                container.classList.remove('border-red-500', 'shadow-[0_0_15px_rgba(239,68,68,0.5)]');
             }
             if(errorEl) {
-                errorEl.textContent = 'Only JPG, JPEG, and PNG files are allowed.';
-                errorEl.classList.remove('hidden');
+                errorEl.classList.add('hidden');
+                errorEl.textContent = '';
             }
-            input.value = ''; 
-            return;
-        }
 
-        if (file.size > maxSize) {
-            if(container) {
-                container.classList.add('border-red-500', 'shadow-[0_0_15px_rgba(239,68,68,0.5)]');
+            if (!allowedExtensions.includes(file.type)) {
+                if(container) {
+                    container.classList.add('border-red-500', 'shadow-[0_0_15px_rgba(239,68,68,0.5)]');
+                }
+                if(errorEl) {
+                    errorEl.textContent = 'Only JPG, JPEG, and PNG files are allowed.';
+                    errorEl.classList.remove('hidden');
+                }
+                input.value = ''; 
+                return;
             }
-            if(errorEl) {
-                errorEl.textContent = 'File size must be less than 2MB.';
-                errorEl.classList.remove('hidden');
-            }
-            input.value = ''; 
-            return;
-        }
 
-        if(formId) {
-            document.getElementById(formId).submit();
+            if (file.size > maxSize) {
+                if(container) {
+                    container.classList.add('border-red-500', 'shadow-[0_0_15px_rgba(239,68,68,0.5)]');
+                }
+                if(errorEl) {
+                    errorEl.textContent = 'File size must be less than 2MB.';
+                    errorEl.classList.remove('hidden');
+                }
+                input.value = ''; 
+                return;
+            }
+
+            currentCropInput = input;
+            currentFormId = formId;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const image = document.getElementById('cropImage');
+                image.src = e.target.result;
+                document.getElementById('cropModal').classList.remove('hidden');
+                
+                if (cropper) {
+                    cropper.destroy();
+                }
+                
+                cropper = new Cropper(image, {
+                    aspectRatio: 1, // enforcing square crop
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 1,
+                    restore: false,
+                    guides: true,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false,
+                });
+            };
+            reader.readAsDataURL(file);
+        };
+
+        const saveBtn = document.getElementById('saveCropBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function() {
+                if(!cropper) return;
+                
+                const btn = this;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+                btn.classList.add('opacity-75', 'cursor-wait');
+                btn.disabled = true;
+                
+                cropper.getCroppedCanvas({
+                    width: 600,
+                    height: 600,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                }).toBlob((blob) => {
+                    if(!blob) {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.remove('opacity-75', 'cursor-wait');
+                        btn.disabled = false;
+                        return;
+                    }
+                    
+                    const file = new File([blob], "profile_photo.jpg", { type: "image/jpeg", lastModified: new Date().getTime() });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    currentCropInput.files = dataTransfer.files;
+                    
+                    if(currentFormId) {
+                        document.getElementById(currentFormId).submit();
+                    } else {
+                        currentCropInput.form.submit();
+                    }
+                }, 'image/jpeg', 0.95);
+            });
         }
-    };
+    });
 </script>
 {% endblock %}
