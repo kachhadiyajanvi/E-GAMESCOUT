@@ -83,8 +83,23 @@
                                 <span id="selection-counter" class="text-xs font-bold px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 border border-orange-500/30">0/5</span>
                             </div>
                             <!-- Progress Bar -->
-                            <div class="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                            <div class="w-full bg-white/10 rounded-full h-1.5 overflow-hidden mb-6">
                                 <div id="selection-progress" class="bg-gradient-to-r from-orange-400 to-red-500 h-1.5 rounded-full w-0 transition-all duration-300"></div>
+                            </div>
+                            
+                            <!-- Submit Action Moved Here -->
+                            <div class="pt-4 border-t border-white/5 flex flex-col items-center">
+                                <p id="selection-warning" class="text-[10px] font-bold text-red-400 mb-3 flex items-center gap-1 uppercase tracking-widest text-center">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> Select exactly 5 players
+                                </p>
+                                <p id="selection-success" class="text-[10px] font-bold text-green-400 hidden mb-3 flex items-center gap-1 uppercase tracking-widest text-center">
+                                    <i class="fa-solid fa-check-circle"></i> Squad Complete!
+                                </p>
+                                
+                                <button type="submit" id="submit-btn" disabled
+                                    class="w-full py-3.5 rounded-xl font-bold font-display uppercase tracking-wider transition-all flex justify-center items-center gap-2 shadow-xl opacity-50 cursor-not-allowed bg-gray-800 text-gray-400 text-sm">
+                                    Confirm Squad <i class="fa-solid fa-arrow-right"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -145,22 +160,6 @@
                             </div>
                         </label>
                         {% endfor %}
-                    </div>
-
-                    <!-- Submit Action -->
-                    <div class="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
-                        <p id="selection-warning" class="text-sm font-bold text-red-400 hidden flex items-center gap-2">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Select exactly 5 players
-                        </p>
-                        <p id="selection-success" class="text-sm font-bold text-green-400 hidden flex items-center gap-2">
-                            <i class="fa-solid fa-check-circle"></i> Squad Complete!
-                        </p>
-                        
-                        <button type="submit" id="submit-btn" disabled
-                            class="ml-auto px-8 py-3.5 rounded-xl font-bold font-display uppercase tracking-wider transition-all flex items-center gap-3 shadow-xl opacity-50 cursor-not-allowed
-                                   bg-gray-800 text-gray-400">
-                            Confirm Squad <i class="fa-solid fa-arrow-right"></i>
-                        </button>
                     </div>
                 </div>
             </div>
