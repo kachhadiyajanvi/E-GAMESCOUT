@@ -133,6 +133,23 @@
                             </div>
                         </div>
 
+                        <!-- Skill / Role -->
+                        <div class="space-y-1.5 md:col-span-2 bg-black/20 p-4 rounded-2xl border border-white/5 pt-2">
+                            <label class="block text-xs font-bold text-accent-cyan uppercase tracking-widest mb-1 pl-1">In-Game Role <span class="text-white/30 text-[10px] ml-2 font-normal lowercase">(editable)</span></label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-accent-cyan transition-colors z-10 w-8 h-full">
+                                    <i class="fa-solid fa-crosshairs"></i>
+                                </div>
+                                {{ form.skill_role }}
+                                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </div>
+                            </div>
+                            {% if form.skill_role.errors %}
+                            <p class="text-red-400 text-xs mt-2 px-1 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ form.skill_role.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
                         <!-- Address -->
                         <div class="space-y-1.5 md:col-span-2 bg-black/20 p-4 rounded-2xl border border-white/5 pt-2">
                             <label class="block text-xs font-bold text-accent-cyan uppercase tracking-widest mb-1 pl-1">Address / Location <span class="text-white/30 text-[10px] ml-2 font-normal lowercase">(editable)</span></label>
@@ -145,6 +162,54 @@
                             {% if form.address.errors %}
                             <p class="text-red-400 text-xs mt-2 px-1 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ form.address.errors.0 }}</p>
                             {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Social Connect -->
+                    <div class="mt-8 border-t border-white/5 pt-8">
+                        <h4 class="text-sm font-display font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-widest"><i class="fa-solid fa-link text-accent-cyan"></i> Social Connect</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            
+                            <!-- Instagram -->
+                            <div class="space-y-1.5 md:col-span-1 bg-black/20 p-4 rounded-2xl border border-white/5 pt-2">
+                                <label class="block text-xs font-bold text-pink-500 uppercase tracking-widest mb-1 pl-1">Instagram <span class="text-white/30 text-[10px] ml-2 font-normal lowercase">(optional)</span></label>
+                                <div class="relative group mb-3">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-pink-500 transition-colors z-10"><i class="fa-brands fa-instagram"></i></div>
+                                    {{ form.instagram_username }}
+                                </div>
+                                <div class="relative group">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-pink-500 transition-colors z-10"><i class="fa-solid fa-link"></i></div>
+                                    {{ form.instagram_link }}
+                                </div>
+                            </div>
+
+                            <!-- YouTube -->
+                            <div class="space-y-1.5 md:col-span-1 bg-black/20 p-4 rounded-2xl border border-white/5 pt-2">
+                                <label class="block text-xs font-bold text-red-500 uppercase tracking-widest mb-1 pl-1">YouTube <span class="text-white/30 text-[10px] ml-2 font-normal lowercase">(optional)</span></label>
+                                <div class="relative group mb-3">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-red-500 transition-colors z-10"><i class="fa-brands fa-youtube"></i></div>
+                                    {{ form.youtube_username }}
+                                </div>
+                                <div class="relative group">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-red-500 transition-colors z-10"><i class="fa-solid fa-link"></i></div>
+                                    {{ form.youtube_link }}
+                                </div>
+                            </div>
+                            
+                            <!-- Discord -->
+                            <div class="space-y-1.5 md:col-span-2 bg-black/20 p-4 rounded-2xl border border-white/5 pt-2">
+                                <label class="block text-xs font-bold text-[#5865F2] uppercase tracking-widest mb-1 pl-1">Discord <span class="text-white/30 text-[10px] ml-2 font-normal lowercase">(optional)</span></label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="relative group">
+                                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-[#5865F2] transition-colors z-10"><i class="fa-brands fa-discord"></i></div>
+                                        {{ form.discord_username }}
+                                    </div>
+                                    <div class="relative group">
+                                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-[#5865F2] transition-colors z-10"><i class="fa-solid fa-link"></i></div>
+                                        {{ form.discord_link }}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -428,7 +493,7 @@
             if (!file) return;
 
             const allowedExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
-            const maxSize = 2 * 1024 * 1024; // 2MB
+            const maxSize = 5 * 1024 * 1024; // 5MB
 
             if(container) {
                 container.classList.remove('border-red-500', 'shadow-[0_0_15px_rgba(239,68,68,0.5)]');
@@ -458,7 +523,7 @@
                     container.classList.add('border-red-500', 'shadow-[0_0_15px_rgba(239,68,68,0.5)]');
                 }
                 if(errorEl) {
-                    errorEl.textContent = 'File size must be less than 2MB.';
+                    errorEl.textContent = 'File size must be less than 5MB.';
                     errorEl.classList.remove('hidden');
                 }
                 input.value = ''; 

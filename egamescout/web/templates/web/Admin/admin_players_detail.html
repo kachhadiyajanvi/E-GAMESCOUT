@@ -173,6 +173,7 @@
                             data-aadhar="XXXX-XXXX-{{ player.aadhar_number|slice:'-4:' }}"
                             data-status="{{ player.status }}" data-joined="{{ player.created_at|date:'M d, Y' }}"
                             data-photo="{% if player.profile_photo %}{{ player.profile_photo.url }}{% endif %}"
+                            data-skillrole="{{ player.skill_role|default:'-' }}"
                             class="text-theme-text-muted hover:text-accent-cyan transition-colors px-2"
                             title="View Full Details">
                             <i class="fa-solid fa-eye"></i>
@@ -387,6 +388,10 @@
                                 <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">Aadhar Number</p>
                                 <p id="viewAadhar" class="text-theme-text text-sm font-mono tracking-widest">---</p>
                             </div>
+                            <div class="bg-theme-card p-3 rounded-lg border border-theme-border-light">
+                                <p class="text-[10px] text-theme-text-muted uppercase font-bold mb-1">In-Game Role</p>
+                                <p id="viewSkillRole" class="text-theme-text text-sm font-mono tracking-widest">---</p>
+                            </div>
                         </div>
 
                         <h4
@@ -508,6 +513,7 @@
         document.getElementById('viewMobile').textContent = data.mobile;
         document.getElementById('viewAge').textContent = data.age + ' Years';
         document.getElementById('viewAadhar').textContent = data.aadhar;
+        document.getElementById('viewSkillRole').textContent = data.skillrole;
         document.getElementById('viewJoined').textContent = data.joined;
 
         // Status styling

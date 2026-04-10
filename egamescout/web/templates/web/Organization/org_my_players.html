@@ -73,6 +73,7 @@
                 {{ player.name }}</h3>
             <p class="text-xs text-brand-light/40 font-mono mb-6 flex flex-col gap-1">
                 <span><i class="fa-solid fa-crosshairs mr-1"></i> Role: <span class="text-white">{{ player.position }}</span></span>
+                <span><i class="fa-solid fa-star mr-1"></i> Skill: <span class="text-white">{{ player.player.skill_role|default:'Not Set' }}</span></span>
                 <span><i class="fa-solid fa-fingerprint mr-1"></i> UID: {{ player.game_id }}</span>
                 <span><i class="fa-solid fa-envelope mr-1"></i> {{ player.email }}</span>
             </p>

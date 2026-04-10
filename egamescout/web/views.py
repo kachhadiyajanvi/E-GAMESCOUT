@@ -818,17 +818,24 @@ def player_dashboard(request):
                 'color': '#22c55e' if task['task_type'] == 'TASK' else '#a855f7' 
             })
 
-    # Bidding system removed - show all scheduled/ongoing tournaments
-    active_tournaments = Tournament.objects.filter(
+    # Dynamic Tournaments List
+    active_tournaments_qs = Tournament.objects.filter(
         Status='Ongoing',
         is_published=True,
         approval_status='APPROVED'
-    )[:5]
-    upcoming_tournaments_list = Tournament.objects.filter(
+    )
+    upcoming_tournaments_qs = Tournament.objects.filter(
         Status='Scheduled',
         is_published=True,
         approval_status='APPROVED'
-    )[:5]
+    )
+
+    if player.organization:
+        active_tournaments = active_tournaments_qs.filter(bidders__organization=player.organization).distinct()[:5]
+        upcoming_tournaments_list = upcoming_tournaments_qs.filter(bidders__organization=player.organization).distinct()[:5]
+    else:
+        active_tournaments = active_tournaments_qs[:5]
+        upcoming_tournaments_list = upcoming_tournaments_qs[:5]
     
     # Calculate Dynamic Stats
     total_tournaments_joined = 0

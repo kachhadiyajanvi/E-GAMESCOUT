@@ -181,17 +181,27 @@
             <header class="border-b border-white/5 bg-[#0B0C10]/80 backdrop-blur-md sticky top-0 z-40">
                 <!-- Bidding Season Banner -->
                 {% if bidding_status %}
-                <div class="px-3 md:px-8 py-2 flex flex-wrap items-center justify-center md:justify-start gap-x-2 gap-y-1 border-b border-white/5 backdrop-blur-md
+                <div class="px-3 md:px-8 py-2 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-1 sm:gap-2 border-b border-white/5 backdrop-blur-md
                     {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-orange-500/10{% endif %}">
-                    <span class="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-widest whitespace-nowrap
-                        {% if bidding_status.is_active %}text-green-400{% else %}text-orange-500{% endif %}">
-                        <span class="w-1.5 h-1.5 rounded-full shrink-0 {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-orange-500{% endif %}"></span>
-                        {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING INACTIVE{% endif %}
-                    </span>
                     
+                    <div class="flex items-center gap-1.5 sm:gap-2">
+                        <span class="flex items-center gap-1.5 text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase tracking-widest whitespace-nowrap
+                            {% if bidding_status.is_active %}text-green-400{% else %}text-orange-500{% endif %}">
+                            <span class="w-1.5 h-1.5 rounded-full shrink-0 {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-orange-500{% endif %}"></span>
+                            {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING INACTIVE{% endif %}
+                        </span>
+                        
+                        <span class="text-white/30 text-[10px] sm:hidden inline">|</span>
+                        
+                        <span class="text-white/60 text-[9px] sm:text-[10px] md:text-[11px] font-mono whitespace-nowrap sm:hidden inline">
+                            <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next:{% endif %}</span>
+                            <span class="text-white font-bold">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M y" }}{% endif %}</span>
+                        </span>
+                    </div>
+
                     <span class="text-white/30 text-[10px] hidden sm:inline">|</span>
                     
-                    <span class="text-white/60 text-[10px] md:text-[11px] font-mono whitespace-nowrap">
+                    <span class="text-white/60 text-[10px] md:text-[11px] font-mono whitespace-nowrap hidden sm:inline">
                         <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next Season:{% endif %}</span>
                         <span class="text-white font-bold">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M Y" }}{% endif %}</span>
                     </span>
@@ -199,12 +209,12 @@
                     <span class="text-white/30 text-[10px] hidden sm:inline">|</span>
                     
                     {% if bidding_status.is_active %}
-                    <span class="text-[10px] md:text-[11px] font-mono font-bold text-neon-pink whitespace-nowrap" id="playerBiddingCountdown"
+                    <span class="text-[9px] sm:text-[10px] md:text-[11px] font-mono font-bold text-neon-pink whitespace-nowrap" id="playerBiddingCountdown"
                         data-start="{{ bidding_status.start_date|date:'c' }}"
                         data-end="{{ bidding_status.end_date|date:'c' }}"
                         data-active="true">--:--:--</span>
                     {% else %}
-                    <span class="text-[10px] md:text-[11px] font-mono font-bold text-orange-500 whitespace-nowrap" id="playerBiddingCountdown"
+                    <span class="text-[9px] sm:text-[10px] md:text-[11px] font-mono font-bold text-orange-500 whitespace-nowrap" id="playerBiddingCountdown"
                         data-start="{{ bidding_status.next_season_start|date:'c' }}"
                         data-active="false">--:--:--</span>
                     {% endif %}

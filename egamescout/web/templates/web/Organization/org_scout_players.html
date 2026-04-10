@@ -84,11 +84,24 @@
                     <h4 class="font-bold text-white text-base group-hover:text-accent-cyan transition-colors w-full truncate player-name" title="{{ player.full_name }}">{{ player.full_name }}</h4>
                     <p class="text-[11px] text-accent-cyan/70 font-mono mb-4 w-full truncate player-ign">@{{ player.username|default:"No IGN" }}</p>
 
-                    <div class="w-full flex justify-between text-[11px] font-mono text-gray-400 mb-4 px-2">
+                    <div class="w-full flex justify-between text-[11px] font-mono text-gray-400 mb-3 px-2">
+                        <div class="flex flex-col items-center">
+                            <span class="text-white/30 uppercase tracking-widest text-[9px] mb-0.5">Role</span>
+                            <span class="text-white font-bold">{{ player.skill_role|default:"Not Set" }}</span>
+                        </div>
                         <div class="flex flex-col items-center">
                             <span class="text-white/30 uppercase tracking-widest text-[9px] mb-0.5">Joined</span>
                             <span>{{ player.created_at|date:"M Y" }}</span>
                         </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 mb-4 justify-center w-full">
+                        {% if player.instagram_link %}<a href="{{ player.instagram_link }}" target="_blank" class="text-pink-500 hover:text-pink-400 transition-colors text-sm"><i class="fa-brands fa-instagram"></i></a>{% endif %}
+                        {% if player.youtube_link %}<a href="{{ player.youtube_link }}" target="_blank" class="text-red-500 hover:text-red-400 transition-colors text-sm"><i class="fa-brands fa-youtube"></i></a>{% endif %}
+                        {% if player.discord_link %}<a href="{{ player.discord_link }}" target="_blank" class="text-[#5865F2] hover:text-[#5865F2]/80 transition-colors text-sm"><i class="fa-brands fa-discord"></i></a>{% endif %}
+                        {% if not player.instagram_link and not player.youtube_link and not player.discord_link %}
+                            <span class="text-gray-600 text-[9px] uppercase font-bold tracking-widest bg-white/5 px-2 py-0.5 rounded border border-white/5">No Socials</span>
+                        {% endif %}
                     </div>
 
                     <a href="{% url 'org_view_player_profile' player.id %}" class="w-full py-2 bg-white/5 hover:bg-accent-cyan hover:text-black border border-white/10 hover:border-accent-cyan rounded-lg text-xs font-bold transition-all uppercase tracking-wider">
@@ -105,7 +118,7 @@
                         <thead class="text-xs text-brand-light/50 uppercase bg-black hover:bg-black/80 font-display border-b border-white/10">
                             <tr>
                                 <th class="px-6 py-4 font-bold">Player</th>
-                                <th class="px-6 py-4 font-bold">IGN / Username</th>
+                                <th class="px-6 py-4 font-bold">IGN & Role</th>
                                 <th class="px-6 py-4 font-bold">Joined Date</th>
                                 <th class="px-6 py-4 font-bold">Status</th>
                                 <th class="px-6 py-4 font-bold text-right">Action</th>
@@ -126,7 +139,15 @@
                                         <span class="font-bold text-white text-sm group-hover:text-accent-cyan transition-colors player-name-cell">{{ player.full_name }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 font-mono text-sm text-brand-light/70 player-ign-cell">@{{ player.username|default:"-" }}</td>
+                                <td class="px-6 py-4">
+                                    <div class="font-mono text-sm text-brand-light/70 player-ign-cell">@{{ player.username|default:"-" }}</div>
+                                    <div class="text-[10px] text-accent-cyan mt-1 font-bold uppercase tracking-widest">{{ player.skill_role|default:"Role Not Set" }}</div>
+                                    <div class="flex gap-2 mt-2 items-center">
+                                        {% if player.instagram_link %}<a href="{{ player.instagram_link }}" target="_blank" class="text-pink-500 hover:text-pink-400 transition-colors text-xs" title="Instagram"><i class="fa-brands fa-instagram"></i></a>{% endif %}
+                                        {% if player.youtube_link %}<a href="{{ player.youtube_link }}" target="_blank" class="text-red-500 hover:text-red-400 transition-colors text-xs" title="YouTube"><i class="fa-brands fa-youtube"></i></a>{% endif %}
+                                        {% if player.discord_link %}<a href="{{ player.discord_link }}" target="_blank" class="text-[#5865F2] hover:text-[#5865F2]/80 transition-colors text-xs" title="Discord"><i class="fa-brands fa-discord"></i></a>{% endif %}
+                                    </div>
+                                </td>
                                 <td class="px-6 py-4 font-mono text-xs text-brand-light/50">{{ player.created_at|date:"M d, Y" }}</td>
                                 <td class="px-6 py-4">
                                     {% if player.id in sold_player_ids %}

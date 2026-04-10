@@ -178,7 +178,7 @@ class PlayerRegistrationForm(forms.ModelForm):
 class PlayerProfileForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['username', 'profile_photo', 'address']
+        fields = ['username', 'profile_photo', 'address', 'skill_role', 'instagram_username', 'instagram_link', 'youtube_username', 'youtube_link', 'discord_username', 'discord_link']
         widgets = {
              'username': forms.TextInput(attrs={
                 'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
@@ -189,10 +189,37 @@ class PlayerProfileForm(forms.ModelForm):
                 'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
                 'placeholder': 'City, State, Country'
             }),
+             'skill_role': forms.Select(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 text-white appearance-none', 
+            }),
              'profile_photo': forms.FileInput(attrs={
                 'class': 'hidden',
                 'id': 'photo-upload',
                 'onchange': 'this.form.submit()'
+            }),
+             'instagram_username': forms.TextInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': '@username'
+            }),
+             'instagram_link': forms.URLInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'https://instagram.com/username'
+            }),
+             'youtube_username': forms.TextInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'Channel Name'
+            }),
+             'youtube_link': forms.URLInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'https://youtube.com/@channel'
+            }),
+             'discord_username': forms.TextInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'username#1234 or @username'
+            }),
+             'discord_link': forms.URLInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'https://discord.gg/invite'
             }),
         }
     

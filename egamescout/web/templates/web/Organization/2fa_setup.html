@@ -56,7 +56,7 @@
 
             <div class="w-full bg-[#050505]/60 border border-white/5 rounded-xl p-4 md:p-5 text-center mb-8 hover:bg-[#050505]/80 transition-colors">
                 <span class="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-2 block">Or manual setup key:</span>
-                <span class="font-display font-medium tracking-[0.2em] md:tracking-[0.3em] text-[#66FCF1] text-sm md:text-lg bg-[#050505]/90 px-4 py-2.5 border border-[#66FCF1]/20 rounded-lg select-all block overflow-hidden text-ellipsis">
+                <span class="font-display font-medium tracking-[0.2em] md:tracking-[0.3em] text-[#66FCF1] text-sm md:text-lg bg-[#050505]/90 px-4 py-2.5 border border-[#66FCF1]/20 rounded-lg select-all block break-all whitespace-normal">
                     {{ secret }}
                 </span>
             </div>
@@ -69,7 +69,7 @@
                         <i class="fa-solid fa-key text-white/30 text-sm"></i>
                     </div>
                     <input id="otp_code" name="otp_code" type="text" pattern="[0-9]{6}" inputmode="numeric" maxlength="6" required autocomplete="one-time-code"
-                        class="w-full bg-[#050505]/90 border border-white/10 rounded-xl pl-12 pr-5 py-4.5 text-center text-accent-cyan font-display text-2xl tracking-[0.5em] focus:outline-none focus:border-accent-cyan focus:shadow-[0_0_20px_rgba(102,252,241,0.15)] focus:ring-1 focus:ring-accent-cyan placeholder-transparent peer h-[60px]"
+                        class="w-full bg-[#050505]/90 border border-white/10 rounded-xl pl-12 pr-5 py-4.5 text-center text-accent-cyan font-display text-xl sm:text-2xl tracking-[0.3em] sm:tracking-[0.5em] focus:outline-none focus:border-accent-cyan focus:shadow-[0_0_20px_rgba(102,252,241,0.15)] focus:ring-1 focus:ring-accent-cyan placeholder-transparent peer h-[60px]"
                         placeholder="000000">
                     <label for="otp_code"
                         class="absolute left-1/2 -translate-x-1/2 top-5 text-white/40 text-[13px] font-medium transition-all peer-focus:-translate-y-8 peer-focus:text-[10px] peer-focus:text-accent-cyan peer-focus:tracking-widest peer-focus:bg-[#050505] peer-focus:px-2 peer-focus:rounded peer-[:not(:placeholder-shown)]:-translate-y-8 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:text-gray-400 peer-[:not(:placeholder-shown)]:bg-[#050505] peer-[:not(:placeholder-shown)]:px-2 peer-[:not(:placeholder-shown)]:tracking-widest pointer-events-none uppercase">
