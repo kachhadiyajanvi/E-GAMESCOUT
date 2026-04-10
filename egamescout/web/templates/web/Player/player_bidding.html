@@ -81,17 +81,17 @@
                 </div>
 
                 <!-- Right: Content -->
-                <div class="text-center md:text-left flex-1 w-full overflow-hidden">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-4">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-mono">Deal Finalized</span>
+                <div class="text-center md:text-left flex-1 min-w-0 w-full overflow-hidden">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-4 max-w-full">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-mono truncate">Deal Finalized</span>
                     </div>
                     
-                    <h2 class="font-display font-black text-2xl sm:text-4xl lg:text-5xl text-white tracking-widest sm:tracking-wider uppercase mb-3 drop-shadow-md break-words w-full">
+                    <h2 class="font-display font-black text-[20px] min-[380px]:text-2xl min-[450px]:text-3xl sm:text-4xl lg:text-5xl text-white tracking-wider sm:tracking-widest uppercase mb-3 drop-shadow-md break-words w-full">
                         Congratulations!
                     </h2>
                     
-                    <p class="text-white/60 text-sm sm:text-base font-mono max-w-2xl leading-relaxed mx-auto md:mx-0">
+                    <p class="text-white/60 text-xs min-[380px]:text-sm sm:text-base font-mono max-w-2xl leading-relaxed mx-auto md:mx-0 w-full break-words">
                         Your skills have been recognized. You have been officially recruited and assigned to a professional roster for the upcoming season. Welcome to the big leagues.
                     </p>
                 </div>
@@ -129,7 +129,7 @@
                                     {% if signed_org.profile_photo %}
                                     <img src="{{ signed_org.profile_photo.url }}" class="w-full h-full object-cover">
                                     {% else %}
-                                    <div class="text-emerald-400 font-black text-5xl sm:text-6xl uppercase font-sans drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]">
+                                    <div class="text-emerald-400 font-black text-4xl min-[380px]:text-5xl sm:text-6xl uppercase font-sans drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]">
                                         {{ signed_org.Organization_Name|make_list|first }}
                                     </div>
                                     {% endif %}
@@ -141,15 +141,16 @@
                             </div>
                             
                             <!-- Context & Names -->
-                            <div class="flex flex-col justify-center h-full pt-2">
-                                <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] text-emerald-400 font-mono font-bold uppercase tracking-widest w-max mx-auto sm:mx-0 mb-3 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                    Active Roster Member
+                            <div class="flex flex-col justify-center h-full pt-2 min-w-0 w-full overflow-hidden">
+                                <div class="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] text-emerald-400 font-mono font-bold uppercase tracking-widest w-fit max-w-full mx-auto sm:mx-0 mb-3 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                                    <span class="truncate">Active Roster</span>
                                 </div>
-                                <h4 class="font-display font-black text-white text-3xl sm:text-4xl tracking-wider mb-2 drop-shadow-md">{{ signed_org.Organization_Name }}</h4>
-                                <p class="text-xs text-white/50 font-mono flex items-center justify-center sm:justify-start gap-2 bg-black/50 w-max mx-auto sm:mx-0 px-3 py-1.5 rounded-lg border border-white/5">
-                                    <i class="fa-regular fa-calendar-check text-emerald-500/70"></i> Contract Executed: <span class="text-white">{{ signed_date|date:"F d, Y" }}</span>
-                                </p>
+                                <h4 class="font-display font-black text-white text-2xl min-[380px]:text-3xl sm:text-4xl tracking-wider mb-2 drop-shadow-md break-words truncate max-w-full">{{ signed_org.Organization_Name }}</h4>
+                                <div class="text-[10px] min-[380px]:text-xs text-white/50 font-mono flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 bg-black/50 w-full sm:w-max max-w-full mx-auto sm:mx-0 px-2 sm:px-3 py-1.5 rounded-lg border border-white/5 overflow-hidden">
+                                    <i class="fa-regular fa-calendar-check text-emerald-500/70 shrink-0"></i> 
+                                    <span class="truncate">Contract Executed: <span class="text-white">{{ signed_date|date:"F d, Y" }}</span></span>
+                                </div>
                             </div>
                         </div>
 
@@ -160,8 +161,8 @@
                                 <div class="text-center space-y-1">
                                     <p class="text-[10px] text-white/40 uppercase tracking-widest font-bold font-mono">Total Deal Value</p>
                                     <div class="flex items-start justify-center gap-1.5 mt-2 min-w-0 w-full overflow-hidden">
-                                        <span class="font-sans text-2xl font-bold text-emerald-500/80 mt-1">₹</span>
-                                        <span class="font-display text-3xl min-[380px]:text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 tracking-wider drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] truncate">{{ signed_amount|intcomma }}</span>
+                                        <span class="font-sans text-xl min-[380px]:text-2xl font-bold text-emerald-500/80 mt-1">₹</span>
+                                        <span class="font-display text-2xl min-[380px]:text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 tracking-wider drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] truncate">{{ signed_amount|intcomma }}</span>
                                     </div>
                                     <div class="mt-4 pt-4 border-t border-white/10 w-full flex justify-between text-[10px] font-mono text-white/30 uppercase">
                                         <span>Status</span>
