@@ -39,7 +39,7 @@
     </div>
 
     <!-- Players Grid -->
-    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
         {% for player in players %}
         <div
             class="glass-panel p-6 rounded-xl relative overflow-hidden group hover:border-accent-cyan/50 transition-all duration-300">
@@ -73,6 +73,7 @@
                 {{ player.name }}</h3>
             <p class="text-xs text-brand-light/40 font-mono mb-6 flex flex-col gap-1">
                 <span><i class="fa-solid fa-crosshairs mr-1"></i> Role: <span class="text-white">{{ player.position }}</span></span>
+                <span><i class="fa-solid fa-star mr-1"></i> Skill: <span class="text-white">{{ player.player.skill_role|default:'Not Set' }}</span></span>
                 <span><i class="fa-solid fa-fingerprint mr-1"></i> UID: {{ player.game_id }}</span>
                 <span><i class="fa-solid fa-envelope mr-1"></i> {{ player.email }}</span>
             </p>

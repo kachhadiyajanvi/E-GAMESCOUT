@@ -166,6 +166,74 @@
                                         <span class="text-sm font-bold text-gray-300">{{ player.age }} Years</span>
                                     </div>
                                 </div>
+
+                                <!-- Skill / Role -->
+                                <div class="space-y-1.5">
+                                    <label
+                                        class="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-1">In-Game Role</label>
+                                    <div
+                                        class="bg-[#0a0a0e] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3 opacity-70">
+                                        <i class="fa-solid fa-crosshairs text-gray-600 text-sm"></i>
+                                        <span class="text-sm font-bold text-gray-300">{{ player.skill_role|default:"-" }}</span>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Social Links -->
+                        <div class="mt-8 border-t border-white/5 pt-8">
+                            <h3 class="text-sm font-display font-bold text-white mb-6 uppercase tracking-widest flex items-center gap-3">
+                                <i class="fa-solid fa-link text-accent-cyan"></i> Social Reach
+                            </h3>
+                            <div class="flex flex-wrap gap-4">
+                                {% if player.instagram_username and player.instagram_link %}
+                                <a href="{{ player.instagram_link }}" target="_blank" class="bg-black/30 border border-pink-500/30 hover:bg-pink-500/10 hover:border-pink-500/60 transition-all rounded-xl px-4 py-3 flex items-center gap-3 group">
+                                    <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-500 group-hover:scale-110 transition-transform">
+                                        <i class="fa-brands fa-instagram"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-tight">Instagram</p>
+                                        <p class="text-sm font-bold text-gray-200 group-hover:text-pink-400 transition-colors">{{ player.instagram_username }}</p>
+                                    </div>
+                                </a>
+                                {% endif %}
+
+                                {% if player.youtube_username and player.youtube_link %}
+                                <a href="{{ player.youtube_link }}" target="_blank" class="bg-black/30 border border-red-500/30 hover:bg-red-500/10 hover:border-red-500/60 transition-all rounded-xl px-4 py-3 flex items-center gap-3 group">
+                                    <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
+                                        <i class="fa-brands fa-youtube"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-tight">YouTube</p>
+                                        <p class="text-sm font-bold text-gray-200 group-hover:text-red-400 transition-colors">{{ player.youtube_username }}</p>
+                                    </div>
+                                </a>
+                                {% endif %}
+
+                                {% if player.discord_username and player.discord_link %}
+                                <a href="{{ player.discord_link }}" target="_blank" class="bg-black/30 border border-[#5865F2]/30 hover:bg-[#5865F2]/10 hover:border-[#5865F2]/60 transition-all rounded-xl px-4 py-3 flex items-center gap-3 group">
+                                    <div class="w-8 h-8 rounded-lg bg-[#5865F2]/20 flex items-center justify-center text-[#5865F2] group-hover:scale-110 transition-transform">
+                                        <i class="fa-brands fa-discord"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-tight">Discord</p>
+                                        <p class="text-sm font-bold text-gray-200 group-hover:text-[#5865F2] transition-colors">{{ player.discord_username }}</p>
+                                    </div>
+                                </a>
+                                {% endif %}
+                                
+                                {% if not player.instagram_link and not player.youtube_link and not player.discord_link %}
+                                <div class="bg-black/20 border border-white/5 border-dashed rounded-xl px-4 py-3 flex items-center gap-3 opacity-60 w-full md:w-auto">
+                                    <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-500">
+                                        <i class="fa-solid fa-ghost"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-tight">No Links</p>
+                                        <p class="text-sm font-bold text-gray-400">Socials Not Linked</p>
+                                    </div>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

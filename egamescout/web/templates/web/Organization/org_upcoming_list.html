@@ -17,18 +17,18 @@
     </nav>
 
     <!-- Header -->
-    <div class="page-header">
-        <div class="page-title-group">
+    <div class="page-header flex flex-col md:flex-row gap-4 md:gap-0 items-start md:items-center justify-between">
+        <div class="page-title-group w-full md:w-auto">
             <div class="page-title-decorator"></div>
             <div>
-                <h1 class="page-title">
+                <h1 class="page-title text-2xl md:text-3xl">
                     Upcoming <span class="page-title-highlight">Tournaments</span>
                 </h1>
-                <p class="page-subtitle mt-1">Discover upcoming tournaments from all organizations</p>
+                <p class="page-subtitle mt-1 text-sm md:text-base">Discover upcoming tournaments from all organizations</p>
             </div>
         </div>
         <!-- View Toggle inline in page actions -->
-        <div class="page-actions">
+        <div class="page-actions w-full md:w-auto flex justify-end">
             <div class="flex flex-row gap-2">
                 <button onclick="switchView('grid')" id="btnGrid"
                     class="p-2.5 rounded-lg bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/30 hover:bg-accent-cyan hover:text-black transition-all"
@@ -153,8 +153,8 @@
 
     <!-- TABLE VIEW -->
     <div id="upcomingTournamentTableView"
-        class="hidden overflow-x-auto rounded-2xl border border-white/10 shadow-xl mb-8">
-        <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
+        class="hidden w-full overflow-x-auto custom-scrollbar rounded-2xl border border-white/10 shadow-xl mb-8">
+        <table class="w-full text-left border-collapse whitespace-nowrap min-w-[700px]">
             <thead class="bg-black/60 backdrop-blur-md text-xs uppercase text-gray-400 font-bold tracking-wider">
                 <tr>
                     <th class="px-6 py-4 border-b border-white/10 w-16 text-center">#</th>

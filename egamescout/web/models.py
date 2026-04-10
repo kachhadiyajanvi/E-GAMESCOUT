@@ -152,6 +152,23 @@ class Player(models.Model):
     totp_secret = models.CharField(max_length=32, null=True, blank=True)
     is_2fa_enabled = models.BooleanField(default=False)
 
+    SKILL_ROLE_CHOICES = [
+        ('IGL(In Game Leader)', 'IGL(In Game Leader)'),
+        ('Fragger', 'Fragger'),
+        ('Assaulter', 'Assaulter'),
+        ('Freeman', 'Freeman'),
+        ('Support', 'Support'),
+    ]
+    skill_role = models.CharField(max_length=50, choices=SKILL_ROLE_CHOICES, null=True, blank=True, help_text="Select your primary in-game role")
+
+    # Social Fields
+    instagram_username = models.CharField(max_length=150, null=True, blank=True)
+    instagram_link = models.URLField(max_length=200, null=True, blank=True)
+    youtube_username = models.CharField(max_length=150, null=True, blank=True)
+    youtube_link = models.URLField(max_length=200, null=True, blank=True)
+    discord_username = models.CharField(max_length=150, null=True, blank=True)
+    discord_link = models.URLField(max_length=200, null=True, blank=True)
+
     def __str__(self):
         return f"{self.full_name} ({self.uid})"
 

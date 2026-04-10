@@ -734,6 +734,8 @@ def auth_register_details(request):
             'aadhar_number': reg_data.get('aadhar_number', ''),
             'age': reg_data.get('age', '')
         }
+        if external_uid:
+            initial_data['uid'] = external_uid
         form = PlayerRegistrationForm(initial=initial_data)
         
     return render(request, 'web/Player/register_details.html', {'form': form, 'email': email})
@@ -816,17 +818,24 @@ def player_dashboard(request):
                 'color': '#22c55e' if task['task_type'] == 'TASK' else '#a855f7' 
             })
 
-    # Bidding system removed - show all scheduled/ongoing tournaments
-    active_tournaments = Tournament.objects.filter(
+    # Dynamic Tournaments List
+    active_tournaments_qs = Tournament.objects.filter(
         Status='Ongoing',
         is_published=True,
         approval_status='APPROVED'
-    )[:5]
-    upcoming_tournaments_list = Tournament.objects.filter(
+    )
+    upcoming_tournaments_qs = Tournament.objects.filter(
         Status='Scheduled',
         is_published=True,
         approval_status='APPROVED'
-    )[:5]
+    )
+
+    if player.organization:
+        active_tournaments = active_tournaments_qs.filter(bidders__organization=player.organization).distinct()[:5]
+        upcoming_tournaments_list = upcoming_tournaments_qs.filter(bidders__organization=player.organization).distinct()[:5]
+    else:
+        active_tournaments = active_tournaments_qs[:5]
+        upcoming_tournaments_list = upcoming_tournaments_qs[:5]
     
     # Calculate Dynamic Stats
     total_tournaments_joined = 0
@@ -1712,7 +1721,8 @@ def organizer_dashboard(request):
             current = current.replace(month=current.month + 1)
             
     # --- Recent Recruits ---
-    recent_recruits = Player.objects.filter(organization=org).order_by('-created_at')[:5]
+    from .models import OrganizationPlayer
+    recent_recruits = OrganizationPlayer.objects.filter(organization=org).order_by('-created_at')[:5]
     
     # Feature #5: Auction Reminder
     show_auction_reminder = False
@@ -3497,13 +3507,16 @@ def org_scout_players(request):
     # Only show players if there is an active bidding season
     if active_season:
         available_players = Player.objects.filter(is_archived=False, status='ACTIVE', is_active_account=True).order_by('-created_at')
+        sold_player_ids = list(Bid.objects.filter(status='Accepted').values_list('player_id', flat=True))
     else:
         available_players = []
+        sold_player_ids = []
     
     context = {
         'org': org,
         'available_players': available_players,
-        'active_season': active_season
+        'active_season': active_season,
+        'sold_player_ids': sold_player_ids
     }
     return render(request, 'web/Organization/org_scout_players.html', context)
 
@@ -3692,6 +3705,11 @@ def player_reject_bid(request, bid_id):
     # Allow rejection of Pending AND Negotiation bids
     bid = get_object_or_404(Bid, id=bid_id, player_id=player_id)
     
+    # Validation: Prevent action if player works for an org or has an Accepted bid
+    if bid.player.organization or Bid.objects.filter(player_id=player_id, status='Accepted').exists():
+        messages.error(request, "You have already been recruited. You cannot modify other bids.")
+        return redirect('player_bidding_dashboard')
+
     if bid.status not in ('Pending', 'Negotiation'):
         messages.error(request, "This bid cannot be rejected in its current state.")
         return redirect('player_bidding_dashboard')

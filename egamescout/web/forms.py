@@ -57,7 +57,9 @@ class OrganizationDetailsForm(forms.ModelForm):
                 'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
                 'placeholder': 'Contact Number (10 digits)',
                 'required': 'required',
-                'maxlength': '10'
+                'maxlength': '10',
+                'inputmode': 'numeric',
+                'pattern': '[0-9]*'
             }),
         }
     
@@ -140,8 +142,8 @@ class PlayerRegistrationForm(forms.ModelForm):
         widgets = {
             'full_name': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 opacity-70 cursor-not-allowed', 'placeholder': 'Enter Full Name', 'readonly': 'readonly'}),
             'age': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 opacity-70 cursor-not-allowed', 'placeholder': 'Age', 'readonly': 'readonly'}),
-            'uid': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 'placeholder': 'Enter Game ID'}),
-            'mobile_no': forms.NumberInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 'placeholder': 'Enter Mobile Number'}),
+            'uid': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 'placeholder': 'Enter Game ID', 'maxlength': '12', 'minlength': '10'}),
+            'mobile_no': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 'placeholder': 'Enter Mobile Number', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'maxlength': '10'}),
             'aadhar_number': forms.TextInput(attrs={'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 opacity-70 cursor-not-allowed', 'placeholder': 'Aadhar Number', 'readonly': 'readonly'}),
         }
 
@@ -178,7 +180,7 @@ class PlayerRegistrationForm(forms.ModelForm):
 class PlayerProfileForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['username', 'profile_photo', 'address']
+        fields = ['username', 'profile_photo', 'address', 'skill_role', 'instagram_username', 'instagram_link', 'youtube_username', 'youtube_link', 'discord_username', 'discord_link']
         widgets = {
              'username': forms.TextInput(attrs={
                 'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
@@ -189,10 +191,37 @@ class PlayerProfileForm(forms.ModelForm):
                 'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
                 'placeholder': 'City, State, Country'
             }),
+             'skill_role': forms.Select(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3 text-white appearance-none', 
+            }),
              'profile_photo': forms.FileInput(attrs={
                 'class': 'hidden',
                 'id': 'photo-upload',
                 'onchange': 'this.form.submit()'
+            }),
+             'instagram_username': forms.TextInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': '@username'
+            }),
+             'instagram_link': forms.URLInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'https://instagram.com/username'
+            }),
+             'youtube_username': forms.TextInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'Channel Name'
+            }),
+             'youtube_link': forms.URLInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'https://youtube.com/@channel'
+            }),
+             'discord_username': forms.TextInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'username#1234 or @username'
+            }),
+             'discord_link': forms.URLInput(attrs={
+                'class': 'cyber-input w-full rounded-lg pl-11 pr-4 py-3', 
+                'placeholder': 'https://discord.gg/invite'
             }),
         }
     

@@ -1,6 +1,7 @@
 from django.utils import timezone
-from web.models import Organization, OrganizationNotification, Player, PlayerNotification, BiddingSeason, BiddingSeasonLog
+from web.models import Organization, OrganizationNotification, Player, PlayerNotification, AdminNotification, BiddingSeason, BiddingSeasonLog
 from django.utils.formats import date_format
+from datetime import timedelta
 
 def notifications(request):
     """
@@ -112,6 +113,12 @@ def notifications(request):
         'bidding_status': bidding_status, # New strictly calculated UI statuses
         'settings': site_settings
     }
+
+    # Auto-sweep notifications older than 15 minutes
+    sweep_threshold = timezone.now() - timedelta(minutes=15)
+    OrganizationNotification.objects.filter(is_read=False, created_at__lte=sweep_threshold).delete()
+    PlayerNotification.objects.filter(is_read=False, created_at__lte=sweep_threshold).delete()
+    AdminNotification.objects.filter(is_read=False, created_at__lte=sweep_threshold).delete()
 
     if not hasattr(request, 'session'):
         return base_context

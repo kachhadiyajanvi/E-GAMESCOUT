@@ -5,8 +5,8 @@
 {% block content %}
 <div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-white">Setup Two-Factor Authentication</h2>
-        <p class="mt-2 text-center text-sm text-gray-400">
+        <h2 class="mt-6 text-center text-2xl sm:text-3xl font-extrabold text-white">Setup Two-Factor Authentication</h2>
+        <p class="mt-2 px-4 text-center text-sm text-gray-400">
             Scan the QR code below with your Authenticator app (Google Authenticator, Authy, etc.)
         </p>
     </div>
@@ -24,7 +24,7 @@
             <div class="flex justify-center mb-6">
                 <img src="{{ qr_code_uri }}" alt="QR Code for Two-Factor Authentication" class="rounded p-2 bg-white w-48 h-48">
             </div>
-            <div class="text-center text-gray-400 mb-6 font-mono text-sm bg-[#0b0f19] p-3 rounded border border-gray-800">
+            <div class="text-center text-gray-400 mb-6 font-mono text-xs sm:text-sm bg-[#0b0f19] p-3 rounded border border-gray-800 break-all">
                 <span class="text-xs text-gray-500 block mb-1">Manual Entry Secret:</span>
                 {{ secret }}
             </div>

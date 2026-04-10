@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession
+from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession, OrganizationPlayer
 from django.db import transaction
 from django.db.models import Count, Sum, Q, Max
 from django.utils import timezone
@@ -375,6 +375,7 @@ def admin_dashboard(request):
 def admin_players_detail(request):
     search_query = request.GET.get('q', '')
     status_filter = request.GET.get('status', '')
+    active_tab = request.GET.get('tab', 'registered')  # 'registered' or 'external'
     
     players_list = Player.objects.filter(is_archived=False).select_related('organization')
 
@@ -400,12 +401,31 @@ def admin_players_detail(request):
     paginator = Paginator(players_list, 10) # Show 10 players per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    # External players: OrganizationPlayer entries with no linked registered Player account
+    external_players_list = OrganizationPlayer.objects.filter(
+        player__isnull=True
+    ).select_related('organization').order_by('-created_at')
+
+    if search_query:
+        external_players_list = external_players_list.filter(
+            Q(name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(game_id__icontains=search_query)
+        )
+
+    ext_paginator = Paginator(external_players_list, 10)
+    ext_page_number = request.GET.get('ext_page')
+    ext_page_obj = ext_paginator.get_page(ext_page_number)
     
     return render(request, 'web/Admin/admin_players_detail.html', {
         'players': page_obj, 
         'page_obj': page_obj, 
         'search_query': search_query,
-        'status_filter': status_filter
+        'status_filter': status_filter,
+        'active_tab': active_tab,
+        'ext_page_obj': ext_page_obj,
+        'external_players_count': external_players_list.count(),
     })
 
 @user_passes_test(is_superuser, login_url='admin_login')
@@ -1540,8 +1560,16 @@ def admin_update_bidding_season(request):
             season.end_date = None
             
         season.save()
-        messages.success(request, f"Bidding Season '{season.name}' updated successfully.")
-    return redirect('admin_bidding_dashboard')
+        
+        # Immediate check if the updated end date triggers the end of the session
+        if season.is_active and season.end_date and season.end_date <= timezone.now():
+            from django.core.management import call_command
+            call_command('process_bidding_season')
+            messages.success(request, f"Bidding Season '{season.name}' updated and ended automatically because the end date was reached.")
+        else:
+            messages.success(request, f"Bidding Season '{season.name}' updated successfully.")
+            
+        return redirect('admin_bidding_dashboard')
 
 
 @user_passes_test(is_superuser, login_url='/admin/login/')
@@ -2045,3 +2073,52 @@ def admin_transaction_history(request):
             'page_obj':           page_obj,
             'search_query':       search_query,
         })
+
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_contracts_list(request):
+    """View to list all organizations that have signed contracts with players."""
+    search_query = request.GET.get('q', '')
+    from web.models import Contract
+    
+    # Get distinct organizations that have contracts
+    org_ids_with_contracts = Contract.objects.values_list('organization_id', flat=True).distinct()
+    orgs = Organization.objects.filter(id__in=org_ids_with_contracts, is_archived=False)
+    
+    if search_query:
+        orgs = orgs.filter(Organization_Name__icontains=search_query)
+        
+    # Annotate with contract count
+    orgs = orgs.annotate(contract_count=Count('contracts'))
+    
+    paginator = Paginator(orgs, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    return render(request, 'web/Admin/admin_contracts_list.html', {
+        'page_obj': page_obj,
+        'search_query': search_query
+    })
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_organization_contracts(request, org_id):
+    """View to list all contracts for a specific organization."""
+    from web.models import Contract
+    org = get_object_or_404(Organization, id=org_id)
+    search_query = request.GET.get('q', '')
+    
+    contracts = Contract.objects.filter(organization=org).select_related('player')
+    
+    if search_query:
+        contracts = contracts.filter(player__full_name__icontains=search_query)
+        
+    contracts = contracts.order_by('-created_at')
+    
+    paginator = Paginator(contracts, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    return render(request, 'web/Admin/admin_organization_contracts.html', {
+        'org': org,
+        'page_obj': page_obj,
+        'search_query': search_query
+    })
+

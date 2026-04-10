@@ -181,34 +181,46 @@
             <header class="border-b border-white/5 bg-[#0B0C10]/80 backdrop-blur-md sticky top-0 z-40">
                 <!-- Bidding Season Banner -->
                 {% if bidding_status %}
-                <div class="px-3 md:px-8 py-1.5 flex flex-wrap md:flex-nowrap items-center gap-2 md:gap-3 border-b border-white/5
-                    {% if bidding_status.is_active %}bg-green-500/5{% else %}bg-yellow-500/5{% endif %}">
-                    <span class="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-widest
-                        {% if bidding_status.is_active %}text-green-400{% else %}text-yellow-400{% endif %}">
-                        <span class="w-1.5 h-1.5 rounded-full {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-yellow-400{% endif %}"></span>
-                        {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING CLOSED{% endif %}
+                <div class="px-3 md:px-8 py-2 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-1 sm:gap-2 border-b border-white/5 backdrop-blur-md
+                    {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-orange-500/10{% endif %}">
+                    
+                    <div class="flex items-center gap-1.5 sm:gap-2">
+                        <span class="flex items-center gap-1.5 text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase tracking-widest whitespace-nowrap
+                            {% if bidding_status.is_active %}text-green-400{% else %}text-orange-500{% endif %}">
+                            <span class="w-1.5 h-1.5 rounded-full shrink-0 {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-orange-500{% endif %}"></span>
+                            {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING INACTIVE{% endif %}
+                        </span>
+                        
+                        <span class="text-white/30 text-[10px] sm:hidden inline">|</span>
+                        
+                        <span class="text-white/60 text-[9px] sm:text-[10px] md:text-[11px] font-mono whitespace-nowrap sm:hidden inline">
+                            <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next:{% endif %}</span>
+                            <span class="text-white font-bold">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M y" }}{% endif %}</span>
+                        </span>
+                    </div>
+
+                    <span class="text-white/30 text-[10px] hidden sm:inline">|</span>
+                    
+                    <span class="text-white/60 text-[10px] md:text-[11px] font-mono whitespace-nowrap hidden sm:inline">
+                        <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next Season:{% endif %}</span>
+                        <span class="text-white font-bold">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M Y" }}{% endif %}</span>
                     </span>
                     
+                    <span class="text-white/30 text-[10px] hidden sm:inline">|</span>
+                    
                     {% if bidding_status.is_active %}
-                    <span class="text-white/30 text-[10px] hidden md:inline">|</span>
-                    <span class="text-white/60 text-[10px] md:text-[11px] font-mono hidden md:inline">
-                        <span class="text-white/40">Season:</span>
-                        <span class="text-white font-bold">{{ bidding_status.season_name }}</span>
-                    </span>
-                    <span class="text-white/30 text-[10px]">|</span>
-                    <span class="text-[10px] md:text-[11px] font-mono font-bold text-neon-pink" id="playerBiddingCountdown"
+                    <span class="text-[9px] sm:text-[10px] md:text-[11px] font-mono font-bold text-neon-pink whitespace-nowrap" id="playerBiddingCountdown"
                         data-start="{{ bidding_status.start_date|date:'c' }}"
                         data-end="{{ bidding_status.end_date|date:'c' }}"
                         data-active="true">--:--:--</span>
                     {% else %}
-                    <span class="text-white/30 text-[10px]">|</span>
-                    <span class="text-[10px] md:text-[11px] font-mono font-bold text-yellow-500" id="playerBiddingCountdown"
+                    <span class="text-[9px] sm:text-[10px] md:text-[11px] font-mono font-bold text-orange-500 whitespace-nowrap" id="playerBiddingCountdown"
                         data-start="{{ bidding_status.next_season_start|date:'c' }}"
                         data-active="false">--:--:--</span>
                     {% endif %}
                     
-                    <a href="{% url 'player_bidding_dashboard' %}" class="ml-auto text-[9px] md:text-[10px] font-bold text-accent-cyan hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1">
-                        <i class="fa-solid fa-gavel text-[10px]"></i> <span class="hidden md:inline">Bidding Hub</span>
+                    <a href="{% url 'player_bidding_dashboard' %}" class="ml-auto text-[10px] font-bold text-accent-cyan hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1 whitespace-nowrap hidden md:flex">
+                        <i class="fa-solid fa-gavel text-[10px]"></i> Bidding Hub
                     </a>
                 </div>
                 {% endif %}
@@ -383,7 +395,7 @@
                         </div>
                     </div>
 
-                    <a href="{% url 'player_profile' %}" class="block group" aria-label="My Profile">
+                    <a href="{% url 'player_profile' %}" class="hidden lg:block group" aria-label="My Profile">
                         <div
                             class="w-10 h-10 rounded-full border-2 border-white/20 p-0.5 group-hover:border-accent-cyan transition-colors">
                             {% if player.profile_photo %}

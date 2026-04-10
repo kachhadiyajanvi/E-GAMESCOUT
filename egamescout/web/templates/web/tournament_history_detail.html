@@ -27,10 +27,10 @@
             <!-- Animated neon border background -->
             <div class="absolute -inset-0.5 bg-gradient-to-r from-accent-cyan via-accent-pink to-accent-cyan rounded-2xl blur opacity-20"></div>
             
-            <div class="relative bg-brand-dark p-4 sm:p-6 md:p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center border border-white/10 rounded-2xl">
-                <div class="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center relative overflow-hidden group">
+            <div class="relative bg-brand-dark p-4 sm:p-6 md:p-8 md:p-12 flex flex-col md:flex-row gap-6 md:gap-8 items-center border border-white/10 rounded-2xl">
+                <div class="flex-shrink-0 w-24 h-24 sm:w-32 sm:h-32 md:w-48 md:h-48 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center relative overflow-hidden group">
                     <div class="absolute inset-0 bg-accent-pink/5 mix-blend-screen group-hover:bg-accent-pink/20 transition-colors"></div>
-                    <i class="fa-solid fa-trophy text-6xl md:text-8xl text-accent-pink/40 group-hover:text-accent-pink group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(255,0,128,0.3)]"></i>
+                    <i class="fa-solid fa-trophy text-5xl sm:text-6xl md:text-8xl text-accent-pink/40 group-hover:text-accent-pink group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(255,0,128,0.3)]"></i>
                 </div>
                 
                 <div class="flex-1 text-center md:text-left">
@@ -47,23 +47,23 @@
                     {% endif %}
                     
                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
-                        <div class="bg-black/50 border border-yellow-500/30 rounded-lg p-4 flex-1 min-w-[200px] hover:border-yellow-500/60 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)] transition-all">
+                        <div class="bg-black/50 border border-yellow-500/30 rounded-lg p-3 sm:p-4 flex-1 min-w-[140px] sm:min-w-[200px] hover:border-yellow-500/60 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)] transition-all">
                             <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Champion</div>
-                            <div class="font-bold text-white text-lg flex items-center">
+                            <div class="font-bold text-white text-base sm:text-lg flex items-center">
                                 <i class="fa-solid fa-crown text-yellow-500 mr-2 drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]"></i>
-                                {{ tournament.winner_team|default:"TBD" }}
+                                <span class="break-words truncate max-w-full">{{ tournament.winner_team|default:"TBD" }}</span>
                             </div>
                         </div>
                         
-                        <div class="bg-black/50 border border-gray-400/30 rounded-lg p-4 flex-1 min-w-[200px] hover:border-gray-400/60 hover:shadow-[0_0_20px_rgba(156,163,175,0.15)] transition-all">
+                        <div class="bg-black/50 border border-gray-400/30 rounded-lg p-3 sm:p-4 flex-1 min-w-[140px] sm:min-w-[200px] hover:border-gray-400/60 hover:shadow-[0_0_20px_rgba(156,163,175,0.15)] transition-all">
                             <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Runner Up</div>
-                            <div class="font-bold text-gray-300 text-lg flex items-center">
+                            <div class="font-bold text-gray-300 text-base sm:text-lg flex items-center">
                                 <i class="fa-solid fa-medal text-gray-400 mr-2 drop-shadow-[0_0_5px_rgba(156,163,175,0.8)]"></i>
-                                {{ tournament.runner_up_team|default:"TBD" }}
+                                <span class="break-words truncate max-w-full">{{ tournament.runner_up_team|default:"TBD" }}</span>
                             </div>
                         </div>
                         
-                        <div class="bg-black/50 border border-accent-cyan/30 rounded-lg p-4 flex-1 w-full md:min-w-[150px]">
+                        <div class="bg-black/50 border border-accent-cyan/30 rounded-lg p-3 sm:p-4 flex-1 min-w-[140px] md:min-w-[150px]">
                             <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Total Teams</div>
                             <div class="font-bold text-accent-cyan text-lg flex items-center">
                                 <i class="fa-solid fa-users mr-2"></i>
@@ -71,7 +71,7 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2 flex-1 w-full md:min-w-[150px] justify-start md:justify-end">
+                        <div class="flex items-center gap-2 flex-1 w-full md:min-w-[150px] justify-center md:justify-end mt-4 md:mt-0">
                             <span class="text-xs text-gray-500 font-mono tracking-widest uppercase mr-2 hidden md:inline">Share:</span>
                             <a href="https://twitter.com/intent/tweet?text={{ tournament.tournament_name|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-[#1DA1F2]/10 text-[#1DA1F2] border border-[#1DA1F2]/30 flex items-center justify-center hover:bg-[#1DA1F2] hover:text-white transition-all hover:shadow-[0_0_15px_rgba(29,161,242,0.5)]">
                                 <i class="fa-brands fa-twitter"></i>
@@ -100,16 +100,16 @@
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="bg-black/80 border-b border-white/10 text-[10px] font-mono tracking-widest text-gray-500 uppercase">
-                                        <th class="p-4 font-normal">Rank</th>
-                                        <th class="p-4 font-normal">Team</th>
-                                        <th class="p-4 font-normal">Organization</th>
-                                        <th class="p-4 font-normal text-right">Points</th>
+                                        <th class="p-3 sm:p-4 font-normal">Rank</th>
+                                        <th class="p-3 sm:p-4 font-normal">Team</th>
+                                        <th class="p-3 sm:p-4 font-normal hidden sm:table-cell">Organization</th>
+                                        <th class="p-3 sm:p-4 font-normal text-right">Points</th>
                                     </tr>
                                 </thead>
                                 <tbody class="text-sm">
                                     {% for team in teams %}
                                     <tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                                        <td class="p-4 font-mono font-bold w-16 text-center">
+                                        <td class="p-3 sm:p-4 font-mono font-bold w-12 sm:w-16 text-center">
                                             {% if forloop.counter == 1 %}
                                                 <span class="text-yellow-500 font-bold">#1</span>
                                             {% elif forloop.counter == 2 %}
@@ -120,9 +120,12 @@
                                                 <span class="text-gray-600 group-hover:text-gray-400">#{{ forloop.counter }}</span>
                                             {% endif %}
                                         </td>
-                                        <td class="p-4 font-bold text-white group-hover:text-accent-cyan transition-colors">{{ team.team_name }}</td>
-                                        <td class="p-4 text-gray-400">{{ team.organization|default:"-" }}</td>
-                                        <td class="p-4 text-right font-mono font-bold text-accent-pink">{{ team.points }}</td>
+                                        <td class="p-3 sm:p-4 font-bold text-white group-hover:text-accent-cyan transition-colors">
+                                            {{ team.team_name }}
+                                            <div class="text-[10px] text-gray-500 font-normal sm:hidden mt-0.5">{{ team.organization|default:"-" }}</div>
+                                        </td>
+                                        <td class="p-3 sm:p-4 text-gray-400 hidden sm:table-cell">{{ team.organization|default:"-" }}</td>
+                                        <td class="p-3 sm:p-4 text-right font-mono font-bold text-accent-pink">{{ team.points }}</td>
                                     </tr>
                                     {% empty %}
                                     <tr>
@@ -150,12 +153,12 @@
                         <div class="glass-card rounded-xl border border-white/10 overflow-hidden bg-brand-dark/80 hover:border-white/20 transition-all duration-300 group" id="match-{{ match.id }}">
                             
                             <!-- Match Header -->
-                            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-5 border-b border-white/8 bg-black/30">
-                                <div class="flex items-center gap-4">
+                            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 sm:p-5 border-b border-white/8 bg-black/30">
+                                <div class="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
                                     <!-- Match Number Badge -->
-                                    <div class="w-14 h-14 bg-black/60 rounded-xl flex flex-col items-center justify-center border border-accent-cyan/20 shadow-[0_0_12px_rgba(102,252,241,0.1)] flex-shrink-0">
-                                        <span class="text-[9px] text-accent-cyan/60 font-mono uppercase tracking-widest">MATCH</span>
-                                        <span class="text-xl font-display font-bold text-accent-cyan leading-none">#{{ match.match_number }}</span>
+                                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-black/60 rounded-xl flex flex-col items-center justify-center border border-accent-cyan/20 shadow-[0_0_12px_rgba(102,252,241,0.1)] flex-shrink-0">
+                                        <span class="text-[8px] sm:text-[9px] text-accent-cyan/60 font-mono uppercase tracking-widest">MATCH</span>
+                                        <span class="text-lg sm:text-xl font-display font-bold text-accent-cyan leading-none">#{{ match.match_number }}</span>
                                     </div>
                                     <div>
                                         <h3 class="font-bold text-white text-base">Match {{ match.match_number }} — Standings</h3>
@@ -172,7 +175,7 @@
                                 
                                 <!-- Toggle Button -->
                                 <button onclick="toggleMatch('{{ match.id }}')" 
-                                        class="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest px-4 py-2 border border-white/10 text-gray-400 hover:border-accent-cyan/50 hover:text-accent-cyan transition-all rounded-lg" 
+                                        class="flex w-full sm:w-auto justify-center items-center gap-2 text-[10px] font-mono uppercase tracking-widest px-4 py-2.5 sm:py-2 border border-white/10 text-gray-400 hover:border-accent-cyan/50 hover:text-accent-cyan transition-all rounded-lg mt-1 sm:mt-0" 
                                         id="btn-{{ match.id }}">
                                     <i class="fa-solid fa-table-list mr-1"></i> View Scoreboard
                                     <i class="fa-solid fa-chevron-down text-[8px] transition-transform duration-300" id="chevron-{{ match.id }}"></i>
@@ -185,7 +188,7 @@
                                 <!-- Scorecard Image + Summary Strip -->
                                 {% with analysis=ai_analyses|slice:forloop.counter|last %}
                                 {% if analysis and analysis.image %}
-                                <div class="flex flex-col sm:flex-row gap-5 p-5 border-b border-white/5 bg-black/20">
+                                <div class="flex flex-col sm:flex-row gap-4 sm:gap-5 p-4 sm:p-5 border-b border-white/5 bg-black/20">
                                     <!-- Image Thumbnail -->
                                     <div class="flex-shrink-0">
                                         <a href="{{ analysis.image.url }}" target="_blank" title="View full scorecard image" 
@@ -217,30 +220,30 @@
                                     <table class="w-full text-left border-collapse">
                                         <thead>
                                             <tr class="bg-black/50 text-[9px] font-mono tracking-widest text-gray-600 uppercase border-b border-white/5">
-                                                <th class="px-5 py-3 font-normal w-16 text-center">Rank</th>
-                                                <th class="px-5 py-3 font-normal">Team Name</th>
-                                                <th class="px-5 py-3 font-normal text-right">Points</th>
+                                                <th class="px-3 sm:px-5 py-2.5 sm:py-3 font-normal w-12 sm:w-16 text-center">Rank</th>
+                                                <th class="px-3 sm:px-5 py-2.5 sm:py-3 font-normal">Team Name</th>
+                                                <th class="px-3 sm:px-5 py-2.5 sm:py-3 font-normal text-right">Points</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for team in match.match_data.teams %}
                                             <tr class="border-b border-white/5 hover:bg-white/3 transition-colors">
-                                                <td class="px-5 py-3 text-center">
+                                                <td class="px-3 sm:px-5 py-2 sm:py-3 text-center">
                                                     {% if team.rank == 1 %}
-                                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-bold text-xs shadow-[0_0_8px_rgba(234,179,8,0.2)]">1</span>
+                                                        <span class="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-bold text-xs shadow-[0_0_8px_rgba(234,179,8,0.2)]">1</span>
                                                     {% elif team.rank == 2 %}
-                                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-400/10 border border-gray-400/30 text-gray-300 font-bold text-xs">2</span>
+                                                        <span class="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-400/10 border border-gray-400/30 text-gray-300 font-bold text-xs">2</span>
                                                     {% elif team.rank == 3 %}
-                                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700/10 border border-amber-700/30 text-amber-600 font-bold text-xs">3</span>
+                                                        <span class="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-amber-700/10 border border-amber-700/30 text-amber-600 font-bold text-xs">3</span>
                                                     {% else %}
                                                         <span class="text-gray-600 font-mono text-xs">#{{ team.rank }}</span>
                                                     {% endif %}
                                                 </td>
-                                                <td class="px-5 py-3">
-                                                    <span class="font-semibold text-sm {% if team.rank == 1 %}text-white{% else %}text-gray-300{% endif %}">{{ team.team_name }}</span>
+                                                <td class="px-3 sm:px-5 py-2 sm:py-3">
+                                                    <span class="font-semibold text-xs sm:text-sm {% if team.rank == 1 %}text-white{% else %}text-gray-300{% endif %}">{{ team.team_name }}</span>
                                                 </td>
-                                                <td class="px-5 py-3 text-right">
-                                                    <span class="font-mono font-bold text-sm {% if team.rank == 1 %}text-accent-pink{% else %}text-gray-400{% endif %}">{{ team.points }}</span>
+                                                <td class="px-3 sm:px-5 py-2 sm:py-3 text-right">
+                                                    <span class="font-mono font-bold text-xs sm:text-sm {% if team.rank == 1 %}text-accent-pink{% else %}text-gray-400{% endif %}">{{ team.points }}</span>
                                                 </td>
                                             </tr>
                                             {% endfor %}

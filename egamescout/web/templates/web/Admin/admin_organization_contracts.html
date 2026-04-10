@@ -1,0 +1,177 @@
+{% extends 'web/Admin/admin_page_base.html' %}
+{% load humanize %}
+
+{% block header_icon %}<i class="fa-solid fa-file-contract"></i>{% endblock %}
+{% block header_title %}CONTRACTS - {{ org.Organization_Name|upper }}{% endblock %}
+{% block header_desc %}Detailed view of all contracts for {{ org.Organization_Name }}{% endblock %}
+
+{% block page_content %}
+
+<!-- Back Button -->
+<div class="mb-4">
+    <a href="{% url 'admin_contracts_list' %}" class="inline-flex items-center gap-2 text-sm font-bold text-theme-text-muted hover:text-brand-blue transition-colors">
+        <i class="fa-solid fa-arrow-left"></i> Back to Organizations
+    </a>
+</div>
+
+<!-- Search & Filter Bar -->
+<form method="GET" action="{% url 'admin_organization_contracts' org.id %}" class="flex flex-col sm:flex-row gap-3 mb-6">
+    <div class="relative flex-1">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-theme-text-muted/40 text-sm pointer-events-none"></i>
+        <input
+            type="text"
+            name="q"
+            value="{{ search_query }}"
+            placeholder="Search contracts by player name..."
+            class="w-full bg-theme-input-bg border border-theme-border rounded-xl pl-10 pr-4 py-2.5 text-theme-text text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 transition-colors placeholder-theme-text-muted/40"
+        >
+    </div>
+    <button type="submit" class="px-5 py-2.5 bg-brand-blue/10 border border-brand-blue/30 text-brand-blue hover:bg-brand-blue hover:text-black font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-search"></i> Search
+    </button>
+    {% if search_query %}
+    <a href="{% url 'admin_organization_contracts' org.id %}" class="px-5 py-2.5 bg-theme-card border border-theme-border text-theme-text-muted hover:text-theme-text font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-xmark"></i> Clear
+    </a>
+    {% endif %}
+</form>
+
+<div class="flex items-center justify-between mb-3">
+    <p class="text-xs text-theme-text-muted font-mono">
+        Showing <span class="text-theme-text font-bold">{{ page_obj.start_index|default:0 }}–{{ page_obj.end_index|default:0 }}</span>
+        of <span class="text-theme-text font-bold">{{ page_obj.paginator.count|default:0 }}</span> contracts
+    </p>
+</div>
+
+<!-- Table -->
+<div class="bg-theme-card border border-theme-border rounded-xl overflow-hidden mb-6">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+            <thead class="bg-theme-input-bg text-theme-text-muted/50 text-xs uppercase tracking-wider border-b border-theme-border">
+                <tr>
+                    <th class="px-5 py-3.5 font-bold w-12">#</th>
+                    <th class="px-5 py-3.5 font-bold">Player Name</th>
+                    <th class="px-5 py-3.5 font-bold">Base Salary</th>
+                    <th class="px-5 py-3.5 font-bold">Duration</th>
+                    <th class="px-5 py-3.5 font-bold">Status</th>
+                    <th class="px-5 py-3.5 font-bold">Created At</th>
+                    <th class="px-5 py-3.5 font-bold text-right">View Data</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-theme-border-light">
+                {% for contract in page_obj %}
+                <tr class="hover:bg-theme-card-hover transition-colors">
+                    <td class="px-5 py-3.5 text-theme-text-muted/40 font-mono text-xs">{{ contract.id }}</td>
+                    <td class="px-5 py-3.5 font-bold text-theme-text flex items-center gap-2">
+                        <i class="fa-solid fa-user text-brand-blue/50"></i>
+                        {{ contract.player.full_name }}
+                    </td>
+                    <td class="px-5 py-3.5 text-theme-text-muted font-mono font-bold">
+                        ₹{{ contract.base_salary|intcomma }}
+                    </td>
+                    <td class="px-5 py-3.5 text-theme-text-muted/70 text-xs whitespace-nowrap">
+                        {{ contract.start_date|date:"d M Y" }} to {{ contract.end_date|date:"d M Y" }}
+                    </td>
+                    <td class="px-5 py-3.5">
+                        <span class="px-2.5 py-1 
+                            {% if contract.status == 'DRAFT' %}bg-gray-500/10 text-gray-400 border border-gray-500/30
+                            {% elif contract.status == 'PENDING' %}bg-yellow-500/10 text-yellow-400 border border-yellow-500/30
+                            {% elif contract.status == 'ACTIVE' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/30
+                            {% elif contract.status == 'REJECTED' %}bg-red-500/10 text-red-400 border border-red-500/30
+                            {% else %}bg-theme-card text-theme-text-muted border border-theme-border{% endif %}
+                            rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                            {{ contract.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-5 py-3.5 text-theme-text-muted/70 text-xs whitespace-nowrap">
+                        {{ contract.created_at|date:"M d, Y"|default:"—" }}
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                        <button onclick="openContractDataModal({{ contract.contract_data|escapejs }})" class="px-3 py-1.5 bg-theme-input-bg hover:bg-brand-blue hover:text-black border border-theme-border rounded-lg text-theme-text-muted transition-colors text-xs font-bold whitespace-nowrap shadow-sm inline-flex items-center gap-2">
+                            <i class="fa-solid fa-code"></i> Raw Data
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-5 py-16 text-center">
+                        <div class="flex flex-col items-center gap-3 text-theme-text-muted/30">
+                            <i class="fa-solid fa-file-contract text-4xl"></i>
+                            <p class="font-bold">No contracts found for this organization.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Raw Data Modal -->
+<div id="dataModal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-theme-bg/80 backdrop-blur-sm" onclick="closeContractDataModal()"></div>
+    <div class="bg-theme-card border border-theme-border w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[90vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="dataModalContent">
+        <div class="p-6 border-b border-theme-border-light flex justify-between items-center bg-theme-header-bg">
+            <h2 class="text-theme-text font-display font-bold text-lg leading-none">Contract JSON Data</h2>
+            <button onclick="closeContractDataModal()" class="w-8 h-8 rounded-lg hover:bg-theme-card-hover text-theme-text-muted hover:text-theme-text flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto custom-scrollbar bg-black/50">
+            <pre id="jsonDataContent" class="text-emerald-400 font-mono text-xs whitespace-pre-wrap"></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openContractDataModal(jsonData) {
+        document.getElementById('jsonDataContent').textContent = JSON.stringify(jsonData, null, 2);
+        const modal = document.getElementById('dataModal');
+        const content = document.getElementById('dataModalContent');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+        }, 10);
+    }
+    
+    function closeContractDataModal() {
+        const modal = document.getElementById('dataModal');
+        const content = document.getElementById('dataModalContent');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+</script>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<div class="flex items-center justify-center gap-2 mt-6">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}"
+        class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">
+        <i class="fa-solid fa-chevron-left"></i>
+    </a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="px-4 py-2 rounded-lg bg-brand-blue text-black text-sm font-bold">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}"
+            class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}"
+        class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">
+        <i class="fa-solid fa-chevron-right"></i>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

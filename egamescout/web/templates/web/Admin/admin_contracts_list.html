@@ -1,0 +1,117 @@
+{% extends 'web/Admin/admin_page_base.html' %}
+{% load humanize %}
+
+{% block header_icon %}<i class="fa-solid fa-file-signature"></i>{% endblock %}
+{% block header_title %}ORGANIZATION CONTRACTS{% endblock %}
+{% block header_desc %}View all active player contracts grouped by organization{% endblock %}
+
+{% block page_content %}
+
+<!-- Search & Filter Bar -->
+<form method="GET" action="{% url 'admin_contracts_list' %}" class="flex flex-col sm:flex-row gap-3 mb-6">
+    <div class="relative flex-1">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-theme-text-muted/40 text-sm pointer-events-none"></i>
+        <input
+            type="text"
+            name="q"
+            value="{{ search_query }}"
+            placeholder="Search organizations by name..."
+            class="w-full bg-theme-input-bg border border-theme-border rounded-xl pl-10 pr-4 py-2.5 text-theme-text text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 transition-colors placeholder-theme-text-muted/40"
+        >
+    </div>
+    <button type="submit" class="px-5 py-2.5 bg-brand-blue/10 border border-brand-blue/30 text-brand-blue hover:bg-brand-blue hover:text-black font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-search"></i> Search
+    </button>
+    {% if search_query %}
+    <a href="{% url 'admin_contracts_list' %}" class="px-5 py-2.5 bg-theme-card border border-theme-border text-theme-text-muted hover:text-theme-text font-bold text-sm rounded-xl transition-all flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-xmark"></i> Clear
+    </a>
+    {% endif %}
+</form>
+
+<div class="flex items-center justify-between mb-3">
+    <p class="text-xs text-theme-text-muted font-mono">
+        Showing <span class="text-theme-text font-bold">{{ page_obj.start_index|default:0 }}–{{ page_obj.end_index|default:0 }}</span>
+        of <span class="text-theme-text font-bold">{{ page_obj.paginator.count|default:0 }}</span> organizations with contracts
+    </p>
+</div>
+
+<!-- Table -->
+<div class="bg-theme-card border border-theme-border rounded-xl overflow-hidden mb-6">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+            <thead class="bg-theme-input-bg text-theme-text-muted/50 text-xs uppercase tracking-wider border-b border-theme-border">
+                <tr>
+                    <th class="px-5 py-3.5 font-bold w-12">#</th>
+                    <th class="px-5 py-3.5 font-bold">Organization Name</th>
+                    <th class="px-5 py-3.5 font-bold">Registration Date</th>
+                    <th class="px-5 py-3.5 font-bold text-center">Active Contracts</th>
+                    <th class="px-5 py-3.5 font-bold text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-theme-border-light">
+                {% for org in page_obj %}
+                <tr class="hover:bg-theme-card-hover transition-colors">
+                    <td class="px-5 py-3.5 text-theme-text-muted/40 font-mono text-xs">{{ org.id }}</td>
+                    <td class="px-5 py-3.5 font-bold text-theme-text flex items-center gap-2">
+                        <i class="fa-solid fa-building text-brand-blue/50"></i>
+                        {{ org.Organization_Name }}
+                    </td>
+                    <td class="px-5 py-3.5 text-theme-text-muted/70 text-xs whitespace-nowrap">
+                        {{ org.CreatedAt|date:"M d, Y"|default:"—" }}
+                    </td>
+                    <td class="px-5 py-3.5 text-center whitespace-nowrap">
+                        <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-bold whitespace-nowrap inline-block">
+                            {{ org.contract_count }} Contracts
+                        </span>
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                        <a href="{% url 'admin_organization_contracts' org.id %}" class="px-4 py-2 bg-brand-blue/10 hover:bg-brand-blue text-brand-blue hover:text-black border border-brand-blue/30 rounded-lg transition-colors text-xs font-bold whitespace-nowrap inline-flex items-center gap-2">
+                            <i class="fa-solid fa-eye"></i> View All Contracts
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-5 py-16 text-center">
+                        <div class="flex flex-col items-center gap-3 text-theme-text-muted/30">
+                            <i class="fa-solid fa-file-signature text-4xl"></i>
+                            <p class="font-bold">No organizations have active contracts right now.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<div class="flex items-center justify-center gap-2 mt-6">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}"
+        class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">
+        <i class="fa-solid fa-chevron-left"></i>
+    </a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="px-4 py-2 rounded-lg bg-brand-blue text-black text-sm font-bold">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}"
+            class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}"
+        class="px-4 py-2 rounded-lg bg-theme-card border border-theme-border text-theme-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all text-sm font-bold">
+        <i class="fa-solid fa-chevron-right"></i>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

@@ -75,6 +75,7 @@ urlpatterns = [
     
     # --- Profile & Common ---
     path('auth/verify/', views.auth_verify_otp, name='auth_verify_otp'),
+    path('auth/register/invite/<uuid:token>/', views.auth_register_invite, name='auth_register_invite'),
     path('auth/register/upload/', views.auth_register_upload, name='auth_register_upload'),
     path('auth/register/details/', views.auth_register_details, name='auth_register_details'),
     path('auth/2fa-verify/', views.auth_2fa_verify, name='auth_2fa_verify'),
@@ -150,6 +151,10 @@ urlpatterns = [
     
     # Admin Transactions
     path('admin/transactions/', admin_views.admin_transaction_history, name='admin_transaction_history'),
+    
+    # Admin Contracts
+    path('admin/contracts/', admin_views.admin_contracts_list, name='admin_contracts_list'),
+    path('admin/contracts/organization/<int:org_id>/', admin_views.admin_organization_contracts, name='admin_organization_contracts'),
 
 
     # Tournament Publishing & Participation
