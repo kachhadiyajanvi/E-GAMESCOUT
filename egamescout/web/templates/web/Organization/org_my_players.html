@@ -51,9 +51,12 @@
             <div class="flex items-start justify-between mb-4 relative z-10">
                 <div class="flex items-center gap-3">
                     <div
-                        class="w-12 h-12 rounded-full bg-[#0B0C10] flex items-center justify-center border border-white/10 group-hover:border-accent-cyan/50 group-hover:shadow-[0_0_10px_rgba(102,252,241,0.2)] transition-all">
-                        <i
-                            class="fa-solid fa-user text-brand-light/40 group-hover:text-accent-cyan transition-colors"></i>
+                        class="w-12 h-12 rounded-full overflow-hidden bg-[#0B0C10] flex items-center justify-center border border-white/10 group-hover:border-accent-cyan/50 group-hover:shadow-[0_0_10px_rgba(102,252,241,0.2)] transition-all">
+                        {% if player.player and player.player.profile_photo %}
+                            <img src="{{ player.player.profile_photo.url }}" alt="{{ player.name }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <i class="fa-solid fa-user text-brand-light/40 group-hover:text-accent-cyan transition-colors"></i>
+                        {% endif %}
                     </div>
                 </div>
                 <div

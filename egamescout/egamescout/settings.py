@@ -33,7 +33,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-change-this')
 
 # AI Provider Keys - Multiple Gemini keys with fallback
 GEMINI_API_KEYS = []
-for i in range(1, 4):
+for i in range(1, 5):
     key = os.getenv(f'GEMINI_API_KEY_{i}', '').strip()
     if key:
         GEMINI_API_KEYS.append(key)

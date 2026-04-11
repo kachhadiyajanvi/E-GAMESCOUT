@@ -466,8 +466,19 @@ class ContractForm(forms.ModelForm):
         organization = kwargs.pop('organization', None)
         super().__init__(*args, **kwargs)
         if organization:
-            # Filter players to only show those belonging to this organization
-            players = Player.objects.filter(organization=organization)
+            # Filter players to only show those belonging to this organization's roster
+            from web.models import OrganizationPlayer
+            player_ids = OrganizationPlayer.objects.filter(
+                organization=organization,
+                player__isnull=False
+            ).values_list('player_id', flat=True)
+            
+            # Additional fallback to any player with organization=organization directly
+            org_players = Player.objects.filter(organization=organization).values_list('id', flat=True)
+            
+            # Combine both sources to ensure all external and directly linked players are captured
+            all_valid_player_ids = set(player_ids) | set(org_players)
+            players = Player.objects.filter(id__in=all_valid_player_ids).distinct()
             
             # Fetch accepted bids for these players to show price in label
             accepted_bids = Bid.objects.filter(organization=organization, status='Accepted')

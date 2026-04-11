@@ -172,9 +172,16 @@
                         </span>
                     </div>
 
-                    <!-- Standings Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full" id="review-table">
+                    <!-- Review Image & Table Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border-b border-white/5">
+                        <!-- Uploaded Image -->
+                        <div id="review-image-container" class="hidden flex-col items-center justify-center bg-black/40 rounded-lg p-2 border border-white/5 max-h-[400px] overflow-hidden">
+                            <img id="review-image" src="" alt="Scorecard Image" class="w-full h-full object-contain">
+                        </div>
+
+                        <!-- Standings Table -->
+                        <div class="overflow-x-auto bg-black/20 rounded-lg border border-white/5 h-full max-h-[400px] overflow-y-auto">
+                            <table class="w-full" id="review-table">
                             <thead>
                                 <tr class="text-[10px] text-gray-500 uppercase tracking-widest bg-black/40">
                                     <th class="px-4 py-3 text-left w-16">Rank</th>
@@ -187,6 +194,7 @@
                                 <!-- JS populated -->
                             </tbody>
                         </table>
+                        </div>
                     </div>
 
                     <!-- Add Row + Actions -->
@@ -483,7 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await resp.json();
                 if (data.status === 'completed') {
                     clearInterval(pollTimer);
-                    showReviewStep(data.raw_data, data.summary, analysisId);
+                    showReviewStep(data.raw_data, data.summary, analysisId, data.image_url);
                 } else if (data.status === 'failed') {
                     clearInterval(pollTimer);
                     alert('Analysis failed: ' + (data.error || 'Unknown error'));
@@ -506,8 +514,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show summary
         if (summary && aiSummaryBox && aiSummaryText) {
-            aiSummaryText.textContent = summary;
+            aiSummaryText.innerHTML = summary.replace(/\n/g, '<br>');
             aiSummaryBox.classList.remove('hidden');
+        }
+
+        // Show image if available
+        const reviewImageContainer = document.getElementById('review-image-container');
+        const reviewImage = document.getElementById('review-image');
+        if (imageUrl && reviewImageContainer && reviewImage) {
+            reviewImage.src = imageUrl;
+            reviewImageContainer.classList.remove('hidden');
+            reviewImageContainer.classList.add('flex');
+            
+            // Adjust table layout if image is present
+            document.getElementById('review-table').parentElement.parentElement.classList.replace('md:grid-cols-1', 'md:grid-cols-2');
+        } else if (reviewImageContainer) {
+            reviewImageContainer.classList.add('hidden');
+            reviewImageContainer.classList.remove('flex');
+            
+            // Revert table layout if no image
+            document.getElementById('review-table').parentElement.parentElement.classList.replace('md:grid-cols-2', 'md:grid-cols-1');
         }
     }
 
@@ -605,7 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const resp = await fetch(`/organization/tools/scorecard/api/status/${analysisId}/`);
                 const data = await resp.json();
                 if (data.status === 'completed') {
-                    showReviewStep(data.raw_data, data.summary, analysisId);
+                    showReviewStep(data.raw_data, data.summary, analysisId, data.image_url);
                 } else {
                     showStep(stepUpload);
                 }

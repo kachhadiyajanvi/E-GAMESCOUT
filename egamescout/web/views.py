@@ -1964,7 +1964,8 @@ def scorecard_status_api(request, analysis_id):
             return JsonResponse({
                 'status': 'completed',
                 'raw_data': analysis.raw_data,
-                'summary': analysis.summary_text
+                'summary': analysis.summary_text,
+                'image_url': analysis.image.url if analysis.image else None
             })
     except ScorecardAnalysis.DoesNotExist:
         return JsonResponse({'status': 'failed', 'error': 'Analysis not found'}, status=404)
@@ -2096,7 +2097,7 @@ def run_scorecard_analysis_thread(analysis_id, org_id, selected_tournament_id=No
                     key_index = provider.get('index', 1)
                     print(f"DEBUG: Attempting Gemini API Key #{key_index}...")
                     genai_sdk.configure(api_key=provider['key'])
-                    model_client = genai_sdk.GenerativeModel('gemini-2.0-flash')
+                    model_client = genai_sdk.GenerativeModel('gemini-2.5-flash')
                     img = PIL.Image.open(file_path)
                     response = model_client.generate_content([user_prompt, img])
                     response_text = response.text
@@ -2131,7 +2132,7 @@ def run_scorecard_analysis_thread(analysis_id, org_id, selected_tournament_id=No
                                     ],
                                 }
                             ],
-                            "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+                            "model": "llama-3.2-90b-vision-preview",
                         }
                         import requests
                         groq_resp = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload, timeout=60)
@@ -4084,7 +4085,15 @@ def org_create_contract(request):
     
     bid_map = {b['player_id']: b['amount'] for b in accepted_bids}
     
-    players = Player.objects.filter(organization=org)
+    from .models import OrganizationPlayer
+    player_ids = OrganizationPlayer.objects.filter(
+        organization=org, player__isnull=False
+    ).values_list('player_id', flat=True)
+    org_players = Player.objects.filter(organization=org).values_list('id', flat=True)
+    
+    all_valid_player_ids = set(player_ids) | set(org_players)
+    players = Player.objects.filter(id__in=all_valid_player_ids).distinct()
+
     for p in players:
         p.bid_price = bid_map.get(p.id)
 
@@ -4121,7 +4130,14 @@ def org_save_contract(request, contract_id):
 def org_player_contact_page(request):
     org_id = request.session.get('organizer_id')
     org = get_object_or_404(Organization, id=org_id)
-    players = Player.objects.filter(organization=org)
+    from .models import OrganizationPlayer
+    player_ids = OrganizationPlayer.objects.filter(
+        organization=org, player__isnull=False
+    ).values_list('player_id', flat=True)
+    org_players = Player.objects.filter(organization=org).values_list('id', flat=True)
+    
+    all_valid_player_ids = set(player_ids) | set(org_players)
+    players = Player.objects.filter(id__in=all_valid_player_ids).distinct()
     
     return render(request, 'web/Organization/org_player_contact.html', {
         'org': org,
