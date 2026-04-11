@@ -4194,8 +4194,126 @@ def org_send_contract_to_player(request, contract_id):
         email.attach(f"Contract_{org.Organization_Name}.pdf", pdf, 'application/pdf')
         email.send()
         
+        # Send in-app notification to player
+        PlayerNotification.objects.create(
+            recipient=contract.player,
+            message=f"{org.Organization_Name} has sent you an official contract. Please review and sign it.",
+            link='/player/contract/'
+        )
+        
+        SystemLog.objects.create(
+            user_id=org.id,
+            user_type='ORGANIZATION',
+            action='Sent Contract',
+            details=f"Sent contract to {contract.player.full_name}"
+        )
+        
         messages.success(request, f"Contract sent to {contract.player.full_name} ({player_email}) successfully!")
     else:
         messages.error(request, "Failed to generate PDF for email attachment.")
         
     return redirect('org_view_contract', contract_id=contract.id)
+
+def player_contract_page(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    player = get_object_or_404(Player, id=player_id)
+    contract = Contract.objects.filter(player=player).order_by('-created_at').first()
+    
+    return render(request, 'web/Player/player_contract.html', {
+        'player': player,
+        'contract': contract
+    })
+
+def player_contract_document_view(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    player = get_object_or_404(Player, id=player_id)
+    contract = Contract.objects.filter(player=player).order_by('-created_at').first()
+    
+    if not contract:
+        return HttpResponse("No contract found", status=404)
+        
+    return render(request, 'web/Organization/org_contract_document.html', {
+        'org': contract.organization,
+        'contract': contract,
+        'is_player': True
+    })
+
+def player_export_contract_pdf(request):
+    player_id = request.session.get('player_id')
+    if not player_id:
+        return redirect('auth_login')
+        
+    player = get_object_or_404(Player, id=player_id)
+    contract = Contract.objects.filter(player=player).order_by('-created_at').first()
+    
+    if not contract:
+        return HttpResponse("No contract found", status=404)
+        
+    pdf = render_to_pdf('web/Organization/org_contract_document.html', {
+        'org': contract.organization,
+        'contract': contract,
+        'is_pdf': True
+    })
+    
+    if pdf:
+        response = HttpResponse(pdf, content_type='application/pdf')
+        filename = f"Contract_{player.full_name}_{contract.id}.pdf"
+        content = f"attachment; filename={filename}"
+        response['Content-Disposition'] = content
+        return response
+    return HttpResponse("Error generating PDF", status=400)
+
+@csrf_exempt
+def player_sign_contract(request):
+    if request.method == 'POST':
+        player_id = request.session.get('player_id')
+        if not player_id:
+            return JsonResponse({'success': False, 'message': 'Not logged in'})
+        player = get_object_or_404(Player, id=player_id)
+        contract = Contract.objects.filter(player=player).order_by('-created_at').first()
+        
+        if not contract:
+            return JsonResponse({'success': False, 'message': 'No active contract found'})
+            
+        try:
+            data = json.loads(request.body)
+            signature_data = data.get('signature')
+            
+            if signature_data:
+                import base64
+                from django.core.files.base import ContentFile
+                
+                format, imgstr = signature_data.split(';base64,') 
+                ext = format.split('/')[-1] 
+                
+                contract.player_signature = ContentFile(base64.b64decode(imgstr), name=f'signature_{contract.id}.{ext}')
+                contract.is_signed = True
+                contract.signed_at = timezone.now()
+                contract.save()
+                
+                # Notify Organization
+                OrganizationNotification.objects.create(
+                    recipient=contract.organization,
+                    message=f"Player {player.full_name} has signed their contract.",
+                    notification_type='INFO'
+                )
+                # Notify Admin
+                from web.models import AdminNotification
+                AdminNotification.objects.create(
+                    message=f"Player {player.full_name} signed a contract with {contract.organization.Organization_Name}.",
+                    link='/admin/contracts/',
+                    notification_type='INFO'
+                )
+                
+                return JsonResponse({'success': True})
+            return JsonResponse({'success': False, 'message': 'No signature provided'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+            
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})

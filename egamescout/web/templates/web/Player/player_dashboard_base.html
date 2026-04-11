@@ -108,6 +108,20 @@
                 </a>
             </li>
 
+            <!-- Contract -->
+            <li class="flex-1">
+                <a href="{% url 'player_contract_page' %}" 
+                   class="flex flex-col items-center justify-center gap-1 py-1 group {% if 'contract' in request.resolver_match.url_name %}text-accent-cyan{% else %}text-white/50 hover:text-white/80{% endif %} transition-colors">
+                    <span class="relative">
+                        <i class="fa-solid fa-file-contract text-xl mb-0.5 transform transition-transform group-active:scale-95 {% if 'contract' in request.resolver_match.url_name %}text-accent-cyan drop-shadow-[0_0_8px_rgba(102,252,241,0.5)]{% endif %}"></i>
+                        {% if 'contract' in request.resolver_match.url_name %}
+                        <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accent-cyan shadow-[0_0_5px_#66FCF1]"></span>
+                        {% endif %}
+                    </span>
+                    <span class="text-[9px] font-bold uppercase tracking-wider mt-1">Contract</span>
+                </a>
+            </li>
+
             <!-- Profile -->
             <li class="flex-1">
                 <a href="{% url 'player_profile' %}" 
@@ -161,6 +175,12 @@
                     class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if request.resolver_match.url_name == 'player_bidding_dashboard' %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
                     <i class="fa-solid fa-gavel text-lg"></i>
                     Bidding Hub
+                </a>
+
+                <a href="{% url 'player_contract_page' %}"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group {% if 'contract' in request.resolver_match.url_name %}bg-white/5 text-accent-cyan font-bold border-r-2 border-accent-cyan{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %}">
+                    <i class="fa-solid fa-file-contract text-lg"></i>
+                    My Contract
                 </a>
             </div>
 

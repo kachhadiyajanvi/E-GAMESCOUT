@@ -90,6 +90,10 @@ urlpatterns = [
     path('organization/player/<int:player_id>/', views.org_view_player_profile, name='org_view_player_profile_legacy'),
     path('organization/player/<int:player_id>/remove/', views.org_remove_player, name='org_remove_player_legacy'),
     path('player/dashboard/', views.player_dashboard, name='player_dashboard'),
+    path('player/contract/', views.player_contract_page, name='player_contract_page'),
+    path('player/contract/document/', views.player_contract_document_view, name='player_contract_document_view'),
+    path('player/contract/export/', views.player_export_contract_pdf, name='player_export_contract_pdf'),
+    path('player/contract/sign/', views.player_sign_contract, name='player_sign_contract'),
     path('player/profile/', views.player_profile, name='player_profile'),
     path('player/profile/2fa/setup/', views.player_2fa_setup, name='player_2fa_setup'),
     path('player/profile/2fa/verify/', views.player_2fa_verify_setup, name='player_2fa_verify_setup'),
@@ -155,6 +159,7 @@ urlpatterns = [
     # Admin Contracts
     path('admin/contracts/', admin_views.admin_contracts_list, name='admin_contracts_list'),
     path('admin/contracts/organization/<int:org_id>/', admin_views.admin_organization_contracts, name='admin_organization_contracts'),
+    path('admin/contracts/<int:contract_id>/pdf/', admin_views.admin_export_contract_pdf, name='admin_export_contract_pdf'),
 
 
     # Tournament Publishing & Participation

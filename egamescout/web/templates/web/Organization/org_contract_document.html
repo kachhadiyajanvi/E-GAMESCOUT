@@ -59,9 +59,6 @@
             margin-bottom: 20px;
             border-bottom: 1px solid #eee;
             padding-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
         }
         .system-logo {
             height: 40px;
@@ -100,8 +97,7 @@
             margin-bottom: 15px;
         }
         .signature-section {
-            display: flex;
-            justify-content: space-between;
+            width: 100%;
             margin-top: 60px;
             page-break-inside: avoid;
         }
@@ -110,6 +106,7 @@
             border-top: 1px solid #ccc;
             padding-top: 10px;
             text-align: center;
+            vertical-align: bottom;
         }
         .sig-label {
             font-size: 10px;
@@ -152,19 +149,25 @@
 
     {% if not is_pdf %}
     <div class="actions-bar no-print">
+        {% if not is_player %}
         <a href="{% url 'org_contract_list' %}" class="bg-gray-800 text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-black transition-all text-center">
              &larr; Back to List
         </a>
         <a href="{% url 'org_export_contract_pdf' contract.id %}" class="bg-red-600 text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-red-700 transition-all text-center">
             Download PDF
         </a>
+        
+        {% if not contract.is_signed %}
         <a href="{% url 'org_send_contract_to_player' contract.id %}" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-blue-700 transition-all text-center">
             Send to Player
         </a>
-        {% if not contract.is_saved %}
+        {% endif %}
+        
+        {% if not contract.is_saved and not contract.is_signed %}
         <a href="{% url 'org_save_contract' contract.id %}" class="bg-green-600 text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-green-700 transition-all text-center">
             Save & Finalize
         </a>
+        {% endif %}
         {% endif %}
     </div>
     {% endif %}
@@ -245,22 +248,30 @@
             This Agreement shall be governed by and construed in accordance with the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the exclusive jurisdiction of the courts located in the Organization's primary place of registration.
         </div>
 
-        <div class="signature-section">
-            <div class="sig-box">
-                {% if org.organization_signature %}
-                <img src="{{ org.organization_signature.url }}" class="signature-img" alt="Org Signature">
-                {% else %}
-                <div style="height: 60px;"></div>
-                {% endif %}
-                <div class="sig-label">Authorized Signatory</div>
-                <div style="font-size: 13px; font-weight: bold; color: #111;">{{ org.Organization_Name }}</div>
-            </div>
-            <div class="sig-box">
-                <div style="height: 60px;"></div>
-                <div class="sig-label">Player Signature</div>
-                <div style="font-size: 12px; font-weight: bold;">{{ contract.player.full_name }}</div>
-            </div>
-        </div>
+        <table class="signature-section" style="border: 0;">
+            <tr>
+                <td class="sig-box">
+                    {% if org.organization_signature %}
+                    <img src="{{ org.organization_signature.url }}" class="signature-img" alt="Org Signature">
+                    {% else %}
+                    <div style="height: 60px;"></div>
+                    {% endif %}
+                    <div class="sig-label">Authorized Signatory</div>
+                    <div style="font-size: 13px; font-weight: bold; color: #111;">{{ org.Organization_Name }}</div>
+                </td>
+                <td style="width: 10%; border: 0;"></td>
+                <td class="sig-box">
+                    {% if contract.is_signed and contract.player_signature %}
+                    <img src="{{ contract.player_signature.url }}" class="signature-img" alt="Player Signature">
+                    <div style="font-size: 8px; color: #888; margin-top: 2px;">Signed on: {{ contract.signed_at|date:"Y-m-d" }}</div>
+                    {% else %}
+                    <div style="height: 60px;"></div>
+                    {% endif %}
+                    <div class="sig-label">Player Signature</div>
+                    <div style="font-size: 12px; font-weight: bold;">{{ contract.player.full_name }}</div>
+                </td>
+            </tr>
+        </table>
 
         <div class="footer">
             This is a system-based digital contract. Reference ID: CTR-{{ contract.id|stringformat:"04d" }}
