@@ -63,7 +63,6 @@
             padding-bottom: 15px;
         }
         .system-logo {
-            height: 40px;
             vertical-align: middle;
         }
         .system-name {
@@ -123,8 +122,6 @@
             color: #666;
         }
         .signature-img {
-            max-height: 32px;
-            max-width: 150px;
             margin-bottom: 5px;
             object-fit: contain;
         }
@@ -184,7 +181,7 @@
         <!-- System Branding Header -->
         <div class="system-branding">
             <div style="float: left;">
-                <img src="{% static 'web/images/logo.png' %}" class="system-logo" alt="Logo">
+                <img src="{% static 'web/images/logo.png' %}" class="system-logo" alt="Logo" width="120">
                 <span class="system-name">E-GAMESCOUT</span>
             </div>
             <div style="float: right; font-size: 10px; color: #999; text-transform: uppercase; margin-top: 15px;">
@@ -260,7 +257,7 @@
             <tr>
                 <td class="sig-box">
                     {% if org.organization_signature %}
-                    <img src="{{ org.organization_signature.url }}" class="signature-img" alt="Org Signature">
+                    <img src="{{ org.organization_signature.url }}" class="signature-img" alt="Org Signature" width="150">
                     {% else %}
                     <div style="height: 60px;"></div>
                     {% endif %}
@@ -269,16 +266,14 @@
                 </td>
                 <td style="width: 10%; border: 0;"></td>
                 <td class="sig-box">
-                    <div class="sig-box" style="float: none; width: 100%; border: 0; padding: 0;">
-                        {% if contract.is_signed and contract.player_signature %}
-                        <img src="{{ contract.player_signature.url }}" class="signature-img" alt="Player Signature">
-                        <div style="font-size: 8px; color: #888; margin-top: 2px;">Signed on: {{ contract.signed_at|date:"Y-m-d" }}</div>
-                        {% else %}
-                        <div style="height: 60px;"></div>
-                        {% endif %}
-                        <div class="sig-label">Player Signature</div>
-                        <div style="font-size: 12px; font-weight: bold;">{{ contract.player.full_name }}</div>
-                    </div>
+                    {% if contract.is_signed and contract.player_signature %}
+                    <img src="{{ contract.player_signature.url }}" class="signature-img" alt="Player Signature" width="150" height="70">
+                    <div style="font-size: 8px; color: #888; margin-top: 2px;">Signed on: {{ contract.signed_at|date:"Y-m-d" }}</div>
+                    {% else %}
+                    <div style="height: 60px;"></div>
+                    {% endif %}
+                    <div class="sig-label">Player Signature</div>
+                    <div style="font-size: 12px; font-weight: bold;">{{ contract.player.full_name }}</div>
                 </td>
             </tr>
         </table>
