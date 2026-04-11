@@ -32,6 +32,7 @@ urlpatterns = [
     path('organization/login/2fa-verify/', views.org_2fa_verify_login, name='org_2fa_verify_login'),
     path('organization/profile/update/', views.update_profile, name='update_profile'),
     path('organization/profile/photo/update/', views.update_profile_photo, name='update_profile_photo'),
+    path('organization/profile/signature/update/', views.update_organization_signature, name='update_org_signature'),
     path('organization/deactivate/', views.org_deactivate_account, name='org_deactivate_account'),
     path('organization/activate/', views.org_activate_account, name='org_activate_account'),
     path('organization/delete/', views.org_delete_account, name='org_delete_account'),

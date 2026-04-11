@@ -2260,6 +2260,40 @@ def update_profile_photo(request):
     return redirect('manage_profile')
 
 @login_required_organization
+def update_organization_signature(request):
+    """Update organization signature via base64 Canvas or Image upload"""
+    import base64
+    from django.core.files.base import ContentFile
+    import uuid
+
+    org_id = request.session.get('organizer_id')
+    org = get_object_or_404(Organization, id=org_id)
+
+    if request.method == 'POST':
+        # Check for Base64 (Canvas)
+        signature_base64 = request.POST.get('signature_base64')
+        if signature_base64:
+            format, imgstr = signature_base64.split(';base64,') 
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name=f'org_sig_{uuid.uuid4().hex[:8]}.{ext}')
+            org.organization_signature = data
+            org.save()
+            messages.success(request, 'Signature created successfully from canvas!')
+            return redirect('manage_profile')
+        
+        # Check for File Upload (Cropper/Direct Upload)
+        if request.FILES.get('signature_file'):
+            org.organization_signature = request.FILES['signature_file']
+            org.save()
+            messages.success(request, 'Signature image uploaded successfully!')
+            return redirect('manage_profile')
+            
+        messages.error(request, 'No valid signature data received.')
+        return redirect('manage_profile')
+
+    return redirect('manage_profile')
+
+@login_required_organization
 def org_delete_account(request):
     org_id = request.session.get('organizer_id')
         
@@ -4026,15 +4060,13 @@ def org_create_contract(request):
     org = get_object_or_404(Organization, id=org_id)
     
     if request.method == 'POST':
-        contract_form = ContractForm(request.POST, organization=org)
-        sig_form = None
         if not org.organization_signature:
-            sig_form = OrganizationSignatureForm(request.POST, request.FILES, instance=org)
+            messages.error(request, "Please add your signature before submitting the contract.")
+            return redirect('org_create_contract')
             
-        if contract_form.is_valid() and (sig_form is None or sig_form.is_valid()):
-            if sig_form:
-                sig_form.save()
+        contract_form = ContractForm(request.POST, organization=org)
             
+        if contract_form.is_valid():
             contract = contract_form.save(commit=False)
             contract.organization = org
             contract.save()
@@ -4043,8 +4075,6 @@ def org_create_contract(request):
     else:
         contract_form = ContractForm(organization=org)
         sig_form = None
-        if not org.organization_signature:
-            sig_form = OrganizationSignatureForm(instance=org)
             
     # Fetch accepted bids for this organization's players to show bid price
     accepted_bids = Bid.objects.filter(

@@ -194,9 +194,9 @@
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: Organization Details Form -->
-        <div class="w-full xl:w-2/3">
-            <div class="bg-black/40 backdrop-blur-md border border-white/10 p-6 lg:p-8 rounded-2xl relative overflow-hidden shadow-lg h-full">
+        <!-- RIGHT COLUMN: Organization Details Form & Signature -->
+        <div class="w-full xl:w-2/3 flex flex-col gap-6 lg:gap-8">
+            <div class="bg-black/40 backdrop-blur-md border border-white/10 p-6 lg:p-8 rounded-2xl relative overflow-hidden shadow-lg">
                 <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent-cyan/50 to-transparent"></div>
                 
                 <h3 class="font-display font-bold text-base text-white mb-8 flex items-center gap-3">
@@ -313,6 +313,89 @@
                     </div>
                 </form>
             </div>
+            </div>
+
+            <!-- Signature Section -->
+            <div id="signature-section" class="bg-black/40 backdrop-blur-md border border-white/10 p-6 lg:p-8 rounded-2xl relative overflow-hidden shadow-lg">
+                <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent-cyan/50 to-transparent"></div>
+                
+                <h3 class="font-display font-bold text-base text-white mb-6 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center">
+                        <i class="fa-solid fa-signature text-accent-cyan text-sm"></i>
+                    </div>
+                    ORGANIZATION SIGNATURE
+                </h3>
+                
+                <p class="text-xs text-brand-light/60 mb-6 leading-relaxed">
+                    This signature will be securely attached to all officially generated professional contracts.
+                </p>
+
+                <!-- Current Signature Display -->
+                {% if org.organization_signature %}
+                <div class="mb-8 p-4 bg-white/5 border border-white/10 rounded-xl relative group">
+                    <h4 class="text-[10px] font-bold text-accent-cyan/80 uppercase tracking-widest mb-3">Current Active Signature</h4>
+                    <div class="bg-white rounded p-4 flex items-center justify-center max-w-[300px] overflow-hidden min-h-[100px]">
+                        <img src="{{ org.organization_signature.url }}" alt="Signature" class="max-w-full max-h-[80px] object-contain mix-blend-multiply filter contrast-125">
+                    </div>
+                    <div class="absolute top-4 right-4 flex gap-2">
+                        <button type="button" onclick="document.getElementById('sig-setup-container').classList.toggle('hidden')" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-[10px] uppercase tracking-wider backdrop-blur-sm border border-white/20 transition-all">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Setup / Edit Container -->
+                <div id="sig-setup-container" class="{% if org.organization_signature %}hidden{% endif %}">
+                    <!-- Tabs -->
+                    <div class="flex border-b border-white/10 mb-6">
+                        <button type="button" onclick="switchSigTab('draw')" id="tab-btn-draw" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 border-accent-cyan text-accent-cyan">
+                            <i class="fa-solid fa-pen-nib mr-1.5"></i> Draw
+                        </button>
+                        <button type="button" onclick="switchSigTab('upload')" id="tab-btn-upload" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 border-transparent text-white/40 hover:text-white/80">
+                            <i class="fa-solid fa-upload mr-1.5"></i> Upload
+                        </button>
+                    </div>
+
+                    <!-- Draw Tab -->
+                    <div id="sig-tab-draw" class="space-y-4 animate-fade-in block">
+                        <div class="bg-white rounded-xl overflow-hidden border-2 border-accent-cyan/30 focus-within:border-accent-cyan transition-all relative">
+                            <canvas id="sig-canvas" class="w-full h-[200px] cursor-crosshair touch-none bg-white"></canvas>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <button type="button" id="sig-clear" class="text-[10px] sm:text-xs font-bold text-white/50 hover:text-red-400 uppercase tracking-wider px-3 py-2 transition-colors">
+                                <i class="fa-solid fa-eraser"></i> Clear
+                            </button>
+                            <form action="{% url 'update_org_signature' %}" method="post" id="sig-draw-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="signature_base64" id="sig-base64-input">
+                                <button type="button" id="sig-save-draw" class="px-6 py-2.5 rounded-xl bg-accent-cyan text-black font-display font-bold text-xs tracking-widest hover:bg-white hover:shadow-[0_0_15px_rgba(102,252,241,0.5)] transition-all uppercase flex items-center gap-2">
+                                    <i class="fa-solid fa-check"></i> Save Signature
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Upload Tab -->
+                    <div id="sig-tab-upload" class="space-y-4 animate-fade-in hidden">
+                        <p class="text-xs text-white/50">Upload a clean image of your signature on a white background. Maximum size 5MB.</p>
+                        
+                        <div id="sig-upload-container" class="w-full h-[200px] rounded-xl border-2 border-dashed border-white/20 hover:border-accent-cyan/50 bg-white/5 flex flex-col items-center justify-center transition-all cursor-pointer group" onclick="document.getElementById('sig-upload').click()">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-white/20 group-hover:text-accent-cyan mb-3 transition-colors"></i>
+                            <span class="text-xs font-bold text-white/50 uppercase tracking-widest group-hover:text-white transition-colors">Click to Browse</span>
+                        </div>
+                        
+                        <p id="sig-upload-error" class="hidden text-red-500 font-bold text-[10px] text-center"></p>
+
+                        <form action="{% url 'update_org_signature' %}" method="post" enctype="multipart/form-data" id="sig-upload-form">
+                            {% csrf_token %}
+                            <input type="file" name="signature_file" id="sig-upload" class="hidden" accept=".jpg,.jpeg,.png"
+                                onchange="validateFile(this, 'sig-upload-form', 'sig-upload-container', 'sig-upload-error', true)">
+                        </form>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -324,7 +407,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 
 <!-- Crop Modal -->
-<div id="cropModal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="cropModal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 touch-none" style="touch-action: none;">
     <div class="bg-[#111217] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col">
         <div class="p-4 border-b border-white/5 flex justify-between items-center bg-black/40">
             <h3 class="text-white font-display font-bold tracking-widest text-sm uppercase">Crop <span class="text-accent-cyan">Photo</span></h3>
@@ -347,9 +430,11 @@
     let cropper = null;
     let currentCropInput = null;
     let currentFormId = null;
+    let isCurrentCropSignature = false;
 
     function closeCropModal() {
         document.getElementById('cropModal').classList.add('hidden');
+        document.body.style.overflow = ''; // Restore page scroll
         if(cropper) {
             cropper.destroy();
             cropper = null;
@@ -357,11 +442,12 @@
         if(currentCropInput) {
             currentCropInput.value = '';
         }
+        isCurrentCropSignature = false;
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         // Global Photo Validation logic for immediate submit
-        window.validateFile = function(input, formId, containerId, errorId) {
+        window.validateFile = function(input, formId, containerId, errorId, isSignature = false) {
             const file = input.files[0];
             const container = document.getElementById(containerId);
             const errorEl = document.getElementById(errorId);
@@ -405,29 +491,21 @@
 
             currentCropInput = input;
             currentFormId = formId;
-
-            // Bypass crop on mobile/tablet devices (<= 1024px)
-            if (window.innerWidth <= 1024) {
-                if(currentFormId) {
-                    document.getElementById(currentFormId).submit();
-                } else {
-                    currentCropInput.form.submit();
-                }
-                return;
-            }
+            isCurrentCropSignature = isSignature;
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 const image = document.getElementById('cropImage');
                 image.src = e.target.result;
                 document.getElementById('cropModal').classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling on mobile
                 
                 if (cropper) {
                     cropper.destroy();
                 }
                 
                 cropper = new Cropper(image, {
-                    aspectRatio: 1, // enforcing square crop
+                    aspectRatio: isCurrentCropSignature ? NaN : 1, // enforcing square crop for profile, free for signature
                     viewMode: 1,
                     dragMode: 'move',
                     autoCropArea: 1,
@@ -454,9 +532,14 @@
                 btn.classList.add('opacity-75', 'cursor-wait');
                 btn.disabled = true;
                 
+                let width = isCurrentCropSignature ? Math.min(cropper.getCroppedCanvas().width, 1000) : 600;
+                let height = isCurrentCropSignature ? Math.min(cropper.getCroppedCanvas().height, 400) : 600;
+
                 cropper.getCroppedCanvas({
-                    width: 600,
-                    height: 600,
+                    width: width,
+                    height: height,
+                    maxWidth: 1024,
+                    maxHeight: 1024,
                     imageSmoothingEnabled: true,
                     imageSmoothingQuality: 'high',
                 }).toBlob((blob) => {
@@ -467,7 +550,8 @@
                         return;
                     }
                     
-                    const file = new File([blob], "profile_photo.jpg", { type: "image/jpeg", lastModified: new Date().getTime() });
+                    let filename = isCurrentCropSignature ? "signature_scan.jpg" : "profile_photo.jpg";
+                    const file = new File([blob], filename, { type: "image/jpeg", lastModified: new Date().getTime() });
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
                     currentCropInput.files = dataTransfer.files;
@@ -480,6 +564,142 @@
                 }, 'image/jpeg', 0.95);
             });
         }
+    });
+
+    // --- Signature Tabs Logic ---
+    window.switchSigTab = function(tabName) {
+        document.getElementById('sig-tab-draw').classList.toggle('hidden', tabName !== 'draw');
+        document.getElementById('sig-tab-upload').classList.toggle('hidden', tabName !== 'upload');
+        
+        let drawBtn = document.getElementById('tab-btn-draw');
+        let uploadBtn = document.getElementById('tab-btn-upload');
+        
+        if (tabName === 'draw') {
+            drawBtn.classList.add('border-accent-cyan', 'text-accent-cyan');
+            drawBtn.classList.remove('border-transparent', 'text-white/40');
+            uploadBtn.classList.add('border-transparent', 'text-white/40');
+            uploadBtn.classList.remove('border-accent-cyan', 'text-accent-cyan');
+            if (window.resizeCanvas) window.resizeCanvas(); // re-align to container size
+        } else {
+            uploadBtn.classList.add('border-accent-cyan', 'text-accent-cyan');
+            uploadBtn.classList.remove('border-transparent', 'text-white/40');
+            drawBtn.classList.add('border-transparent', 'text-white/40');
+            drawBtn.classList.remove('border-accent-cyan', 'text-accent-cyan');
+        }
+    };
+
+    // --- Signature Canvas Logic ---
+    document.addEventListener("DOMContentLoaded", () => {
+        const canvas = document.getElementById('sig-canvas');
+        if (!canvas) return; // if section isn't loaded
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        
+        // Setup initial background
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        window.resizeCanvas = () => {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            // Store current content before resize
+            const content = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.putImageData(content, 0, 0); // Restore content
+            
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#000000'; // Black signature
+        };
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function getCoordinates(event) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX = event.clientX;
+            let clientY = event.clientY;
+
+            // Touch support
+            if (event.touches && event.touches.length > 0) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            }
+
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function startDrawing(e) {
+            if (e.cancelable) e.preventDefault();
+            isDrawing = true;
+            const pos = getCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            if (e.cancelable) e.preventDefault();
+            const pos = getCoordinates(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+
+        function stopDrawing(e) {
+            if (e.cancelable) e.preventDefault();
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Mouse Events
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch Events
+        canvas.addEventListener('touchstart', startDrawing, {passive: false});
+        canvas.addEventListener('touchmove', draw, {passive: false});
+        canvas.addEventListener('touchend', stopDrawing, {passive: false});
+        canvas.addEventListener('touchcancel', stopDrawing, {passive: false});
+
+        // Controls
+        document.getElementById('sig-clear').addEventListener('click', () => {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Save
+        document.getElementById('sig-save-draw').addEventListener('click', () => {
+            // Check if blank (rudimentary)
+            const blank = document.createElement('canvas');
+            blank.width = canvas.width;
+            blank.height = canvas.height;
+            const blankCtx = blank.getContext('2d');
+            blankCtx.fillStyle = 'white';
+            blankCtx.fillRect(0, 0, blank.width, blank.height);
+            
+            if (canvas.toDataURL() === blank.toDataURL()) {
+                alert("Please provide a signature before saving.");
+                return;
+            }
+            
+            const base64Data = canvas.toDataURL('image/png');
+            document.getElementById('sig-base64-input').value = base64Data;
+            
+            // UI Button feedback
+            const btn = document.getElementById('sig-save-draw');
+            const ogHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+            
+            document.getElementById('sig-draw-form').submit();
+        });
     });
 </script>
 {% endblock %}
