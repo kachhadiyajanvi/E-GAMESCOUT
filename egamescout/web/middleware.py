@@ -1,6 +1,47 @@
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.core.cache import cache
+from django.http import HttpResponseForbidden, JsonResponse
 from web.models import UserSession
+
+class RateLimitingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.limit = 5
+        self.timeout = 15 * 60 # 15 minutes
+        self.AUTH_ENDPOINTS = [
+            '/auth/login',
+            '/auth/register',
+            '/auth/request-otp',
+            '/organization/login',
+            '/organization/register',
+            '/organization/resend-otp',
+            '/player/auth',
+            '/player/login',
+        ]
+
+    def __call__(self, request):
+        path = request.path_info
+        
+        # Only rate limit auth endpoints
+        is_auth = any(path.startswith(endpoint) for endpoint in self.AUTH_ENDPOINTS)
+        if is_auth and request.method == 'POST':
+            ip = self.get_client_ip(request)
+            cache_key = f'rate_limit_{ip}_{path}'
+            requests = cache.get(cache_key, 0)
+            
+            if requests >= self.limit:
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'error', 'message': 'Too many requests. Please try again after 15 minutes.'}, status=429)
+                return HttpResponseForbidden("Too many requests. Please try again later.")
+                
+            cache.set(cache_key, requests + 1, self.timeout)
+            
+        return self.get_response(request)
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        return x_forwarded_for.split(',')[0] if x_forwarded_for else request.META.get('REMOTE_ADDR')
 
 class SecureSessionValidationMiddleware:
     def __init__(self, get_response):

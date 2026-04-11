@@ -21,13 +21,12 @@
 
 {% block page_content %}
     <!-- Main Content -->
-    <div class="space-y-8">
+    <main class="space-y-8">
 
         <!-- Quick Stats Row -->
-        <div class="grid grid-cols-3 gap-3 md:gap-6">
+        <section class="grid grid-cols-3 gap-3 md:gap-6" aria-label="Quick Statistics">
             <!-- Stat 1 -->
-            <div
-                class="bg-[#111217] border border-white/5 p-3 md:p-6 rounded-2xl md:rounded-3xl relative overflow-hidden group hover:border-accent-cyan/30 transition-all duration-300 shadow-xl">
+            <article class="bg-[#111217] border border-white/5 p-3 md:p-6 rounded-2xl md:rounded-3xl relative overflow-hidden group hover:border-accent-cyan/30 transition-all duration-300 shadow-xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none">
                 </div>
                 <div
@@ -44,7 +43,7 @@
                     <h3 class="text-lg md:text-3xl font-display font-black text-white mix-blend-screen leading-none mt-1">
                         {{ total_tournaments_joined}}</h3>
                 </div>
-            </div>
+            </article>
 
             <!-- Stat 2 -->
             <div
@@ -63,7 +62,7 @@
                     <p class="text-[8px] md:text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1 leading-tight line-clamp-2 md:line-clamp-1">Matches</p>
                     <h3 class="text-lg md:text-3xl font-display font-black text-white mix-blend-screen leading-none mt-1">{{ matches_played }}</h3>
                 </div>
-            </div>
+            </article>
 
             <!-- Stat 3 -->
             <div
@@ -83,8 +82,8 @@
                     <h3 class="text-base sm:text-lg md:text-3xl font-display font-bold text-yellow-500 leading-none mt-1 truncate max-w-full" title="{{ player_credits|floatformat:2 }}">
                         {{ player_credits|floatformat:2 }}</h3>
                 </div>
-            </div>
-        </div>
+            </article>
+        </section>
 
         <!-- Main Split Layout -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -96,8 +95,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     <!-- Active Tournaments -->
-                    <div
-                        class="bg-[#111217] border border-white/5 rounded-3xl p-6 flex flex-col min-h-[220px] shadow-xl relative overflow-hidden group">
+                    <article class="bg-[#111217] border border-white/5 rounded-3xl p-6 flex flex-col min-h-[220px] shadow-xl relative overflow-hidden group">
                         <div
                             class="absolute inset-0 bg-gradient-to-br from-neon-pink/[0.02] to-transparent pointer-events-none">
                         </div>
@@ -148,7 +146,7 @@
                             <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">No Active Events</p>
                         </div>
                         {% endif %}
-                    </div>
+                    </article>
 
                     <!-- Upcoming Tournaments -->
                     <div
@@ -164,7 +162,7 @@
                                     class="w-7 h-7 rounded-lg bg-accent-cyan/10 flex items-center justify-center text-accent-cyan border border-accent-cyan/20">
                                     <i class="fa-regular fa-calendar-check text-xs"></i>
                                 </div>
-                                Upcoming
+                                Upcoming Tournaments
                             </h3>
                             <a href="{% url 'player_upcoming_tournaments' %}"
                                 class="text-[9px] uppercase font-bold tracking-widest text-accent-cyan hover:text-black transition-colors bg-accent-cyan/10 px-2.5 py-1 rounded-md border border-accent-cyan/20 hover:bg-accent-cyan">Discover</a>
@@ -202,7 +200,7 @@
                             <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Schedule Empty</p>
                         </div>
                         {% endif %}
-                    </div>
+                    </article>
                 </div>
 
                 <!-- Upcoming Events / Deadlines Section -->
@@ -257,8 +255,8 @@
                         <p class="text-xs text-gray-500">No pressing actions required right now.</p>
                     </div>
                     {% endif %}
-                </div>
+                </article>
             </div>
         </div>
-    </div>
+    </main>
 {% endblock %}

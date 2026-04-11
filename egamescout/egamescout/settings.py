@@ -86,6 +86,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'web.middleware.SecureSessionValidationMiddleware',
     'web.middleware.MaintenanceModeMiddleware',
+    'web.middleware.RateLimitingMiddleware',
 ]
 
 ROOT_URLCONF = 'egamescout.urls'

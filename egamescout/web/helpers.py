@@ -5,10 +5,32 @@ import datetime
 import re
 import time
 import requests
+import threading
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.utils.html import strip_tags
+
+def send_mail_async(subject, message, from_email, recipient_list, fail_silently=False, html_message=None):
+    """
+    Non-blocking wrapper for Django's send_mail / EmailMultiAlternatives using threading.
+    """
+    def _send():
+        try:
+            if html_message:
+                msg = EmailMultiAlternatives(subject, message, from_email, recipient_list)
+                msg.attach_alternative(html_message, "text/html")
+                msg.send(fail_silently)
+            else:
+                send_mail(subject, message, from_email, recipient_list, fail_silently=fail_silently)
+            print(f"EMAIL SENT (Async): '{subject}' to {recipient_list}")
+        except Exception as e:
+            print(f"EMAIL ASYNC ERROR: {str(e)}")
+            
+    thread = threading.Thread(target=_send)
+    thread.daemon = True
+    thread.start()
 
 
 def send_platform_email(subject, template_name, context, recipient_list, from_email=None):
@@ -49,12 +71,22 @@ def send_platform_email(subject, template_name, context, recipient_list, from_em
         # Create Email Value Object
         msg = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
         msg.attach_alternative(html_content, "text/html")
-        msg.send()
         
-        print(f"EMAIL SENT: '{subject}' to {recipient_list}")
+        # Dispatch in Background to prevent UI blocking
+        def _send():
+            try:
+                msg.send()
+                print(f"EMAIL SENT (Async): '{subject}' to {recipient_list}")
+            except Exception as thread_err:
+                print(f"EMAIL ASYNC ERROR: {str(thread_err)}")
+                
+        thread = threading.Thread(target=_send)
+        thread.daemon = True
+        thread.start()
+        
         return True
     except Exception as e:
-        print(f"EMAIL ERROR: Failed to send '{subject}' to {recipient_list}. Error: {str(e)}")
+        print(f"EMAIL ERROR: Failed to prepare '{subject}' for {recipient_list}. Error: {str(e)}")
         return False
 
 

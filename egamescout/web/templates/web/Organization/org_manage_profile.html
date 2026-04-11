@@ -1,7 +1,7 @@
 {% extends 'web/Organization/dashboard_base.html' %}
 
 {% block content %}
-<div class="space-y-6 lg:space-y-8">
+<main class="space-y-6 lg:space-y-8">
     <!-- Breadcrumb -->
     <nav class="page-breadcrumb">
         <a href="{% url 'index' %}" class="breadcrumb-link">
@@ -15,7 +15,7 @@
     </nav>
 
     <!-- Page Header -->
-    <div class="page-header">
+    <header class="page-header">
         <div class="page-title-group">
             <div class="page-title-decorator"></div>
             <div>
@@ -25,16 +25,16 @@
                 <p class="page-subtitle mt-1">Update your organization information</p>
             </div>
         </div>
-    </div>
+    </header>
 
     <!-- Main Layout: Stacks on mobile/tablet, side-by-side on XL -->
     <div class="flex flex-col xl:flex-row gap-6 lg:gap-8">
 
         <!-- LEFT COLUMN: Profile Photo + Account Status -->
-        <div class="w-full xl:w-1/3 flex flex-col gap-6 lg:gap-8 shrink-0">
+        <aside class="w-full xl:w-1/3 flex flex-col gap-6 lg:gap-8 shrink-0">
 
             <!-- Profile Photo -->
-            <div class="bg-black/40 backdrop-blur-md border border-white/10 p-5 lg:p-6 rounded-2xl relative overflow-hidden shadow-lg group/panel">
+            <section class="section-card group/panel">
                 <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent-cyan/50 to-transparent"></div>
                 
                 <h3 class="font-display font-bold text-sm text-white mb-6 flex items-center gap-2">
@@ -71,10 +71,10 @@
                         </button>
                     </form>
                 </div>
-            </div>
+            </section>
 
             <!-- Account Status & Settings -->
-            <div class="bg-black/40 backdrop-blur-md border border-white/10 p-5 lg:p-6 rounded-2xl relative overflow-hidden shadow-lg">
+            <section class="section-card">
                 <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent-cyan/50 to-transparent"></div>
                 
                 <h3 class="font-display font-bold text-sm text-white mb-5 flex items-center gap-2">
@@ -136,7 +136,7 @@
                         <form action="{% url 'org_2fa_disable' %}" method="post">
                             {% csrf_token %}
                             <button type="submit"
-                                class="w-full py-3 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white rounded-xl border border-red-500/30 transition-all duration-300 font-bold uppercase tracking-wider text-[10px] sm:text-xs flex items-center justify-center gap-2 group hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                                class="btn-danger group"
                                 onclick="customConfirm(event, 'Are you sure you want to disable Two-Factor Authentication? This will reduce your account security.', 'Disable Two-Factor Authentication');">
                                 <i class="fa-solid fa-lock-open group-hover:-translate-y-0.5 transition-transform"></i> Disable Two-Factor Authentication
                             </button>
@@ -162,7 +162,7 @@
                             <form action="{% url 'org_deactivate_account' %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit"
-                                    class="w-full py-3 bg-orange-500/10 hover:bg-orange-500 text-orange-400 hover:text-white rounded-xl border border-orange-500/30 transition-all font-bold uppercase tracking-wider text-[10px] sm:text-xs flex items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+                                    class="btn-warning">
                                     <i class="fa-solid fa-store-slash"></i> Deactivate Profile
                                 </button>
                             </form>
@@ -175,7 +175,7 @@
                             <form action="{% url 'org_activate_account' %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit"
-                                    class="w-full py-3 bg-green-500/10 hover:bg-green-500 text-green-400 hover:text-white rounded-xl border border-green-500/30 transition-all font-bold uppercase tracking-wider text-[10px] sm:text-xs flex items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                                    class="btn-success">
                                     <i class="fa-solid fa-store"></i> Reactivate Profile
                                 </button>
                             </form>
@@ -185,18 +185,18 @@
                         <div class="pt-4 border-t border-red-500/10">
                             <p class="text-[10px] text-brand-light/40 mb-3 font-sans">Permanently delete your entire organization account and data.</p>
                             <a href="{% url 'org_delete_account' %}"
-                                class="w-full py-3 bg-red-500/5 hover:bg-red-600 text-red-500 hover:text-white rounded-xl border border-red-500/20 transition-all font-bold uppercase tracking-wider text-[10px] sm:text-xs flex items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)]">
+                                class="btn-danger">
                                 <i class="fa-solid fa-trash-can"></i> Outline Delete Account
                             </a>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
+        </aside>
 
         <!-- RIGHT COLUMN: Organization Details Form & Signature -->
         <div class="w-full xl:w-2/3 flex flex-col gap-6 lg:gap-8">
-            <div class="bg-black/40 backdrop-blur-md border border-white/10 p-6 lg:p-8 rounded-2xl relative overflow-hidden shadow-lg">
+            <section class="section-card p-6 lg:p-8">
                 <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent-cyan/50 to-transparent"></div>
                 
                 <h3 class="font-display font-bold text-base text-white mb-8 flex items-center gap-3">
@@ -218,19 +218,19 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <!-- Organization Name -->
                             <div>
-                                <label class="block text-[10px] font-bold text-white/50 mb-2 uppercase tracking-wider ml-1">Organization Name</label>
+                                <label class="form-label">Organization Name</label>
                                 <input type="text" name="organization_name" value="{{ org.Organization_Name }}"
-                                    class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-accent-cyan/50 focus:bg-accent-cyan/5 transition-all"
+                                    class="form-input"
                                     required>
                             </div>
                             
                             <!-- Username -->
                             <div>
-                                <label class="block text-[10px] font-bold text-white/50 mb-2 uppercase tracking-wider ml-1">Unique Username</label>
+                                <label class="form-label">Unique Username</label>
                                 <div class="relative">
                                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-sm">@</span>
                                     <input type="text" name="organization_username" value="{{ org.Organization_UserName }}"
-                                        class="w-full bg-black/60 border border-white/10 rounded-xl pl-9 pr-4 py-3.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-accent-cyan/50 focus:bg-accent-cyan/5 transition-all"
+                                        class="form-input pl-9"
                                         required>
                                 </div>
                             </div>
@@ -247,7 +247,7 @@
                             <!-- Email (Read-only) -->
                             <div>
                                 <label class="flex justify-between items-end mb-2 ml-1">
-                                    <span class="block text-[10px] font-bold text-white/50 uppercase tracking-wider">Email Address</span>
+                                    <span class="form-label mb-0">Email Address</span>
                                     <span class="text-[9px] text-accent-cyan/60 flex items-center gap-1"><i class="fa-solid fa-lock text-[8px]"></i> Read Only</span>
                                 </label>
                                 <div class="relative border-white/5">
@@ -260,9 +260,9 @@
 
                             <!-- Contact Number -->
                             <div>
-                                <label class="block text-[10px] font-bold text-white/50 mb-2 uppercase tracking-wider ml-1">Contact Number</label>
+                                <label class="form-label">Contact Number</label>
                                 <input type="tel" name="organization_contact" value="{{ org.Organization_Contact }}"
-                                    class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-accent-cyan/50 focus:bg-accent-cyan/5 transition-all"
+                                    class="form-input"
                                     required>
                             </div>
                         </div>
@@ -277,7 +277,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <!-- Instagram Handle -->
                             <div>
-                                <label class="block text-[10px] font-bold text-white/50 mb-2 uppercase tracking-wider flex items-center gap-1.5 ml-1">
+                                <label class="form-label flex items-center gap-1.5">
                                     <i class="fa-brands fa-instagram text-pink-500 text-xs"></i> Instagram Handle
                                 </label>
                                 <div class="relative">
@@ -290,11 +290,11 @@
                             
                             <!-- Profile Link -->
                             <div>
-                                <label class="block text-[10px] font-bold text-white/50 mb-2 uppercase tracking-wider flex items-center gap-1.5 ml-1">
+                                <label class="form-label flex items-center gap-1.5">
                                     <i class="fa-solid fa-link text-accent-cyan text-xs"></i> Any Public Link
                                 </label>
                                 <input type="url" name="instagram_link" value="{{ org.instagram_link|default:'' }}"
-                                    class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-accent-cyan/50 focus:bg-accent-cyan/5 transition-all"
+                                    class="form-input"
                                     placeholder="https://...">
                             </div>
                         </div>
@@ -303,20 +303,19 @@
                     <!-- Form Actions -->
                     <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-8 border-t border-white/5 mt-auto">
                         <a href="{% url 'organizer_dashboard' %}"
-                            class="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-white/10 text-brand-light/60 hover:text-white hover:bg-white/5 hover:border-white/20 font-display font-bold text-xs tracking-widest transition-all uppercase text-center shrink-0">
+                            class="btn-secondary">
                             Discard Changes
                         </a>
                         <button type="submit"
-                            class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-accent-cyan text-black font-display font-bold text-xs tracking-widest hover:bg-white hover:shadow-[0_0_20px_rgba(102,252,241,0.6)] transition-all flex items-center justify-center gap-2 uppercase shrink-0">
+                            class="btn-primary">
                             <i class="fa-solid fa-save"></i> Save Profile
                         </button>
                     </div>
                 </form>
-            </div>
-            </div>
+            </section>
 
             <!-- Signature Section -->
-            <div id="signature-section" class="bg-black/40 backdrop-blur-md border border-white/10 p-6 lg:p-8 rounded-2xl relative overflow-hidden shadow-lg">
+            <div id="signature-section" class="section-card p-6 lg:p-8">
                 <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent-cyan/50 to-transparent"></div>
                 
                 <h3 class="font-display font-bold text-base text-white mb-6 flex items-center gap-3">
@@ -394,11 +393,11 @@
                         </form>
                     </div>
                 </div>
-            </div>
+            </section>
 
         </div>
     </div>
-</div>
+</main>
 {% endblock %}
 
 {% block scripts %}
@@ -449,6 +448,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Prevent touch scrolling when cropper is active on mobile
+        const cropModal = document.getElementById('cropModal');
+        if (cropModal) {
+            cropModal.addEventListener('touchmove', function(e) {
+                if (e.target.closest('.cropper-container')) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        }
+
         // Global Photo Validation logic for immediate submit
         window.validateFile = function(input, formId, containerId, errorId, isSignature = false) {
             const file = input.files[0];

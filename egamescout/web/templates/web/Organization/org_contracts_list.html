@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<div class="space-y-6 lg:space-y-8">
+<main class="space-y-6 lg:space-y-8">
     <!-- Breadcrumb -->
     <nav class="page-breadcrumb">
         <a href="{% url 'index' %}" class="breadcrumb-link">
@@ -15,7 +15,7 @@
         <span class="breadcrumb-active">Contract History</span>
     </nav>
 
-    <div class="page-header flex-wrap gap-4">
+    <header class="page-header flex-wrap gap-4">
         <div class="page-title-group">
             <div class="page-title-decorator"></div>
             <div>
@@ -26,7 +26,23 @@
             </div>
         </div>
 
-        <div class="page-actions flex gap-3 flex-wrap">
+        <div class="page-actions flex gap-3 flex-wrap items-center">
+            <!-- FILTER TABS -->
+            <div class="flex gap-1 p-1 bg-white/5 border border-white/10 rounded-xl backdrop-blur-sm mr-4 hidden md:flex">
+                <a href="?status=all" class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all {% if current_filter == 'all' or not current_filter %}bg-accent-cyan text-brand-dark shadow-[0_0_10px_rgba(102,252,241,0.2)]{% else %}text-brand-light/60 hover:text-white{% endif %}">
+                    All
+                </a>
+                <a href="?status=signed" class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all {% if current_filter == 'signed' %}bg-accent-cyan text-brand-dark shadow-[0_0_10px_rgba(102,252,241,0.2)]{% else %}text-brand-light/60 hover:text-white{% endif %}">
+                    Signed
+                </a>
+                <a href="?status=verified" class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all {% if current_filter == 'verified' %}bg-accent-cyan text-brand-dark shadow-[0_0_10px_rgba(102,252,241,0.2)]{% else %}text-brand-light/60 hover:text-white{% endif %}">
+                    Verified
+                </a>
+                <a href="?status=draft" class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all {% if current_filter == 'draft' %}bg-accent-cyan text-brand-dark shadow-[0_0_10px_rgba(102,252,241,0.2)]{% else %}text-brand-light/60 hover:text-white{% endif %}">
+                    Draft
+                </a>
+            </div>
+
             <a href="{% url 'organizer_dashboard' %}"
                 class="px-4 py-2.5 border border-white/10 rounded-xl hover:bg-white/5 text-brand-light/60 hover:text-white font-display font-bold text-xs tracking-widest uppercase transition-all flex items-center gap-2 backdrop-blur-sm whitespace-nowrap">
                 <i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">Dashboard</span>
@@ -36,10 +52,10 @@
                 <i class="fa-solid fa-plus-circle"></i> <span class="hidden sm:inline">Create New Contract</span><span class="sm:hidden">New Contract</span>
             </a>
         </div>
-    </div>
+    </header>
 
     <!-- Contracts Table — Desktop -->
-    <div class="glass-panel overflow-hidden rounded-3xl border border-white/5 bg-black/40 backdrop-blur-xl shadow-2xl hidden md:block">
+    <section class="glass-panel overflow-hidden rounded-3xl border border-white/5 bg-black/40 backdrop-blur-xl shadow-2xl hidden md:block">
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead>
@@ -77,7 +93,11 @@
                             {{ contract.duration }}
                         </td>
                         <td class="px-6 py-5">
-                            {% if contract.is_saved %}
+                            {% if contract.is_signed %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan text-[10px] font-black uppercase tracking-tighter shadow-[0_0_10px_rgba(102,252,241,0.1)]">
+                                <span class="w-1 h-1 bg-accent-cyan rounded-full"></span>Signed
+                            </span>
+                            {% elif contract.is_saved %}
                             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-black uppercase tracking-tighter shadow-[0_0_10px_rgba(74,222,128,0.1)]">
                                 <span class="w-1 h-1 bg-green-400 rounded-full"></span>Verified
                             </span>
@@ -91,16 +111,19 @@
                             {{ contract.created_at|date:"d M Y" }}
                         </td>
                         <td class="px-6 py-5 text-right">
-                            <div class="flex items-center justify-end gap-2">
                                 <a href="{% url 'org_view_contract' contract.id %}" class="p-2.5 rounded-lg bg-white/5 border border-white/10 text-brand-light hover:text-accent-cyan hover:border-accent-cyan/40 transition-all hover:bg-accent-cyan/5" title="View Document">
                                     <i class="fa-solid fa-file-invoice text-sm"></i>
                                 </a>
                                 <a href="{% url 'org_export_contract_pdf' contract.id %}" class="p-2.5 rounded-lg bg-white/5 border border-white/10 text-brand-light hover:text-red-400 hover:border-red-400/40 transition-all hover:bg-red-400/5" title="Download PDF">
                                     <i class="fa-solid fa-file-pdf text-sm"></i>
                                 </a>
-                                <a href="{% url 'org_send_contract_to_player' contract.id %}" class="p-2.5 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan hover:bg-accent-cyan hover:text-brand-dark transition-all shadow-[0_0_15px_rgba(102,252,241,0.1)]" title="Send to Player">
+                                {% if not contract.is_signed %}
+                                <a href="{% url 'org_send_contract_to_player' contract.id %}" onclick="return handleSendContractClick(this);" class="p-2.5 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan hover:bg-accent-cyan hover:text-brand-dark transition-all shadow-[0_0_15px_rgba(102,252,241,0.1)]" title="Send to Player">
                                     <i class="fa-solid fa-paper-plane text-sm"></i>
                                 </a>
+                                {% else %}
+                                <span class="px-2.5 py-1.5 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan text-[10px] font-bold">SIGNED</span>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -123,16 +146,20 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
 
     <!-- Contracts Cards — Mobile -->
-    <div class="md:hidden space-y-3">
+    <section class="md:hidden space-y-3">
         {% for contract in contracts %}
-        <div class="glass-panel rounded-2xl border border-white/5 bg-black/40 backdrop-blur-xl p-4">
+        <article class="glass-panel rounded-2xl border border-white/5 bg-black/40 backdrop-blur-xl p-4">
             <!-- Card Header -->
             <div class="flex items-center justify-between mb-3">
                 <span class="font-mono text-xs text-accent-cyan/50">#CTR-{{ contract.id|stringformat:"04d" }}</span>
-                {% if contract.is_saved %}
+                {% if contract.is_signed %}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan text-[10px] font-black uppercase tracking-tighter">
+                    <span class="w-1 h-1 bg-accent-cyan rounded-full"></span>Signed
+                </span>
+                {% elif contract.is_saved %}
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-black uppercase tracking-tighter">
                     <span class="w-1 h-1 bg-green-400 rounded-full"></span>Verified
                 </span>
@@ -175,11 +202,17 @@
                 <a href="{% url 'org_export_contract_pdf' contract.id %}" class="flex-1 py-2 rounded-lg bg-white/5 border border-white/10 text-brand-light hover:text-red-400 hover:border-red-400/40 transition-all hover:bg-red-400/5 flex items-center justify-center gap-1.5 text-xs font-bold">
                     <i class="fa-solid fa-file-pdf"></i> PDF
                 </a>
-                <a href="{% url 'org_send_contract_to_player' contract.id %}" class="flex-1 py-2 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan hover:bg-accent-cyan hover:text-brand-dark transition-all flex items-center justify-center gap-1.5 text-xs font-bold">
-                    <i class="fa-solid fa-paper-plane"></i> Send
+                {% if not contract.is_signed %}
+                <a href="{% url 'org_send_contract_to_player' contract.id %}" onclick="return handleSendContractClick(this);" class="flex-1 py-2 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan hover:bg-accent-cyan hover:text-brand-dark transition-all flex items-center justify-center gap-1.5 text-xs font-bold">
+                    <i class="fa-solid fa-paper-plane"></i> <span class="send-text">Send</span>
                 </a>
+                {% else %}
+                <div class="flex-1 py-2 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan flex items-center justify-center gap-1.5 text-xs font-bold">
+                    <i class="fa-solid fa-check-circle"></i> Signed
+                </div>
+                {% endif %}
             </div>
-        </div>
+        </article>
         {% empty %}
         <!-- Empty State — Mobile -->
         <div class="glass-panel rounded-2xl border border-white/5 bg-black/40 backdrop-blur-xl p-8 text-center">
@@ -195,8 +228,8 @@
             </div>
         </div>
         {% endfor %}
-    </div>
-</div>
+    </section>
+</main>
 
 <style>
     .glass-panel {
@@ -210,4 +243,28 @@
         pointer-events: none;
     }
 </style>
+
+<script>
+function handleSendContractClick(element) {
+    if (element.dataset.submitting === "true") {
+        return false;
+    }
+    element.dataset.submitting = "true";
+    
+    element.classList.add('opacity-50');
+    element.style.pointerEvents = 'none';
+    
+    const icon = element.querySelector('i');
+    if (icon) {
+        icon.className = 'fa-solid fa-spinner fa-spin text-sm';
+    }
+    
+    const textSpan = element.querySelector('.send-text');
+    if (textSpan) {
+        textSpan.textContent = 'Sending...';
+    }
+    
+    return true;
+}
+</script>
 {% endblock %}

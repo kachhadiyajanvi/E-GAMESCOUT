@@ -26,7 +26,8 @@ from web.forms import (
     OrganizationEmailForm, OTPForm, OrganizationDetailsForm,
     OrganizationLoginForm, OrganizationPhotoForm, TournamentForm,
     EmailLoginForm, OTPVerifyForm, AadharUploadForm,
-    PlayerRegistrationForm, PlayerProfileForm, ContractForm, OrganizationSignatureForm
+    PlayerRegistrationForm, PlayerProfileForm, ContractForm, OrganizationSignatureForm,
+    PreviousTournamentForm
 )
 from web.models import (
     Organization, Tournament, TournamentBidder, Player, 
@@ -37,7 +38,7 @@ from web.models import (
 )
 from web.decorators import login_required_organization
 from web.auth_services import handle_secure_login, handle_secure_logout
-from web.helpers import extract_aadhar_details
+from web.helpers import extract_aadhar_details, send_mail_async
 from django.core.cache import cache
 import pyotp
 import qrcode
@@ -114,7 +115,7 @@ def api_send_otp(request):
                 html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 plain_message = strip_tags(html_message)
                 
-                send_mail(
+                send_mail_async(
                     'Your E-Game Scout Code',
                     plain_message,
                     settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com',
@@ -217,7 +218,7 @@ def api_register_send_otp(request):
             html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
             plain_message = strip_tags(html_message)
             
-            send_mail(
+            send_mail_async(
                 'Your E-Game Scout Code',
                 plain_message,
                 settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com',
@@ -342,9 +343,7 @@ def api_register_step2(request):
                 html_content = render_to_string('web/emails/welcome.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 text_content = strip_tags(html_content)
                 
-                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-                msg.attach_alternative(html_content, "text/html")
-                msg.send()
+                send_mail_async(subject, text_content, settings.EMAIL_HOST_USER, [email], html_message=html_content)
                 print(f"DEBUG: Welcome email sent to {email}")
             except Exception as e:
                 print(f"ERROR: Failed to send welcome email: {e}")
@@ -438,7 +437,7 @@ def auth_login(request):
                 html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 plain_message = strip_tags(html_message)
             
-            send_mail(
+            send_mail_async(
                 'Your E-Game Scout Code',
                 plain_message,
                 settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com',
@@ -709,9 +708,7 @@ def auth_register_details(request):
                 html_content = render_to_string('web/emails/welcome.html', {'full_name': player.full_name, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 text_content = strip_tags(html_content)
                 
-                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-                msg.attach_alternative(html_content, "text/html")
-                msg.send()
+                send_mail_async(subject, text_content, settings.EMAIL_HOST_USER, [email], html_message=html_content)
                 print(f"DEBUG: Welcome email sent to {email}")
             except Exception as e:
                 print(f"ERROR: Failed to send welcome email: {e}")
@@ -780,7 +777,7 @@ def player_dashboard(request):
 
     # --- Calendar Data Injection ---
     # 1. Scheduled Tournaments
-    calendar_tournaments = Tournament.objects.filter(
+    calendar_tournaments = Tournament.objects.select_related('Organization_Name').filter(
         Status__in=['Scheduled', 'Ongoing'],
         is_published=True,
         approval_status='APPROVED',
@@ -819,12 +816,12 @@ def player_dashboard(request):
             })
 
     # Dynamic Tournaments List
-    active_tournaments_qs = Tournament.objects.filter(
+    active_tournaments_qs = Tournament.objects.select_related('Organization_Name').filter(
         Status='Ongoing',
         is_published=True,
         approval_status='APPROVED'
     )
-    upcoming_tournaments_qs = Tournament.objects.filter(
+    upcoming_tournaments_qs = Tournament.objects.select_related('Organization_Name').filter(
         Status='Scheduled',
         is_published=True,
         approval_status='APPROVED'
@@ -934,7 +931,7 @@ def player_deactivate_account(request):
                 player.save()
                 
             # 3. Handle Active Bids (Refund & Cancel)
-            active_bids = Bid.objects.filter(player=player, status__in=['Pending', 'Negotiation'])
+            active_bids = Bid.objects.select_related('organization', 'player', 'season').filter(player=player, status__in=['Pending', 'Negotiation'])
             for bid in active_bids:
                 org = bid.organization
                 
@@ -1101,7 +1098,7 @@ def player_delete_account(request):
             player.save()
             
             # Handle Active Bids (Refund & Cancel)
-            active_bids = Bid.objects.filter(player=player, status__in=['Pending', 'Negotiation'])
+            active_bids = Bid.objects.select_related('organization', 'player', 'season').filter(player=player, status__in=['Pending', 'Negotiation'])
             for bid in active_bids:
                 org = bid.organization
                 
@@ -1159,11 +1156,11 @@ def index(request):
     except Exception:
         live_scouting = False
         
-    previous_tournaments = PreviousTournament.objects.filter(published=True).order_by('-date')[:6]
+    previous_tournaments = PreviousTournament.objects.select_related('Organization_Name').filter(published=True).order_by('-date')[:6]
     
     # Upcoming Tournaments (Verified & Published)
     now = timezone.now()
-    upcoming_tournaments = list(Tournament.objects.filter(
+    upcoming_tournaments = list(Tournament.objects.select_related('Organization_Name').filter(
         Status='Scheduled',
         is_published=True,
         approval_status='APPROVED',
@@ -1182,7 +1179,7 @@ def index(request):
     try:
         total_organizations = Organization.objects.filter(status='Active').count()
         total_players = Player.objects.filter(is_active_account=True, is_archived=False).count()
-        total_tournaments = Tournament.objects.filter(is_published=True, approval_status='APPROVED', is_archived=False).count()
+        total_tournaments = Tournament.objects.select_related('Organization_Name').filter(is_published=True, approval_status='APPROVED', is_archived=False).count()
     except Exception:
         total_organizations = 0
         total_players = 0
@@ -1213,7 +1210,7 @@ def public_tournaments(request):
     days_in_month = monthrange(now.year, now.month)[1]
     end_of_month = start_of_month + datetime.timedelta(days=days_in_month)
 
-    tournaments = Tournament.objects.filter(
+    tournaments = Tournament.objects.select_related('Organization_Name').filter(
         start_date__gte=start_of_month,
         start_date__lt=end_of_month,
         is_published=True,
@@ -1222,7 +1219,7 @@ def public_tournaments(request):
     ).order_by('start_date')
 
     # 2. Coming Soon (Future Months)
-    coming_soon = Tournament.objects.filter(
+    coming_soon = Tournament.objects.select_related('Organization_Name').filter(
         start_date__gte=end_of_month,
         is_published=True,
         approval_status='APPROVED',
@@ -1286,7 +1283,7 @@ def public_previous_tournaments(request):
     """Public view for all historic/previous tournaments with search and pagination"""
     query = request.GET.get('q', '')
     
-    tournaments = PreviousTournament.objects.filter(published=True).select_related('organization')
+    tournaments = PreviousTournament.objects.select_related('Organization_Name').filter(published=True).select_related('organization')
     
     if query:
         tournaments = tournaments.filter(
@@ -1386,9 +1383,7 @@ def org_register_start(request):
             html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
             text_content = strip_tags(html_content)
             
-            msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-            msg.attach_alternative(html_content, "text/html")
-            msg.send()
+            send_mail_async(subject, text_content, settings.EMAIL_HOST_USER, [email], html_message=html_content)
             
             print(f"DEBUG: Registration OTP for {email}: {otp}") # Keep for dev backup
             
@@ -1462,9 +1457,7 @@ def org_register_details(request):
                 })
                 text_content = strip_tags(html_content)
                 
-                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-                msg.attach_alternative(html_content, "text/html")
-                msg.send()
+                send_mail_async(subject, text_content, settings.EMAIL_HOST_USER, [email], html_message=html_content)
                 
                 print(f"DEBUG: Registration success email sent to {email}")
             except Exception as e:
@@ -1531,9 +1524,7 @@ def org_login_start(request):
                 html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 text_content = strip_tags(html_content)
                 
-                msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-                msg.attach_alternative(html_content, "text/html")
-                msg.send()
+                send_mail_async(subject, text_content, settings.EMAIL_HOST_USER, [email], html_message=html_content)
                 
                 print(f"DEBUG: Login OTP for {email}: {otp}") # Keep for dev backup
                 
@@ -1608,7 +1599,7 @@ def update_tournament_statuses(org):
     now = timezone.now()
     
     # 1. Update to 'Ongoing': Start Date passed AND End Date in future/now
-    Tournament.objects.filter(
+    Tournament.objects.select_related('Organization_Name').filter(
         Organization_Name=org,
         start_date__lte=now,
         end_date__gt=now,
@@ -1616,7 +1607,7 @@ def update_tournament_statuses(org):
     ).exclude(Status__in=['Ongoing', 'Completed', 'Cancelled']).update(Status='Ongoing')
     
     # 2. Update to 'Completed': End Date passed
-    Tournament.objects.filter(
+    Tournament.objects.select_related('Organization_Name').filter(
         Organization_Name=org,
         end_date__lte=now,
         approval_status='APPROVED'
@@ -1624,7 +1615,7 @@ def update_tournament_statuses(org):
     
     # 3. Optional: Revert to 'Scheduled' if dates pushed back? 
     # Important: Do NOT revert if manually marked as Completed early.
-    Tournament.objects.filter(
+    Tournament.objects.select_related('Organization_Name').filter(
         Organization_Name=org,
         start_date__gt=now,
         approval_status='APPROVED'
@@ -1660,12 +1651,12 @@ def organizer_dashboard(request):
                 
     # --- Stats ---
     total_players = OrganizationPlayer.objects.filter(organization=org).count()
-    active_tournaments = Tournament.objects.filter(Organization_Name=org, Status='Ongoing').count()
+    active_tournaments = Tournament.objects.select_related('Organization_Name').filter(Organization_Name=org, Status='Ongoing').count()
     
     # --- Notifications Logic ---
     
-    # Fetch real notifications
-    db_notifications = OrganizationNotification.objects.filter(recipient=org).order_by('-created_at')[:10]
+    # Fetch real notifications with related_tournament to avoid N+1
+    db_notifications = OrganizationNotification.objects.select_related('related_tournament').filter(recipient=org).order_by('-created_at')[:10]
     
     notifications = []
     
@@ -1818,9 +1809,7 @@ def resend_otp(request):
         html_content = render_to_string('web/emails/otp_verification.html', {'otp': otp, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
         text_content = strip_tags(html_content)
         
-        msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
+        send_mail_async(subject, text_content, settings.EMAIL_HOST_USER, [email], html_message=html_content)
         
         print(f"DEBUG: Resend OTP for {email}: {otp}")
         
@@ -1906,12 +1895,12 @@ def scorecard_tool(request):
     history = paginator.get_page(page_number)
 
     # Get all workflow tournaments to show in the tool
-    all_previous_tournaments = PreviousTournament.objects.filter(
+    all_previous_tournaments = PreviousTournament.objects.select_related('Organization_Name').filter(
         organization=org
     ).order_by('-date')
     unpublished_tournaments = all_previous_tournaments.filter(published=False)
 
-    approved_tournaments = Tournament.objects.filter(
+    approved_tournaments = Tournament.objects.select_related('Organization_Name').filter(
         Organization_Name=org,
         approval_status='APPROVED',
         Status='Completed'
@@ -2235,14 +2224,20 @@ def update_profile(request):
     org = get_object_or_404(Organization, id=org_id)
     
     if request.method == 'POST':
-        org.Organization_Name = request.POST.get('organization_name', org.Organization_Name)
-        org.Organization_UserName = request.POST.get('organization_username', org.Organization_UserName)
-        org.Organization_Contact = request.POST.get('organization_contact', org.Organization_Contact)
-        org.instagram_username = request.POST.get('instagram_username', '')
-        org.instagram_link = request.POST.get('instagram_link', '')
-        org.save()
+        # Map frontend names to model fields
+        data = request.POST.copy()
+        if 'organization_name' in data: data['Organization_Name'] = data['organization_name']
+        if 'organization_username' in data: data['Organization_UserName'] = data['organization_username']
+        if 'organization_contact' in data: data['Organization_Contact'] = data['organization_contact']
         
-        messages.success(request, 'Profile updated successfully!')
+        form = OrganizationDetailsForm(data, instance=org)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{error}")
         return redirect('manage_profile')
     
     return redirect('manage_profile')
@@ -2348,7 +2343,7 @@ def tournament_list(request):
     q_hidden = Q(Status='Completed') | Q(end_date__lte=now)
     
     # Base queryset: active tournaments for this org
-    tournaments = Tournament.objects.filter(
+    tournaments = Tournament.objects.select_related('Organization_Name').filter(
         Organization_Name=org, 
         is_archived=False
     ).exclude(q_hidden).order_by('start_date').distinct()
@@ -2414,22 +2409,15 @@ def edit_previous_tournament(request, pt_id):
     pt = get_object_or_404(PreviousTournament, id=pt_id, organization=org)
     
     if request.method == 'POST':
-        pt.tournament_name = request.POST.get('tournament_name', pt.tournament_name)
-        pt.game_name = request.POST.get('game_name', pt.game_name)
-        pt.winner_team = request.POST.get('winner_team', pt.winner_team)
-        pt.runner_up_team = request.POST.get('runner_up_team', pt.runner_up_team)
-        pt.description = request.POST.get('description', pt.description)
-        
-        date_str = request.POST.get('date')
-        if date_str:
-            pt.date = date_str
-            
-        if 'cover_image' in request.FILES:
-            pt.cover_image = request.FILES['cover_image']
-            
-        pt.save()
-        messages.success(request, 'Tournament metadata updated successfully.')
-        return redirect('scorecard_tool')
+        form = PreviousTournamentForm(request.POST, request.FILES, instance=pt)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tournament metadata updated successfully.')
+            return redirect('scorecard_tool')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{error}")
         
     return render(request, 'web/Organization/org_previous_tournament_edit.html', {
         'org': org,
@@ -2455,7 +2443,7 @@ def tournament_history(request):
     # Completed = (Status='Completed') OR (end_date <= now)
     q_completed = Q(Status='Completed') | Q(end_date__lte=now)
     
-    completed_tournaments = Tournament.objects.filter(
+    completed_tournaments = Tournament.objects.select_related('Organization_Name').filter(
         Organization_Name=org,
         is_archived=False
     ).filter(q_completed).distinct().order_by('-end_date')
@@ -2608,7 +2596,7 @@ def cancel_tournament(request, tournament_id):
     """
     
     try:
-        send_mail(
+        send_mail_async(
             subject,
             email_message,
             settings.DEFAULT_FROM_EMAIL,
@@ -2756,7 +2744,7 @@ def org_add_player(request):
                                 'invite': invite,
                                 'invite_url': invite_url,
                             })
-                            send_mail(
+                            send_mail_async(
                                 subject=f'[E-GameScout] {org.Organization_Name} wants you on their team!',
                                 message=f'You have been invited to join {org.Organization_Name} on E-GameScout. Click here to accept: {invite_url}',
                                 from_email=None,
@@ -2825,7 +2813,7 @@ def accept_player_invite(request, token):
             'invite': invite,
             'register_url': register_url,
         })
-        send_mail(
+        send_mail_async(
             subject=f'You joined {invite.organization.Organization_Name} — Complete your E-GameScout registration',
             message=f'Welcome! Register at {register_url} to unlock full platform features.',
             from_email=None,
@@ -2871,7 +2859,7 @@ def org_view_player_profile(request, player_id):
     # Has organization already bid on this player?
     has_active_bid = False
     if active_season:
-        has_active_bid = Bid.objects.filter(
+        has_active_bid = Bid.objects.select_related('organization', 'player', 'season').filter(
             organization=org, 
             player=player, 
             season=active_season, 
@@ -3116,7 +3104,7 @@ def org_upcoming_tournaments(request):
     org = get_object_or_404(Organization, id=org_id)
     
     # 1. Published upcoming tournaments (Active) - only admin-approved ones
-    tournaments = Tournament.objects.filter(
+    tournaments = Tournament.objects.select_related('Organization_Name').filter(
         Status__in=['Scheduled', 'Ongoing'],
         is_published=True,
         approval_status='APPROVED',
@@ -3190,7 +3178,7 @@ def player_upcoming_tournaments(request):
     player = get_object_or_404(Player, id=player_id)
     
     # Get all upcoming published and admin-approved tournaments from all organizations
-    tournaments = Tournament.objects.filter(
+    tournaments = Tournament.objects.select_related('Organization_Name').filter(
         Status__in=['Scheduled', 'Ongoing'],
         is_published=True,
         approval_status='APPROVED'
@@ -3366,7 +3354,7 @@ def org_bidding_dashboard(request):
         view_bidding_status = None
     
     # 1. Available Players (Not Sold yet and Active Account and Not in any organization)
-    sold_player_ids = Bid.objects.filter(status='Accepted').values_list('player_id', flat=True)
+    sold_player_ids = Bid.objects.select_related('organization', 'player', 'season').filter(status='Accepted').values_list('player_id', flat=True)
     all_active_players = Player.objects.filter(is_archived=False, status='ACTIVE', is_active_account=True)
     available_players = all_active_players.exclude(id__in=sold_player_ids).filter(organization__isnull=True)
     
@@ -3374,7 +3362,7 @@ def org_bidding_dashboard(request):
     all_sold = (all_active_players.exists() and not available_players.exists())
     
     # 2. My Bids Logic
-    all_bids = Bid.objects.filter(organization=org).select_related('player', 'season').prefetch_related('negotiations').order_by('-created_at')
+    all_bids = Bid.objects.select_related('organization', 'player', 'season').filter(organization=org).select_related('player', 'season').prefetch_related('negotiations').order_by('-created_at')
     
     active_bids = all_bids.filter(status='Pending')
     rejected_bids = all_bids.filter(status='Rejected')
@@ -3463,7 +3451,7 @@ def player_bidding_dashboard(request):
         view_bidding_status = None
     
     # Get all bids for this player
-    all_bids = Bid.objects.filter(player=player).select_related('organization').prefetch_related('negotiations').order_by('-created_at')
+    all_bids = Bid.objects.select_related('organization', 'player', 'season').filter(player=player).select_related('organization').prefetch_related('negotiations').order_by('-created_at')
     
     # Split bids into categories
     active_bids = all_bids.filter(status='Pending')
@@ -3542,7 +3530,7 @@ def org_scout_players(request):
     # Only show players if there is an active bidding season
     if active_season:
         available_players = Player.objects.filter(is_archived=False, status='ACTIVE', is_active_account=True).order_by('-created_at')
-        sold_player_ids = list(Bid.objects.filter(status='Accepted').values_list('player_id', flat=True))
+        sold_player_ids = list(Bid.objects.select_related('organization', 'player', 'season').filter(status='Accepted').values_list('player_id', flat=True))
     else:
         available_players = []
         sold_player_ids = []
@@ -3577,7 +3565,7 @@ def place_bid(request, player_id):
         return redirect('org_bidding_dashboard')
         
     # Check if all players are sold out
-    sold_player_ids = Bid.objects.filter(status='Accepted').values_list('player_id', flat=True)
+    sold_player_ids = Bid.objects.select_related('organization', 'player', 'season').filter(status='Accepted').values_list('player_id', flat=True)
     all_active_players = Player.objects.filter(is_archived=False, status='ACTIVE', is_active_account=True)
     available_players = all_active_players.exclude(id__in=sold_player_ids).filter(organization__isnull=True)
     
@@ -3586,7 +3574,7 @@ def place_bid(request, player_id):
         return redirect('org_bidding_dashboard')
     
     # Check player isn't already sold
-    already_sold = Bid.objects.filter(player=player, status='Accepted').exists()
+    already_sold = Bid.objects.select_related('organization', 'player', 'season').filter(player=player, status='Accepted').exists()
     if already_sold:
         messages.error(request, f'{player.full_name} has already been sold.')
         return redirect('org_bidding_dashboard')
@@ -3607,7 +3595,7 @@ def place_bid(request, player_id):
         return redirect('org_bidding_dashboard')
     
     # --- FIX: Prevent duplicate bids from same org on same player ---
-    existing_active_bid = Bid.objects.filter(
+    existing_active_bid = Bid.objects.select_related('organization', 'player', 'season').filter(
         player=player,
         organization=org,
         status__in=['Pending', 'Negotiation']
@@ -3696,7 +3684,7 @@ def player_accept_bid(request, bid_id):
     
     # 5. Reject all other non-accepted bids for this player & Refund
     #    (so every other organization clearly sees the bid as rejected)
-    other_bids = Bid.objects.filter(player=bid.player).exclude(id=bid.id).exclude(status='Accepted')
+    other_bids = Bid.objects.select_related('organization', 'player', 'season').filter(player=bid.player).exclude(id=bid.id).exclude(status='Accepted')
     for other_bid in other_bids:
         other_bid.status = 'Rejected'
         other_bid.save()
@@ -3741,7 +3729,7 @@ def player_reject_bid(request, bid_id):
     bid = get_object_or_404(Bid, id=bid_id, player_id=player_id)
     
     # Validation: Prevent action if player works for an org or has an Accepted bid
-    if bid.player.organization or Bid.objects.filter(player_id=player_id, status='Accepted').exists():
+    if bid.player.organization or Bid.objects.select_related('organization', 'player', 'season').filter(player_id=player_id, status='Accepted').exists():
         messages.error(request, "You have already been recruited. You cannot modify other bids.")
         return redirect('player_bidding_dashboard')
 
@@ -3911,7 +3899,7 @@ def org_respond_negotiation(request, negotiation_id, action):
                 )
                 
                 # Reject other bids
-                other_bids = Bid.objects.filter(player=bid.player, status='Pending').exclude(id=bid.id)
+                other_bids = Bid.objects.select_related('organization', 'player', 'season').filter(player=bid.player, status='Pending').exclude(id=bid.id)
                 for other_bid in other_bids:
                     other_bid.status = 'Rejected'
                     other_bid.save()
@@ -4011,7 +3999,7 @@ def player_reactivate_confirm(request):
                 html_message = render_to_string('web/emails/otp_verification.html', {'otp': otp_code, 'email': email, 'logo_url': request.build_absolute_uri('/static/web/images/logo.png')})
                 plain_message = strip_tags(html_message)
                 
-                send_mail(
+                send_mail_async(
                     'Your E-Game Scout Code',
                     plain_message,
                     settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com',
@@ -4049,10 +4037,21 @@ def check_username(request):
 def org_contract_list(request):
     org_id = request.session.get('organizer_id')
     org = get_object_or_404(Organization, id=org_id)
-    contracts = Contract.objects.filter(organization=org).order_by('-created_at')
+    # Use select_related('player') to optimize N+1 queries when fetching player name and uid
+    contracts = Contract.objects.select_related('player').filter(organization=org).order_by('-created_at')
+    
+    status_filter = request.GET.get('status', 'all')
+    if status_filter == 'signed':
+        contracts = contracts.filter(is_signed=True)
+    elif status_filter == 'verified':
+        contracts = contracts.filter(is_saved=True, is_signed=False)
+    elif status_filter == 'draft':
+        contracts = contracts.filter(is_saved=False)
+        
     return render(request, 'web/Organization/org_contracts_list.html', {
         'org': org,
-        'contracts': contracts
+        'contracts': contracts,
+        'current_filter': status_filter
     })
 
 @login_required_organization
@@ -4078,7 +4077,7 @@ def org_create_contract(request):
         sig_form = None
             
     # Fetch accepted bids for this organization's players to show bid price
-    accepted_bids = Bid.objects.filter(
+    accepted_bids = Bid.objects.select_related('organization', 'player', 'season').filter(
         organization=org,
         status='Accepted'
     ).values('player_id', 'amount')
@@ -4211,6 +4210,17 @@ def org_export_contract_pdf(request, contract_id):
         return response
     return HttpResponse("Error generating PDF", status=400)
 
+import threading
+
+def send_contract_email_thread(subject, message, from_email, recipient_list, pdf_content, org_name):
+    from django.core.mail import EmailMultiAlternatives
+    try:
+        email = EmailMultiAlternatives(subject, message, from_email, recipient_list)
+        email.attach(f"Contract_{org_name}.pdf", pdf_content, 'application/pdf')
+        email.send()
+    except Exception as e:
+        print(f"Failed to send contract email: {e}")
+
 @login_required_organization
 def org_send_contract_to_player(request, contract_id):
     org_id = request.session.get('organizer_id')
@@ -4231,30 +4241,19 @@ def org_send_contract_to_player(request, contract_id):
     if pdf:
         subject = f"Official Contract from {org.Organization_Name}"
         message = f"Hello {contract.player.full_name},\n\nPlease find the attached contract for your review."
-        email = EmailMultiAlternatives(
-            subject, 
-            message, 
-            settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com', 
-            [player_email]
+        
+        email_thread = threading.Thread(
+            target=send_contract_email_thread,
+            args=(subject, message, settings.DEFAULT_FROM_EMAIL or 'noreply@egamescout.com', [player_email], pdf, org.Organization_Name)
         )
-        email.attach(f"Contract_{org.Organization_Name}.pdf", pdf, 'application/pdf')
-        email.send()
+        email_thread.start()
         
         # Send in-app notification to player
-        PlayerNotification.objects.create(
-            recipient=contract.player,
-            message=f"{org.Organization_Name} has sent you an official contract. Please review and sign it.",
-            link='/player/contract/'
-        )
+        # PlayerNotification handled by signals
         
-        SystemLog.objects.create(
-            user_id=org.id,
-            user_type='ORGANIZATION',
-            action='Sent Contract',
-            details=f"Sent contract to {contract.player.full_name}"
-        )
+        # SystemLog handled by signals
         
-        messages.success(request, f"Contract sent to {contract.player.full_name} ({player_email}) successfully!")
+        messages.success(request, f"Contract sent to {contract.player.full_name} successfully! It will be delivered shortly.")
     else:
         messages.error(request, "Failed to generate PDF for email attachment.")
         
@@ -4268,7 +4267,7 @@ def player_contract_page(request):
     player = get_object_or_404(Player, id=player_id)
 
     try:
-        contract = Contract.objects.filter(player=player).order_by('-created_at').first()
+        contract = Contract.objects.select_related('organization', 'player').filter(player=player).order_by('-created_at').first()
     except Exception:
         contract = None
 
@@ -4299,7 +4298,7 @@ def player_contract_document_view(request):
         return redirect('auth_login')
         
     player = get_object_or_404(Player, id=player_id)
-    contract = Contract.objects.filter(player=player).order_by('-created_at').first()
+    contract = Contract.objects.select_related('organization', 'player').filter(player=player).order_by('-created_at').first()
     
     if not contract:
         return HttpResponse("No contract found", status=404)
@@ -4316,7 +4315,7 @@ def player_export_contract_pdf(request):
         return redirect('auth_login')
         
     player = get_object_or_404(Player, id=player_id)
-    contract = Contract.objects.filter(player=player).order_by('-created_at').first()
+    contract = Contract.objects.select_related('organization', 'player').filter(player=player).order_by('-created_at').first()
     
     if not contract:
         return HttpResponse("No contract found", status=404)
@@ -4342,7 +4341,7 @@ def player_sign_contract(request):
         if not player_id:
             return JsonResponse({'success': False, 'message': 'Not logged in'})
         player = get_object_or_404(Player, id=player_id)
-        contract = Contract.objects.filter(player=player).order_by('-created_at').first()
+        contract = Contract.objects.select_related('organization', 'player').filter(player=player).order_by('-created_at').first()
         
         if not contract:
             return JsonResponse({'success': False, 'message': 'No active contract found'})
@@ -4399,7 +4398,7 @@ def player_sign_contract(request):
                 
                 try:
                     # Email to Org
-                    send_mail(
+                    send_mail_async(
                         subject='Contract Signed: ' + player.full_name,
                         message=f"{player.full_name} has successfully signed the professional contract.\n\n"
                                 f"Contract Reference: CTR-{contract.id:04d}\n"
@@ -4410,7 +4409,7 @@ def player_sign_contract(request):
                     )
                     
                     # Email to Player
-                    send_mail(
+                    send_mail_async(
                         subject='Contract Signed Successfully',
                         message=f"Dear {player.full_name},\n\n"
                                 f"You have successfully digitally signed your professional contract with {contract.organization.Organization_Name}.\n\n"

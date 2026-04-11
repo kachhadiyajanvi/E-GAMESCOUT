@@ -41,7 +41,7 @@ class OTPForm(forms.Form):
 class OrganizationDetailsForm(forms.ModelForm):
     class Meta:
         model = Organization
-        fields = ['Organization_Name', 'Organization_UserName', 'Organization_Contact']
+        fields = ['Organization_Name', 'Organization_UserName', 'Organization_Contact', 'instagram_username', 'instagram_link']
         widgets = {
             'Organization_Name': forms.TextInput(attrs={
                 'class': 'w-full bg-brand-dark/50 border border-white/10 rounded px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan transition-colors',
@@ -493,3 +493,10 @@ class ContractForm(forms.ModelForm):
                 choices.append((p.id, label))
             
             self.fields['player'].choices = [('', '---------')] + choices
+
+from web.models import PreviousTournament
+
+class PreviousTournamentForm(forms.ModelForm):
+    class Meta:
+        model = PreviousTournament
+        fields = ['tournament_name', 'game_name', 'winner_team', 'runner_up_team', 'description', 'date']
