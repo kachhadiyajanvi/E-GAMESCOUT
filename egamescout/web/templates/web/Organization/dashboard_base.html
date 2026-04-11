@@ -267,9 +267,9 @@
             <!-- Glassy bottom glow line -->
             <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-cyan/30 to-transparent"></div>
 
-            <!-- Bidding Season Banner (Mobile & Tablet) -->
+            <!-- Bidding Season Banner -->
             {% if bidding_status %}
-            <div class="xl:hidden px-3 md:px-8 py-2 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-1 sm:gap-2 border-b border-white/5 backdrop-blur-md {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-orange-500/10{% endif %}">
+            <div class="px-3 md:px-8 py-2 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-1 sm:gap-2 border-b border-white/5 backdrop-blur-md {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-orange-500/10{% endif %}">
                 
                 <div class="flex items-center gap-1.5 sm:gap-2">
                     <span class="flex items-center gap-1.5 text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase tracking-widest whitespace-nowrap {% if bidding_status.is_active %}text-green-400{% else %}text-orange-500{% endif %}">
@@ -341,38 +341,14 @@
                     </span>
                 </a>
 
-                <!-- Bidding Status (Integrated into Navbar) -->
-                {% if bidding_status %}
-                    <div class="px-3 py-1.5 border border-white/10 rounded-full hidden xl:flex items-center gap-2.5 transition-all duration-500 backdrop-blur-md max-w-lg truncate {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-orange-500/10{% endif %}">
-                        <span class="flex items-center gap-1.5 text-[10px] xl:text-xs font-bold uppercase tracking-widest whitespace-nowrap {% if bidding_status.is_active %}text-green-400{% else %}text-orange-500{% endif %}">
-                            <span class="w-1.5 h-1.5 xl:w-2 xl:h-2 rounded-full shrink-0 {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-orange-500{% endif %}"></span>
-                            {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING INACTIVE{% endif %}
-                        </span>
-                        
-                        <span class="text-white/30 text-xs inline">|</span>
-                        
-                        <span class="text-white/60 text-[10px] xl:text-xs font-mono whitespace-nowrap inline">
-                            <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next Season:{% endif %}</span>
-                            <span class="text-white font-bold ml-1">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M Y" }}{% endif %}</span>
-                        </span>
-                        
-                        <span class="text-white/30 text-xs inline">|</span>
-                        
-                        {% if bidding_status.is_active %}
-                        <span class="org-bidding-countdown text-[10px] xl:text-xs font-mono font-bold text-neon-pink whitespace-nowrap"
-                            data-start="{{ bidding_status.start_date|date:'c' }}"
-                            data-end="{{ bidding_status.end_date|date:'c' }}"
-                            data-active="true">--:--:--</span>
-                        {% else %}
-                        <span class="org-bidding-countdown text-[10px] xl:text-xs font-mono font-bold text-orange-500 whitespace-nowrap"
-                            data-start="{{ bidding_status.next_season_start|date:'c' }}"
-                            data-active="false">--:--:--</span>
-                        {% endif %}
-                        
-                        <a href="{% url 'org_bidding_dashboard' %}" class="bg-black/40 border border-white/10 rounded px-2 py-1 ml-1 xl:ml-2 text-[9px] xl:text-[10px] font-bold text-accent-cyan hover:bg-white/10 transition-colors uppercase tracking-wider flex items-center gap-1 whitespace-nowrap cursor-pointer">
-                            <i class="fa-solid fa-gavel"></i> Bidding Hub
-                        </a>
+                <!-- Page Tagline Badge -->
+                {% if not bidding_status %}
+                <div class="px-5 py-2 bg-gradient-to-r from-accent-cyan/10 to-purple-500/10 border border-white/10 rounded-full hidden lg:flex items-center gap-2.5 group hover:border-accent-cyan/40 hover:shadow-[0_0_20px_rgba(102,252,241,0.15)] transition-all duration-500 backdrop-blur-md">
+                    <div class="w-6 h-6 rounded-full bg-black/40 flex items-center justify-center border border-white/5 shadow-inner">
+                        <i class="fa-solid fa-gamepad text-[10px] text-accent-cyan group-hover:scale-110 transition-transform duration-300"></i>
                     </div>
+                    <span class="text-xs font-display font-bold text-white/80 tracking-wider uppercase group-hover:text-white transition-colors">Manage your esports organization</span>
+                </div>
                 {% endif %}
                 </div>
 
