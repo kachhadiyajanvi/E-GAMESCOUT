@@ -614,12 +614,27 @@
         window.resizeCanvas = () => {
             const rect = canvas.parentElement.getBoundingClientRect();
             // Store current content before resize
-            const content = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            canvas.width = rect.width;
-            canvas.height = rect.height;
+            let content = null;
+            if (canvas.width > 0 && canvas.height > 0) {
+                try {
+                    content = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                } catch (e) {
+                    console.warn("Could not save canvas content:", e);
+                }
+            }
+            
+            // Only update dimensions if rect has a valid size
+            if (rect.width > 0 && rect.height > 0) {
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            }
+            
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.putImageData(content, 0, 0); // Restore content
+            
+            if (content) {
+                ctx.putImageData(content, 0, 0); // Restore content
+            }
             
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
