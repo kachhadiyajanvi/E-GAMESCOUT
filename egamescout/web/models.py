@@ -462,6 +462,9 @@ class Contract(models.Model):
     termination_rules = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_saved = models.BooleanField(default=False)
+    player_signature = models.ImageField(upload_to='contracts/signatures/', null=True, blank=True)
+    is_signed = models.BooleanField(default=False)
+    signed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Contract: {self.organization.Organization_Name} - {self.player.full_name}"

@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession, OrganizationPlayer
+from web.models import Organization, Player, Tournament, BiddingSeason, BiddingSeasonLog, Bid, Negotiation, Transaction, UserSession, OrganizationPlayer, Contract
 from django.db import transaction
 from django.db.models import Count, Sum, Q, Max
 from django.utils import timezone
@@ -2121,4 +2121,26 @@ def admin_organization_contracts(request, org_id):
         'page_obj': page_obj,
         'search_query': search_query
     })
+
+from django.http import HttpResponse
+from .views import render_to_pdf
+
+@user_passes_test(is_superuser, login_url='admin_login')
+def admin_export_contract_pdf(request, contract_id):
+    contract = get_object_or_404(Contract, id=contract_id)
+    org = contract.organization
+    
+    pdf = render_to_pdf('web/Organization/org_contract_document.html', {
+        'org': org,
+        'contract': contract,
+        'is_pdf': True
+    })
+    
+    if pdf:
+        response = HttpResponse(pdf, content_type='application/pdf')
+        filename = f"Contract_{contract.player.full_name}_{contract.id}.pdf"
+        content = f"inline; filename={filename}"
+        response['Content-Disposition'] = content
+        return response
+    return HttpResponse("Error generating PDF", status=400)
 

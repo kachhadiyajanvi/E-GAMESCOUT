@@ -87,9 +87,9 @@
                         {{ contract.created_at|date:"M d, Y"|default:"—" }}
                     </td>
                     <td class="px-5 py-3.5 text-right">
-                        <button onclick="openContractDataModal({{ contract.contract_data|escapejs }})" class="px-3 py-1.5 bg-theme-input-bg hover:bg-brand-blue hover:text-black border border-theme-border rounded-lg text-theme-text-muted transition-colors text-xs font-bold whitespace-nowrap shadow-sm inline-flex items-center gap-2">
-                            <i class="fa-solid fa-code"></i> Raw Data
-                        </button>
+                        <a href="{% url 'admin_export_contract_pdf' contract.id %}" target="_blank" class="px-3 py-1.5 bg-theme-input-bg hover:bg-brand-blue hover:text-black border border-theme-border rounded-lg text-theme-text-muted transition-colors text-xs font-bold whitespace-nowrap shadow-sm inline-flex items-center gap-2">
+                            <i class="fa-solid fa-file-pdf"></i> View PDF
+                        </a>
                     </td>
                 </tr>
                 {% empty %}
@@ -106,45 +106,6 @@
         </table>
     </div>
 </div>
-
-<!-- Raw Data Modal -->
-<div id="dataModal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-theme-bg/80 backdrop-blur-sm" onclick="closeContractDataModal()"></div>
-    <div class="bg-theme-card border border-theme-border w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[90vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="dataModalContent">
-        <div class="p-6 border-b border-theme-border-light flex justify-between items-center bg-theme-header-bg">
-            <h2 class="text-theme-text font-display font-bold text-lg leading-none">Contract JSON Data</h2>
-            <button onclick="closeContractDataModal()" class="w-8 h-8 rounded-lg hover:bg-theme-card-hover text-theme-text-muted hover:text-theme-text flex items-center justify-center transition-colors">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="p-6 overflow-y-auto custom-scrollbar bg-black/50">
-            <pre id="jsonDataContent" class="text-emerald-400 font-mono text-xs whitespace-pre-wrap"></pre>
-        </div>
-    </div>
-</div>
-
-<script>
-    function openContractDataModal(jsonData) {
-        document.getElementById('jsonDataContent').textContent = JSON.stringify(jsonData, null, 2);
-        const modal = document.getElementById('dataModal');
-        const content = document.getElementById('dataModalContent');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        setTimeout(() => {
-            content.classList.remove('scale-95', 'opacity-0');
-        }, 10);
-    }
-    
-    function closeContractDataModal() {
-        const modal = document.getElementById('dataModal');
-        const content = document.getElementById('dataModalContent');
-        content.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }, 300);
-    }
-</script>
 
 <!-- Pagination -->
 {% if page_obj.has_other_pages %}
