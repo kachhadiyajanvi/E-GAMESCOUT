@@ -22,7 +22,7 @@
     </div>
     {% if contract %}
     <div class="flex flex-wrap gap-2">
-        {% if not contract.is_signed %}
+        {% if not contract_is_signed %}
         <button onclick="openSignatureModal()"
             class="px-5 py-2.5 bg-accent-cyan text-brand-dark font-bold text-sm rounded-xl transition-all shadow-[0_0_15px_rgba(102,252,241,0.3)] hover:shadow-[0_0_25px_rgba(102,252,241,0.6)] flex items-center gap-2">
             <i class="fa-solid fa-pen-nib"></i> Sign Contract
@@ -42,13 +42,13 @@
 
 {% if contract %}
 
-{% if contract.is_signed %}
+{% if contract_is_signed %}
 <!-- Signed Status Banner -->
 <div class="mb-5 flex items-center gap-3 bg-green-500/10 border border-green-500/20 rounded-xl px-5 py-3">
     <i class="fa-solid fa-circle-check text-green-400 text-lg"></i>
     <div>
         <p class="text-green-300 font-bold text-sm">Contract Digitally Signed</p>
-        <p class="text-green-400/60 text-xs mt-0.5">Signed on {{ contract.signed_at|date:"F j, Y at H:i" }} · This contract is now locked and non-editable.</p>
+        <p class="text-green-400/60 text-xs mt-0.5">{% if contract_signed_at %}Signed on {{ contract_signed_at|date:"F j, Y" }} · {% endif %}This contract is now locked and non-editable.</p>
     </div>
 </div>
 {% endif %}
@@ -145,9 +145,9 @@
 
             <!-- Player Signature -->
             <div style="width:45%; float:right; border-top:1px solid #ccc; padding-top:12px; text-align:center; box-sizing:border-box;">
-                {% if contract.is_signed and contract.player_signature %}
-                <img src="{{ contract.player_signature.url }}" style="max-height:60px; max-width:150px; object-fit:contain; margin-bottom:6px;" alt="Player Signature">
-                <div style="font-size:9px; color:#888; margin-top:2px;">Signed on: {{ contract.signed_at|date:"Y-m-d" }}</div>
+                {% if contract_is_signed and contract_player_signature %}
+                <img src="{{ contract_player_signature.url }}" style="max-height:60px; max-width:150px; object-fit:contain; margin-bottom:6px;" alt="Player Signature">
+                {% if contract_signed_at %}<div style="font-size:9px; color:#888; margin-top:2px;">Signed on: {{ contract_signed_at|date:"Y-m-d" }}</div>{% endif %}
                 {% else %}
                 <div style="height:60px; display:flex; align-items:center; justify-content:center;">
                     <span style="font-size:10px; color:#ccc; font-style:italic;">Awaiting signature</span>

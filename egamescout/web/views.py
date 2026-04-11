@@ -4218,13 +4218,33 @@ def player_contract_page(request):
     player_id = request.session.get('player_id')
     if not player_id:
         return redirect('auth_login')
-        
+
     player = get_object_or_404(Player, id=player_id)
-    contract = Contract.objects.filter(player=player).order_by('-created_at').first()
-    
+
+    try:
+        contract = Contract.objects.filter(player=player).order_by('-created_at').first()
+    except Exception:
+        contract = None
+
+    # Safely read new signature fields (guard against unapplied migrations on live DB)
+    contract_is_signed = False
+    contract_player_signature = None
+    contract_signed_at = None
+
+    if contract:
+        try:
+            contract_is_signed = bool(contract.is_signed)
+            contract_player_signature = contract.player_signature if contract.player_signature else None
+            contract_signed_at = contract.signed_at
+        except Exception:
+            pass  # Migration not yet applied on server
+
     return render(request, 'web/Player/player_contract.html', {
         'player': player,
-        'contract': contract
+        'contract': contract,
+        'contract_is_signed': contract_is_signed,
+        'contract_player_signature': contract_player_signature,
+        'contract_signed_at': contract_signed_at,
     })
 
 def player_contract_document_view(request):
