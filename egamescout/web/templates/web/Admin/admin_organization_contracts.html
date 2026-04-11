@@ -67,20 +67,18 @@
                         {{ contract.player.full_name }}
                     </td>
                     <td class="px-5 py-3.5 text-theme-text-muted font-mono font-bold">
-                        ₹{{ contract.base_salary|intcomma }}
+                        ₹{{ contract.salary|intcomma }}
                     </td>
                     <td class="px-5 py-3.5 text-theme-text-muted/70 text-xs whitespace-nowrap">
-                        {{ contract.start_date|date:"d M Y" }} to {{ contract.end_date|date:"d M Y" }}
+                        {{ contract.duration|default:"N/A" }}
                     </td>
                     <td class="px-5 py-3.5">
                         <span class="px-2.5 py-1 
-                            {% if contract.status == 'DRAFT' %}bg-gray-500/10 text-gray-400 border border-gray-500/30
-                            {% elif contract.status == 'PENDING' %}bg-yellow-500/10 text-yellow-400 border border-yellow-500/30
-                            {% elif contract.status == 'ACTIVE' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/30
-                            {% elif contract.status == 'REJECTED' %}bg-red-500/10 text-red-400 border border-red-500/30
-                            {% else %}bg-theme-card text-theme-text-muted border border-theme-border{% endif %}
+                            {% if contract.is_signed %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/30
+                            {% elif contract.is_saved %}bg-yellow-500/10 text-yellow-400 border border-yellow-500/30
+                            {% else %}bg-gray-500/10 text-gray-400 border border-gray-500/30{% endif %}
                             rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                            {{ contract.get_status_display }}
+                            {% if contract.is_signed %}SIGNED{% elif contract.is_saved %}SENT / PENDING{% else %}DRAFT{% endif %}
                         </span>
                     </td>
                     <td class="px-5 py-3.5 text-theme-text-muted/70 text-xs whitespace-nowrap">

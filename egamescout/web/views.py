@@ -1156,7 +1156,7 @@ def index(request):
     except Exception:
         live_scouting = False
         
-    previous_tournaments = PreviousTournament.objects.select_related('Organization_Name').filter(published=True).order_by('-date')[:6]
+    previous_tournaments = PreviousTournament.objects.select_related('organization').filter(published=True).order_by('-date')[:6]
     
     # Upcoming Tournaments (Verified & Published)
     now = timezone.now()
@@ -1283,7 +1283,7 @@ def public_previous_tournaments(request):
     """Public view for all historic/previous tournaments with search and pagination"""
     query = request.GET.get('q', '')
     
-    tournaments = PreviousTournament.objects.select_related('Organization_Name').filter(published=True).select_related('organization')
+    tournaments = PreviousTournament.objects.select_related('organization').filter(published=True)
     
     if query:
         tournaments = tournaments.filter(
@@ -1895,7 +1895,7 @@ def scorecard_tool(request):
     history = paginator.get_page(page_number)
 
     # Get all workflow tournaments to show in the tool
-    all_previous_tournaments = PreviousTournament.objects.select_related('Organization_Name').filter(
+    all_previous_tournaments = PreviousTournament.objects.select_related('organization').filter(
         organization=org
     ).order_by('-date')
     unpublished_tournaments = all_previous_tournaments.filter(published=False)
