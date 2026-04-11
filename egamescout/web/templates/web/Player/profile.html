@@ -444,13 +444,15 @@
     </div>
 </div>
 
-<!-- Cropper.js CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 
-<!-- Crop Modal -->
-<div id="cropModal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 touch-none" style="touch-action: none;">
-    <div class="bg-[#111217] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col">
+
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Crop Modal (Outside Stacking Context) -->
+<div id="cropModal" class="fixed inset-0 z-[9999] hidden bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 touch-none" style="touch-action: none;">
+    <div class="bg-[#111217] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col scale-100 transform origin-center">
         <div class="p-4 border-b border-white/5 flex justify-between items-center bg-black/40">
             <h3 class="text-white font-display font-bold tracking-widest text-sm uppercase">Crop <span class="text-accent-cyan">Photo</span></h3>
             <button type="button" onclick="closeCropModal()" class="text-white/50 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5">
@@ -469,7 +471,12 @@
     </div>
 </div>
 
+<!-- Cropper.js CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
 <script>
+    // Cropper JS state
     let cropper = null;
     let currentCropInput = null;
     let currentFormId = null;
@@ -644,5 +651,4 @@
         }
     });
 </script>
-
 {% endblock %}

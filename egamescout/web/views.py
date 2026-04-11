@@ -4331,6 +4331,10 @@ def player_sign_contract(request):
         if not contract:
             return JsonResponse({'success': False, 'message': 'No active contract found'})
             
+        # Access control: prevent re-signing
+        if contract.is_signed:
+            return JsonResponse({'success': False, 'message': 'Contract has already been signed.'})
+            
         try:
             data = json.loads(request.body)
             signature_data = data.get('signature')
@@ -4338,6 +4342,8 @@ def player_sign_contract(request):
             if signature_data:
                 import base64
                 from django.core.files.base import ContentFile
+                from django.core.mail import send_mail
+                from web.models import PlayerNotification, AdminNotification
                 
                 format, imgstr = signature_data.split(';base64,') 
                 ext = format.split('/')[-1] 
@@ -4350,16 +4356,63 @@ def player_sign_contract(request):
                 # Notify Organization
                 OrganizationNotification.objects.create(
                     recipient=contract.organization,
-                    message=f"Player {player.full_name} has signed their contract.",
-                    notification_type='INFO'
+                    message=f"Player {player.full_name} has successfully signed their professional contract.",
+                    notification_type='INFO',
+                    link=f'/organization/contracts/'
                 )
+                
+                # Notify Player
+                PlayerNotification.objects.create(
+                    recipient=player,
+                    message=f"You have successfully digitally signed your contract with {contract.organization.Organization_Name}.",
+                    notification_type='INFO',
+                    link='/player/contract/'
+                )
+                
                 # Notify Admin
-                from web.models import AdminNotification
                 AdminNotification.objects.create(
                     message=f"Player {player.full_name} signed a contract with {contract.organization.Organization_Name}.",
                     link='/admin/contracts/',
                     notification_type='INFO'
                 )
+                
+                # Send Emails
+                # Generate full URLs (assuming request.build_absolute_uri handles domain)
+                org_host = request.build_absolute_uri('/organization/contracts/')
+                player_host = request.build_absolute_uri('/player/contract/')
+                
+                try:
+                    # Email to Org
+                    send_mail(
+                        subject='Contract Signed: ' + player.full_name,
+                        message=f"{player.full_name} has successfully signed the professional contract.\n\n"
+                                f"Contract Reference: CTR-{contract.id:04d}\n"
+                                f"View Contract: {org_host}",
+                        from_email=None, # Uses default from settings
+                        recipient_list=[contract.organization.Organization_Email],
+                        fail_silently=True,
+                    )
+                    
+                    # Email to Player
+                    send_mail(
+                        subject='Contract Signed Successfully',
+                        message=f"Dear {player.full_name},\n\n"
+                                f"You have successfully digitally signed your professional contract with {contract.organization.Organization_Name}.\n\n"
+                                f"Contract Reference: CTR-{contract.id:04d}\n"
+                                f"Download or view your locked contract here: {player_host}\n\n"
+                                f"Best regards,\nE-GAME SCOUT Team",
+                        from_email=None,
+                        recipient_list=[player.email],
+                        fail_silently=True,
+                    )
+                except Exception as e:
+                    # Log email failure but don't break the flow
+                    SystemLog.objects.create(
+                        user_id=player.id,
+                        user_type='SYSTEM',
+                        action='Email Dispatch Failed',
+                        details=f"Failed to send signature emails for contract {contract.id}. Error: {str(e)}"
+                    )
                 
                 return JsonResponse({'success': True})
             return JsonResponse({'success': False, 'message': 'No signature provided'})
