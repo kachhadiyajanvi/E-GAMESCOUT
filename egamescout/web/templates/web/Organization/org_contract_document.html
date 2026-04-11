@@ -102,6 +102,7 @@
             width: 100%;
             margin-top: 60px;
             page-break-inside: avoid;
+            overflow: hidden; /* Clear floats */
         }
         .sig-box {
             width: 45%;
@@ -110,6 +111,10 @@
             text-align: center;
             vertical-align: bottom;
             box-sizing: border-box;
+            float: left;
+        }
+        .sig-box:last-child {
+            float: right;
         }
         .sig-label {
             font-size: 10px;
@@ -264,14 +269,16 @@
                 </td>
                 <td style="width: 10%; border: 0;"></td>
                 <td class="sig-box">
-                    {% if contract.is_signed and contract.player_signature %}
-                    <img src="{{ contract.player_signature.url }}" class="signature-img" alt="Player Signature">
-                    <div style="font-size: 8px; color: #888; margin-top: 2px;">Signed on: {{ contract.signed_at|date:"Y-m-d" }}</div>
-                    {% else %}
-                    <div style="height: 60px;"></div>
-                    {% endif %}
-                    <div class="sig-label">Player Signature</div>
-                    <div style="font-size: 12px; font-weight: bold;">{{ contract.player.full_name }}</div>
+                    <div class="sig-box" style="float: none; width: 100%; border: 0; padding: 0;">
+                        {% if contract.is_signed and contract.player_signature %}
+                        <img src="{{ contract.player_signature.url }}" class="signature-img" alt="Player Signature">
+                        <div style="font-size: 8px; color: #888; margin-top: 2px;">Signed on: {{ contract.signed_at|date:"Y-m-d" }}</div>
+                        {% else %}
+                        <div style="height: 60px;"></div>
+                        {% endif %}
+                        <div class="sig-label">Player Signature</div>
+                        <div style="font-size: 12px; font-weight: bold;">{{ contract.player.full_name }}</div>
+                    </div>
                 </td>
             </tr>
         </table>
