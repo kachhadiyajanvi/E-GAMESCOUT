@@ -418,9 +418,9 @@
         <div class="p-4 h-[50vh] max-h-[400px] w-full bg-black/60 relative">
             <img id="cropImage" src="" alt="Crop preview" class="max-w-full block">
         </div>
-        <div class="p-4 border-t border-white/5 bg-black/40 flex justify-end gap-3">
-            <button type="button" onclick="closeCropModal()" class="px-6 py-2.5 rounded-lg border border-white/10 text-brand-light/60 hover:text-white hover:bg-white/5 font-display font-bold text-xs tracking-widest transition-all uppercase">Cancel</button>
-            <button type="button" id="saveCropBtn" class="px-6 py-2.5 rounded-lg bg-accent-cyan text-black font-display font-bold text-xs tracking-widest hover:bg-white hover:shadow-[0_0_20px_rgba(102,252,241,0.6)] transition-all uppercase flex items-center gap-2">
+        <div class="p-4 border-t border-white/5 bg-black/40 flex flex-col sm:flex-row justify-end gap-3 w-full">
+            <button type="button" onclick="closeCropModal()" class="btn-secondary">Cancel</button>
+            <button type="button" id="saveCropBtn" class="btn-primary">
                 <i class="fa-solid fa-crop-simple"></i> Apply & Upload
             </button>
         </div>

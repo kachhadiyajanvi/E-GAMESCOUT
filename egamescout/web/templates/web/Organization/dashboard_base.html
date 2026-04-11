@@ -267,51 +267,7 @@
             <!-- Glassy bottom glow line -->
             <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-cyan/30 to-transparent"></div>
 
-            <!-- Bidding Season Banner -->
-            {% if bidding_status %}
-            <div class="px-3 md:px-8 py-2 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-1 sm:gap-2 border-b border-white/5 backdrop-blur-md
-                {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-orange-500/10{% endif %}">
-                
-                <div class="flex items-center gap-1.5 sm:gap-2">
-                    <span class="flex items-center gap-1.5 text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase tracking-widest whitespace-nowrap
-                        {% if bidding_status.is_active %}text-green-400{% else %}text-orange-500{% endif %}">
-                        <span class="w-1.5 h-1.5 rounded-full shrink-0 {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-orange-500{% endif %}"></span>
-                        {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING INACTIVE{% endif %}
-                    </span>
-                    
-                    <span class="text-white/30 text-[10px] sm:hidden inline">|</span>
-                    
-                    <span class="text-white/60 text-[9px] sm:text-[10px] md:text-[11px] font-mono whitespace-nowrap sm:hidden inline">
-                        <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next:{% endif %}</span>
-                        <span class="text-white font-bold">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M y" }}{% endif %}</span>
-                    </span>
-                </div>
 
-                <span class="text-white/30 text-[10px] hidden sm:inline">|</span>
-                
-                <span class="text-white/60 text-[10px] md:text-[11px] font-mono whitespace-nowrap hidden sm:inline">
-                    <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next Season:{% endif %}</span>
-                    <span class="text-white font-bold">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M Y" }}{% endif %}</span>
-                </span>
-                
-                <span class="text-white/30 text-[10px] hidden sm:inline">|</span>
-                
-                {% if bidding_status.is_active %}
-                <span class="text-[9px] sm:text-[10px] md:text-[11px] font-mono font-bold text-neon-pink whitespace-nowrap" id="orgBiddingCountdown"
-                    data-start="{{ bidding_status.start_date|date:'c' }}"
-                    data-end="{{ bidding_status.end_date|date:'c' }}"
-                    data-active="true">--:--:--</span>
-                {% else %}
-                <span class="text-[9px] sm:text-[10px] md:text-[11px] font-mono font-bold text-orange-500 whitespace-nowrap" id="orgBiddingCountdown"
-                    data-start="{{ bidding_status.next_season_start|date:'c' }}"
-                    data-active="false">--:--:--</span>
-                {% endif %}
-                
-                <a href="{% url 'org_bidding_dashboard' %}" class="ml-auto text-[10px] font-bold text-accent-cyan hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1 whitespace-nowrap hidden md:flex">
-                    <i class="fa-solid fa-gavel text-[10px]"></i> Bidding Hub
-                </a>
-            </div>
-            {% endif %}
             {% if settings and settings.show_announcement and settings.announcement_text %}
             <!-- Global Announcement Banner -->
             <div class="bg-gradient-to-r from-accent-cyan/10 via-accent-cyan/5 to-transparent border-b border-accent-cyan/20 px-4 py-2 flex items-center justify-center gap-3 relative z-50">
@@ -341,15 +297,39 @@
                     </span>
                 </a>
 
-                <!-- Page Tagline Badge -->
-                    {% if not bidding_status %}
-                    <div class="px-5 py-2 bg-gradient-to-r from-accent-cyan/10 to-purple-500/10 border border-white/10 rounded-full hidden lg:flex items-center gap-2.5 group hover:border-accent-cyan/40 hover:shadow-[0_0_20px_rgba(102,252,241,0.15)] transition-all duration-500 backdrop-blur-md">
-                        <div class="w-6 h-6 rounded-full bg-black/40 flex items-center justify-center border border-white/5 shadow-inner">
-                            <i class="fa-solid fa-gamepad text-[10px] text-accent-cyan group-hover:scale-110 transition-transform duration-300"></i>
-                        </div>
-                        <span class="text-xs font-display font-bold text-white/80 tracking-wider uppercase group-hover:text-white transition-colors">Manage your esports organization</span>
+                <!-- Bidding Status (Integrated into Navbar) -->
+                {% if bidding_status %}
+                    <div class="px-5 py-2 border border-white/10 rounded-full hidden lg:flex items-center gap-3 transition-all duration-500 backdrop-blur-md {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-orange-500/10{% endif %}">
+                        <span class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest whitespace-nowrap {% if bidding_status.is_active %}text-green-400{% else %}text-orange-500{% endif %}">
+                            <span class="w-2 h-2 rounded-full shrink-0 {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-orange-500{% endif %}"></span>
+                            {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING INACTIVE{% endif %}
+                        </span>
+                        
+                        <span class="text-white/30 text-xs inline">|</span>
+                        
+                        <span class="text-white/60 text-xs font-mono whitespace-nowrap inline">
+                            <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next Season:{% endif %}</span>
+                            <span class="text-white font-bold ml-1">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M Y" }}{% endif %}</span>
+                        </span>
+                        
+                        <span class="text-white/30 text-xs inline">|</span>
+                        
+                        {% if bidding_status.is_active %}
+                        <span class="text-xs font-mono font-bold text-neon-pink whitespace-nowrap" id="orgBiddingCountdown"
+                            data-start="{{ bidding_status.start_date|date:'c' }}"
+                            data-end="{{ bidding_status.end_date|date:'c' }}"
+                            data-active="true">--:--:--</span>
+                        {% else %}
+                        <span class="text-xs font-mono font-bold text-orange-500 whitespace-nowrap" id="orgBiddingCountdown"
+                            data-start="{{ bidding_status.next_season_start|date:'c' }}"
+                            data-active="false">--:--:--</span>
+                        {% endif %}
+                        
+                        <a href="{% url 'org_bidding_dashboard' %}" class="bg-black/40 border border-white/10 rounded px-2 py-1 ml-2 text-[10px] font-bold text-accent-cyan hover:bg-white/10 transition-colors uppercase tracking-wider flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                            <i class="fa-solid fa-gavel"></i> Bidding Hub
+                        </a>
                     </div>
-                    {% endif %}
+                {% endif %}
                 </div>
 
             <!-- Right Actions -->
