@@ -267,6 +267,50 @@
             <!-- Glassy bottom glow line -->
             <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-cyan/30 to-transparent"></div>
 
+            <!-- Bidding Season Banner (Mobile & Tablet) -->
+            {% if bidding_status %}
+            <div class="xl:hidden px-3 md:px-8 py-2 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-1 sm:gap-2 border-b border-white/5 backdrop-blur-md {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-orange-500/10{% endif %}">
+                
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <span class="flex items-center gap-1.5 text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase tracking-widest whitespace-nowrap {% if bidding_status.is_active %}text-green-400{% else %}text-orange-500{% endif %}">
+                        <span class="w-1.5 h-1.5 rounded-full shrink-0 {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-orange-500{% endif %}"></span>
+                        {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING INACTIVE{% endif %}
+                    </span>
+                    
+                    <span class="text-white/30 text-[10px] sm:hidden inline">|</span>
+                    
+                    <span class="text-white/60 text-[9px] sm:text-[10px] md:text-[11px] font-mono whitespace-nowrap sm:hidden inline">
+                        <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next:{% endif %}</span>
+                        <span class="text-white font-bold ml-1">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M y" }}{% endif %}</span>
+                    </span>
+                </div>
+
+                <span class="text-white/30 text-[10px] hidden sm:inline">|</span>
+                
+                <span class="text-white/60 text-[10px] md:text-[11px] font-mono whitespace-nowrap hidden sm:inline">
+                    <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next Season:{% endif %}</span>
+                    <span class="text-white font-bold ml-1">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M Y" }}{% endif %}</span>
+                </span>
+                
+                <span class="text-white/30 text-[10px] hidden sm:inline">|</span>
+                
+                {% if bidding_status.is_active %}
+                <span class="org-bidding-countdown text-[9px] sm:text-[10px] md:text-[11px] font-mono font-bold text-neon-pink whitespace-nowrap"
+                    data-start="{{ bidding_status.start_date|date:'c' }}"
+                    data-end="{{ bidding_status.end_date|date:'c' }}"
+                    data-active="true">--:--:--</span>
+                {% else %}
+                <span class="org-bidding-countdown text-[9px] sm:text-[10px] md:text-[11px] font-mono font-bold text-orange-500 whitespace-nowrap"
+                    data-start="{{ bidding_status.next_season_start|date:'c' }}"
+                    data-active="false">--:--:--</span>
+                {% endif %}
+                
+                <a href="{% url 'org_bidding_dashboard' %}" class="ml-auto text-[10px] font-bold text-accent-cyan hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1 whitespace-nowrap hidden md:flex">
+                    <i class="fa-solid fa-gavel text-[10px]"></i> Bidding Hub
+                </a>
+            </div>
+            {% endif %}
+
 
             {% if settings and settings.show_announcement and settings.announcement_text %}
             <!-- Global Announcement Banner -->
@@ -299,15 +343,15 @@
 
                 <!-- Bidding Status (Integrated into Navbar) -->
                 {% if bidding_status %}
-                    <div class="px-5 py-2 border border-white/10 rounded-full hidden lg:flex items-center gap-3 transition-all duration-500 backdrop-blur-md {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-orange-500/10{% endif %}">
-                        <span class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest whitespace-nowrap {% if bidding_status.is_active %}text-green-400{% else %}text-orange-500{% endif %}">
-                            <span class="w-2 h-2 rounded-full shrink-0 {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-orange-500{% endif %}"></span>
+                    <div class="px-3 py-1.5 border border-white/10 rounded-full hidden xl:flex items-center gap-2.5 transition-all duration-500 backdrop-blur-md max-w-lg truncate {% if bidding_status.is_active %}bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]{% else %}bg-orange-500/10{% endif %}">
+                        <span class="flex items-center gap-1.5 text-[10px] xl:text-xs font-bold uppercase tracking-widest whitespace-nowrap {% if bidding_status.is_active %}text-green-400{% else %}text-orange-500{% endif %}">
+                            <span class="w-1.5 h-1.5 xl:w-2 xl:h-2 rounded-full shrink-0 {% if bidding_status.is_active %}bg-green-400 animate-pulse{% else %}bg-orange-500{% endif %}"></span>
                             {% if bidding_status.is_active %}BIDDING LIVE{% else %}BIDDING INACTIVE{% endif %}
                         </span>
                         
                         <span class="text-white/30 text-xs inline">|</span>
                         
-                        <span class="text-white/60 text-xs font-mono whitespace-nowrap inline">
+                        <span class="text-white/60 text-[10px] xl:text-xs font-mono whitespace-nowrap inline">
                             <span class="text-white/40">{% if bidding_status.is_active %}Season:{% else %}Next Season:{% endif %}</span>
                             <span class="text-white font-bold ml-1">{% if bidding_status.is_active %}{{ bidding_status.season_name }}{% else %}{{ bidding_status.next_season_start|date:"d M Y" }}{% endif %}</span>
                         </span>
@@ -315,17 +359,17 @@
                         <span class="text-white/30 text-xs inline">|</span>
                         
                         {% if bidding_status.is_active %}
-                        <span class="text-xs font-mono font-bold text-neon-pink whitespace-nowrap" id="orgBiddingCountdown"
+                        <span class="org-bidding-countdown text-[10px] xl:text-xs font-mono font-bold text-neon-pink whitespace-nowrap"
                             data-start="{{ bidding_status.start_date|date:'c' }}"
                             data-end="{{ bidding_status.end_date|date:'c' }}"
                             data-active="true">--:--:--</span>
                         {% else %}
-                        <span class="text-xs font-mono font-bold text-orange-500 whitespace-nowrap" id="orgBiddingCountdown"
+                        <span class="org-bidding-countdown text-[10px] xl:text-xs font-mono font-bold text-orange-500 whitespace-nowrap"
                             data-start="{{ bidding_status.next_season_start|date:'c' }}"
                             data-active="false">--:--:--</span>
                         {% endif %}
                         
-                        <a href="{% url 'org_bidding_dashboard' %}" class="bg-black/40 border border-white/10 rounded px-2 py-1 ml-2 text-[10px] font-bold text-accent-cyan hover:bg-white/10 transition-colors uppercase tracking-wider flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                        <a href="{% url 'org_bidding_dashboard' %}" class="bg-black/40 border border-white/10 rounded px-2 py-1 ml-1 xl:ml-2 text-[9px] xl:text-[10px] font-bold text-accent-cyan hover:bg-white/10 transition-colors uppercase tracking-wider flex items-center gap-1 whitespace-nowrap cursor-pointer">
                             <i class="fa-solid fa-gavel"></i> Bidding Hub
                         </a>
                     </div>
@@ -636,49 +680,46 @@
     <!-- Bidding Banner Countdown Script -->
     <script>
         (function() {
-            const el = document.getElementById('orgBiddingCountdown');
-            if (!el) return;
-            const endStr = el.dataset.end;
-            const startStr = el.dataset.start;
-            const isActive = el.dataset.active === 'true';
+            const els = document.querySelectorAll('.org-bidding-countdown');
+            if (els.length === 0) return;
             
             function pad(n) { return String(n).padStart(2, '0'); }
             function updateOrgCountdown() {
                 const now = new Date();
-                if (isActive) {
-                    if (!endStr) {
-                        el.textContent = 'No End Date';
-                        return;
+                els.forEach(el => {
+                    const endStr = el.dataset.end;
+                    const startStr = el.dataset.start;
+                    const isActive = el.dataset.active === 'true';
+                    
+                    if (isActive) {
+                        if (!endStr) { el.textContent = 'No End Date'; return; }
+                        const end = new Date(endStr);
+                        const diff = end - now;
+                        if (diff <= 0) { el.textContent = 'Season Ended'; return; }
+                        const h = Math.floor(diff / 3600000);
+                        const m = Math.floor((diff % 3600000) / 60000);
+                        const s = Math.floor((diff % 60000) / 1000);
+                        const d = Math.floor(h / 24);
+                        el.textContent = d > 0
+                            ? `Ends in: ${d}d ${pad(h%24)}h ${pad(m)}m ${pad(s)}s`
+                            : `Ends in: ${pad(h)}:${pad(m)}:${pad(s)}`;
+                    } else {
+                        if (!startStr) { el.textContent = 'TBA'; return; }
+                        const start = new Date(startStr);
+                        const diff = start - now;
+                        if (diff <= 0) { el.textContent = 'Starting soon...'; return; }
+                        const h = Math.floor(diff / 3600000);
+                        const m = Math.floor((diff % 3600000) / 60000);
+                        const s = Math.floor((diff % 60000) / 1000);
+                        const d = Math.floor(h / 24);
+                        el.textContent = d > 0
+                            ? `Starts in: ${d}d ${pad(h%24)}h ${pad(m)}m ${pad(s)}s`
+                            : `Starts in: ${pad(h)}:${pad(m)}:${pad(s)}`;
                     }
-                    const end = new Date(endStr);
-                    const diff = end - now;
-                    if (diff <= 0) { el.textContent = 'Season Ended'; return; }
-                    const h = Math.floor(diff / 3600000);
-                    const m = Math.floor((diff % 3600000) / 60000);
-                    const s = Math.floor((diff % 60000) / 1000);
-                    const d = Math.floor(h / 24);
-                    el.textContent = d > 0
-                        ? `Ends in: ${d}d ${pad(h%24)}h ${pad(m)}m ${pad(s)}s`
-                        : `Ends in: ${pad(h)}:${pad(m)}:${pad(s)}`;
-                } else {
-                    if (!startStr) {
-                        el.textContent = 'TBA';
-                        return;
-                    }
-                    const start = new Date(startStr);
-                    const diff = start - now;
-                    if (diff <= 0) { el.textContent = 'Starting soon…'; return; }
-                    const h = Math.floor(diff / 3600000);
-                    const m = Math.floor((diff % 3600000) / 60000);
-                    const s = Math.floor((diff % 60000) / 1000);
-                    const d = Math.floor(h / 24);
-                    el.textContent = d > 0
-                        ? `Starts in: ${d}d ${pad(h%24)}h ${pad(m)}m ${pad(s)}s`
-                        : `Starts in: ${pad(h)}:${pad(m)}:${pad(s)}`;
-                }
+                });
             }
-            setInterval(updateOrgCountdown, 1000);
             updateOrgCountdown();
+            setInterval(updateOrgCountdown, 1000);
         })();
     </script>
 
