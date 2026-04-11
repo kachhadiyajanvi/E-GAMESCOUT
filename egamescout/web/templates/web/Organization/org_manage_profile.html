@@ -406,6 +406,16 @@
             currentCropInput = input;
             currentFormId = formId;
 
+            // Bypass crop on mobile/tablet devices (<= 1024px)
+            if (window.innerWidth <= 1024) {
+                if(currentFormId) {
+                    document.getElementById(currentFormId).submit();
+                } else {
+                    currentCropInput.form.submit();
+                }
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 const image = document.getElementById('cropImage');
