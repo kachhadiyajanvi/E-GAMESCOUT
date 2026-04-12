@@ -2088,8 +2088,8 @@ def admin_contracts_list(request):
     if search_query:
         orgs = orgs.filter(Organization_Name__icontains=search_query)
         
-    # Annotate with contract count
-    orgs = orgs.annotate(contract_count=Count('contracts'))
+    # Annotate with contract count and ensure ordering for pagination
+    orgs = orgs.annotate(contract_count=Count('contracts')).order_by('Organization_Name')
     
     paginator = Paginator(orgs, 20)
     page_obj = paginator.get_page(request.GET.get('page'))
