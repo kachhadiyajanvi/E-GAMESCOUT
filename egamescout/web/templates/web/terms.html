@@ -26,7 +26,6 @@
             <div class="space-y-8 animate-fade-in-up" style="animation-delay:0.15s;">
 
                 <!-- Section Template Helper -->
-                {% with sections='' %}
 
                 <!-- 01. Introduction -->
                 <div class="bg-black/40 border border-white/10 rounded-2xl p-4 sm:p-6 md:p-8 hover:border-accent-cyan/20 transition-colors">
@@ -87,7 +86,52 @@
                     </p>
                 </div>
 
-                {% endwith %}
+                <!-- 06. Bidding & Financial Transactions -->
+                <div class="bg-black/40 border border-white/10 rounded-2xl p-4 sm:p-6 md:p-8 hover:border-accent-cyan/20 transition-colors">
+                    <h2 class="text-xl font-display font-bold text-white mb-4 flex items-center gap-3">
+                        <span class="text-accent-cyan font-mono text-sm opacity-60">06.</span>
+                        Bidding & Virtual Transactions
+                    </h2>
+                    <ul class="text-gray-400 leading-relaxed text-[15px] space-y-3 list-none">
+                        <li class="flex items-start gap-3"><span class="text-accent-cyan mt-1 shrink-0">✓</span> All bids placed during active auction seasons are final. Bids lock virtual currency ("coins") until accepted, countered, or rejected.</li>
+                        <li class="flex items-start gap-3"><span class="text-accent-cyan mt-1 shrink-0">✓</span> Engaging in "shill bidding" (bidding to artificially inflate a player's value without the intent to sign) is strictly prohibited.</li>
+                        <li class="flex items-start gap-3"><span class="text-accent-cyan mt-1 shrink-0">✓</span> Virtual coins holding value within the E-Game Scout economy are non-refundable unless explicitly stated under our platform refund policy.</li>
+                    </ul>
+                </div>
+
+                <!-- 07. E-Signatures & Contracts -->
+                <div class="bg-black/40 border border-white/10 rounded-2xl p-4 sm:p-6 md:p-8 hover:border-accent-cyan/20 transition-colors">
+                    <h2 class="text-xl font-display font-bold text-white mb-4 flex items-center gap-3">
+                        <span class="text-accent-cyan font-mono text-sm opacity-60">07.</span>
+                        E-Signatures & Contracts
+                    </h2>
+                    <p class="text-gray-400 leading-relaxed text-[15px]">
+                        Contracts generated and signed digitally via E-Game Scout's tools carry the same legal weight as traditional written agreements. By using our electronic signature features, both players and organizations agree to be legally bound by the terms outlined in their respective generated contracts.
+                    </p>
+                </div>
+                
+                <!-- 08. Intellectual Property -->
+                <div class="bg-black/40 border border-white/10 rounded-2xl p-4 sm:p-6 md:p-8 hover:border-accent-cyan/20 transition-colors">
+                    <h2 class="text-xl font-display font-bold text-white mb-4 flex items-center gap-3">
+                        <span class="text-accent-cyan font-mono text-sm opacity-60">08.</span>
+                        Intellectual Property
+                    </h2>
+                    <p class="text-gray-400 leading-relaxed text-[15px]">
+                        The "E-Game Scout" interface, generated AI analysis methodologies, site design, and code are the exclusive property of E-Game Scout. You may not copy or mirror our platforms. Player nicknames, organization logos, and specific team identities remain the respective property of those individuals and organizations.
+                    </p>
+                </div>
+
+                <!-- 09. Account Termination -->
+                <div class="bg-black/40 border border-white/10 rounded-2xl p-4 sm:p-6 md:p-8 hover:border-accent-cyan/20 transition-colors">
+                    <h2 class="text-xl font-display font-bold text-white mb-4 flex items-center gap-3">
+                        <span class="text-accent-cyan font-mono text-sm opacity-60">09.</span>
+                        Modification & Termination
+                    </h2>
+                    <p class="text-gray-400 leading-relaxed text-[15px]">
+                        We reserve the right to suspend or ban offending accounts without prior notice if they violate these terms. Furthermore, E-Game Scout retains the right to modify these terms at any time. Significant changes will be communicated via your registered platform email or notification dashboard.
+                    </p>
+                </div>
+
             </div>
 
             <!-- Back CTA -->
@@ -97,7 +141,5 @@
                 </a>
             </div>
         </div>
-    </main>
-
     </main>
 {% endblock %}
