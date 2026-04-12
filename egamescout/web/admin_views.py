@@ -1461,7 +1461,7 @@ def admin_start_bidding_season(request):
                 BiddingSeasonLog.objects.create(season=season, action='START', message="Bidding Manually Started by Admin")
                 
             # --- Send Notifications ---
-            from web.models import OrganizationNotification, Organization, PlayerNotification, Player
+            from web.models import OrganizationNotification, PlayerNotification
             
             # Notify organizations
             for org in Organization.objects.filter(status='Active', is_archived=False):
